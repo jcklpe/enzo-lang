@@ -7,7 +7,7 @@ I'm def interested in feedback but also understand that this is basically just a
 
 
 
-## Syntax Outline
+## Syntax Reference
 
 ### Comments
 
@@ -15,110 +15,122 @@ I'm def interested in feedback but also understand that this is basically just a
 // single line comment
 ```
 
+```
+//-Comment Title (styled different in editor and can be used for auto documentation purposes)
+```
+
 ``` 
-/. block comment./
+/' block comment, the use of single quote has better keyboard ergonomics than the star symbol typically used '/
 ```
 
 
 
 ### Variable Expressions
 
-##### variable constant
+##### variable assignment
 
 ```
-const var variable-name = [value];
+const variable-name: {value};
 ```
 
-##### variable let
+*side note: I like how R has a left and right assignment using -> and <- which I think works well visually and has flexibility that the name: value idea doesn't have.*  
+
+##### strings
 
 ```
-var variable-name = [value];
+string string-example: {`string`};
 ```
 
-#### variable types
-
-###### strings
+##### number
 
 ```
-const var string-example = [`string`];
+number number-example: {number};
 ```
 
-###### number
+##### array
 
 ```
-const var number-example = [666];
+array array-example: {`string`, 666, referenced-variable-example, function-example, object-example};
 ```
 
-###### array
+##### objects
 
 ```
-var array-example = [ `string`, 666, referenced-variable-example, function-example, object-example];
-```
-
-###### objects
-
-```
-const var object-example = [object-key = object-value];
+object object-example: {object-key: {object-value}};
 ```
 
 ```
-var object-example2 = [
-	object-key = object-value,
-	object-key2 = object-value2,
-	object-key3 = object-value3
-];
+object object-example2: {
+	object-key: {object-value},
+	object-key2: {object-value2},
+	object-key3: {object-value3}
+};
 ```
 
 ```
-const var object-example3 = [
-	object-key-object = [
-		object-key-second-layer = object-value-second-layer
-		], 
-	object-key-object2 = [
-		object-key2-second-layer = object-value2-second-layer,
-		object-key3-second-layer = [
-			object-key3-third-layer = object-value3-third-layer,
-			object-key4-fourth-layer = object-key4-third-layer
-		]
-	]
-];
+object object-example3: {
+	object-key-object: {
+		object-key-second-layer: {object-value-second-layer}
+		}, 
+	object-key-object2: {
+		object-key2-second-layer: {object-value2-second-layer},
+		object-key3-second-layer: {
+			object-key3-third-layer: {object-value3-third-layer},
+			object-key4-fourth-layer: {object-key4-third-layer}
+		}
+	}
+};
 ```
 
-###### function declaration
+##### variable invocation
 
 ```
-const var function-example = function[parameter1, parameter2]{
-	var number-example2 = [666];
-	return[parameter1 + parameter2 + number-example2];
+string string-example: {`string`};
+
+if ({{string-example}}) {
+ return {{string-example}}
 }
 ```
 
-###### function invocation
 
+
+##### function declaration
+
+// functions are basically just another variable type
+
+```
+function function-name[parameter1, parameter2]: {
+	number number-example: {666};
+	return[parameter1 + parameter2 + number-example2];
+};
+```
+
+##### function invocation
+
+```
 function-example[argument1, argument2];
+```
+
 
 #### Control Flow Statements
 
 ##### Inline if statement
 
 ```
-if(ready) return[ 12 + 2 ];
+if(ready): return[ 12 + 2 ], else return[ 5 + 8 ];
 ```
 
 ##### ternary statement
 
 ```
-if(varible == true) return[result] else return[result]
+var variable-name: return[7] if(condition = true) else return[20];
+// note `:` is used for setting values, while `=` is used for comparing values. All comparisons are strict. So in this case `variable-name` is being set to the value of `7` if the condition is true and 20 if false. 
 ```
-
-
-
-
 
 ##### If
 
 ```
-if(variable == true){
+if(variable = true): {
 	return[ 6 + 9 + 8];
 }
 ```
@@ -126,9 +138,9 @@ if(variable == true){
 ##### Else If
 
 ``` 
-else if( variable == `bark`){
+else if( variable = `bark`): {
   return[`the dog said bark`];
-}
+};
 ```
 
 ##### Else
@@ -136,64 +148,67 @@ else if( variable == `bark`){
 ```
 else{
 	return[null];
-}
+};
 ```
 
 ##### Switch
 
 ```
-switch[parameter]{
+switch[parameter]: {
 
-    case(number == 1){
+    case(number = 1): {
     	return[`the number equals 1`];
-    	}
+    	};
     	
-    case(number == 666){
+    case(number = 666): {
     	return[`the number equals 666`];
-    	}
+    	};
     	
-    case(default){
+    case(default): {
     	return[`the number doesn't match anything so it returns this default`];
-    	}
-}
+    	};
+};
 ```
 
 ##### While
 
 ```
-while(variable-jim==sick){
+while(variable-jim = sick): {
 	return[`jim is sick`];
-}
+};
 ```
 
 ##### For While
 
 ```
-for[initial-condition=0]{
-	while(initial-condition<100){
+for(initial-condition = 0): {
+	while(initial-condition < 100){
 		initial-condition = intitial-condition + 1;
-		return[`initial-condition is now <<intial-condition>>`]
-	}
-}
+		return[`initial-condition is now <<intial-condition>>`];
+	};
+};
 ```
 
 ##### For in
 
 ```
-for[parameter] {
-	in[collection-or-array-name]{
+for[parameter]: {
+	in[collection-or-array-name]: {
 		return[`this iteration has returned <<parameter>> of array-name`];
-	}
-}
+	};
+};
 ```
 
+##### Template Strings
 
+```
+return[`this is a template string where ${variable} is escaped and dynamic. You can also ${nest the ${template-strings} if you want}`];
+```
 
+## Notes
 
+### TODO:
 
-# Thoughts
-
-- perhaps switch the variable assignment and object key to : instead of = and then = can be used purely as a conditional operator without dealing with == or ===. Would also make the assignment of variable more consistent with the object like syntax
-- perhaps change for to if 
-- () are used for both parameters and conditions. Should separate those out more. 
-- //is for comment titles versus // for actual comments
+- array access
+- dot notation versus alternatives
+- better consistency in the control statement uses of different kinds of brackets
