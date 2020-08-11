@@ -1,4 +1,5 @@
 # enzo-lang
+
 I have no real good understanding of computer science, but I'm still interested in the aesthetics and design of programming syntax. This isn't an implementation of a programming language. This is just sort of fantasy sketch of what I think a nice language syntax. 
 
 
@@ -153,7 +154,7 @@ var variable-name: return[7] if(condition = true) else return[20];
 
 ##### Switch
 
-switch is treated like a function that takes an argument to it's parameter which is then passed to the conditional statements that make up the difference cases
+switch statement syntax is meant to visually echo the syntax of a function. Just as a function is run with arguments filling parameters, the switch statement runs with expressions, in parameters. Unlike a function you aren't calling `function[parameter1, parameter2]`, but I thought the parallels visually would be nice. 
 
 ```
 switch[parameter]: {
@@ -207,20 +208,7 @@ while(variable-jim = sick): {
 
 
 
-The following are very early drafts. I actually need to learn a bit more on what the differences are between for while, for in, while, etc really means in various programming languages. 
-
-##### For While
-
-```
-for(initial-condition = 0): {
-	while(initial-condition < 100){
-		initial-condition = intitial-condition + 1;
-		return[`initial-condition is now <<intial-condition>>`];
-	};
-};
-```
-
-##### For in
+##### For 
 
 ```
 for[parameter]: {
@@ -230,7 +218,7 @@ for[parameter]: {
 };
 ```
 
-
+This was sort of a silly idea but again its part of my desire to create a clear visual throughline for everything stuck between brackets. For statements don't take a conditional so they don't use (). The [] is for parameters. It seems to me that dividing up things along a nested level is a good idea. Maybe not though. 
 
 ### Template Strings
 
@@ -245,5 +233,4 @@ return[`this is a template string where ${variable} is escaped and dynamic. You 
 - array access
 - dot notation versus alternatives
 - better consistency in the control statement uses of different kinds of brackets
-- also not totally sure about the for, while, for while, for in, for of etc possibilities. Need to learn more about that. 
-- Could be possible to replace "if" with "for"? Conceptually "for while" is basically "if while"
+- explore replacing `for`, `while`, `switch` with some kind of reducible `if` structure 
