@@ -157,17 +157,17 @@ var variable-name: return[7] if(condition = true) else return[20];
 switch statement syntax is meant to visually echo the syntax of a function. Just as a function is run with arguments filling parameters, the switch statement runs with expressions, in parameters. Unlike a function you aren't calling `function[parameter1, parameter2]`, but I thought the parallels visually would be nice. 
 
 ```
-switch[parameter]: {
+switch[parameter] {
 
-    case(number = 1): {
+    case(number = 1) {
     	return[`the number equals 1`];
     	};
     	
-    case(number = 666): {
+    case(number = 666) {
     	return[`the number equals 666`];
     	};
     	
-    case(default): {
+    case(default) {
     	return[`the number doesn't match anything so it returns this default`];
     	};
 };
@@ -176,21 +176,21 @@ switch[parameter]: {
 multiple parameters in a switch statement
 
 ```
-switch[parameter1, parameter2]: {
+switch[parameter1, parameter2] {
 
-    case(parameter1 = 1): {
+    case(parameter1 = 1) {
     	return[`the number equals 1`];
     	};
     	
-    case(parameter2 = 666): {
+    case(parameter2 = 666) {
     	return[`the number equals 666`];
     	};
     	
-    case(parameter2 = 777 and parameter1 = 18): {
+    case(parameter2 = 777 and parameter1 = 18) {
     	return[`the numbers are blah blah whatever you get the idea`]
         };
     	
-    case(default): {
+    case(default) {
     	return[`the number doesn't match anything so it returns this default`];
     	};
 };
@@ -201,7 +201,7 @@ switch[parameter1, parameter2]: {
 ##### While
 
 ```
-while(variable-jim = sick): {
+while(variable-jim = sick) {
 	return[`jim is sick`];
 };
 ```
@@ -211,7 +211,7 @@ while(variable-jim = sick): {
 ##### For 
 
 ```
-for[parameter]: {
+for[parameter] {
 	in[collection-or-array-name]: {
 		return[`this iteration has returned <<parameter>> of array-name`];
 	};
