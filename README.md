@@ -1,6 +1,6 @@
 # enzo-lang
 
-I have no real good understanding of computer science, but I'm still interested in the aesthetics and design of programming syntax. This isn't an implementation of a programming language. This is just sort of fantasy sketch of what I think a nice language syntax. 
+I have no real good understanding of computer science, but I'm still interested in the aesthetics and design of programming syntax. This isn't an implementation of a programming language. This is just sort of fantasy sketch of what I think a nice language syntax would be like. 
 
 
 
@@ -16,7 +16,7 @@ I'm def interested in feedback but also understand that this is basically just a
 // single line comment
 ```
 
-```
+```javascript
 //- Comment Title (styled different in editor and can be used for auto documentation purposes)
 ```
 
@@ -28,31 +28,31 @@ I'm def interested in feedback but also understand that this is basically just a
 
 ### Variable Type and Assignment
 
-##### strings
+##### text
 
-```
-string string-example: {`string`};
+```javascript
+text text-example: {`here is some text`};
 ```
 
 ##### number
 
-```
-number number-example: {number};
+```javascript
+number number-example: {888};
 ```
 
 ##### array
 
-```
-array array-example: {`string`, 666, referenced-variable-example, function-example, object-example};
+```javascript
+array array-example: { `here is some text`, 666, this-is-a-variable};
 ```
 
 ##### objects
 
-```
+```javascript
 object object-example: {object-key: {object-value}};
 ```
 
-```
+```javascript
 object object-example2: {
 	object-key: {object-value},
 	object-key2: {object-value2},
@@ -60,7 +60,7 @@ object object-example2: {
 };
 ```
 
-```
+```javascript
 object object-example3: {
 	object-key-object: {
 		object-key-second-layer: {object-value-second-layer}
@@ -77,28 +77,31 @@ object object-example3: {
 
 ##### functions
 
-*functions are conceptually just another variable type*
-
-```
-function function-name[parameter1, parameter2]: {
-	number number-example: {666};
-	return[parameter1 + parameter2 + number-example2];
+``` javascript
+function function-name: {
+    
+    // Arguments declared inside the function definition, similar to normal variables. Param keyword distinguishes it from normal function scoped variables
+    number param argumemt-var1: {};
+    number param argument-var2: {};
+    number number-example: {666};
+    
+    return[parameter1 + parameter2 + number-example2];
 };
 ```
 
-*side note: I like how R has a left and right assignment using -> and <- which I think works well visually and has  flexibility that the name: value idea doesn't have. but not sure if I want to move to that instead since I think the : looks nice and clean.* 
+*side note: I like how R has a left and right assignment using -> and <- which I think works well visually and has  flexibility that the name: value idea doesn't have. but not sure if I want to move to that instead since I think the : looks nice and clean and is also has better keyboard ergonomics.* 
 
 ### Variable Invocation/Use
 
 *a variable is assigned a value which is contained within {a single set of brackets} and it is invoked using {{two sets of brackets}}*
 
 ```
-string string-example: {`string`};
+text text-example: {`here is some text`};
 
-string string-example2: {`{{string-example}}`};
+text text-example2: {`{{text-example}}`};
 
-if ({{string-example}}=false) {
- return[{{string-example}}]
+if ({{text-example}}=false) {
+ return[{{text-example}}]
 }
 ```
 
@@ -149,7 +152,7 @@ if(ready): return[ 12 + 2 ], else return[ 5 + 8 ];
 ##### ternary statement
 
 ```
-var variable-name: return[7] if(condition = true) else return[20]; 
+var variable-name: {return[7] if(condition = true) else return[20]}; 
 ```
 
 ##### Switch
