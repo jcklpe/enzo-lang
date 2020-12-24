@@ -28,7 +28,7 @@ I'm def interested in feedback but also understand that this is basically just a
 
 ### Variable Type and Assignment
 
-##### text
+##### text (string) 
 
 ```javascript
 text text-example: {`here is some text`};
@@ -40,36 +40,38 @@ text text-example: {`here is some text`};
 number number-example: {888};
 ```
 
-##### array
+##### list (array) 
 
 ```javascript
-array array-example: { `here is some text`, 666, this-is-a-variable};
+list list-example: { `here is some text`, 666, this-is-a-variable};
 ```
 
-##### objects
+##### table (objects/maps) 
 
 ```javascript
-object object-example: {object-key: {object-value}};
+table table-example: {example-key: {example-value}};
 ```
 
 ```javascript
-object object-example2: {
-	object-key: {object-value},
-	object-key2: {object-value2},
-	object-key3: {object-value3}
+table table-example2: {
+	key: {value},
+	key2: {value2},
+	key3: {value3}
 };
 ```
 
 ```javascript
-object object-example3: {
-	object-key-object: {
-		object-key-second-layer: {object-value-second-layer}
-		}, 
-	object-key-object2: {
-		object-key2-second-layer: {object-value2-second-layer},
-		object-key3-second-layer: {
-			object-key3-third-layer: {object-value3-third-layer},
-			object-key4-fourth-layer: {object-key4-third-layer}
+table table-example3: {
+	key: {
+		key: {value}, 
+        key2: {value2},
+        key3: {value3}
+	}, 
+	key2: {
+		key: {value},
+		key2: {
+			key: {value},
+			key2: {value2}
 		}
 	}
 };
@@ -83,9 +85,9 @@ function function-name: {
     // Arguments declared inside the function definition, similar to normal variables. Param keyword distinguishes it from normal function scoped variables
     number param argumemt-var1: {};
     number param argument-var2: {};
-    number number-example: {666};
+    number example-variable: {666};
     
-    return[parameter1 + parameter2 + number-example2];
+    return[parameter1 + parameter2 + example-variable];
 };
 ```
 
@@ -93,25 +95,17 @@ function function-name: {
 
 ### Variable Invocation/Use
 
-*a variable is assigned a value which is contained within {a single set of brackets} and it is invoked using {{two sets of brackets}}*
 
-```
+```javascript
 text text-example: {`here is some text`};
 
-text text-example2: {`{{text-example}}`};
-
-if ({{text-example}}=false) {
- return[{{text-example}}]
-}
+text text-example2: {text-example};
 ```
-
-*note that `return[return-value]` is a built in function, sorta like print, and the return value being returned is treated as an argument for the return function's parameter.* 
 
 ##### function invocation
+*parantheses are reserved for conditional statements, while square brackets are reserved for arguments for functions*
 
-*functions while being treated largely as variables aren't given {{}}. Though maybe this is an inconsistency. I think it looks bad to put {{}} around function invocations. But it is inconsistent. 😕 Not sure what to do here.*
-
-```
+```javascript 
 function-example[argument1, argument2];
 ```
 
@@ -122,7 +116,7 @@ function-example[argument1, argument2];
 ##### If
 
 ```
-if(variable = true): {
+if(variable = true) {
 	return[ 6 + 9 + 8];
 }
 ```
@@ -130,7 +124,7 @@ if(variable = true): {
 ##### Else If
 
 ``` 
-else if( variable = `bark`): {
+else if( variable = `bark`) {
   return[`the dog said bark`];
 };
 ```
@@ -138,7 +132,7 @@ else if( variable = `bark`): {
 ##### Else
 
 ```
-else{
+else {
 	return[null];
 };
 ```
@@ -146,18 +140,12 @@ else{
 ##### Inline if statement
 
 ```
-if(ready): return[ 12 + 2 ], else return[ 5 + 8 ];
-```
-
-##### ternary statement
-
-```
-var variable-name: {return[7] if(condition = true) else return[20]}; 
+if(ready) return[ 12 + 2 ], else return[ 5 + 8 ];
 ```
 
 ##### Switch
 
-switch statement syntax is meant to visually echo the syntax of a function. Just as a function is run with arguments filling parameters, the switch statement runs with expressions, in parameters. Unlike a function you aren't calling `function[parameter1, parameter2]`, but I thought the parallels visually would be nice. 
+switch statement syntax is meant to visually echo the syntax of a function.
 
 ```
 switch[parameter] {
@@ -215,13 +203,12 @@ while(variable-jim = sick) {
 
 ```
 for[parameter] {
-	in[collection-or-array-name]: {
-		return[`this iteration has returned <<parameter>> of array-name`];
+	in[list-or-table-name]: {
+		return[`this iteration has returned parameter of array-name`];
 	};
 };
 ```
 
-This was sort of a silly idea but again its part of my desire to create a clear visual throughline for everything stuck between brackets. For statements don't take a conditional so they don't use (). The [] is for parameters. It seems to me that dividing up things along a nested level is a good idea. Maybe not though. 
 
 ### Template Strings
 
