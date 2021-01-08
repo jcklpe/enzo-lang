@@ -62,10 +62,25 @@ table table-example2: {
 
 ```javascript
 table table-example3: {
+    key: text {`here is some example text`},
+    key2: number {44}
+	key3: list { 55, 66, variable-example },
+	key2: table {
+		key: {value},
+		key2: table {
+			key: {value},
+			key2: {value2}
+		}
+	}
+};
+```
+
+```javascript
+table table-example3: {
 	key: {
-		key: {value}, 
-        key2: {value2},
-        key3: {value3}
+            key: {value},
+            key2: {value2},
+            key3: {value3}
 	}, 
 	key2: {
 		key: {value},
@@ -82,9 +97,9 @@ table table-example3: {
 ``` javascript
 function function-name: {
     
-    // Arguments declared inside the function definition, similar to normal variables. Param keyword distinguishes it from normal function scoped variables
+    // Argument variables are declared inside the function definition. Param keyword distinguishes argument variables from normal function scoped variables. argument variables can be assigned an initial value that it defaults unless otherwise specified when the function is called. 
     number param argumemt-var1: {};
-    number param argument-var2: {};
+    number param argument-var2: {12};
     number example-variable: {666};
     
     return[parameter1 + parameter2 + example-variable];
@@ -95,19 +110,49 @@ function function-name: {
 
 ### Variable Invocation/Use
 
-
+Default case:
 ```javascript
 text text-example: {`here is some text`};
-
-text text-example2: {text-example};
+text-example;
+//returns `here is some text`
 ```
 
-##### function invocation
-*parantheses are reserved for conditional statements, while square brackets are reserved for arguments for functions*
+All variables are call by value
+```javascript
+text text-example: {`here is some text`};
+text text-example2: {text-example};
+text-example2;
+// returns `here is some text`
+```
+
+Template literals
+```javascript
+number number-example: {5};
+number number-example2: {3};
+text text-example: {`the result of the two variables added together is ${number-example + number-example2}`}
+```
+
+#### function invocation
+*parantheses are reserved for conditional statements, while square brackets are reserved for function arguments*
 
 ```javascript 
 function-example[argument1, argument2];
 ```
+
+#### passing a function as a parameter
+
+default function as parameter is lazy evaluation 
+```javascript
+function-example[argument1, function-example2[argumentA, argumentB], argument3]
+```
+
+
+eager evaluation:
+```javascript
+function-example$[argument1, function-example2[argumentA, argumentB], argument3]
+```
+
+The `$[]` syntax indicates that all functions contained within the brackets will be eager evaluated. This is meant to mirror the syntax of template literals which use `${}`. 
 
 #### Control Flow Statements
 
@@ -117,6 +162,14 @@ function-example[argument1, argument2];
 
 ```
 if(variable = true) {
+	return[ 6 + 9 + 8];
+}
+```
+
+##### If not
+
+```
+if( not variable = true) {
 	return[ 6 + 9 + 8];
 }
 ```
@@ -143,49 +196,8 @@ else {
 if(ready) return[ 12 + 2 ], else return[ 5 + 8 ];
 ```
 
-##### Switch
 
-switch statement syntax is meant to visually echo the syntax of a function.
 
-```
-switch[parameter] {
-
-    case(number = 1) {
-    	return[`the number equals 1`];
-    	};
-    	
-    case(number = 666) {
-    	return[`the number equals 666`];
-    	};
-    	
-    case(default) {
-    	return[`the number doesn't match anything so it returns this default`];
-    	};
-};
-```
-
-multiple parameters in a switch statement
-
-```
-switch[parameter1, parameter2] {
-
-    case(parameter1 = 1) {
-    	return[`the number equals 1`];
-    	};
-    	
-    case(parameter2 = 666) {
-    	return[`the number equals 666`];
-    	};
-    	
-    case(parameter2 = 777 and parameter1 = 18) {
-    	return[`the numbers are blah blah whatever you get the idea`]
-        };
-    	
-    case(default) {
-    	return[`the number doesn't match anything so it returns this default`];
-    	};
-};
-```
 
 
 
@@ -215,6 +227,10 @@ for[parameter] {
 ```
 return[`this is a template string where ${variable} is escaped and dynamic. You can also ${nest the ${template-strings} if you want}`];
 ```
+
+### increment a variable
+
+number ++;
 
 ## Notes
 
