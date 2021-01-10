@@ -31,76 +31,53 @@ I'm def interested in feedback but also understand that this is basically just a
 ##### text (string) 
 
 ```javascript
-text text-example: {`here is some text`};
+text-example: text{`here is some text`};
 ```
 
 ##### number
 
 ```javascript
-number number-example: {888};
+number-example: number{888};
 ```
 
 ##### list (array) 
 
 ```javascript
-list list-example: { `here is some text`, 666, this-is-a-variable};
+list-example: list{ `here is some text`, 666, variable-example};
 ```
 
 ##### table (objects/maps) 
 
 ```javascript
-table table-example: {example-key: {example-value}};
-```
-
-```javascript
-table table-example2: {
-	key: {value},
-	key2: {value2},
-	key3: {value3}
+table-example: table{
+	property: text{`this is a value which is paired to the property`},
+	property2: number{2},
+	property3: list{value3, 3, `three`},
+        property4: table{
+            property: text{`second layer of a nested table`},
+            property2: text{`tables are basically the same as maps or objects in other languages`}
+    }, 
+            property3: table{
+                property: text{`third layer of a nested table`},
+                property2: text{`you can nest tables as deeply as you want`}, 
+                property3: text{`this property value could be invoked using 'table-example.property4.property3.ke3'`}
+            }
 };
 ```
 
-```javascript
-table table-example3: {
-    key: text {`here is some example text`},
-    key2: number {44}
-	key3: list { 55, 66, variable-example },
-	key2: table {
-		key: {value},
-		key2: table {
-			key: {value},
-			key2: {value2}
-		}
-	}
-};
-```
 
-```javascript
-table table-example3: {
-	key: {
-            key: {value},
-            key2: {value2},
-            key3: {value3}
-	}, 
-	key2: {
-		key: {value},
-		key2: {
-			key: {value},
-			key2: {value2}
-		}
-	}
-};
-```
 
 ##### functions
 
 ``` javascript
-function function-name: {
+function-example: function{
     
-    // Argument variables are declared inside the function definition. Param keyword distinguishes argument variables from normal function scoped variables. argument variables can be assigned an initial value that it defaults unless otherwise specified when the function is called. 
-    number param argumemt-var1: {};
-    number param argument-var2: {12};
-    number example-variable: {666};
+    // Parameters are declared inside the function definition.
+    // the param keyword distinguishes parameter from private function scoped variables. 
+    param argumemt-var1: number{};
+    //Parameters can be assigned an initial value that it defaults unless otherwise specified when the function is called. 
+    param argument-var2: number{12};
+    example-variable: number{666};
     
     return[parameter1 + parameter2 + example-variable];
 };
@@ -112,31 +89,66 @@ function function-name: {
 
 Default case:
 ```javascript
-text text-example: {`here is some text`};
+text-example: text{`here is some text`};
 text-example;
 //returns `here is some text`
 ```
 
 All variables are call by value
 ```javascript
-text text-example: {`here is some text`};
-text text-example2: {text-example};
+text-example: text{`here is some text`};
+text-example2: text{text-example};
 text-example2;
 // returns `here is some text`
 ```
 
+#### calling a table's property values
+
 Template literals
 ```javascript
-number number-example: {5};
-number number-example2: {3};
-text text-example: {`the result of the two variables added together is ${number-example + number-example2}`}
+number-example: number{5};
+number-example2: number{3};
+text-example: text{`the result of the two variables added together is ${number-example + number-example2}`}
+
+text-example;
+//returns the text 'the result of the two variables addded together is 8'
 ```
 
 #### function invocation
-*parantheses are reserved for conditional statements, while square brackets are reserved for function arguments*
 
 ```javascript 
-function-example[argument1, argument2];
+function-example: function{
+    param first-number: number{1};
+    param second-number: number{1};
+    third-number: number{1};
+    return[ first-number + second-number + third-number];
+    
+}
+
+function-example[];
+//returns 3
+
+function-example[10, 9];
+//returns 20
+
+function-example2: function{
+    first-number: number{5};
+    param second-number: number{};
+    param third-number: number: number{};
+    
+    return[first-number * second-number / third-number];
+}
+
+// arguments can be assigned to parameters either by order
+function-example2[1, 2];
+// returns 2.5
+
+// or by named assignment
+function-example2[third-number: 2, second-number: 3]
+// returns 7.5
+
+function-example2[];
+// returns error
 ```
 
 #### passing a function as a parameter
@@ -151,12 +163,47 @@ eager evaluation:
 ```javascript
 function-example$[argument1, function-example2[argumentA, argumentB], argument3]
 ```
-
 The `$[]` syntax indicates that all functions contained within the brackets will be eager evaluated. This is meant to mirror the syntax of template literals which use `${}`. 
+
+#### invoking a table property function
+
+```javascript=
+
+dog: table{
+    name: text{`Ralph`},
+    speak: function{
+        return[`yo, my name is ${self.name}`]
+    }, 
+    play-dead: function{
+        param assailant: text{};
+        return[`ah! I was murdered by ${assailant}!`];
+    }, 
+    
+}
+
+dog.name;
+//returns `Ralph`
+
+dog.speak;
+// returns `yo, my name is Ralph`
+
+dog.play-dead[`Tom`];
+//returns `ah! I was murdered by Tom!`
+
+//piping the return value into a function
+toLowerCase[dog.name];
+//returns `ralph`
+
+toLowerCase[dog.play-dead[`Jerry`]];
+// returns `ah! i was murdered by jerry!`
+
+
+
+```
 
 #### Control Flow Statements
 
- *`:` is used for setting values, while `=` is used for comparing values. Having the two be different reduces the confusion over assignment versus comparison. All comparisons are strict and there's no `==` versus `===` nonsense.*
+ *`:` is used for assigning values, while `=` is used for comparing values. Having the two be different makes the two more visually distinct. All comparisons are strict.*
 
 ##### If
 
@@ -215,17 +262,10 @@ while(variable-jim = sick) {
 
 ```
 for[parameter] {
-	in[list-or-table-name]: {
+	in[list-or-table-name] {
 		return[`this iteration has returned parameter of array-name`];
 	};
 };
-```
-
-
-### Template Strings
-
-```
-return[`this is a template string where ${variable} is escaped and dynamic. You can also ${nest the ${template-strings} if you want}`];
 ```
 
 ### increment a variable
