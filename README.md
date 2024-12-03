@@ -1,10 +1,8 @@
 # enzo-lang
 
-I have no real good understanding of computer science, but I'm still interested in the aesthetics and design of programming syntax. This isn't an implementation of a programming language. This is just sort of fantasy sketch of what I think a nice language syntax would be like. 
+I have no real good understanding of computer science, but I'm still interested in the aesthetics and design of programming syntax. I'm a UI designer and code is the most fundamental computer user interface. This isn't an implementation of a programming language. This is just sort of fantasy sketch of what I think a nice language syntax would be like. 
 
-
-
-I'm def interested in feedback but also understand that this is basically just a kid drawing pictures of racecars and wishing he was Batman. I'm doing this for my own enjoyment. 
+I'm def interested in feedback but also understand that this is basically just a kid drawing pictures of racecars and wishing he was Batman. I'm doing this for my own enjoyment and to help me better understand programming.  
 
 
 
@@ -24,43 +22,42 @@ I'm def interested in feedback but also understand that this is basically just a
 /' block comment, the use of single quote has better keyboard ergonomics than the star symbol typically used '/
 ```
 
-
-
 ### Variable Type and Assignment
+Types are inferred. 
 
 ##### text (string) 
 
 ```javascript
-text-example: text{`here is some text`};
+$text-example: {`here is some text`};
 ```
 
 ##### number
 
 ```javascript
-number-example: number{888};
+$number-example: {888};
 ```
 
 ##### list (array) 
 
 ```javascript
-list-example: list{ `here is some text`, 666, variable-example};
+$list-example: list{ `here is some text`, 666, $variable-example};
 ```
 
 ##### table (objects/maps) 
 
 ```javascript
-table-example: table{
-	property: text{`this is a value which is paired to the property`},
-	property2: number{2},
-	property3: list{value3, 3, `three`},
+$table-example: table{
+	property: {`this is a value which is paired to the property`},
+	property2: {2},
+	property3: list{$variable, 3, `three`},
         property4: table{
-            property: text{`second layer of a nested table`},
-            property2: text{`tables are basically the same as maps or objects in other languages`}
+            property: {`second layer of a nested table`},
+            property2: {`tables are basically the same as maps or objects in other languages`}
     }, 
             property3: table{
-                property: text{`third layer of a nested table`},
-                property2: text{`you can nest tables as deeply as you want`}, 
-                property3: text{`this property value could be invoked using 'table-example.property4.property3.ke3'`}
+                property: {`third layer of a nested table`},
+                property2: {`you can nest tables as deeply as you want`}, 
+                property3: {`this property value could be invoked using 'table-example.property4.property3'`}
             }
 };
 ```
@@ -74,12 +71,12 @@ function-example: function{
     
     // Parameters are declared inside the function definition.
     // the param keyword distinguishes parameter from private function scoped variables. 
-    param argumemt-var1: number{};
+    param $argumemt-var1: {};
     //Parameters can be assigned an initial value that it defaults unless otherwise specified when the function is called. 
-    param argument-var2: number{12};
-    example-variable: number{666};
+    param $argument-var2: {12};
+    $example-variable: {666};
     
-    return[parameter1 + parameter2 + example-variable];
+    return[$parameter1 + $parameter2 + $example-variable];
 };
 ```
 
@@ -89,16 +86,16 @@ function-example: function{
 
 Default case:
 ```javascript
-text-example: text{`here is some text`};
-text-example;
+$text-example: {`here is some text`};
+$text-example;
 //returns `here is some text`
 ```
 
 All variables are call by value
 ```javascript
-text-example: text{`here is some text`};
-text-example2: text{text-example};
-text-example2;
+$text-example: {`here is some text`};
+$text-example2: {text-example};
+$text-example2;
 // returns `here is some text`
 ```
 
@@ -106,11 +103,11 @@ text-example2;
 
 Template literals
 ```javascript
-number-example: number{5};
-number-example2: number{3};
-text-example: text{`the result of the two variables added together is ${number-example + number-example2}`}
+$number-example: {5};
+$number-example2: {3};
+$text-example: {`the result of the two variables added together is ${number-example + number-example2}`}
 
-text-example;
+$text-example;
 //returns the text 'the result of the two variables addded together is 8'
 ```
 
@@ -118,9 +115,9 @@ text-example;
 
 ```javascript 
 function-example: function{
-    param first-number: number{1};
-    param second-number: number{1};
-    third-number: number{1};
+    param first-number: {1};
+    param second-number: {1};
+    third-number: {1};
     return[ first-number + second-number + third-number];
     
 }
@@ -132,9 +129,9 @@ function-example[10, 9];
 //returns 20
 
 function-example2: function{
-    first-number: number{5};
-    param second-number: number{};
-    param third-number: number: number{};
+    first-number: {5};
+    param second-number: {};
+    param third-number: number: {};
     
     return[first-number * second-number / third-number];
 }
@@ -167,21 +164,21 @@ The `$[]` syntax indicates that all functions contained within the brackets will
 
 #### invoking a table property function
 
-```javascript=
+```javascript
 
 dog: table{
-    name: text{`Ralph`},
+    $name: {`Ralph`},
     speak: function{
         return[`yo, my name is ${self.name}`]
     }, 
     play-dead: function{
-        param assailant: text{};
+        param assailant: {};
         return[`ah! I was murdered by ${assailant}!`];
     }, 
     
 }
 
-dog.name;
+$dog.name;
 //returns `Ralph`
 
 dog.speak;
@@ -251,7 +248,7 @@ if(ready) return[ 12 + 2 ], else return[ 5 + 8 ];
 ##### While
 
 ```
-while(variable-jim = sick) {
+while($variable-jim = sick) {
 	return[`jim is sick`];
 };
 ```
