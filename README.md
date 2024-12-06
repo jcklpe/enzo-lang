@@ -1,10 +1,10 @@
 # enzo-lang
 
-I have no real good understanding of computer science, but I'm still interested in the aesthetics and design of programming syntax. I'm a UI designer and code is the most fundamental computer user interface. This isn't an implementation of a programming language. This is just sort of fantasy sketch of what I think a nice language syntax would be like. 
+I'm a UX designer and don't really have a good computer science background, but I find the aesthetics and design of programming syntaxes interesting. Code is the ultimate user interface. This isn't an implementation of a programming language. This is just sort of fantasy sketch of what I think a nice language syntax would look like. Basically as I'm learning programming stuff, I'll make notes on what I don't understand or find confusing, and I make notes on what I think could be different, which provides an outlet and helps me to better understand the real programming language that I'm trying to learn. 
 
-I'm def interested in feedback but also understand that this is basically just a kid drawing pictures of racecars and wishing he was Batman. I'm doing this for my own enjoyment and to help me better understand programming.  
+I'm def interested in feedback but also understand that this is basically just a kid drawing pictures of racecars and wishing he was Batman. I'm doing this for my own enjoyment and to help me better understand programming.
 
-
+Also want to give a shout out to the ["Quorum Language Project"](https://quorumlanguage.com/). 
 
 ## Syntax Reference
 
@@ -69,16 +69,14 @@ function-example: (
     
     // Parameters are declared inside the function definition.
     // the param keyword distinguishes parameter from private function scoped variables. 
-    param $argument1: {};
+    param $argument1: ;
     //Parameters can be assigned an initial value that it defaults unless otherwise specified when the function is called. 
-    param $argument2: {12};
-    $example-variable: {666};
+    param $argument2: 12;
+    $example-variable: 666;
     
-    return[$argument1 + $argument2 + $example-variable];
+    return($argument1 + $argument2 + $example-variable);
 );
 ```
-
-*side note: I like how R has a left and right assignment using -> and <- which I think works well visually and has  flexibility that the name: value idea doesn't have. but not sure if I want to move to that instead since I think the : looks nice and clean and is also has better keyboard ergonomics, and I don't really know any reason to have that reversible assignment operator* 
 
 ### Variable Invocation/Use
 
@@ -103,7 +101,7 @@ Template literals
 ```javascript
 $number-example: 5;
 $number-example2: 3;
-$text-example: `the result of the two variables added together is ${number-example + number-example2}`
+$text-example: `the result of the two variables added together is ${$number-example + $number-example2}`
 
 $text-example;
 //returns the text 'the result of the two variables addded together is 8'
@@ -117,7 +115,7 @@ function-example: (
     param second-number: 1;
     third-number: 1;
     return(first-number + second-number + third-number);
-    )
+    );
 
 function-example();
 //returns 3
@@ -149,7 +147,7 @@ function-example2();
 
 default function as parameter is lazy evaluation 
 ```javascript
-function-example(argument1, function-example2(argumentA, argumentB), argument3)
+function-example(argument1, function-example2(argumentA, argumentB), argument3);
 ```
 
 
@@ -166,12 +164,12 @@ The `$()` syntax indicates that all functions contained within the brackets will
 dog: {
     $name: `Ralph`,
     speak: (
-        return(`yo, my name is ${self.name}`);
-    ), 
+        return(`yo, my name is ${$self.name}`);
+    );, 
     play-dead: (
-        param assailant: {};
-        return(`ah! I was murdered by ${assailant}!`);
-    ), 
+        param $assailant: {};
+        return(`ah! I was murdered by ${$assailant}!`);
+    );, 
 };
 
 $dog.name;
@@ -233,7 +231,7 @@ end;
 ##### Inline if statement
 
 ```
-if $ready: do return( 12 + 2 ) end, else return( 5 + 8 ) end;
+if $ready: return( 12 + 2 ), else return( 5 + 8 );
 
 ```
 
@@ -257,19 +255,27 @@ end;
 ```
 for $parameter:
 	in $list-or-table-name: do
-		return(`this iteration has returned parameter of array-name`
+		return(`this iteration has returned parameter of list-name`
     end;
 end;
 ```
 
 ### increment a variable
-
-number ++;
+```
+++(5);
+````
 
 ## Notes
+- I like how R has a left and right assignment using -> and <- which I think works well visually and has  flexibility that the name: value idea doesn't have. but not sure if I want to move to that instead since I think the : looks nice and clean and is also has better keyboard ergonomics, and I don't really know any reason to have that reversible assignment operator.
 
-### TODO:
+
+### To-do and Questions:
 
 - array access
 - dot notation versus alternatives
 - explore replacing `for`, `while`, `switch` with some kind of reducible `if` structure 
+- static versus dynamic types, casting solutions etc
+- variables inside template literals looks clunky: \${$variable-name} Maybe need to investigate more deeply why template literals exist and if there is a more general approach. 
+- Is "self" really needed? I have heard the argument for explicitness on that and I generally prefer explicitness but seems like that should just be contextual. I don't know enough OOP stuff yet. 
+- OOP stuff?
+- Should the table use "\$" when it's used to call a method, even though functions are not normally prefixed with "$"? $ on functions feels like overkill but I do like the explicit visual cue for what is a variable in PHP, and I'm trying to treat functions as basically just another thing assigned to a variable. 
