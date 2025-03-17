@@ -211,39 +211,39 @@ toLowerCase(dog.play-dead("Jerry"));
 ##### If
 
 ```
-if $variable = true: do
-	return(6 + 9 + 8);
+if $variable = true,
+	say("this is true");
 end;
 ```
 
 ##### If not
 
 ```
-if not $variable = true: do
-	return(6 + 9 + 8);
+if not $variable = true,
+	say("this is not true");
 end;
 ```
 
 ##### Else If
 
 ```
-else if $variable = "bark": do
-  return("the dog said bark");
+else if $variable = "bark",
+  say("bark bark!");
 end;
 ```
 
 ##### Else
 
 ```
-else : do
-	return(null);
+else, 
+	say("No clue, dude");
 end;
 ```
 
 ##### Inline if statement
 
 ```
-if $ready: return( 12 + 2 ), else return( 5 + 8 );
+if $ready, say("ready to go!"), else say("not read yet!");
 
 ```
 
@@ -253,32 +253,40 @@ There are no ternaries. I personally find them very difficult to read, but I thi
 ##### For
 
 ```
-for $parameter:
-	in $list-or-table-name: do
-		return("this iteration has returned parameter of list-name"
-    end;
+for $parameter in $list-or-table-name, 
+		say("this iteration has returned parameter of list-name");
 end;
 ```
 
 ##### While
 
 ```
-while $number < 10: do
+while $number < 10,
 	$number <: $number + 1
 end;
 ```
-
-### increment a variable
-```
-++(5);
-````
 
 ### To-do and Questions:
 
 - array access
 - dot notation versus alternatives
-- explore replacing `for`, `while`, `switch` with some kind of reducible `if` structure
 - casting solutions etc
 - Is "self" really needed? I have heard the argument for explicitness on that and I generally prefer explicitness but seems like that should just be contextual. I don't know enough OOP stuff yet.
 - OOP stuff?
-- `:` for conditional statements might be a case of overloading since that's already used in variable declaration. Maybe angle brackets. 
+
+
+# scratch pad
+
+turn map/filter into a first class feature of the language similar to if/else/while/for
+
+```
+$filtered-list: filter $item in $original-list,
+    $item = "dog"
+end;
+
+
+$mapped-list: map $item in $original-list, 
+    transform($item)
+end;
+
+```
