@@ -56,13 +56,16 @@ $table-example: {
         $property4: {
             $property: "second layer of a nested table",
             $property2: "tables are basically the same as maps or objects in other languages"},
+            exampleFunction: (
+            return("this is what a function looks like");
+            ),     
             $property3: {
                 $property: "third layer of a nested table",
                 $property2: "you can nest tables as deeply as you want",
                 $property3:"this property value could be invoked using '$table-example.$property4.$property3'"}
 };
 ```
-(not sure if properties of a table should keep the dollar sign. I find that useful when scanning for variables but seems like it could be overkill for a table)
+
 
 ##### functions
 
@@ -155,49 +158,86 @@ function-example2();
 // returns error
 ```
 
-#### passing a function as a parameter
+#### Passing a function as a parameter
 
-default function as parameter is lazy evaluation
+Functions are eager evaluation by default:
 ```javascript
-function-example(argument1, function-example2(argumentA, argumentB), argument3);
+$campfireStatus: "unlit";
+
+getCampfireStatus: (
+    return($campfireStatus);
+);
+
+announceEager: (
+    param $statusVal;
+    say("Eager campfire: {{$statusVal}}");
+);
+
+announceEager(getCampfireStatus());
+// Expected output immediately: "Eager campfire: unlit"
+
+$campfireStatus <: "lit";
+
+announceEager(getCampfireStatus());
+// Expected output immediately: "Eager campfire: lit"
+```
+
+Functions can be set to eager evaluate using `!`:
+```javascript
+$campfireStatus: "unlit";
+
+getCampfireStatus: (
+    return($campfireStatus);
+);
+
+announceLazy: (
+    param $statusFn;
+
+    // Wait 5 minutes
+    wait(300000);
+    say("Lazy campfire: {{$statusFn()}}");
+);
+
+announceLazy(!getCampfireStatus());
+// Expected output (after 5 minutes delay): "Lazy campfire: lit"
+// (Assuming that before 5 minutes elapse, $campfireStatus is updated.)
+
+$campfireStatus <: "lit";
+
+announceLazy(!getCampfireStatus());
+// Expected output (after 5 minutes delay): "Lazy campfire: lit"
 ```
 
 
-eager evaluation:
-```javascript
-function-example(argument1, !function-example2(argumentA, argumentB), argument3);
-```
-
-
-#### invoking a table property function
+#### Invoking a table property function
 
 ```javascript
 
-dog: {
+$dog: {
     $name: "Ralph",
     speak: (
         return("yo, my name is {{$self.name}}");
     );,
     play-dead: (
-        param $assailant: {};
+        param $assailant: "";
         return("ah! I was murdered by {{$assailant}}!");
     );,
 };
 
-dog.$name;
+$dog.name;
 //returns "Ralph"
 
-dog.speak;
+$dog.speak;
 // returns "yo, my name is Ralph"
 
-dog.play-dead("Tom");
+$dog.play-dead("Tom");
 //returns "ah! I was murdered by Tom!"
 
 //piping the return value into a function
-toLowerCase(dog.$name);
+toLowerCase($dog.name);
 //returns "ralph"
 
-toLowerCase(dog.play-dead("Jerry"));
+toLowerCase($dog.play-dead("Jerry"));
 // returns "ah! i was murdered by jerry!"
 
 
@@ -269,9 +309,7 @@ end;
 ### To-do and Questions:
 
 - array access
-- dot notation versus alternatives
 - casting solutions etc
-- Is "self" really needed? I have heard the argument for explicitness on that and I generally prefer explicitness but seems like that should just be contextual. I don't know enough OOP stuff yet.
 - OOP stuff?
 
 
@@ -288,5 +326,31 @@ end;
 $mapped-list: map $item in $original-list, 
     transform($item)
 end;
+
+```
+
+
+example of calling a table function and also passing an additional function as a parameter
+```
+$animal: {
+    $dog: {
+        $bark: (
+            param $status: ;
+            param $message: ;
+            if $status = "loud", 
+                return( toUpper($message) );
+            else, 
+                return( toLower($message) );
+            end;
+        );
+    }
+};
+
+getCurrentStatus: (
+    return("loud");
+);
+
+// Invocation: property access via dot notation and function call via prefix (nested) style.
+$animal.dog.bark(getCurrentStatus(), "Bark Bark");
 
 ```
