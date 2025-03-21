@@ -28,25 +28,25 @@ Also want to give a shout out to the ["Quorum Language Project"](https://quoruml
 Types are static but inferred.
 
 Variables are declared with the `:` operator.
-##### text (string)
+##### Text (string)
 
 ```javascript
 $text-example: "here is some text";
 ```
 
-##### number
+##### Number
 
 ```javascript
 $number-example: 888;
 ```
 
-##### list (array)
+##### List (array)
 
 ```javascript
 $list-example: ["here is some text", 666, $variable-example];
 ```
 
-##### table (objects/maps)
+##### Table (objects/maps)
 
 ```javascript
 $table-example: {
@@ -57,18 +57,17 @@ $table-example: {
             $property: "second layer of a nested table",
             $property2: "tables are basically the same as maps or objects in other languages"},
             exampleFunction: (
-            return("this is what a function looks like");
+            return("this is what a table function (method) looks like");
             ),     
             $property3: {
                 $property: "third layer of a nested table",
                 $property2: "you can nest tables as deeply as you want",
-                $property3:"this property value could be invoked using '$table-example.$property4.$property3'"}
+                $property3:"this property value could be invoked using '$table-example.property4.property3'"}
 };
 ```
 
 
-##### functions
-
+##### Functions
 ``` javascript
 function-example: (
 
@@ -81,6 +80,12 @@ function-example: (
 
     return($argument1 + $argument2 + $example-variable);
 );
+```
+
+##### Nameless functions (lambda)
+```javascript
+:(return($variable + $variable2 + $variable3);)
+
 ```
 
 ### Variable Reassignment
