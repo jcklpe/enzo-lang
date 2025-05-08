@@ -84,7 +84,8 @@ function-example: (
 
 ##### Nameless functions (lambda)
 ```javascript
-:(return($variable + $variable2 + $variable3);)
+:(6, 5; $a * $b;)
+// returns 30
 
 ```
 
@@ -115,7 +116,7 @@ $text-example2;
 // returns "here is some text"
 ```
 
-#### calling a table's property values
+#### Calling a table's property values
 
 Text interpolation
 ```javascript
@@ -187,7 +188,7 @@ announceEager(getCampfireStatus());
 // Expected output immediately: "Eager campfire: lit"
 ```
 
-Functions can be set to eager evaluate using `!`:
+Functions can be set to lazy evaluate using `!`:
 ```javascript
 $campfireStatus: "unlit";
 
@@ -222,11 +223,11 @@ $dog: {
     $name: "Ralph",
     speak: (
         return("yo, my name is {{$self.name}}");
-    );,
+    ),
     play-dead: (
         param $assailant: "";
         return("ah! I was murdered by {{$assailant}}!");
-    );,
+    ),
 };
 
 $dog.name;
@@ -244,49 +245,70 @@ toLowerCase($dog.name);
 
 toLowerCase($dog.play-dead("Jerry"));
 // returns "ah! i was murdered by jerry!"
-
-
-
 ```
 
-#### Control Flow Statements
+### Blueprints (custom types)
+##### Options Blueprint (enum)
+```javascript
+Size: <[small, medium, large]>;
+    
+$shirt-size: Size.medium;
+```
+
+#### Table Blueprint (class/interface/struct)
+```javascript 
+Person: <{
+    name: Text,
+    age: Number,
+    t-shirt-size: Size,
+    greet: (
+        return("Hi, my name is {{$self.name}} and I'm {{$self.age}} years old.");
+    );
+}>;
+
+$alice: Person{
+    $name: "Alice",
+    $age: 30,
+    $t-shirt-size: Size.large
+};
+
+say($alice.greet);
+// Expected output: "Hi, my name is Alice and I'm 30 years old."
+```
+
+### Control Flow Statements
 
  *`:` is used for assigning values, while `=` is used for comparing values. Having the two be different makes the two more visually distinct. All comparisons are strict.*
 
 ##### If
-
-```
+```javascript
 if $variable = true,
 	say("this is true");
 end;
 ```
 
 ##### If not
-
-```
+```javascript
 if not $variable = true,
 	say("this is not true");
 end;
 ```
 
 ##### Else If
-
-```
+```javascript
 else if $variable = "bark",
   say("bark bark!");
 end;
 ```
 
 ##### Else
-
-```
-else, 
+```javascript
+else,
 	say("No clue, dude");
 end;
 ```
 
 ##### Inline if statement
-
 ```
 if $ready, say("ready to go!"), else say("not read yet!");
 
@@ -311,7 +333,23 @@ while $number < 10,
 end;
 ```
 
-### To-do and Questions:
+### Built-in Functions
+
+```
+say()
+//builtin print function
+
+return()
+
+unpack() 
+// spread operator 
+
+toggle()
+// like saying status = !status
+
+```
+
+## To-do and Questions:
 
 - array access
 - casting solutions etc
@@ -323,9 +361,7 @@ end;
 turn map/filter into a first class feature of the language similar to if/else/while/for
 
 ```
-$filtered-list: filter $item in $original-list,
-    $item = "dog"
-end;
+$filtered-list: filter $item = "dog" in $original-list;
 
 
 $mapped-list: map $item in $original-list, 
