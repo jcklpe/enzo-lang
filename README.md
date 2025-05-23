@@ -12,15 +12,15 @@ Also want to give a shout out to the ["Quorum Language Project"](https://quoruml
 
 ### Comments
 
-```javascript
+```javascript!
 // single line comment
 ```
 
-```javascript
+```javascript!
 //- Comment Title (styled different in editor and can be used for auto documentation purposes)
 ```
 
-```
+```javascript!
 /' block comment, the use of single quote has better keyboard ergonomics than the star symbol typically used '/
 ```
 
@@ -30,25 +30,25 @@ Types are static but inferred.
 Variables are declared with the `:` operator.
 ##### Text (string)
 
-```javascript
+```javascript!
 $text-example: "here is some text";
 ```
 
 ##### Number
 
-```javascript
+```javascript!
 $number-example: 888;
 ```
 
 ##### List (array)
 
-```javascript
+```javascript!
 $list-example: ["here is some text", 666, $variable-example];
 ```
 
 ##### Table (objects/maps)
 
-```javascript
+```javascript!
 $table-example: {
 	$property: "this is a value which is paired to the property",
 	$property2: 2,
@@ -68,7 +68,7 @@ $table-example: {
 
 
 ##### Functions
-``` javascript
+``` javascript!
 function-example: (
 
     // Parameters are declared inside the function definition.
@@ -83,17 +83,26 @@ function-example: (
 ```
 
 ##### Nameless functions (lambda)
-```javascript
-:(6, 5; $a * $b;)
+```javascript!
+(6, 5; $a * $b;)
 // returns 30
-
 ```
+A named function is simply a nameless function bound to an identifier. We omit the $ on named functions to keep your API surface clean and readable. But if you think of a function more like a computed piece of data, something you’ll pass around, store in tables, or use inline—you can bind a lambda to a $-variable:
+```javascript!
+// Treating the lambda as “data” that computes a full name:
+$full-name: ($first, $last; $first + " " + $last;);
+
+// Invoking it looks just like calling any function:
+say($full-name("Alice", "Smith"));
+// Expected output: "Alice Smith"
+```
+Use $-bound lambdas when the value the function returns is the primary focus, when the function itself feels like data in your mental model.
 
 ### Variable Reassignment
 
 When a variable has already been declared, but it's value is reasigned it can be done like so:
 
-```javascript
+```javascript!
 $dog-name: "Fido";
 $dog-name <: "Fluffy";
 "Ralph" :> $dog-name;
@@ -102,14 +111,14 @@ $dog-name <: "Fluffy";
 ### Variable Invocation/Use
 
 Default case:
-```javascript
+```javascript!
 $text-example: "here is some text";
 $text-example;
 //returns "here is some text"
 ```
 
 All variables are call by value
-```javascript
+```javascript!
 $text-example: "here is some text";
 $text-example2: $text-example;
 $text-example2;
@@ -119,7 +128,7 @@ $text-example2;
 #### Calling a table's property values
 
 Text interpolation
-```javascript
+```javascript!
 $number-example: 5;
 $number-example2: 3;
 $text-example: "the result of the two variables added together is {{$number-example + $number-example2}}"
@@ -128,9 +137,9 @@ $text-example;
 //returns the text 'the result of the two variables added together is 8'
 ```
 
-#### function invocation
+#### Function invocation
 
-```javascript
+```javascript!
 function-example: (
     param $first-number: 1;
     param $second-number: 1;
@@ -167,7 +176,7 @@ function-example2();
 #### Passing a function as a parameter
 
 Functions are eager evaluation by default:
-```javascript
+```javascript!
 $campfireStatus: "unlit";
 
 getCampfireStatus: (
@@ -189,7 +198,7 @@ announceEager(getCampfireStatus());
 ```
 
 Functions can be set to lazy evaluate using `!`:
-```javascript
+```javascript!
 $campfireStatus: "unlit";
 
 getCampfireStatus: (
@@ -217,7 +226,7 @@ announceLazy(!getCampfireStatus());
 
 #### Invoking a table property function
 
-```javascript
+```javascript!
 
 $dog: {
     $name: "Ralph",
@@ -249,14 +258,14 @@ toLowerCase($dog.play-dead("Jerry"));
 
 ### Blueprints (custom types)
 ##### Options Blueprint (enum)
-```javascript
+```javascript!
 Size: <[small, medium, large]>;
     
 $shirt-size: Size.medium;
 ```
 
 #### Table Blueprint (class/interface/struct)
-```javascript 
+```javascript! 
 Person: <{
     name: Text,
     age: Number,
@@ -281,35 +290,35 @@ say($alice.greet);
  *`:` is used for assigning values, while `=` is used for comparing values. Having the two be different makes the two more visually distinct. All comparisons are strict.*
 
 ##### If
-```javascript
+```javascript!
 if $variable = true,
 	say("this is true");
 end;
 ```
 
 ##### If not
-```javascript
+```javascript!
 if not $variable = true,
 	say("this is not true");
 end;
 ```
 
 ##### Else If
-```javascript
+```javascript!
 else if $variable = "bark",
   say("bark bark!");
 end;
 ```
 
 ##### Else
-```javascript
+```javascript!
 else,
 	say("No clue, dude");
 end;
 ```
 
 ##### Inline if statement
-```
+```javascript!
 if $ready, say("ready to go!"), else say("not read yet!");
 
 ```
@@ -319,7 +328,7 @@ There are no ternaries. I personally find them very difficult to read, but I thi
 
 ##### For
 
-```
+```javascript!
 for $parameter in $list-or-table-name, 
 		say("this iteration has returned parameter of list-name");
 end;
@@ -327,15 +336,44 @@ end;
 
 ##### While
 
-```
+```javascript!
 while $number < 10,
 	$number <: $number + 1
 end;
 ```
 
+### Boolean Context
+
+When any expression appears in a conditional position (`if`, `while`, etc.), it is **coerced** as follows:
+
+  *A value is `false` exactly when it is “empty”; otherwise it is `true`.*
+  
+Examples of “true” in conditions (non-empty):
+```javascript!
+$favNumber: 7;
+$username: "Alice";
+$items:     [1,2,3];
+$config:    { mode:"dark" };
+$log:       ( say("hi"); );
+```
+Examples of “false” in conditions (empty):
+```javascript!
+$zero:      0;
+$emptyText: "";
+$emptyList: [];
+$emptyList: [0,0,0];
+$emptyTbl:  {};
+$emptyTbl2:  {key: ;};
+$no-operation: ( );
+$no-operation2: ( param: ;);
+$unset:     ;    
+$no:        false;
+```
+While `$foo: {key: 1}` and `$bar: [1]` and `$bjork: 1` are all different, `$foo: {}`, and `$bar: {}` and `$bjork: 0` and `$fizz: ;` are all the same.
+
 ### Built-in Functions
 
-```
+```javascript!
 say()
 //builtin print function
 
@@ -360,7 +398,7 @@ toggle()
 
 turn map/filter into a first class feature of the language similar to if/else/while/for
 
-```
+```javascript!
 $filtered-list: filter $item = "dog" in $original-list;
 
 
