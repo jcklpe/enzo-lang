@@ -82,7 +82,7 @@ function-example: (
 );
 ```
 
-##### Nameless functions (lambda)
+###### Nameless functions (lambda)
 ```javascript!
 (6, 5; $a * $b;)
 // returns 30
@@ -98,14 +98,36 @@ say($full-name("Alice", "Smith"));
 ```
 Use $-bound lambdas when the value the function returns is the primary focus, when the function itself feels like data in your mental model.
 
-### Variable Reassignment
+##### Empty variables (null, undefined)
+A variable can be created that is empty. 
+```javascript!
+   $x: ;
+```
+It has no type. 
 
+
+### Variable Reassignment
 When a variable has already been declared, but it's value is reasigned it can be done like so:
 
 ```javascript!
 $dog-name: "Fido";
 $dog-name <: "Fluffy";
 "Ralph" :> $dog-name;
+```
+
+#### Filling empty values
+When an empty variable is initially created, it has no type. The first non-empty value assigned to it locks it into that type. 
+
+```javascript!
+$x: ;
+// $x has no value or type
+
+$x <: 5;
+// $x now has a value of 5 and a type of number. 
+
+$x <: 6 // totally fine to reassign this variable with a new number value.
+$x <: "five" 
+// ❌ error: cannot assign Text to a Number
 ```
 
 ### Variable Invocation/Use
@@ -242,7 +264,7 @@ $dog: {
 $dog.name;
 //returns "Ralph"
 
-$dog.speak;
+$dog.speak();
 // returns "yo, my name is Ralph"
 
 $dog.play-dead("Tom");
@@ -254,6 +276,53 @@ toLowerCase($dog.name);
 
 toLowerCase($dog.play-dead("Jerry"));
 // returns "ah! i was murdered by jerry!"
+```
+
+example of calling a table function and also passing an additional function as a parameter
+```javascript!
+$animal: {
+    $dog: {
+        $bark: (
+            param $status: ;
+            param $message: ;
+            if $status = "loud", 
+                return( toUpper($message) );
+            else, 
+                return( toLower($message) );
+            end;
+        );
+    }
+};
+
+getCurrentStatus: (
+    return("loud");
+);
+
+// Invocation: property access via dot notation and function call via prefix (nested) style.
+$animal.dog.bark(getCurrentStatus(), "Bark Bark");
+// returns BARK BARK
+
+```
+
+#### Destructuring
+##### Table destructuring
+```javscript!
+$person : {
+  $name: "Todd", 
+  $age: 27,
+  $favorite-color: "blue"
+}
+
+$name, $age, $shirt-color <- $favorite-color: $person{};
+```
+
+##### List destructuring
+```javscript!
+$example-list: [ 1, 2, 3];
+
+$x, $y, $z: $example-list[];
+// $x = 1, $y = 2, $z = 3
+
 ```
 
 ### Blueprints (custom types)
@@ -287,33 +356,73 @@ say($alice.greet);
 
 ### Control Flow Statements
 
- *`:` is used for assigning values, while `=` is used for comparing values. Having the two be different makes the two more visually distinct. All comparisons are strict.*
+ *Assigning value operator (`:`)and comparing values (`is`) are visually and semantically distinct which avoids the overloading common in most other programming languages. All comparisons are strict.*
+ 
+#### Boolean Context
+
+When any expression appears in a conditional position (`if`, `while`, etc.), it is **coerced** as follows:
+  
+Examples of “true” in conditions:
+```javascript!
+$favNumber: 7;
+$username: "Alice";
+$items:     [1,2,3];
+$config:    { mode:"dark" };
+$log: ( say("hi"); );
+```
+Examples of “false” in conditions:
+```javascript!
+$zero:      0;
+$emptyText: "";
+$emptyList: [];
+$emptyList: [0,0,0];
+$emptyTbl:  {};
+$emptyTbl2:  {key: ;};
+$no-operation: ( );
+$no-operation2: ( param: ;);
+$unset:     ;    
+$no:        false; // there is no standalone boolean type, but false is left in as a potential false value for readability purposes
+```
 
 ##### If
 ```javascript!
-if $variable = true,
-	say("this is true");
+$fav-color: "blue";
+
+if $fav-color is "blue",
+	say("fav color is blue");
 end;
 ```
 
 ##### If not
 ```javascript!
-if not $variable = true,
-	say("this is not true");
+$status: ;
+
+if not $status,
+	say("no current status");
+end;
+```
+This just checks for a boolean context value. 
+
+##### If is not
+```javascript!
+$status: "red alert";
+
+if $status is not "red alert",
+	say("Everything is probably fine.");
 end;
 ```
 
 ##### Else If
 ```javascript!
-else if $variable = "bark",
-  say("bark bark!");
+else if $variable is "orange alert",
+  say("warning!");
 end;
 ```
 
 ##### Else
 ```javascript!
 else,
-	say("No clue, dude");
+	say("Nothing to worry about");
 end;
 ```
 
@@ -330,7 +439,7 @@ There are no ternaries. I personally find them very difficult to read, but I thi
 
 ```javascript!
 for $parameter in $list-or-table-name, 
-		say("this iteration has returned parameter of list-name");
+		say("this iteration has returned {{$parameter}} of {{$list-name}}");
 end;
 ```
 
@@ -342,35 +451,89 @@ while $number < 10,
 end;
 ```
 
-### Boolean Context
-
-When any expression appears in a conditional position (`if`, `while`, etc.), it is **coerced** as follows:
-
-  *A value is `false` exactly when it is “empty”; otherwise it is `true`.*
-  
-Examples of “true” in conditions (non-empty):
+### Loop Controls
+Higher order functions are first class citizens in Enzo and have dedicated syntax for their use. 
+#### Filter
 ```javascript!
-$favNumber: 7;
-$username: "Alice";
-$items:     [1,2,3];
-$config:    { mode:"dark" };
-$log:       ( say("hi"); );
+$filtered-list: filter $item = "dog" in $original-list;
 ```
-Examples of “false” in conditions (empty):
-```javascript!
-$zero:      0;
-$emptyText: "";
-$emptyList: [];
-$emptyList: [0,0,0];
-$emptyTbl:  {};
-$emptyTbl2:  {key: ;};
-$no-operation: ( );
-$no-operation2: ( param: ;);
-$unset:     ;    
-$no:        false;
-```
-While `$foo: {key: 1}` and `$bar: [1]` and `$bjork: 1` are all different, `$foo: {}`, and `$bar: {}` and `$bjork: 0` and `$fizz: ;` are all the same.
 
+#### Transformation (map)
+```javascript!
+$original-list: [1, 2, 3, 4, 5];
+
+$transformed-list: transform $item in $original-list, $item + 1;
+
+say($transformed-list);
+// returns [2, 3, 4, 5, 6]
+```
+
+### Dataflow Operators
+
+Enzo provides a pipeline operator,`then`, to thread a value through a sequence of standalone transformations without nesting or method chaining.
+
+By default it passes the output of the last function to the next function as it's first argument. 
+
+
+```javascript!
+// Step-by-step pipeline
+$selected: $users then filter("active") then sortBy("last-name")then select(["id","email"]);
+
+// Exactly equivalent to:
+$selected: select(sortBy(filter($users, "active", true),"lastName"),["id","email"]);
+
+
+// You can even us line breaks to keep things more readable:
+$selected: $users 
+then filter("active", true) 
+then sortBy("lastName")
+then select(["id","email"]);
+
+// or use a "left to right" assignment to keep the value going purely from left to right
+$users then filter("active", true) then sortBy("lastName")then select(["id","email"]):> $selected;
+
+```
+
+You can also explicitly target any parameter slot with $0, it simply gets replaced by the piped-in value:
+```
+// move-in($house, $pet)
+// teach ($pet,  $command)
+// reward($pet,  $treat)
+
+$dog
+then move-in($home, $0)       // dog goes in *second* position
+then teach($0, "sit")        // dog again in 1st position of teach
+then reward($0, "treats")
+:> $goodDog;
+```
+
+##### Why use `then` pipeline?
+- No nesting. Keeps your code flat and readable.
+- No method chaining. Functions remain standalone and there's no overloading of dot notation for object property access and piping stuff together. 
+- Clear data-flow. You always read top-to-bottom, left-to-right.
+
+### Operator Precedence
+
+- `then` has **lower** precedence than ordinary function calls and arithmetic.
+- Parentheses may be used to group sub-expressions when needed.
+
+```javascript!
+$result: 4 + 6 then multiply-by($0, 5);   // parsed as (5 + 5) then multiply-by()
+// output is 50
+```
+
+
+## To-do and Questions:
+
+- array access
+- casting solutions etc
+- OOP stuff?
+
+
+# scratch pad
+Random notes about things I'm not really sure about yet. 
+
+----
 ### Built-in Functions
 
 ```javascript!
@@ -386,50 +549,8 @@ toggle()
 // like saying status = !status
 
 ```
-
-## To-do and Questions:
-
-- array access
-- casting solutions etc
-- OOP stuff?
+----
 
 
-# scratch pad
-
-turn map/filter into a first class feature of the language similar to if/else/while/for
-
-```javascript!
-$filtered-list: filter $item = "dog" in $original-list;
 
 
-$mapped-list: map $item in $original-list, 
-    transform($item)
-end;
-
-```
-
-
-example of calling a table function and also passing an additional function as a parameter
-```
-$animal: {
-    $dog: {
-        $bark: (
-            param $status: ;
-            param $message: ;
-            if $status = "loud", 
-                return( toUpper($message) );
-            else, 
-                return( toLower($message) );
-            end;
-        );
-    }
-};
-
-getCurrentStatus: (
-    return("loud");
-);
-
-// Invocation: property access via dot notation and function call via prefix (nested) style.
-$animal.dog.bark(getCurrentStatus(), "Bark Bark");
-
-```
