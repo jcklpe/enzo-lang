@@ -28,25 +28,50 @@ Also want to give a shout out to the ["Quorum Language Project"](https://quoruml
 Types are static but inferred.
 
 Variables are declared with the `:` operator.
-##### Text (string)
-
+#### Text (string)
 ```javascript!
 $text-example: "here is some text";
 ```
 
-##### Number
+#### Text interpolation
+```javascript!
+$number-example: 5;
+$number-example2: 3;
+$text-example: "the result of the two variables added together is {{$number-example + $number-example2}}"
+
+$text-example;
+//returns the text 'the result of the two variables added together is 8'
+```
+
+#### Number
 
 ```javascript!
 $number-example: 888;
 ```
 
-##### List (array)
+##### Number operations
+```javascript!
+1+2;
+//addition: returns 3
+
+3-1;
+// subtraction: returns 2
+
+2*3;
+// multiplication: returns 6
+
+4/4;
+// division: returns 1
+
+```
+
+#### List (array)
 
 ```javascript!
 $list-example: ["here is some text", 666, $variable-example];
 ```
 
-##### Table (objects/maps)
+#### Table (objects/maps)
 
 ```javascript!
 $table-example: {
@@ -67,7 +92,7 @@ $table-example: {
 ```
 
 
-##### Functions
+#### Functions
 ``` javascript!
 function-example: (
 
@@ -82,21 +107,39 @@ function-example: (
 );
 ```
 
-###### Nameless functions (lambda)
+##### Nameless functions (lambda)
 ```javascript!
 (6, 5; $a * $b;)
 // returns 30
 ```
-A named function is simply a nameless function bound to an identifier. We omit the $ on named functions to keep your API surface clean and readable. But if you think of a function more like a computed piece of data, something you’ll pass around, store in tables, or use inline—you can bind a lambda to a $-variable:
+A named function is simply a nameless function bound to an identifier. We omit the $ on named functions to keep things more readable. But if you think of a function more like a computed piece of data, something you’ll pass around, store in tables, or use inline, you can bind a nameless function to a $variable like so:
 ```javascript!
 // Treating the lambda as “data” that computes a full name:
-$full-name: ($first, $last; $first + " " + $last;);
+$full-name: (
+    param $first: ; 
+    param $last: ; 
+    return({{$first $last}})
+);
 
-// Invoking it looks just like calling any function:
+// Invoking it looks just like invoking any other function:
 say($full-name("Alice", "Smith"));
 // Expected output: "Alice Smith"
 ```
-Use $-bound lambdas when the value the function returns is the primary focus, when the function itself feels like data in your mental model.
+
+You can even declare the function without the `$` but still call it with the `$` like so:
+```javascript! 
+full-name: (
+    param $first: ; 
+    param $last: ; 
+    return({{$first $last}})
+);
+
+say($full-name("Alice", "Smith"));
+// Expected output: "Alice Smith"
+```
+Use $-bound nameless functions when the value the function returns is the primary focus, when the function itself feels like data in your mental model.
+
+
 
 ##### Empty variables (null, undefined)
 A variable can be created that is empty. 
@@ -147,18 +190,6 @@ $text-example2;
 // returns "here is some text"
 ```
 
-#### Calling a table's property values
-
-Text interpolation
-```javascript!
-$number-example: 5;
-$number-example2: 3;
-$text-example: "the result of the two variables added together is {{$number-example + $number-example2}}"
-
-$text-example;
-//returns the text 'the result of the two variables added together is 8'
-```
-
 #### Function invocation
 
 ```javascript!
@@ -194,62 +225,76 @@ function-example2($third-number<: 2, $second-number<: 3);
 function-example2();
 // returns error
 ```
+##### Function invocation versus reference
+Enzo distinguishes **invoking** a function from **referencing** it. 
+Invoking a function has parentheses, like this:
+```javascript!
+function-name(); 
+//or
+$function-name();
+```
+Referencing a function does not have parentheseses and must have the `$` sigil like so: 
+```javascript!
+$function-name;
+```
+
+Example of this in action:
+```javascript!
+// 1) Define a function
+increment: (
+  param $number: ;
+  return($number + 1);
+);
+
+// 2) Call it directly:
+$total: increment(5);        
+// 6 is now assigned to $total
+
+// 3) Reference it as data (must use $):
+$op: $increment;             
+// ✓ $op now holds the function object
+
+// 4) Call via your $-bound alias:
+$result: $op(10);            
+// 11 assigned to $result
+
+// 5) Higher-order usage:
+applyTwice: (
+  param $function:();      // expects a function object
+  param $value: 1;          // default value of 1 tells it to expect a number
+  return($function($function($value)));
+);
+
+// Pass the function **reference** with `$` and without `()`:
+$twice: applyTwice($increment, 7);   
+// 9 assigned to $twice
+```
 
 #### Passing a function as a parameter
-
 Functions are eager evaluation by default:
 ```javascript!
-$campfireStatus: "unlit";
+$campfire-status: "unlit";
 
-getCampfireStatus: (
-    return($campfireStatus);
+get-campfire-status: (
+    return($campfire-status);
 );
 
-announceEager: (
-    param $statusVal;
-    say("Eager campfire: {{$statusVal}}");
+announce: (
+    param $status-value:"";
+    say("campfire: {{$status-value}}");
 );
 
-announceEager(getCampfireStatus());
-// Expected output immediately: "Eager campfire: unlit"
+announce(get-campfire-status());
+// Expected output: "campfire: unlit"
 
-$campfireStatus <: "lit";
+$campfire-status <: "lit";
 
-announceEager(getCampfireStatus());
-// Expected output immediately: "Eager campfire: lit"
+announcer(get-campfire-status());
+// Expected output: "campfire: lit"
 ```
 
-Functions can be set to lazy evaluate using `!`:
+#### Invoking a function from a table property
 ```javascript!
-$campfireStatus: "unlit";
-
-getCampfireStatus: (
-    return($campfireStatus);
-);
-
-announceLazy: (
-    param $statusFn;
-
-    // Wait 5 minutes
-    wait(300000);
-    say("Lazy campfire: {{$statusFn()}}");
-);
-
-announceLazy(!getCampfireStatus());
-// Expected output (after 5 minutes delay): "Lazy campfire: lit"
-// (Assuming that before 5 minutes elapse, $campfireStatus is updated.)
-
-$campfireStatus <: "lit";
-
-announceLazy(!getCampfireStatus());
-// Expected output (after 5 minutes delay): "Lazy campfire: lit"
-```
-
-
-#### Invoking a table property function
-
-```javascript!
-
 $dog: {
     $name: "Ralph",
     speak: (
@@ -278,7 +323,7 @@ toLowerCase($dog.play-dead("Jerry"));
 // returns "ah! i was murdered by jerry!"
 ```
 
-example of calling a table function and also passing an additional function as a parameter
+Example of calling a table function and also passing an additional function as a parameter
 ```javascript!
 $animal: {
     $dog: {
@@ -362,7 +407,7 @@ say($alice.greet);
 
 When any expression appears in a conditional position (`if`, `while`, etc.), it is **coerced** as follows:
   
-Examples of “true” in conditions:
+Examples of “true” conditions:
 ```javascript!
 $favNumber: 7;
 $username: "Alice";
@@ -370,7 +415,7 @@ $items:     [1,2,3];
 $config:    { mode:"dark" };
 $log: ( say("hi"); );
 ```
-Examples of “false” in conditions:
+Examples of “false” conditions:
 ```javascript!
 $zero:      0;
 $emptyText: "";
@@ -412,9 +457,64 @@ if $status is not "red alert",
 end;
 ```
 
+##### If and
+```javascript!
+$status : "red alert";
+$temperature: 600;
+
+if $status is "red alert" and $temperature is 50, 
+    say("It's getting really hot in the engine room!")
+end;    
+```
+
+##### If or
+```javascript!
+$status: "red alert";
+
+if $status is "red alert" or "orange alert",
+    say("stuff is looking bad!")
+end;
+```
+
+##### If less than
+```javascript!
+$temperature: 98;
+
+if $temperature is less than 50,
+    say("getting kind of chilly in here");
+end;
+```
+
+##### If greater than
+```javascript!
+$temperature: 98;
+
+if $temperature is greater than 88,
+    say("getting kind of warm in here");
+end;
+```
+
+##### If at most (<=)
+```javascript!
+$temperature: 98;
+
+if $temperature is at most 120,
+    say("I can survive this heat");
+end;
+```
+
+##### If at least (>=)
+```javascript!
+$temperature: 98;
+
+if $temperature is at least 20,
+    say("I can survive this coolness");
+end;
+```
+
 ##### Else If
 ```javascript!
-else if $variable is "orange alert",
+else if $variable is "yellow alert",
   say("warning!");
 end;
 ```
@@ -489,10 +589,12 @@ then filter("active", true)
 then sortBy("lastName")
 then select(["id","email"]);
 
+
 // or use a "left to right" assignment to keep the value going purely from left to right
 $users then filter("active", true) then sortBy("lastName")then select(["id","email"]):> $selected;
 
 ```
+While `:>` is usualy used to rebind values, it can be used to also declare and bind all in one move, which can be useful with pipeline operations so that you can keep a nice `function() then function() then function() :> $final-variable`
 
 You can also explicitly target any parameter slot with $0, it simply gets replaced by the piped-in value:
 ```
@@ -509,22 +611,35 @@ then reward($0, "treats")
 
 ##### Why use `then` pipeline?
 - No nesting. Keeps your code flat and readable.
-- No method chaining. Functions remain standalone and there's no overloading of dot notation for object property access and piping stuff together. 
+- No method chaining. Functions remain standalone and there's no overloading of dot notation for table property access and piping stuff together. 
 - Clear data-flow. You always read top-to-bottom, left-to-right.
 
-### Operator Precedence
+# Misc implemention details
+1. Enzo is expression oriented rather than statement oriented. 
+2. Enzo is static (lexical) scoped.
+----
+## Operator Precedence 
+1. table property invocation (`.`) 
+2. function invocation
+3. multiplication and division ( `*`, `/` )
+4. addition, subtraction (`+`, `-`)
+5. comparison operators (`is`, `not`, `is not`, `less than`, `greather than`, `at most`, `at least` )
+6. logical operators (`and`, `or`)
+7. pipeline operator (`then`)
+8. variable declaration and assignment ( `:` `<:` `:>`)
 
-- `then` has **lower** precedence than ordinary function calls and arithmetic.
-- Parentheses may be used to group sub-expressions when needed.
+## Desugaring catalogue
 
-```javascript!
-$result: 4 + 6 then multiply-by($0, 5);   // parsed as (5 + 5) then multiply-by()
-// output is 50
-```
+| Sugar syntax                                    | Core form after parse-rewrite                                |
+| ----------------------------------------------- | ------------------------------------------------------------ |
+| **Pipeline** `$v then foo($0,1)`                | `foo($v,1)`                                                  |
+| **Inline if** `if cond, a, else b`              | `if cond then a else b end`                                  |
+| **List destructure** `$x,$y : [1,2]`            | `$tmp : [1,2]; $x : $tmp[0]; $y : $tmp[1];`                  |
+| **Table destructure** `$name,$age <- $person{}` | `$name : $person.name; $age : $person.age;`                  |
+
 
 
 ## To-do and Questions:
-
 - array access
 - casting solutions etc
 - OOP stuff?
@@ -537,13 +652,20 @@ Random notes about things I'm not really sure about yet.
 ### Built-in Functions
 
 ```javascript!
-say()
+say();
 //builtin print function
 
-return()
+return();
+// Exit current function with value.
+
+error(message);
+// Raise an exception that halts execution 
+
+import("path/to/resource/to/import");
+//
 
 unpack() 
-// spread operator 
+// spread operator ???
 
 toggle()
 // like saying status = !status
