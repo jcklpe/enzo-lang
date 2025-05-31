@@ -37,7 +37,7 @@ $text-example: "here is some text";
 ```javascript!
 $number-example: 5;
 $number-example2: 3;
-$text-example: "the result of the two variables added together is {{$number-example + $number-example2}}"
+$text-example: "the result of the two variables added together is <$number-example + $number-example2>"
 
 $text-example;
 //returns the text 'the result of the two variables added together is 8'
@@ -66,10 +66,28 @@ $number-example: 888;
 ```
 
 #### List (array)
-
 ```javascript!
 $list-example: ["here is some text", 666, $variable-example];
 ```
+
+You can access a specific item in the list as follows:
+```javascript!
+$colors: ["red", "green", "blue", "yellow"];
+
+$firstColor:  $colors.1;   // "red"
+$thirdColor:  $colors.3;   // "blue"
+
+// Using a computed index
+$indexToFind: 2;
+$middleColor: $colors.$indexToFind;  
+// resolves to $colors.1 → "green"
+
+// nested list selection
+$reversed: reverse($colors);  // ["yellow","blue","green","red"]
+$pick:     $reversed.2;       // → "blue"
+
+```
+The numeric indexing of lists starts at 1. 
 
 #### Table (objects/maps)
 
@@ -90,6 +108,28 @@ $table-example: {
                 $property3:"this property value could be invoked using '$table-example.property4.property3'"}
 };
 ```
+
+### Dot-Numeric vs. Table Property Access
+
+- **Table property access** uses a “dot + identifier” (e.g. `$user.name`).
+- **List indexing** uses a “dot + integer literal” (e.g. `$user.friends.2`)—the parser sees the digit immediately after the dot and interprets it as list indexing rather than property lookup.
+
+```javascript!
+// Table with a numeric property versus a list:
+$user: {
+  name: "Alice",
+  logs: ["login","logout","login"]
+};
+
+// To get "logout":
+$secondLog: $user.logs.2;    // → "logout"
+
+// If someone wrote $user.42:
+//   ▸ It would look for a numeric index on the table $user.
+//   ▸ Because $user is not a List, this is a type error at compile time.
+```
+
+Always ensure that the expression to the **left of the dot** is known to be a List at compile time, or you’ll get a type mismatch error.
 
 
 #### Functions
@@ -118,7 +158,7 @@ A named function is simply a nameless function bound to an identifier. We omit t
 $full-name: (
     param $first: ; 
     param $last: ; 
-    return({{$first $last}})
+    return(<$first $last>)
 );
 
 // Invoking it looks just like invoking any other function:
@@ -131,7 +171,7 @@ You can even declare the function without the `$` but still call it with the `$`
 full-name: (
     param $first: ; 
     param $last: ; 
-    return({{$first $last}})
+    return(<$first $last>)
 );
 
 say($full-name("Alice", "Smith"));
@@ -281,7 +321,7 @@ get-campfire-status: (
 
 announce: (
     param $status-value:"";
-    say("campfire: {{$status-value}}");
+    say("campfire: <$status-value>");
 );
 
 announce(get-campfire-status());
@@ -298,11 +338,11 @@ announcer(get-campfire-status());
 $dog: {
     $name: "Ralph",
     speak: (
-        return("yo, my name is {{$self.name}}");
+        return("yo, my name is <$self.name>");
     ),
     play-dead: (
         param $assailant: "";
-        return("ah! I was murdered by {{$assailant}}!");
+        return("ah! I was murdered by <$assailant>!");
     ),
 };
 
@@ -385,7 +425,7 @@ Person: <{
     age: Number,
     t-shirt-size: Size,
     greet: (
-        return("Hi, my name is {{$self.name}} and I'm {{$self.age}} years old.");
+        return("Hi, my name is <$self.name> and I'm <$self.age> years old.");
     );
 }>;
 
@@ -539,7 +579,7 @@ There are no ternaries. I personally find them very difficult to read, but I thi
 
 ```javascript!
 for $parameter in $list-or-table-name, 
-		say("this iteration has returned {{$parameter}} of {{$list-name}}");
+		say("this iteration has returned <$parameter> of <$list-name>");
 end;
 ```
 
@@ -607,6 +647,17 @@ then move-in($home, $0)       // dog goes in *second* position
 then teach($0, "sit")        // dog again in 1st position of teach
 then reward($0, "treats")
 :> $goodDog;
+```
+
+You can also use pipeline operators on Lists:
+```javascript!
+$colors: ["red", "green", "blue", "yellow"];
+
+$thirdUppercaseColor:
+  $colors
+  then map( ( $color; toUpper($color); ) )
+  then $0.3;       // index into the result
+// → "BLUE"
 ```
 
 ##### Why use `then` pipeline?
