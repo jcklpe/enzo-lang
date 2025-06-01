@@ -586,7 +586,7 @@ end;
 ##### While
 
 ```javascript!
-while $number < 10,
+while $number less than 10,
 	$number <: $number + 1
 end;
 ```
@@ -713,7 +713,10 @@ error(message);
 // Raise an exception that halts execution 
 
 import("path/to/resource/to/import");
-//
+// imports packages
+
+export("component-name")
+// exports components (for a potential markup language syntax in the future?)
 
 unpack() 
 // spread operator ???
