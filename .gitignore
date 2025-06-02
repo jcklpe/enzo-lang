@@ -1,2 +1,34 @@
+# python stuff
 __pycache__/
-.venv/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Jupyter notebook
+.ipynb_checkpoints
+
+# macOS
+*.DS_Store
+.DS_Store
+.AppleDouble
+.LSOverride
