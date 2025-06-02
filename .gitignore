@@ -26,6 +26,7 @@ pip-delete-this-directory.txt
 
 # Jupyter notebook
 .ipynb_checkpoints
+enzo-code/
 
 # macOS
 *.DS_Store
