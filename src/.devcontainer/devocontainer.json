@@ -1,0 +1,5 @@
+{
+  "name": "enzo-jupyter",
+  "image": "jupyter/scipy-notebook",
+  "postCreateCommand": "pip install -r requirements.txt"
+}

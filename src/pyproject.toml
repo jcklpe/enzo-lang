@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "enzo"
+version = "0.1.0"
+description = "Interpreter for the Enzo language"
+authors = ["Aslan French <howdy@aslanfrench.work>"]
+packages = [
+  { include = "enzo", from = "src" }   # ← this replaces the old --src flag
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+lark = "^1.2.2"
+prompt-toolkit = "^3.0.51"
+notebook = "^7.4.3"
+ipykernel = "^6.29.5"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0"
+black = "^24.0"
+ruff = "^0.4"
+
+[tool.poetry.scripts]
+enzo = "enzo.cli:main"
