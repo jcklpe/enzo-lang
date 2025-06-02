@@ -1,15 +1,23 @@
-?start: stmt+
+# ──────────────────────────────────────────────────────────────────────────────
+# grammar.lark
+# ──────────────────────────────────────────────────────────────────────────────
 
+# Top‐level: one or more statements, separated (and optionally
+# terminated) by semicolons (“;”).  Newlines are not significant here—
+# only “;” really ends a statement.
+?start: stmt (";" stmt)* ";"?
+
+# A single statement is either an assignment form or a bare expression.
 ?stmt: assign_stmt
-     | expr                       -> expr_stmt
+     | expr              -> expr_stmt
 
-# ── assignment ─────────────────────────────────────
-?assign_stmt: NAME ":" expr            -> bind
-            | NAME "<:" expr           -> rebind
-            | expr "<:" expr           -> prop_rebind
-            | expr ":>" NAME           -> rebind_lr
+# ── assignment forms ─────────────────────────────────────────────────────────
+?assign_stmt: NAME ":"  expr       -> bind
+            | NAME "<:" expr       -> rebind
+            | expr "<:" expr       -> prop_rebind
+            | expr ":>" NAME       -> rebind_lr
 
-# ── full precedence ────────────────────────────────
+# ── full expression precedence ────────────────────────────────────────────────
 ?expr: sum
 
 ?sum: product
@@ -20,8 +28,8 @@
         | product "*" postfix     -> mul
         | product "/" postfix     -> div
 
-# ── postfix (handles indexing and property‐access) ──
-?postfix: primary (DOTINT | DOTVAR | DOTPROP)*       -> index_chain
+# ── postfix handles “.INT” (list‐index), “.$foo” (var‐index), or “.foo” (prop‐access)
+?postfix: primary ( DOTINT | DOTVAR | DOTPROP )*    -> index_chain
 
 ?primary: list
         | table
@@ -30,22 +38,26 @@
         | NAME                    -> var
         | "(" expr ")"            -> paren
 
-# ── list literal ───────────────────────────────────
+# ── list literal ─────────────────────────────────────────────────────────────
 list: "[" [expr ("," expr)*] "]"  -> list
 
-# ── table literal ──────────────────────────────────
+# ── table literal ────────────────────────────────────────────────────────────
 table: "{" [kvpair ("," kvpair)*] "}"  -> table
 kvpair: KEY ":" expr
 
-# ── tokens ─────────────────────────────────────────
-NAME:  /\$[a-zA-Z0-9_-]+/            // $foo, $bar_123, etc.
-KEY:   /\$[a-zA-Z0-9_-]+/            // same pattern, used inside tables
+# ── tokens ───────────────────────────────────────────────────────────────────
+NAME:    /\$[a-zA-Z0-9_-]+/            // e.g.  $foo, $bar_123
+KEY:     /\$[a-zA-Z0-9_-]+/            // same pattern, used inside tables
 
-DOTINT.5:   /\.[1-9][0-9]*/           // “.1”, “.42” (1‐based numeric indexing)
+DOTINT.5:   /\.[1-9][0-9]*/            // “.1”, “.42”  1‐based numeric indexing
 DOTVAR.6:   /\.[$][a-zA-Z0-9_-]+/      // “.$foo”
-DOTPROP.7:  /\.[a-zA-Z][a-zA-Z0-9_-]*/ // “.foo”  (property access)
+DOTPROP.7:  /\.[a-zA-Z][a-zA-Z0-9_-]*/ // “.foo”  (property‐access)
 
 %import common.NUMBER
-%import common.ESCAPED_STRING     -> STRING
+%import common.ESCAPED_STRING   -> STRING
 %import common.WS_INLINE
+
+# ── ignore spaces/tabs, single‐line “//” comments, and newlines ───────────────
 %ignore WS_INLINE
+%ignore /\/\/[^\n]*/
+%ignore /[\r\n]+/
