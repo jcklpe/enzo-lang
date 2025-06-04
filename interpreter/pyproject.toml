@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Interpreter for the Enzo language"
 authors = ["Aslan French <howdy@aslanfrench.work>"]
 packages = [
-  { include = "enzo", from = "src" }   # ← this replaces the old --src flag
+  { include = "src" }
 ]
 
 [tool.poetry.dependencies]
@@ -20,4 +20,4 @@ black = "^24.0"
 ruff = "^0.4"
 
 [tool.poetry.scripts]
-enzo = "enzo.cli:main"
+enzo = "src.cli:main"

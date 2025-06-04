@@ -1,7 +1,7 @@
 import sys
-from enzo.parser       import parse
-from enzo.evaluator    import eval_ast
-from enzo.ast_helpers  import Table, format_val
+from src.parser       import parse
+from src.evaluator    import eval_ast
+from src.ast_helpers  import Table, format_val
 
 def say(val):
     print(val)

@@ -1,5 +1,5 @@
-from enzo.parser       import parse
-from enzo.ast_helpers  import Table, format_val
+from src.parser       import parse
+from src.ast_helpers  import Table, format_val
 
 _env = {}  # single global environment
 
