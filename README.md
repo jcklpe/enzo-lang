@@ -740,8 +740,6 @@ $thirdUppercaseColor:
 8. variable declaration and assignment ( `:` `<:` `:>`)
 
 ## Desugaring catalogue
-
-
 | Sugar syntax                                    | Core form after parse-rewrite               |
 | ------------------------------------------------- | --------------------------------------------- |
 | **Pipeline** `$v then foo($0,1)`                | `foo($v,1)`                                 |
@@ -750,8 +748,6 @@ $thirdUppercaseColor:
 | **Table destructure** `$name,$age <- $person{}` | `$name : $person.name; $age : $person.age;` |
 
 ## To-do and Questions:
-
-- array access
 - casting solutions etc
 - OOP stuff?
 
