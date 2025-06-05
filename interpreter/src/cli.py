@@ -24,7 +24,12 @@ def main() -> None:
         except (EOFError, KeyboardInterrupt):
             break
 
-        if not line.strip():
+        stripped = line.strip()
+        # Skip blank lines
+        if not stripped:
+            continue
+        # Skip stand‐alone '//' comments
+        if stripped.startswith("//"):
             continue
 
         try:

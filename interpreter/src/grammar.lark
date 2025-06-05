@@ -12,7 +12,8 @@
      | expr              -> expr_stmt
 
 # ── assignment forms ─────────────────────────────────────────────────────────
-?assign_stmt: NAME ":"  expr       -> bind
+?assign_stmt: NAME ":"            -> bind_empty      // e.g. “$x:;” with no right‐hand side
+            | NAME ":"  expr       -> bind            // normal bind with an expression
             | NAME "<:" expr       -> rebind
             | expr "<:" expr       -> prop_rebind
             | expr ":>" NAME       -> rebind_lr

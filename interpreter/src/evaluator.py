@@ -23,7 +23,12 @@ def eval_ast(node):
         return _interp(rest[0])
 
     if typ == "list":
-        return [eval_ast(el) for el in rest[0]]
+    # Defensive: always turn rest[0] into a real list of AST nodes
+        children = rest[0] if rest else []
+        # If children is [None], treat as []
+        if children == [None]:
+            children = []
+        return [eval_ast(el) for el in children]
 
     if typ == "table":
         d = {}
@@ -91,15 +96,64 @@ def eval_ast(node):
     # ── bind / rebind ─────────────────────────────────────────────────────
     if typ == "bind":
         name, expr_ast = rest
+        # If the name already exists and is still "empty" (i.e. None), fill it.
         if name in _env:
+            if _env[name] is None:
+                new_val = eval_ast(expr_ast)
+                _env[name] = new_val
+                return new_val
+            # If it existed and was not None, disallow re-declaration with `:`
             raise NameError(f"{name} already defined")
+
+        # Fresh bind (name not present at all)
         _env[name] = eval_ast(expr_ast)
         return _env[name]
 
+    if typ == "bind_empty":
+        name = rest[0]
+        if name in _env:
+            raise NameError(f"{name} already defined")
+        # Represent “empty/untyped” by storing Python None
+        _env[name] = None
+        return None
+
     if typ == "rebind":
         name, expr_ast = rest
-        _env[name] = eval_ast(expr_ast)
-        return _env[name]
+        new_val = eval_ast(expr_ast)
+
+        # If never declared, treat `<:` or `:>` as a fresh bind
+        if name not in _env:
+            _env[name] = new_val
+            return new_val
+
+        old_val = _env[name]
+
+        # If old_val is None, this is the first non‐empty assignment → lock in new type
+        if old_val is None:
+            _env[name] = new_val
+            return new_val
+
+        # Otherwise, enforce that types match
+        if type(old_val) is not type(new_val):
+            # Helper to give friendly type names
+            def pretty_type(x):
+                if isinstance(x, str):
+                    return "Text"
+                if isinstance(x, int):
+                    return "Number"
+                if isinstance(x, list):
+                    return "List"
+                if isinstance(x, (dict, Table)):
+                    return "Table"
+                # fallback
+                return type(x).__name__
+
+            msg = f"cannot assign {pretty_type(new_val)} to {pretty_type(old_val)}"
+            raise TypeError(msg)
+
+        # Types match → perform rebind
+        _env[name] = new_val
+        return new_val
 
     # ── bare expression statement ─────────────────────────────────────────
     if typ == "expr":
@@ -112,9 +166,13 @@ def eval_ast(node):
 def _interp(s: str):
     """
     Given a Python string `s`, expand each “<expr>” by:
-      1) parse “expr”
-      2) evaluate it
-      3) convert result to str
+      - Allow multiple expressions separated by semicolons inside "<...>"
+      - Evaluate each sub‐expression (parse+eval)
+      - Convert each result to str and concatenate in order.
+
+    Examples:
+      "<$a; $b;>" → str(eval($a)) + str(eval($b))
+      "<1 + 2; 3 * 4;>" → "3" + "12" = "312"
     """
     if "<" not in s:
         return s
@@ -125,13 +183,26 @@ def _interp(s: str):
         if j == -1:
             out.append(s[i:])
             break
+        # Append text before "<"
         out.append(s[i:j])
+
+        # Find closing ">"
         k = s.find(">", j + 1)
         if k == -1:
             raise ValueError("unterminated interpolation in string")
+
+        # Extract inside-of-<...>, including any semicolons
         expr_src = s[j + 1 : k].strip()
-        expr_ast = parse(expr_src)
-        out.append(str(eval_ast(expr_ast)))
+        # Split on semicolons to allow multiple expressions
+        parts = [p.strip() for p in expr_src.split(";") if p.strip()]
+        concatenated = ""
+        for part in parts:
+            # For each sub‐expression, parse and evaluate it
+            expr_ast = parse(part)
+            val = eval_ast(expr_ast)
+            concatenated += str(val)
+        out.append(concatenated)
+
         i = k + 1
 
     return "".join(out)

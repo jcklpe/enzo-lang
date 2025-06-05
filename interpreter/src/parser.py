@@ -31,6 +31,9 @@ class AST(Transformer):
         return ("str", tok[0][1:-1])
 
     def list(self, vals):
+        # Lark can pass None, [], or [None] for empty lists.
+        if not vals or vals == [None]:
+            return ("list", [])
         return ("list", vals)
 
     # ── table literal ───────────────────────────────────────────────────
@@ -42,8 +45,16 @@ class AST(Transformer):
         return (key_tok.value, val_node)
 
     def table(self, pairs):
-        # pairs is a list of (keyStringWithDollar, exprNode)
-        return ("table", dict(pairs))
+        # pairs is either [] (for `{}`) or a list of (key-with-$, exprNode).
+        # We can safely turn that into a Python dict:
+        d = {}
+        for item in pairs:
+            # Each item should be a (key, exprNode) tuple.
+            if not isinstance(item, tuple) or len(item) != 2:
+                raise ValueError(f"Invalid kvpair in table: {item!r}")
+            key, val_node = item
+            d[key] = val_node
+        return ("table", d)
 
     def var(self, tok):
         # tok[0].value is something like "$foo"
@@ -83,7 +94,7 @@ class AST(Transformer):
 
             elif isinstance(t, Token) and t.type == "DOTPROP":
                 # e.g. ".foo" → attribute access of key "$foo"
-                prop_name = "$" + t.value[1:]  # t.value==" .foo", so t.value[1:]=="foo"
+                prop_name = "$" + t.value[1:]  # t.value==".foo", so t.value[1:]=="foo"
                 node = ("attr", node, prop_name)
 
             else:
@@ -95,6 +106,11 @@ class AST(Transformer):
     def bind(self, v):
         name_tok, expr_node = v
         return ("bind", name_tok.value, expr_node)
+
+    def bind_empty(self, v):
+        # v is a single‐element list: [Token(NAME)]
+        name_tok = v[0]
+        return ("bind_empty", name_tok.value)
 
     def rebind(self, v):
         name_tok, expr_node = v
