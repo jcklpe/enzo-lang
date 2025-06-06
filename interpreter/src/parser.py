@@ -14,9 +14,14 @@ _parser = Lark(
 class AST(Transformer):
     # ── Top‐level “start” folds into a block of statements ───────────────
     def start(self, v):
-        # v is a list of AST nodes for each semicolon‐terminated stmt.
-        # Instead of returning only the last one, we return ("block", [stmt1, stmt2, …]).
-        return ("block", v)
+        # v is a list of AST nodes for each semicolon‐terminated stmt_or_empty.
+        # Filter out ("empty",) markers for empty statements
+        stmts = [stmt for stmt in v if stmt != ("empty",)]
+        return ("block", stmts)
+
+    # Recognize an empty statement (from redundant semicolons)
+    def empty_stmt(self, _):
+        return ("empty",)
 
     def stmt(self, v):
         # unwrap a single statement into its AST (either bind, rebind, expr, etc.)

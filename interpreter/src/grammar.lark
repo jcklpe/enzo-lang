@@ -5,7 +5,11 @@
 # Top‐level: one or more statements, separated (and optionally
 # terminated) by semicolons (“;”).  Newlines are not significant here—
 # only “;” really ends a statement.
-?start: stmt (";" stmt)* ";"?
+start: stmt_or_empty (";" stmt_or_empty)* ";"
+
+# Statement or empty (to allow for redundant semicolons)
+?stmt_or_empty: stmt
+              |          -> empty_stmt
 
 # A single statement is either an assignment form or a bare expression.
 ?stmt: assign_stmt
