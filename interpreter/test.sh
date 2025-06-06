@@ -128,7 +128,7 @@ $y <: 3;
    // an indented comment line that should be skipped
 
 // ── 24) REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
-$newImplicit :> 55;
+55 :> $newImplicit;
 $newImplicit;               // prints “55”
 $newImplicit <: "oops";     // error: cannot assign Text to Number
 
