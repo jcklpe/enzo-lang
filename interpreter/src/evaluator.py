@@ -96,15 +96,9 @@ def eval_ast(node):
     # ── bind / rebind ─────────────────────────────────────────────────────
     if typ == "bind":
         name, expr_ast = rest
-        # If the name already exists and is still "empty" (i.e. None), fill it.
+        # Disallow redeclaration, even if it's still None (empty)
         if name in _env:
-            if _env[name] is None:
-                new_val = eval_ast(expr_ast)
-                _env[name] = new_val
-                return new_val
-            # If it existed and was not None, disallow re-declaration with `:`
             raise NameError(f"{name} already defined")
-
         # Fresh bind (name not present at all)
         _env[name] = eval_ast(expr_ast)
         return _env[name]

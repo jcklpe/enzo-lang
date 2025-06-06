@@ -62,7 +62,8 @@ $emptyListTest.1;  // error: list index out of range
 
 // ── 12) BIND EMPTY AND THEN FILL WITH LIST ────────────────────────────────────
 $empty-list: ;
-$empty-list: ["now not empty"];
+$empty-list: 50;    //this should error
+$empty-list<: ["now not empty"];
 $empty-list;       // prints “[ "now not empty" ]”
 
 // ── 13) DECLARE LIST AND ACCESS ITEMS ────────────────────────────────────────
