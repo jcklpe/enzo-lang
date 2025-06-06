@@ -40,10 +40,12 @@
         | "(" expr ")"            -> paren
 
 # ── list literal ─────────────────────────────────────────────────────────────
-list: "[" [expr ("," expr)*] "]"  -> list
+list: "[" [expr_list] "]"         -> list
+expr_list: expr ("," expr)* [","]
 
 # ── table literal ────────────────────────────────────────────────────────────
-table: "{" [kvpair ("," kvpair)*] "}"  -> table
+table: "{" [kvpair_list] "}"      -> table
+kvpair_list: kvpair ("," kvpair)* [","]
 kvpair: KEY ":" expr
 
 # ── tokens ───────────────────────────────────────────────────────────────────

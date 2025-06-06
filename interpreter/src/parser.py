@@ -1,5 +1,5 @@
 from pathlib import Path
-from lark import Lark, Transformer, Token
+from lark import Tree, Lark, Transformer, Token
 
 # ───────────────────────────
 # Load the grammar (grammar.lark must already be in place)
@@ -31,10 +31,15 @@ class AST(Transformer):
         return ("str", tok[0][1:-1])
 
     def list(self, vals):
-        # Lark can pass None, [], or [None] for empty lists.
+        # Lark: vals is [] for [], or [expr_list] for [a, b, ...]
+        # expr_list is [] for [ ], [item, ...] for [a, ...], [None] for [ , ]
         if not vals or vals == [None]:
             return ("list", [])
-        return ("list", vals)
+        # If we get a [None], treat it as empty list
+        items = vals[0] if isinstance(vals[0], list) else vals
+        if items == [None]:
+            items = []
+        return ("list", items)
 
     # ── table literal ───────────────────────────────────────────────────
     # kvpair: KEY ":" expr
@@ -45,11 +50,15 @@ class AST(Transformer):
         return (key_tok.value, val_node)
 
     def table(self, pairs):
-        # pairs is either [] (for `{}`) or a list of (key-with-$, exprNode).
-        # We can safely turn that into a Python dict:
+        # Lark: pairs is [] for {}, or [kvpair_list] for {...}
+        # kvpair_list is [] for { }, [item, ...] for {a: b, ...}, [None] for { , }
+        if not pairs or pairs == [None]:
+            return ("table", {})
+        kvlist = pairs[0] if isinstance(pairs[0], list) else pairs
+        if kvlist == [None]:
+            kvlist = []
         d = {}
-        for item in pairs:
-            # Each item should be a (key, exprNode) tuple.
+        for item in kvlist:
             if not isinstance(item, tuple) or len(item) != 2:
                 raise ValueError(f"Invalid kvpair in table: {item!r}")
             key, val_node = item
@@ -128,6 +137,14 @@ class AST(Transformer):
     def expr_stmt(self, v):
         # wrap a bare expression into (“expr”, AST)
         return ("expr", v[0])
+
+    def expr_list(self, items):
+        # Remove stray Nones (from trailing commas)
+        return [x for x in items if x is not None]
+
+    def kvpair_list(self, items):
+        # Remove stray Nones (from trailing commas)
+        return [x for x in items if x is not None]
 
 
 def parse(src: str):

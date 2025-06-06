@@ -71,4 +71,117 @@ $colors.3;         // prints “blue”
 $i: 2;
 $colors.$i;        // prints “green”
 
-// ── 14) NESTED LISTS WITH INDEXING ──────────────────────────────────────
+// ── 14) NESTED LISTS WITH INDEXING ────────────────────────────────────────────
+$nestedList: [[1, 2], [3, 4]];
+$nestedList.2.1;   // prints “3”
+
+// ── 15) NOW THAT $colors & $i ARE DEFINED, INTERPOLATE A STRING THAT USES THEM ─
+$text-about-colors-list: "color <$i> is <$colors.$i>";
+$text-about-colors-list;   // prints “color 2 is green”
+
+// ── 16) TABLE STUFF ───────────────────────────────────────────────────────────
+$table: { $name: "Alice", $age: 30 };
+$table;             // prints “{ $name: "Alice", $age: 30 }”
+$table.name;        // prints “Alice”
+$table.age;         // prints “30”
+
+// ── 17) REBINDING TABLE PROPERTIES ────────────────────────────────────────────
+$table.name <: "Bob";
+$table.name;        // prints “Bob”
+$table;             // prints “{ $name: "Bob", $age: 30 }”
+
+// ── 18) ANOTHER TABLE + PROPERTY REBIND ───────────────────────────────────────
+$table2: { $foo: 42, $bar: "hello" };
+$table2.bar;        // prints “hello”
+$table2.foo <: 100;
+$table2;            // prints “{ $foo: 100, $bar: "hello" }”
+
+// ── 19) EMPTY TABLE LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
+$emptyTable: {};
+$emptyTable;            // prints “{ }”
+$emptyTable.someKey;    // error: 'someKey'
+
+// ── 20) NESTED TABLE + MIXED INDEX/ATTR ───────────────────────────────────────
+$nestedTable: {
+    $inner: {
+        $val: 42,
+        $arr: [10, 20]
+    }
+};
+$nestedTable.inner.val;     // prints “42”
+$nestedTable.inner.arr.2;   // prints “20”
+
+// ── 21) REBINDING NESTED TABLES ───────────────────────────────────────────────
+$nestedTable.inner.val <: 100;
+$nestedTable.inner.val;     // prints “100”
+
+// ── 22) MIXED LIST‐INSIDE‐TABLE ● INDEX VS ATTR ──────────────────────────────
+$mix: { $lst: ["a", "b", "c"] };
+$mix.lst.2;                // prints “b”
+
+// ── 23) COMPLEX MATH INTERPOLATION ● MULTIPLE EXPRESSIONS ───────────────────
+$x <: 7;
+$y <: 3;
+"Sum=<$x + $y;> Prod=<$x * $y;>";   // prints “Sum=10Prod=21”
+
+   // an indented comment line that should be skipped
+
+// ── 24) REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
+$newImplicit :> 55;
+$newImplicit;               // prints “55”
+$newImplicit <: "oops";     // error: cannot assign Text to Number
+
+// ── 25) COMPLEX TABLE + LIST INDEX/PROPERTY ACCESS ─────────────────────────
+$complex: {
+    $tbl: { $a: [100, 200], $b: "x" },
+    $lst: [ { $foo: 1 }, { $foo: 2 } ]
+};
+$complex.tbl.a.1;    // prints “100”
+$complex.lst.2.foo;  // prints “2”
+
+// ── 26) LIST OF TABLES + INDEX OF TABLE ────────────────────────────────────
+$lot: [ { $x: 5 }, { $x: 7 } ];
+$lot;                 // prints “[ { $x: 5 }, { $x: 7 } ]”
+$lot.2.x;             // prints “7”
+
+// ── 27) TABLE OF LISTS + INDEX OF LIST ─────────────────────────────────────
+$tol: { $first: [1, 2], $second: [3, 4] };
+$tol.first.2;         // prints “2”
+$tol.second;          // prints “[ 3, 4 ]”
+
+// ── 28) COMPOUND INTERPOLATION WITH TABLE+LIST ACCESS ────────────────────────
+// We avoid backslash‐escaping inside interpolation by concatenating simple strings:
+$myTable: { $greeting: "hi", $nums: [2, 4] };
+"<$myTable.greeting;>! The nums are:<$myTable.nums.1;>, and <$myTable.nums.2;>";
+                         // prints “hi! The nums are: 2,4”
+
+// ── 29) MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
+$u: 1; $v: 2; $u + $v;    // prints “3”
+
+// ── 30) PARENTHESIZED EXPRESSIONS AS STAND‐ALONE ─────────────────────────────
+(10 + 5);                 // prints “15”
+
+// ── 31) LARGE NUMBERS + NEGATIVE NUMBERS ────────────────────────────────────
+$big: 1234567890;
+$big;                     // prints “1234567890”
+$neg: -5;
+$neg;                     // prints “-5”
+$neg * 2;                 // prints “-10”
+
+// ── 32) MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
+$Var123: 10;
+$Var123;                  // prints “10”
+$var-xyz: 20;
+$var-xyz;                 // prints “20”
+$Var123 + $var-xyz;       // prints “30”
+
+// ── 33) VARIOUS TYPE‐ERRORS FOR BAD INDEX/PROP REBIND ───────────────────────
+$notalist: "oops";
+$notalist.1;              // error: index applies to lists
+
+$prim: 999;
+$prim.someKey <: 5;       // error: property rebind applies to tables
+
+$myTbl: { $a: 1 };
+$myTbl.1;                 // error: index applies to lists
+EOF
