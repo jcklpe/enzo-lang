@@ -185,4 +185,33 @@ $prim.someKey <: 5;       // error: property rebind applies to tables
 
 $myTbl: { $a: 1 };
 $myTbl.1;                 // error: index applies to lists
+
+// ── MALFORMED INPUT / TRAILING COMMA EDGE CASES ──────────────────────
+
+// Valid trailing commas (should succeed)
+$goodTable: { $foo: 1, $bar: 2, };
+$goodTable;
+$goodList: [1, 2, 3, ];
+$goodList;
+
+// Double comma in table (should error)
+$badTable1: { $foo: 1,, $bar: 2 };        // error: double comma
+
+// Comma before any item in table (should error)
+$badTable2: { ,$foo: 1, $bar: 2 };        // error: leading comma
+
+// Just a comma in table (should error)
+$badTable3: { , };                        // error: just comma
+
+// Double comma in list (should error)
+$badList1: [1,,2];                        // error: double comma
+
+// Comma before any item in list (should error)
+$badList2: [,1,2];                        // error: leading comma
+
+// Just a comma in list (should error)
+$badList3: [,];                           // error: just comma
+
+
+
 EOF
