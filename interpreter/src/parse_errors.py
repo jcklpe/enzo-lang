@@ -29,18 +29,25 @@ def format_parse_error(err, src=None):
             return add_context(msg)
 
         # Leading comma: { ,foo:... } or [ ,1,... ]
+        # Just a comma as the only content
+        if stripped in ('{,}', '[,]'):
+            msg = "just a comma (remove or add an item)."
+            return add_context(msg)
+
+        # Leading comma: { ,foo:... } or [ ,1,... ]
         open_idx = max(line_txt.find('{'), line_txt.find('['))
         if open_idx != -1:
             after_open = line_txt[open_idx+1:].lstrip()
             if after_open.startswith(','):
-                msg = f"leading comma at line {err.line} (remove the comma at the start)."
+                msg = "leading comma (remove the comma at the start)."
                 return add_context(msg)
 
         # Double comma (e.g. 1,,2 or foo: 1,, bar: 2)
         before = line_txt[:err.column]
         if ',,' in before.replace(' ', ''):
-            msg = f"double comma at line {err.line} (remove one comma)."
+            msg = "double comma (remove one comma)."
             return add_context(msg)
+
 
     # --- Default/fallback Lark parse errors (with context) ---
     if isinstance(err, UnexpectedToken):
