@@ -1,4 +1,5 @@
 import sys
+import re
 from src.parser       import parse
 from src.evaluator    import eval_ast
 from src.ast_helpers  import Table, format_val
@@ -30,6 +31,36 @@ def print_enzo_error(msg):
         if code_line.strip():
             print(f"{BLACK_BG}{WHITE}{code_line.rstrip()}{RESET}", file=sys.stderr)
 
+def read_statement(stdin, interactive):
+    buffer = []
+    depth = 0
+    while True:
+        if interactive:
+            prompt = "enzo> " if not buffer else "...   "
+            line = input(prompt)
+        else:
+            line = stdin.readline()
+            if not line:
+                break
+            line = line.rstrip('\n')
+
+        # Skip blank/comment lines unless already in a statement
+        if not line.strip() and not buffer:
+            continue
+        if line.strip().startswith('//') and not buffer:
+            continue
+
+        buffer.append(line)
+
+        # Count parens/brackets/braces to handle multi-line
+        openers = line.count('(') + line.count('{') + line.count('[')
+        closers = line.count(')') + line.count('}') + line.count(']')
+        depth += openers - closers
+
+        # Check for semicolon at end of any line and balanced depth
+        if depth == 0 and ';' in line:
+            break
+    return '\n'.join(buffer) if buffer else None
 
 def main() -> None:
     interactive = sys.stdin.isatty()
@@ -39,13 +70,10 @@ def main() -> None:
 
     while True:
         try:
-            if interactive:
-                line = input("enzo> ")
-            else:
-                line = sys.stdin.readline()
-                if not line:  # EOF
-                    break
-                line = line.rstrip("\n")
+            stmt = read_statement(sys.stdin, interactive)
+            if stmt is None:
+                break
+            line = stmt
         except (EOFError, KeyboardInterrupt):
             break
 
