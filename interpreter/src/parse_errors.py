@@ -57,12 +57,18 @@ def format_parse_error(err, src=None):
             f"Expected one of: {expected}"
         )
         return add_context(msg)
+
     elif isinstance(err, UnexpectedCharacters):
-        msg = (
-            f"Syntax error: Unexpected character '{err.char}' at line {err.line}, column {err.column}.\n"
-            f"Allowed here: {err.allowed}"
-        )
+        # Try to catch some Enzo-specific index errors for friendlier messages
+        if err.char == '-':
+            msg = "error: negative index not allowed"
+        elif err.char == '"':
+            msg = "error: index must be a number"
+        else:
+            msg = f"Syntax error: Unexpected character '{err.char}' at line {err.line}, column {err.column}."
         return add_context(msg)
+
+
     elif isinstance(err, UnexpectedInput):
         msg = (
             f"Syntax error: Unexpected input at position {err.pos_in_stream}."

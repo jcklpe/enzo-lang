@@ -212,6 +212,86 @@ $badList2: [,1,2];                        // error: leading comma
 // Just a comma in list (should error)
 $badList3: [,];                           // error: just comma
 
+// ── EDGE CASES & WEIRD INPUTS ─────────────────────────────────────────────
+
+// 1. Redundant semicolons and whitespace
+;;;;;;              // should not error or print anything
+$foo: 42;;          // extra semicolon is fine
+      ;   ;
+$foo;               // prints 42
+
+// 2. Variable names — all should be allowed by current grammar
+$123abc: 5;         // allowed
+$_: 9;              // allowed
+$-foo: 3;           // allowed
+$123abc;            // prints 5
+$_;                 // prints 9
+$-foo;              // prints 3
+
+// 3. Large/small/negative numbers
+$big: 999999999999999999999;
+$big;               // prints huge number
+$negzero: -0;
+$negzero;           // prints 0 (should not crash)
+$weird: --5;        // error: double minus not allowed
+
+// 4. Out-of-bounds and weird list indices
+$list: [1,2,3];
+$list.0;            // error: index out of range (0 is not allowed, should be 1-based)
+$list.4;            // error: index out of range
+$list.-1;           // error: negative index not allowed
+$list."foo";        // error: index must be a number
+$list.1.1;          // error: index applies to lists (cannot index an integer)
+
+// 5. Table property errors
+$table9: { $foo: 1 };
+$table9.bar;         // error: '$bar' (not found)
+$table9.1;           // error: index applies to lists
+$table9.foo.bar;     // error: '$bar' (not found after foo)
+
+// 6. Interpolation errors
+"text <bad syntax>";    // error: undefined variable or parse error in interp
+"hello <$foo + >";      // error: parse error in interpolation
+"hello <<$foo>>";       // error: nested <...> not allowed (for now)
+
+// 7. List/table with trailing comma and blank entries
+$lt: [1,,2];            // error: double comma
+$tl: { $a: 1, , $b: 2 }; // error: leading comma
+
+// 8. Bindings and rebinding with wrong types
+$foo: 7;
+$foo <: "text";         // error: cannot assign Text to Number
+$foo: "oops";           // error: $foo already defined
+
+// 9. List/table mutation — mutation should be supported!
+$mutable: [1,2];
+$mutable.1 <: 5;        // updates first element to 5
+$mutable;               // prints [ 5, 2 ]
+$mutable.3 <: 9;        // error: list index out of range
+
+$tbl: { $x: 1 };
+$tbl.x <: 99;           // should work if property rebinding is supported
+$tbl;                   // prints { $x: 99 }
+$tbl.y <: 42;           // error: '$y' not found for rebinding
+
+// 10. Invalid parenthesis/brackets/braces
+(1 + 2;                 // error: unmatched parenthesis
+[1, 2, 3;               // error: unmatched bracket
+{ $a: 1, $b: 2;         // error: unmatched brace
+
+// 11. Multiple assignments on one line (spacing)
+$a:1;$b:2; $a+$b;       // prints 3
+$a :  1 ; $b: 2;        // spacing should not break anything
+
+// 12. Unicode and weird strings
+$str: "π≈3.14";
+$str;                   // prints π≈3.14
+$esc: "foo\nbar";       // prints foo\nbar (unless you support real newlines; for now print literal)
+$esc2: "foo\"bar\"baz";
+$esc2;                  // prints foo"bar"baz
+
+// 14. Markup extension (future)
+// (No test here yet, but note to self: someday <enzo> or <markup> context switching should round-trip.)
 
 
 EOF
