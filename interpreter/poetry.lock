@@ -490,7 +490,6 @@ files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
 ]
-markers = {main = "sys_platform == \"win32\"", dev = "sys_platform == \"win32\" or platform_system == \"Windows\""}
 
 [[package]]
 name = "comm"
@@ -2437,4 +2436,4 @@ test = ["websockets"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "e422a74b7293c79b50e464e37ccb4eede7da45f65662a50a0e8c9be06a6d7f74"
+content-hash = "c7ced32190c2c3a96176615d6ff736b6b01fa8c299f5e9ae7b7e15943ada6af7"

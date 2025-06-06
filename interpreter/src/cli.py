@@ -5,6 +5,7 @@ from src.evaluator    import eval_ast
 from src.ast_helpers  import Table, format_val
 from src.parse_errors import format_parse_error
 from lark import UnexpectedToken, UnexpectedInput, UnexpectedCharacters
+from src.color_helpers import color_error, color_code
 
 def say(val):
     print(val)
@@ -94,7 +95,19 @@ def main() -> None:
                     print(format_val(out))
                 else:
                     print(out)
+        ## throwing errors
         except (UnexpectedToken, UnexpectedInput, UnexpectedCharacters) as e:
-            print_enzo_error("error: " + format_parse_error(e, src=line))
+            fullmsg = format_parse_error(e, src=line)
+            # If there's a code context, split off at first newline
+            if "\n" in fullmsg:
+                errline, context = fullmsg.split("\n", 1)
+                print(color_error(errline))         # whole "error: ..." line in red
+                print(color_code(context))          # code context in white on black
+            else:
+                print(color_error(fullmsg))
+
         except Exception as e:
-            print("error:", e)
+            print(color_error(f"error: {e}"))   # RED "error: ..."
+            if stripped:                       # Show code context if input wasn't blank
+                print(color_code("    " + line))  # Code line, black bg, white fg
+                print(color_code("    " + "^" * len(line)))  # Underline whole line as fallback

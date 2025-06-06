@@ -13,6 +13,7 @@ lark = "^1.2.2"
 prompt-toolkit = "^3.0.51"
 notebook = "^7.4.3"
 ipykernel = "^6.29.5"
+colorama = "^0.4.6"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0"
