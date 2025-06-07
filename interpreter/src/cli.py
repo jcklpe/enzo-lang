@@ -62,6 +62,51 @@ def read_statement(stdin, interactive):
     return '\n'.join(buffer) if buffer else None
 
 def main():
+    # --- FILE RUNNER MODE ---
+    if len(sys.argv) > 1:
+        filename = sys.argv[1]
+        with open(filename) as f:
+            code = f.read()
+            # Use your statement reader for multi-line/REPL compat
+            # (Assumes 'read_statement' can handle the file input properly)
+            from io import StringIO
+            fake_stdin = StringIO(code)
+            interactive = False
+            while True:
+                stmt = read_statement(fake_stdin, interactive)
+                if stmt is None:
+                    break
+                line = stmt.strip()
+                if not line or line.startswith("//"):
+                    continue
+                try:
+                    ast = parse(line)
+                    out = eval_ast(ast)
+                    if out is not None:
+                        if isinstance(out, list) or isinstance(out, (dict, Table)):
+                            print(format_val(out))
+                        else:
+                            print(out)
+                except InterpolationParseError:
+                    print(color_error("error: parse error in interpolation"))
+                    print(color_code("    " + line))
+                    underline = "    " + " " * line.find("<") + "^"
+                    print(color_code(underline))
+                except (UnexpectedToken, UnexpectedInput, UnexpectedCharacters) as e:
+                    fullmsg = format_parse_error(e, src=line)
+                    if "\n" in fullmsg:
+                        errline, context = fullmsg.split("\n", 1)
+                        print(color_error(errline))
+                        print(color_code(context))
+                    else:
+                        print(color_error(fullmsg))
+                except Exception as e:
+                    print(color_error(f"error: {e}"))
+                    print(color_code("    " + line))
+                    print(color_code("    " + "^" * len(line)))
+        sys.exit(0)
+
+    # --- REPL MODE ---
     interactive = sys.stdin.isatty()
 
     if interactive:
