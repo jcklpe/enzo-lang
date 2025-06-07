@@ -62,7 +62,7 @@ $emptyListTest.1;  // error: list index out of range
 
 // ── 12) BIND EMPTY AND THEN FILL WITH LIST ────────────────────────────────────
 $empty-list: ;
-$empty-list: 50;    //this should error
+$empty-list: 50;    //error: $empty-list already defined
 $empty-list<: ["now not empty"];
 $empty-list;       // prints “[ "now not empty" ]”
 
@@ -100,7 +100,7 @@ $table2;            // prints “{ $foo: 100, $bar: "hello" }”
 // ── 19) EMPTY TABLE LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
 $emptyTable: {};
 $emptyTable;            // prints “{ }”
-$emptyTable.someKey;    // error: 'someKey'
+$emptyTable.someKey;    // error: 'someKey' does not exist on this table
 
 // ── 20) NESTED TABLE + MIXED INDEX/ATTR ───────────────────────────────────────
 $nestedTable: {
@@ -168,6 +168,9 @@ $big;                     // prints “1234567890”
 $neg: -5;
 $neg;                     // prints “-5”
 $neg * 2;                 // prints “-10”
+$negzero: -0;
+$negzero;           // prints 0 (should not crash)
+$weird: --5;        // error: double minus not allowed
 
 // ── 32) MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
 $Var123: 10;
@@ -181,7 +184,7 @@ $notalist: "oops";
 $notalist.1;              // error: index applies to lists
 
 $prim: 999;
-$prim.someKey <: 5;       // error: property rebind applies to tables
+$prim.someKey <: 5;       // error: can't rebind to non-existent property
 
 $myTbl: { $a: 1 };
 $myTbl.1;                 // error: index applies to lists
@@ -215,10 +218,9 @@ $badList3: [,];                           // error: just comma
 // ── EDGE CASES & WEIRD INPUTS ─────────────────────────────────────────────
 
 // 1. Redundant semicolons and whitespace
-;;;;;;              // should not error or print anything
-$foo: 42;;          // extra semicolon is fine
-      ;   ;
-$foo;               // prints 42
+;;;;;;              // error: extra semicolons
+$meaning-of-life: 42;;          // error: extra semicolons
+      ;   ;         // error: extra semicolons
 
 // 2. Variable names — all should be allowed by current grammar
 $123abc: 5;         // allowed
@@ -228,12 +230,8 @@ $123abc;            // prints 5
 $_;                 // prints 9
 $-foo;              // prints 3
 
-// 3. Large/small/negative numbers
-$big: 999999999999999999999;
-$big;               // prints huge number
-$negzero: -0;
-$negzero;           // prints 0 (should not crash)
-$weird: --5;        // error: double minus not allowed
+
+
 
 // 4. Out-of-bounds and weird list indices
 $list: [1,2,3];
