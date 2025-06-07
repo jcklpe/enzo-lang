@@ -1,13 +1,11 @@
 import sys
 import re
 from src.parser       import parse
-from src.evaluator    import eval_ast
+from src.evaluator    import eval_ast, InterpolationParseError
 from src.ast_helpers  import Table, format_val
 from src.parse_errors import format_parse_error
 from lark import UnexpectedToken, UnexpectedInput, UnexpectedCharacters
 from src.color_helpers import color_error, color_code
-from src.evaluator    import eval_ast, InterpolationParseError
-
 
 def say(val):
     print(val)
@@ -36,11 +34,13 @@ def print_enzo_error(msg):
 
 def read_statement(stdin, interactive):
     buffer = []
-    depth = 0
     while True:
         if interactive:
             prompt = "enzo> " if not buffer else "...   "
-            line = input(prompt)
+            try:
+                line = input(prompt)
+            except EOFError:
+                break
         else:
             line = stdin.readline()
             if not line:
@@ -55,69 +55,62 @@ def read_statement(stdin, interactive):
 
         buffer.append(line)
 
-        # Count parens/brackets/braces to handle multi-line
-        openers = line.count('(') + line.count('{') + line.count('[')
-        closers = line.count(')') + line.count('}') + line.count(']')
-        depth += openers - closers
-
-        # Check for semicolon at end of any line and balanced depth
-        if depth == 0 and ';' in line:
+        # If any semicolon is found, treat as end of statement
+        if ';' in line:
             break
+
     return '\n'.join(buffer) if buffer else None
 
-def main() -> None:
+def main():
     interactive = sys.stdin.isatty()
 
     if interactive:
         print("enzo repl — ctrl-D to exit")
 
+    # Process all input, line by line
     while True:
+        stmt = None
         try:
             stmt = read_statement(sys.stdin, interactive)
-            if stmt is None:
-                break
-            line = stmt
         except (EOFError, KeyboardInterrupt):
             break
 
-        stripped = line.strip()
-        # Skip blank lines
-        if not stripped:
+        if stmt is None:
+            break
+
+        line = stmt.strip()
+        if not line:
             continue
-        # Skip stand‐alone '//' comments
-        if stripped.startswith("//"):
+        if line.startswith("//"):
             continue
 
         try:
             ast = parse(line)
             out = eval_ast(ast)
             if out is not None:
-                # pretty‐print lists or tables using format_val
                 if isinstance(out, list) or isinstance(out, (dict, Table)):
                     print(format_val(out))
                 else:
                     print(out)
-        ## throwing errors
-        except (UnexpectedToken, UnexpectedInput, UnexpectedCharacters) as e:
-            fullmsg = format_parse_error(e, src=line)
-            # If there's a code context, split off at first newline
-            if "\n" in fullmsg:
-                errline, context = fullmsg.split("\n", 1)
-                print(color_error(errline))         # whole "error: ..." line in red
-                print(color_code(context))          # code context in white on black
-            else:
-                print(color_error(fullmsg))
-
         except InterpolationParseError:
             print(color_error("error: parse error in interpolation"))
-            if stripped:
-                print(color_code("    " + line))
-                # Find the first '<' in the string for caret position (optional, otherwise underline all)
-                underline = "    " + " " * line.find("<") + "^"
-                print(color_code(underline))
-
+            print(color_code("    " + line))
+            underline = "    " + " " * line.find("<") + "^"
+            print(color_code(underline))
+        except (UnexpectedToken, UnexpectedInput, UnexpectedCharacters) as e:
+            fullmsg = format_parse_error(e, src=line)
+            if "\n" in fullmsg:
+                errline, context = fullmsg.split("\n", 1)
+                print(color_error(errline))
+                print(color_code(context))
+            else:
+                print(color_error(fullmsg))
         except Exception as e:
-            print(color_error(f"error: {e}"))   # RED "error: ..."
-            if stripped:                       # Show code context if input wasn't blank
-                print(color_code("    " + line))  # Code line, black bg, white fg
-                print(color_code("    " + "^" * len(line)))  # Underline whole line as fallback
+            print(color_error(f"error: {e}"))
+            print(color_code("    " + line))
+            print(color_code("    " + "^" * len(line)))
+        # — CRITICAL FIX: after error or success, **continue the loop**
+        # Don't break; keep processing all input!
+
+if __name__ == "__main__":
+    main()

@@ -131,6 +131,8 @@ $y <: 3;
 55 :> $newImplicit;
 $newImplicit;               // prints “55”
 $newImplicit <: "oops";     // error: cannot assign Text to Number
+$dougie <: "cool dude";     // should not error
+$dougie;                    // prints "cool dude"
 
 // ── 25) COMPLEX TABLE + LIST INDEX/PROPERTY ACCESS ─────────────────────────
 $complex: {
@@ -278,8 +280,8 @@ $tbl.y <: 42;           // error: '$y' not found for rebinding
 { $a: 1, $b: 2;         // error: unmatched brace
 
 // 11. Multiple assignments on one line (spacing)
-$a:1;$b:2; $a+$b;       // prints 3
-$a :  1 ; $b: 2;        // spacing should not break anything
+$apples:1;$bananas:2; $apples+$bananas;       // prints 3
+$apricot :  1 ; $boranges: 2;        // spacing should not break anything
 
 // 12. Unicode and weird strings
 $str: "π≈3.14";
