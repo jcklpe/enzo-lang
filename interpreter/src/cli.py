@@ -1,5 +1,6 @@
 import sys
 import re
+import os
 from src.parser       import parse
 from src.evaluator    import eval_ast, InterpolationParseError
 from src.ast_helpers  import Table, format_val
@@ -61,49 +62,81 @@ def read_statement(stdin, interactive):
 
     return '\n'.join(buffer) if buffer else None
 
+def run_enzo_file(filename):
+    with open(filename) as f:
+        lines = f.readlines()
+    # Handle @include directives
+    lines = list(process_includes(lines, base_dir=os.path.dirname(os.path.abspath(filename))))
+    from io import StringIO
+    fake_stdin = StringIO(''.join(lines))
+    interactive = False
+    while True:
+        stmt = read_statement(fake_stdin, interactive)
+        if stmt is None:
+            break
+        line = stmt.strip()
+        if not line or line.startswith("//"):
+            continue
+        try:
+            ast = parse(line)
+            out = eval_ast(ast)
+            if out is not None:
+                if isinstance(out, list) or isinstance(out, (dict, Table)):
+                    print(format_val(out))
+                else:
+                    print(out)
+        except InterpolationParseError:
+            print(color_error("error: parse error in interpolation"))
+            print(color_code("    " + line))
+            underline = "    " + " " * line.find("<") + "^"
+            print(color_code(underline))
+        except (UnexpectedToken, UnexpectedInput, UnexpectedCharacters) as e:
+            fullmsg = format_parse_error(e, src=line)
+            if "\n" in fullmsg:
+                errline, context = fullmsg.split("\n", 1)
+                print(color_error(errline))
+                print(color_code(context))
+            else:
+                print(color_error(fullmsg))
+        except Exception as e:
+            print(color_error(f"error: {e}"))
+            print(color_code("    " + line))
+            print(color_code("    " + "^" * len(line)))
+
+def process_includes(lines, base_dir=None, already_included=None):
+    """
+    Given a list of source lines, yield each line,
+    but expand any `@include filename` directives inline.
+    """
+    if already_included is None:
+        already_included = set()
+    if base_dir is None:
+        base_dir = os.getcwd()
+
+    for line in lines:
+        striped = line.strip()
+        if striped.startswith('@include '):
+            _, fname = striped.split(None, 1)
+            # Prevent duplicate includes in the same run
+            abs_path = os.path.abspath(os.path.join(base_dir, fname))
+            if abs_path in already_included:
+                continue
+            already_included.add(abs_path)
+            if not os.path.isfile(abs_path):
+                print(f"error: included file not found: {fname}")
+                continue
+            with open(abs_path) as f:
+                sub_lines = f.readlines()
+            # Recursively process includes
+            sub_base = os.path.dirname(abs_path)
+            yield from process_includes(sub_lines, base_dir=sub_base, already_included=already_included)
+        else:
+            yield line
+
 def main():
     # --- FILE RUNNER MODE ---
     if len(sys.argv) > 1:
-        filename = sys.argv[1]
-        with open(filename) as f:
-            code = f.read()
-            # Use your statement reader for multi-line/REPL compat
-            # (Assumes 'read_statement' can handle the file input properly)
-            from io import StringIO
-            fake_stdin = StringIO(code)
-            interactive = False
-            while True:
-                stmt = read_statement(fake_stdin, interactive)
-                if stmt is None:
-                    break
-                line = stmt.strip()
-                if not line or line.startswith("//"):
-                    continue
-                try:
-                    ast = parse(line)
-                    out = eval_ast(ast)
-                    if out is not None:
-                        if isinstance(out, list) or isinstance(out, (dict, Table)):
-                            print(format_val(out))
-                        else:
-                            print(out)
-                except InterpolationParseError:
-                    print(color_error("error: parse error in interpolation"))
-                    print(color_code("    " + line))
-                    underline = "    " + " " * line.find("<") + "^"
-                    print(color_code(underline))
-                except (UnexpectedToken, UnexpectedInput, UnexpectedCharacters) as e:
-                    fullmsg = format_parse_error(e, src=line)
-                    if "\n" in fullmsg:
-                        errline, context = fullmsg.split("\n", 1)
-                        print(color_error(errline))
-                        print(color_code(context))
-                    else:
-                        print(color_error(fullmsg))
-                except Exception as e:
-                    print(color_error(f"error: {e}"))
-                    print(color_code("    " + line))
-                    print(color_code("    " + "^" * len(line)))
+        run_enzo_file(sys.argv[1])
         sys.exit(0)
 
     # --- REPL MODE ---
