@@ -1,8 +1,6 @@
 from src.parser       import parse
 from src.ast_helpers  import Table, format_val
 
-
-
 _env = {}  # single global environment
 
 # ── handle a block of multiple statements ─────────────────────────────
@@ -25,7 +23,7 @@ def eval_ast(node):
         return _interp(rest[0])
 
     if typ == "list":
-    # Defensive: always turn rest[0] into a real list of AST nodes
+        # Defensive: always turn rest[0] into a real list of AST nodes
         children = rest[0] if rest else []
         # If children is [None], treat as []
         if children == [None]:
@@ -82,18 +80,41 @@ def eval_ast(node):
             raise KeyError(prop_name)
         return tbl[prop_name]
 
-    # ── single‐property rebind (“expr .prop <: expr”) ─────────────────────
+    # ── single‐property or list‐index rebind (“expr .prop <: expr” or “expr .idx <: expr”) ─
     if typ == "prop_rebind":
-        # rest is [ baseAST(for “$tbl.name”), exprAST ]
         base_node, new_expr = rest
-        # base_node must be ("attr", tableNode, "$prop")
-        _, table_node, prop_name = base_node
-        tbl = eval_ast(table_node)
-        if not isinstance(tbl, (dict, Table)):
-            raise TypeError("property rebind applies to tables")
-        new_val = eval_ast(new_expr)
-        tbl[prop_name] = new_val
-        return new_val
+
+        # Support rebinding for both ("attr", ...) (table property) and ("index", ...) (list element)
+        if isinstance(base_node, tuple):
+            # Table property: ("attr", table_node, prop_name)
+            if base_node[0] == "attr":
+                _, table_node, prop_name = base_node
+                tbl = eval_ast(table_node)
+                if not isinstance(tbl, (dict, Table)):
+                    raise TypeError("property rebind applies to tables")
+                if prop_name not in tbl:
+                    raise KeyError(f"'{prop_name}' not found for rebinding")
+                new_val = eval_ast(new_expr)
+                tbl[prop_name] = new_val
+                return new_val
+
+            # List element: ("index", list_node, idx_node)
+            elif base_node[0] == "index":
+                _, list_node, idx_node = base_node
+                seq = eval_ast(list_node)
+                idx = eval_ast(idx_node)
+                if not isinstance(seq, list):
+                    raise TypeError("index applies to lists")
+                if not isinstance(idx, int):
+                    raise TypeError("index must be a number")
+                i = idx - 1
+                if i < 0 or i >= len(seq):
+                    raise IndexError("list index out of range")
+                new_val = eval_ast(new_expr)
+                seq[i] = new_val
+                return new_val
+
+        raise TypeError("property rebind applies to tables or lists")
 
     # ── bind / rebind ─────────────────────────────────────────────────────
     if typ == "bind":
