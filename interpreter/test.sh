@@ -290,7 +290,244 @@ $esc: "foo\nbar";       // prints foo\nbar (unless you support real newlines; fo
 $esc2: "foo\"bar\"baz";
 $esc2;                  // prints foo"bar"baz
 
-// 14. Markup extension (future)
+// MORE TABLE WEIRDNESS
+$deep-table: { $x: { $y: { $z: 7 } } };
+$deep-table.x.y.z; // prints 7
+
+// ── FUNCTIONS  -------------------
+
+//nameless functions one liner with implicit return
+($x: 3, $y: 2; $x + $y);   // prints 5
+
+// nameless function multi-line
+(
+$x: 100;
+$y: 100;
+return($x + $y);
+); // prints 200
+
+($x: 1;
+ $y: 2;
+ $x + $y;
+);         // error: no explicit return in multi-line function
+
+($x: 101;
+$y: 100;
+return($x + $y);); // prints 201
+
+2-times-2: (2 * 2); // single line named functions can use implicit returns
+2-times-2();       // prints 4
+
+adder: (
+param $x: 6; // these are default values
+param $y: 6;
+return($y + $x);
+);
+
+adder();                       // prints 12
+$adder();                      // prints 12
+$referenced-function: $adder;  // does not invoke adder function just saves it to another variable as a reference
+$referenced-function();        // prints 12
+adder(4, 5);                   // prints 9
+adder(4, 5, 6);                // error: too many args
+$nada: ;
+$adder($nada, 1000)            // prints 1006
+$adder("", 500);               // error: arg is type number not text
+$referenced-function(4, 5);    // prints 9
+
+adder-plus-1(
+    param $x: 6;
+    param $y: 4;
+    $z: 1;
+    return($x + $y + $z);
+);
+
+adder-plus-1();    // prints 11
+adder-plus-1(2, 2);   // prints 5
+
+$subtractor: (
+    param $x: ;
+    param $y: ;
+    return($x - $y);
+);
+
+subtractor(3, 2);   // prints 1
+$subtractor(3, 2);   // prints 1
+subtractor();        // prints 0 I think? empty values get coerced to 0?
+
+$subtractor(4);   // prints 4
+
+sum-it: (
+  param $x: 1;
+  param $y: 2;
+  $sum: $x + $y;
+  return($sum);
+);
+sum-it(2,3);         // should return 5
+
+early-exit: (
+    $a: 99;
+    return($a);
+    $a<: 1; // should not execute
+);
+early-exit(); // should return 99
+
+// table functions
+$doggie: {
+    $name: "ralph",
+    $age: 50,
+    $speak: ("Hi, my name is <$self.name>."),
+    $roll-over: (
+        param $direction: "left";
+        return ("I'm now spinning <$direction>."
+    )
+};
+
+$doggie.speak();              // prints "Hi, my name is ralph."
+$doggie.roll-over("right");   // prints "I'm now spinning right."
+
+double: ($x: 2; $x * 2);
+$ref: $double;       // should NOT invoke — should just bind the function object
+$ref(5);             // → 10
+
+// Direct invocation should work too:
+double(3);           // → 6
+
+// Function reference must use $, no parens:
+double;              // error: function reference must use $ sigil
+
+apply: (
+    param $fn:;
+    param $val: 7;
+    return($fn($val));
+);
+
+double: ($x: 2; $x * 2);
+
+apply($double, 4);   // → 8
+apply($double);      // → 14 (default $val: 7)
+
+apply(double, 4);    // error: must pass function reference with $ sigil
+
+// table functions and self context
+$counter: {
+    $count: 10,
+    inc: (
+        $self.count <: $self.count + 1;
+        return($self.count);
+    )
+};
+
+$counter.inc();      // → 11
+$counter.inc();      // → 12
+
+$counter.count;      // → 12
+
+$counter.inc;        // function doesn't invoke, just returns the counter.inc function as a reference.
+
+// missing parameters and default coercion
+add-it: (
+    param $a: ;
+    param $b: 5;
+    return($a + $b);
+);
+
+add-it(2, 3);           // → 5
+add-it(2);              // → 7 (uses $b default)
+add-it();               // → 5
+
+// table function as a variable
+$foo99: {
+    $bar: (
+        param $x: 10;
+        return($x + 1);
+    )
+};
+
+$baz: $foo99.bar;      // should be a function reference, not invoked
+$baz99();              // → 11
+$baz99(5);             // → 6
+
+outer: (
+    param $x: 10;
+    inner: (
+        param $y: 5;
+        return($x + $y);
+    );
+    return($inner(7));
+);
+
+outer();             // → 17
+outer(20);           // → 27
+
+// weird function edge cases
+$weird-member: 20;
+$weird-list: [1, 2, ($x: 9; $x + 1;), ($weird-member + 1)];
+$weird-list.3; // prints 10
+$weird-list.4; // prints 21
+
+// duplicate param names
+dup: (
+    param $x: 1;
+    param $x: 2; // error: duplicate parameter name '$x' in function definition
+    return($x);
+);
+
+// No param, no body
+empty-fn: ();
+empty-fn();     // returns empty.
+
+// Param name clash with outer scope
+$whatever: 42;
+shadow: (
+    param $whatever: 1;
+    return($whatever);
+);
+shadow();    // prints 1 not 42
+
+// number as param name
+number-name-param: (
+    param 123: 4;
+    return($123);
+);
+number-name-param();    // prints 4
+
+// Function default param referencing previous param
+sum-default: (
+    param $a: 5;
+    param $b: $a;
+    return($a + $b);
+);
+sum-default();            // → 10
+sum-default(2);           // → 4
+sum-default(2, 10);       // → 12
+
+// multiline param trailing comma and missing semicolon
+trailing-comma: (
+    param $x: 1, // error: trailing comma
+    param $y: 2  // error: missing semicolon
+    return($x + $y);
+);
+
+// List of functions
+$funs: [($x: ; $x + 1;), ($x: ; $x * 2;)];
+$funs.1(10);              // → 11
+$funs.2(10);              // → 20
+
+// Table with list of functions
+$calc: {
+    ops: [($x: ; $x + 1;), ($x: ; $x * 2;)]
+};
+$calc.ops.2(4);           // → 8
+
+
+meta: (
+  param $fn: (42);     // $fn is just nameless function one-liner that returns a 42.
+  return($fn(););
+);
+
+
+// xx. Markup extension (future)
 // (No test here yet, but note to self: someday <enzo> or <markup> context switching should round-trip.)
 
 
