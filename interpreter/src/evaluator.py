@@ -1,6 +1,10 @@
 from src.parser       import parse
 from src.ast_helpers  import Table, format_val
 
+class InterpolationParseError(Exception):
+    pass
+
+
 _env = {}  # single global environment
 
 # ── handle a block of multiple statements ─────────────────────────────
@@ -214,10 +218,14 @@ def _interp(s: str):
         parts = [p.strip() for p in expr_src.split(";") if p.strip()]
         concatenated = ""
         for part in parts:
-            # For each sub‐expression, parse and evaluate it
-            expr_ast = parse(part)
-            val = eval_ast(expr_ast)
-            concatenated += str(val)
+            try:
+                # For each sub‐expression, parse and evaluate it
+                expr_ast = parse(part)
+                val = eval_ast(expr_ast)
+                concatenated += str(val)
+            except Exception:
+                # Raise a special error so the outer code can format it
+                raise InterpolationParseError()
         out.append(concatenated)
 
         i = k + 1

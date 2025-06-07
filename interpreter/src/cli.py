@@ -6,6 +6,8 @@ from src.ast_helpers  import Table, format_val
 from src.parse_errors import format_parse_error
 from lark import UnexpectedToken, UnexpectedInput, UnexpectedCharacters
 from src.color_helpers import color_error, color_code
+from src.evaluator    import eval_ast, InterpolationParseError
+
 
 def say(val):
     print(val)
@@ -105,6 +107,14 @@ def main() -> None:
                 print(color_code(context))          # code context in white on black
             else:
                 print(color_error(fullmsg))
+
+        except InterpolationParseError:
+            print(color_error("error: parse error in interpolation"))
+            if stripped:
+                print(color_code("    " + line))
+                # Find the first '<' in the string for caret position (optional, otherwise underline all)
+                underline = "    " + " " * line.find("<") + "^"
+                print(color_code(underline))
 
         except Exception as e:
             print(color_error(f"error: {e}"))   # RED "error: ..."
