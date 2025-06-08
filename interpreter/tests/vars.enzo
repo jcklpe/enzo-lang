@@ -1,0 +1,60 @@
+// ── 1) EMPTY BIND ────────────────────────────────────────────────────────────
+$x: ;
+
+// 1a) INVOKING AN UNDEFINED VARIABLE
+$undefinedVar;      // error: undefined: $undefinedVar
+
+// ── 2) FILLING AN EMPTY BIND AND INVOKING IT ──────────────────────────────────
+$x: 10;
+$x;                 // prints 10
+
+// ── 3) REDECLARING A NON‐EMPTY VARIABLE (USING “:”) ────────────────────────────
+$a: 1;
+$a: 2;              // error: $a already defined
+
+// ── 4) REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
+$x <: 100;
+$x;                 // prints 100
+
+// ── 5) REDECLARE A REBOUND VARIABLE WITH “:” (SHOULD ERROR) ───────────────────
+$x: 99;             // error: $x already defined
+
+// ── 6) REBIND TYPE MISMATCH ERROR ─────────────────────────────────────────────
+$x <: "hello";      // error: cannot assign Text to Number
+
+// ── 9) FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
+$z: 3 + 4;          // z = 7
+$z <: 8;            // rebind OK, z now 8
+$z <: "oops";       // error: cannot assign Text to Number
+
+// ── 32) MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
+$Var123: 10;
+$Var123;                  // prints “10”
+$var-xyz: 20;
+$var-xyz;                 // prints “20”
+$Var123 + $var-xyz;       // prints “30”
+
+// 2. Variable names — all should be allowed by current grammar
+$123abc: 5;         // allowed
+$_: 9;              // allowed
+$-foo: 3;           // allowed
+$123abc;            // prints 5
+$_;                 // prints 9
+$-foo;              // prints 3
+
+// ── 24) REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
+55 :> $newImplicit;
+$newImplicit;               // prints “55”
+$newImplicit <: "oops";     // error: cannot assign Text to Number
+$dougie <: "cool dude";     // should not error
+$dougie;                    // prints "cool dude"
+
+// ── 29) MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
+$u: 1; $v: 2; $u + $v;    // prints “3”
+$apples:1;$bananas:2; $apples+$bananas;       // prints 3
+$apricot :  1 ; $boranges: 2;        // spacing should not break anything
+
+// 1. Redundant semicolons and whitespace
+;;;;;;              // error: extra semicolons
+$meaning-of-life: 42;;          // error: extra semicolons
+      ;   ;         // error: extra semicolons

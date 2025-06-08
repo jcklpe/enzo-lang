@@ -1,0 +1,70 @@
+// ── 16) TABLE STUFF ───────────────────────────────────────────────────────────
+$table: { $name: "Alice", $age: 30 };
+$table;             // prints “{ $name: "Alice", $age: 30 }”
+$table.name;        // prints “Alice”
+$table.age;         // prints “30”
+
+// ── 17) REBINDING TABLE PROPERTIES ────────────────────────────────────────────
+$table.name <: "Bob";
+$table.name;        // prints “Bob”
+$table;             // prints “{ $name: "Bob", $age: 30 }”
+
+// ── 18) ANOTHER TABLE + PROPERTY REBIND ───────────────────────────────────────
+$table2: { $foo: 42, $bar: "hello" };
+$table2.bar;        // prints “hello”
+$table2.foo <: 100;
+$table2;            // prints “{ $foo: 100, $bar: "hello" }”
+
+// ── 19) EMPTY TABLE LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
+$emptyTable: {};
+$emptyTable;            // prints “{ }”
+$emptyTable.someKey;    // error: 'someKey' does not exist on this table
+
+// ── 20) NESTED TABLE + MIXED INDEX/ATTR ───────────────────────────────────────
+$nestedTable: {
+    $inner: {
+        $val: 42,
+        $arr: [10, 20]
+    }
+};
+$nestedTable.inner.val;     // prints “42”
+$nestedTable.inner.arr.2;   // prints “20”
+
+// ── 21) REBINDING NESTED TABLES ───────────────────────────────────────────────
+$nestedTable.inner.val <: 100;
+$nestedTable.inner.val;     // prints “100”
+
+// ── 25) COMPLEX TABLE + LIST INDEX/PROPERTY ACCESS ─────────────────────────
+$complex: {
+    $tbl: { $a: [100, 200], $b: "x" },
+    $lst: [ { $foo: 1 }, { $foo: 2 } ]
+};
+$complex.tbl.a.1;    // prints “100”
+$complex.lst.2.foo;  // prints “2”
+
+// ── 27) TABLE OF LISTS + INDEX OF LIST ─────────────────────────────────────
+$tol: { $first: [1, 2], $second: [3, 4] };
+$tol.first.2;         // prints “2”
+$tol.second;          // prints “[ 3, 4 ]”
+
+// MORE TABLE WEIRDNESS
+$deep-table: { $x: { $y: { $z: 7 } } };
+$deep-table.x.y.z; // prints 7
+
+// 5. Table property errors
+$table9: { $foo: 1 };
+$table9.bar;         // error: '$bar' (not found)
+$table9.1;           // error: index applies to lists
+$table9.foo.bar;     // error: '$bar' (not found after foo)
+
+$prim: 999;
+$prim.someKey <: 5;       // error: can't rebind to non-existent property
+
+$myTbl: { $a: 1 };
+$myTbl.1;                 // error: index applies to lists
+
+// Table with list of functions
+$calc: {
+    ops: [($x: ; $x + 1;), ($x: ; $x * 2;)]
+};
+$calc.ops.2(4);           // → 8

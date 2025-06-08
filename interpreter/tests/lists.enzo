@@ -1,0 +1,56 @@
+// ── 11) LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
+$emptyListTest: [];
+$emptyListTest;    // prints “[ ]”
+$emptyListTest.1;  // error: list index out of range
+
+// ── 12) BIND EMPTY AND THEN FILL WITH LIST ────────────────────────────────────
+$empty-list: ;
+$empty-list: 50;    //error: $empty-list already defined
+$empty-list<: ["now not empty"];
+$empty-list;       // prints “[ "now not empty" ]”
+
+// ── 13) DECLARE LIST AND ACCESS ITEMS ────────────────────────────────────────
+$colors: ["red", "green", "blue", "yellow"];
+$colors.3;         // prints “blue”
+$i: 2;
+$colors.$i;        // prints “green”
+
+// ── 14) NESTED LISTS WITH INDEXING ────────────────────────────────────────────
+$nestedList: [[1, 2], [3, 4]];
+$nestedList.2.1;   // prints “3”
+
+// ── 22) MIXED LIST‐INSIDE‐TABLE ● INDEX VS ATTR ──────────────────────────────
+$mix: { $lst: ["a", "b", "c"] };
+$mix.lst.2;                // prints “b”
+
+// ── 26) LIST OF TABLES + INDEX OF TABLE ────────────────────────────────────
+$lot: [ { $x: 5 }, { $x: 7 } ];
+$lot;                 // prints “[ { $x: 5 }, { $x: 7 } ]”
+$lot.2.x;             // prints “7”
+
+// 4. Out-of-bounds and weird list indices
+$list: [1,2,3];
+$list.0;            // error: index out of range (0 is not allowed, should be 1-based)
+$list.4;            // error: index out of range
+$list.-1;           // error: negative index not allowed
+$list."foo";        // error: index must be a number
+$list.1.1;          // error: index applies to lists (cannot index an integer)
+
+// 9. List/table mutation — mutation should be supported!
+$mutable: [1,2];
+$mutable.1 <: 5;        // updates first element to 5
+$mutable;               // prints [ 5, 2 ]
+$mutable.3 <: 9;        // error: list index out of range
+
+// 7. List/table with trailing comma and blank entries
+$lt: [1,,2];            // error: double comma
+$goodList: [1, 2, 3, ];
+$goodList;
+$badList1: [1,,2];                        // error: double comma
+$badList2: [,1,2];                        // error: leading comma
+$badList3: [,];                           // error: just comma
+
+// List of functions
+$funs: [($x: ; $x + 1;), ($x: ; $x * 2;)];
+$funs.1(10);              // → 11
+$funs.2(10);              // → 20

@@ -1,0 +1,56 @@
+error: undefined: $undefinedVar
+    $undefinedVar;      // error: undefined: $undefinedVar
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: $x already defined
+    $x: 10;
+    ^^^^^^^
+1
+error: $a already defined
+    $a: 2;              // error: $a already defined
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+100
+100
+error: $x already defined
+    $x: 99;             // error: $x already defined
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: cannot assign Text to Number
+    $x <: "hello";      // error: cannot assign Text to Number
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7
+8
+error: cannot assign Text to Number
+    $z <: "oops";       // error: cannot assign Text to Number
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+10
+10
+20
+20
+30
+5
+9
+3
+5
+9
+3
+55
+55
+error: cannot assign Text to Number
+    $newImplicit <: "oops";     // error: cannot assign Text to Number
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cool dude
+cool dude
+3
+3
+2
+Syntax error: Unexpected token ';' at line 1, column 1.
+Expected one of: LBRACE, LSQB, LPAR, NAME, SIGNED_NUMBER, STRING
+    ;;;;;;              // error: extra semicolons
+    ^
+Syntax error: Unexpected token ';' at line 1, column 22.
+Expected one of: LBRACE, LSQB, LPAR, NAME, SIGNED_NUMBER, STRING
+    $meaning-of-life: 42;;          // error: extra semicolons
+                         ^
+Syntax error: Unexpected token ';' at line 1, column 1.
+Expected one of: LBRACE, LSQB, LPAR, NAME, SIGNED_NUMBER, STRING
+    ;   ;         // error: extra semicolons
+    ^

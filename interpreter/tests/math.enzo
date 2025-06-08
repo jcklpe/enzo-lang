@@ -1,0 +1,23 @@
+// ── 7) BINDING MATH OPERATIONS ────────────────────────────────────────────────
+$y: 3 + 2;
+$x + $y;            // prints 105
+
+// ── 8) ARITHMETIC PRECEDENCE CHECK ─────────────────────────────────────────────
+$c: 2 + 3 * 4;
+$c;                 // prints 14
+
+$d: (2 + 3) * 4;
+$d;                 // prints 20
+
+// ── 30) PARENTHESIZED EXPRESSIONS AS STAND‐ALONE ─────────────────────────────
+(10 + 5);                 // prints “15”
+
+// ── 31) LARGE NUMBERS + NEGATIVE NUMBERS ────────────────────────────────────
+$big: 1234567890;
+$big;                     // prints “1234567890”
+$neg: -5;
+$neg;                     // prints “-5”
+$neg * 2;                 // prints “-10”
+$negzero: -0;
+$negzero;           // prints 0 (should not crash)
+$weird: --5;        // error: double minus not allowed

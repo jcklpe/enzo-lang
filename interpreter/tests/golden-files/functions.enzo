@@ -1,0 +1,134 @@
+Syntax error: Unexpected token ':' at line 1, column 4.
+Expected one of: COMMA, PLUS, __ANON_0, SLASH, DOTINT, RSQB, STAR, DOTPROP, RPAR, __ANON_1, DOTVAR, MINUS, RBRACE, SEMICOLON
+    ($x: 3, $y: 2; $x + $y);   // prints 5
+       ^
+Syntax error: Unexpected token ':' at line 2, column 3.
+Expected one of: COMMA, PLUS, __ANON_0, SLASH, DOTINT, RSQB, STAR, DOTPROP, RPAR, __ANON_1, DOTVAR, MINUS, RBRACE, SEMICOLON
+    $x: 100;
+      ^
+100
+Syntax error: Unexpected character 'r' at line 1, column 1.
+    return($x + $y);
+    ^
+Syntax error: Unexpected token ')' at line 1, column 1.
+Expected one of: SIGNED_NUMBER, STRING, NAME, LPAR, LSQB, LBRACE
+    ); // prints 200
+    ^
+Syntax error: Unexpected token ':' at line 1, column 4.
+Expected one of: COMMA, PLUS, __ANON_0, SLASH, DOTINT, RSQB, STAR, DOTPROP, RPAR, __ANON_1, DOTVAR, MINUS, RBRACE, SEMICOLON
+    ($x: 1;
+       ^
+error: $y already defined
+    $y: 2;
+    ^^^^^^
+error: undefined: $x
+    $x + $y;
+    ^^^^^^^^
+Syntax error: Unexpected token ')' at line 1, column 1.
+Expected one of: SIGNED_NUMBER, STRING, NAME, LPAR, LSQB, LBRACE
+    );         // error: no explicit return in multi-line function
+    ^
+Syntax error: Unexpected token ':' at line 1, column 4.
+Expected one of: COMMA, PLUS, __ANON_0, SLASH, DOTINT, RSQB, STAR, DOTPROP, RPAR, __ANON_1, DOTVAR, MINUS, RBRACE, SEMICOLON
+    ($x: 101;
+       ^
+error: $y already defined
+    $y: 100;
+    ^^^^^^^^
+Syntax error: Unexpected character 'r' at line 1, column 1.
+    return($x + $y);); // prints 201
+    ^
+Syntax error: Unexpected character 't' at line 1, column 3.
+    2-times-2: (2 * 2); // single line named functions can use implicit returns
+      ^
+Syntax error: Unexpected character 't' at line 1, column 3.
+    2-times-2();       // prints 4
+      ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder: (
+    ^
+Syntax error: Unexpected character 'p' at line 1, column 1.
+    param $y: 6;
+    ^
+Syntax error: Unexpected character 'r' at line 1, column 1.
+    return($y + $x);
+    ^
+Syntax error: Unexpected token ')' at line 1, column 1.
+Expected one of: SIGNED_NUMBER, STRING, NAME, LPAR, LSQB, LBRACE
+    );
+    ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder();                       // prints 12
+    ^
+Syntax error: Unexpected token '(' at line 1, column 7.
+Expected one of: MINUS, PLUS, COLON, __ANON_0, SLASH, DOTINT, __ANON_1, DOTVAR, STAR, DOTPROP, SEMICOLON
+    $adder();                      // prints 12
+          ^
+error: undefined: $adder
+    $referenced-function: $adder;  // does not invoke adder function just saves it to another variable as a reference
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Syntax error: Unexpected token '(' at line 1, column 21.
+Expected one of: MINUS, PLUS, COLON, __ANON_0, SLASH, DOTINT, __ANON_1, DOTVAR, STAR, DOTPROP, SEMICOLON
+    $referenced-function();        // prints 12
+                        ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder(4, 5);                   // prints 9
+    ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder(4, 5, 6);                // error: too many args
+    ^
+Syntax error: Unexpected token '(' at line 1, column 7.
+Expected one of: MINUS, PLUS, COLON, __ANON_0, SLASH, DOTINT, __ANON_1, DOTVAR, STAR, DOTPROP, SEMICOLON
+    $adder($nada, 1000)            // prints 1006
+          ^
+Syntax error: Unexpected token '(' at line 1, column 21.
+Expected one of: MINUS, PLUS, COLON, __ANON_0, SLASH, DOTINT, __ANON_1, DOTVAR, STAR, DOTPROP, SEMICOLON
+    $referenced-function(4, 5);    // prints 9
+                        ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder-plus-1(
+    ^
+Syntax error: Unexpected character 'p' at line 1, column 1.
+    param $y: 4;
+    ^
+1
+Syntax error: Unexpected character 'r' at line 1, column 1.
+    return($x + $y + $z);
+    ^
+Syntax error: Unexpected token ')' at line 1, column 1.
+Expected one of: SIGNED_NUMBER, STRING, NAME, LPAR, LSQB, LBRACE
+    );
+    ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder-plus-1();    // prints 11
+    ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder-plus-1(2, 2);   // prints 5
+    ^
+Syntax error: Unexpected character 'p' at line 2, column 5.
+        param $x: ;
+        ^
+Syntax error: Unexpected character 'p' at line 1, column 1.
+    param $y: ;
+    ^
+Syntax error: Unexpected character 'r' at line 1, column 1.
+    return($x - $y);
+    ^
+Syntax error: Unexpected token ')' at line 1, column 1.
+Expected one of: SIGNED_NUMBER, STRING, NAME, LPAR, LSQB, LBRACE
+    );
+    ^
+Syntax error: Unexpected character 's' at line 1, column 1.
+    subtractor(3, 2);   // prints 1
+    ^
+Syntax error: Unexpected token '(' at line 1, column 12.
+Expected one of: MINUS, PLUS, COLON, __ANON_0, SLASH, DOTINT, __ANON_1, DOTVAR, STAR, DOTPROP, SEMICOLON
+    $subtractor(3, 2);   // prints 1
+               ^
+Syntax error: Unexpected character 's' at line 1, column 1.
+    subtractor();        // prints 0 I think? empty values get coerced to 0?
+    ^
+Syntax error: Unexpected token '(' at line 1, column 12.
+Expected one of: MINUS, PLUS, COLON, __ANON_0, SLASH, DOTINT, __ANON_1, DOTVAR, STAR, DOTPROP, SEMICOLON
+    $subtractor(4);   //
+               ^

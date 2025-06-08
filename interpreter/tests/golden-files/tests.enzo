@@ -1,0 +1,512 @@
+{ $foo: 1, $bar: 2 }
+{ $foo: 1, $bar: 2 }
+[ 1, 2, 3 ]
+[ 1, 2, 3 ]
+double comma (remove one comma).
+    $badTable1: { $foo: 1,, $bar: 2 };
+                          ^
+leading comma (remove the comma at the start).
+    $badTable2: { ,$foo: 1, $bar: 2 };
+                  ^
+leading comma (remove the comma at the start).
+    $badTable3: { , };
+                  ^
+double comma (remove one comma).
+    $badList1: [1,,2];
+                  ^
+leading comma (remove the comma at the start).
+    $badList2: [,1,2];
+                ^
+leading comma (remove the comma at the start).
+    $badList3: [,];
+                ^
+Syntax error: Unexpected token ';' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+    ;;;;;;
+    ^
+Syntax error: Unexpected token ';' at line 1, column 22.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+    $meaning-of-life: 42;;
+                         ^
+Syntax error: Unexpected token ';' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+    ;   ;
+    ^
+5
+9
+3
+5
+9
+3
+[ 1, 2, 3 ]
+Syntax error: Unexpected token '.0' at line 1, column 6.
+Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $list.0;
+         ^
+error: list index out of range
+    $list.4;
+    ^^^^^^^^
+Syntax error: Unexpected character '.' at line 1, column 6.
+    $list.-1;
+         ^
+Syntax error: Unexpected character '.' at line 1, column 6.
+    $list."foo";
+         ^
+error: index applies to lists
+    $list.1.1;
+    ^^^^^^^^^^
+Syntax error: Unexpected token ';' at line 1, column 7.
+Expected one of: RPAR
+    (1 + 2;
+          ^
+Syntax error: Unexpected token ';' at line 1, column 9.
+Expected one of: COMMA, RSQB
+    [1, 2, 3;
+            ^
+Syntax error: Unexpected token ';' at line 1, column 15.
+Expected one of: COMMA, RBRACE
+    { $a: 1, $b: 2;
+                  ^
+Syntax error: Unexpected token ':' at line 1, column 4.
+Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    ($x: 3, $y: 2; $x + $y);   // prints 5
+       ^
+Syntax error: Unexpected token ':' at line 2, column 3.
+Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $x: 100;
+      ^
+100
+Syntax error: Unexpected character 'r' at line 1, column 1.
+    return($x + $y);
+    ^
+Syntax error: Unexpected token ')' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+    ); // prints 200
+    ^
+Syntax error: Unexpected token ':' at line 1, column 4.
+Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    ($x: 1;
+       ^
+error: $y already defined
+    $y: 2;
+    ^^^^^^
+error: undefined: $x
+    $x + $y;
+    ^^^^^^^^
+Syntax error: Unexpected token ')' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+    );         // error: no explicit return in multi-line function
+    ^
+Syntax error: Unexpected token ':' at line 1, column 4.
+Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    ($x: 101;
+       ^
+error: $y already defined
+    $y: 100;
+    ^^^^^^^^
+Syntax error: Unexpected character 'r' at line 1, column 1.
+    return($x + $y);); // prints 201
+    ^
+Syntax error: Unexpected character 't' at line 1, column 3.
+    2-times-2: (2 * 2); // single line named functions can use implicit returns
+      ^
+Syntax error: Unexpected character 't' at line 1, column 3.
+    2-times-2();       // prints 4
+      ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder: (
+    ^
+Syntax error: Unexpected character 'p' at line 1, column 1.
+    param $y: 6;
+    ^
+Syntax error: Unexpected character 'r' at line 1, column 1.
+    return($y + $x);
+    ^
+Syntax error: Unexpected token ')' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+    );
+    ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder();                       // prints 12
+    ^
+Syntax error: Unexpected token '(' at line 1, column 7.
+Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $adder();                      // prints 12
+          ^
+error: undefined: $adder
+    $referenced-function: $adder;  // does not invoke adder function just saves it to another variable as a reference
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Syntax error: Unexpected token '(' at line 1, column 21.
+Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $referenced-function();        // prints 12
+                        ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder(4, 5);                   // prints 9
+    ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder(4, 5, 6);                // error: too many args
+    ^
+Syntax error: Unexpected token '(' at line 1, column 7.
+Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $adder($nada, 1000)            // prints 1006
+          ^
+Syntax error: Unexpected token '(' at line 1, column 21.
+Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $referenced-function(4, 5);    // prints 9
+                        ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder-plus-1(
+    ^
+Syntax error: Unexpected character 'p' at line 1, column 1.
+    param $y: 4;
+    ^
+1
+Syntax error: Unexpected character 'r' at line 1, column 1.
+    return($x + $y + $z);
+    ^
+Syntax error: Unexpected token ')' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+    );
+    ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder-plus-1();    // prints 11
+    ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder-plus-1(2, 2);   // prints 5
+    ^
+Syntax error: Unexpected character 'p' at line 2, column 5.
+        param $x: ;
+        ^
+Syntax error: Unexpected character 'p' at line 1, column 1.
+    param $y: ;
+    ^
+Syntax error: Unexpected character 'r' at line 1, column 1.
+    return($x - $y);
+    ^
+Syntax error: Unexpected token ')' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+    );
+    ^
+Syntax error: Unexpected character 's' at line 1, column 1.
+    subtractor(3, 2);   // prints 1
+    ^
+Syntax error: Unexpected token '(' at line 1, column 12.
+Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $subtractor(3, 2);   // prints 1
+               ^
+Syntax error: Unexpected character 's' at line 1, column 1.
+    subtractor();        // prints 0 I think? empty values get coerced to 0?
+    ^
+Syntax error: Unexpected token '(' at line 1, column 12.
+Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $subtractor(4);   //
+               ^
+rebinding this text and 
+this is text example 2
+just a plain text
+rebinding this text and this is text example 2
+error: parse error in interpolation
+    "100 plus 5 is: <$x + $y>";           // prints “100 plus 5 is: 105”
+                    ^
+error: parse error in interpolation
+    $text-about-colors-list: "color <$i> is <$colors.$i>";
+                                    ^
+error: undefined: $text-about-colors-list
+    $text-about-colors-list;   // prints “color 2 is green”
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7
+3
+Sum=10 Prod=21
+{ $greeting: "hi", $nums: [ 2, 4 ] }
+hi! The nums are:2, and 4
+π≈3.14
+π≈3.14
+foo\nbar
+foo\"bar\"baz
+foo\"bar\"baz
+error: parse error in interpolation
+    "text <bad syntax>";    // error: undefined variable or parse error in interp
+          ^
+error: parse error in interpolation
+    "hello <$foo + >";      // error: parse error in interpolation
+           ^
+error: parse error in interpolation
+    "hello <<$foo>>";       // error: nested <...> not allowed (for now)
+           ^
+[ ]
+[ ]
+error: list index out of range
+    $emptyListTest.1;  // error: list index out of range
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: $empty-list already defined
+    $empty-list: 50;    //error: $empty-list already defined
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[ "now not empty" ]
+[ "now not empty" ]
+[ "red", "green", "blue", "yellow" ]
+blue
+2
+green
+[ [ 1, 2 ], [ 3, 4 ] ]
+3
+{ $lst: [ "a", "b", "c" ] }
+b
+[ { $x: 5 }, { $x: 7 } ]
+[ { $x: 5 }, { $x: 7 } ]
+7
+error: $list already defined
+    $list: [1,2,3];
+    ^^^^^^^^^^^^^^^
+Syntax error: Unexpected token '.0' at line 1, column 6.
+Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $list.0;            // error: index out of range (0 is not allowed, should be 1-based)
+         ^
+error: list index out of range
+    $list.4;            // error: index out of range
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Syntax error: Unexpected character '.' at line 1, column 6.
+    $list.-1;           // error: negative index not allowed
+         ^
+Syntax error: Unexpected character '.' at line 1, column 6.
+    $list."foo";        // error: index must be a number
+         ^
+error: index applies to lists
+    $list.1.1;          // error: index applies to lists (cannot index an integer)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[ 1, 2 ]
+5
+[ 5, 2 ]
+error: list index out of range
+    $mutable.3 <: 9;        // error: list index out of range
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+double comma (remove one comma).
+    $lt: [1,,2];            // error: double comma
+            ^
+error: $goodList already defined
+    $goodList: [1, 2, 3, ];
+    ^^^^^^^^^^^^^^^^^^^^^^^
+[ 1, 2, 3 ]
+double comma (remove one comma).
+    $badList1: [1,,2];                        // error: double comma
+                  ^
+leading comma (remove the comma at the start).
+    $badList2: [,1,2];                        // error: leading comma
+                ^
+leading comma (remove the comma at the start).
+    $badList3: [,];                           // error: just comma
+                ^
+Syntax error: Unexpected token ':' at line 1, column 12.
+Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $funs: [($x: ; $x + 1;), ($x: ; $x * 2;)];
+               ^
+Syntax error: Unexpected token '(' at line 1, column 8.
+Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $funs.1(10);              // → 11
+           ^
+Syntax error: Unexpected token '(' at line 1, column 8.
+Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $funs.2(10);              // → 20
+           ^
+error: $y already defined
+    $y: 3 + 2;
+    ^^^^^^^^^^
+10
+14
+14
+20
+20
+15
+1234567890
+1234567890
+-5
+-5
+-10
+0
+0
+Syntax error: Unexpected token '-' at line 1, column 9.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SEMICOLON, SIGNED_NUMBER, STRING
+    $weird: --5;        // error: double minus not allowed
+            ^
+error: $goodTable already defined
+    $goodTable: { $foo: 1, $bar: 2, };
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ $foo: 1, $bar: 2 }
+double comma (remove one comma).
+    $badTable1: { $foo: 1,, $bar: 2 };        // error: double comma
+                          ^
+leading comma (remove the comma at the start).
+    $badTable2: { ,$foo: 1, $bar: 2 };        // error: leading comma
+                  ^
+leading comma (remove the comma at the start).
+    $badTable3: { , };                        // error: just comma
+                  ^
+double comma (remove one comma).
+    $badList1: [1,,2];                        // error: double comma
+                  ^
+leading comma (remove the comma at the start).
+    $badList2: [,1,2];                        // error: leading comma
+                ^
+leading comma (remove the comma at the start).
+    $badList3: [,];                           // error: just comma
+                ^
+Syntax error: Unexpected token ';' at line 1, column 7.
+Expected one of: RPAR
+    (1 + 2;                 // error: unmatched parenthesis
+          ^
+Syntax error: Unexpected token ';' at line 1, column 9.
+Expected one of: COMMA, RSQB
+    [1, 2, 3;               // error: unmatched bracket
+            ^
+Syntax error: Unexpected token ';' at line 1, column 15.
+Expected one of: COMMA, RBRACE
+    { $a: 1, $b: 2;         // error: unmatched brace
+                  ^
+7
+error: cannot assign Text to Number
+    $foo <: "text";         // error: cannot assign Text to Number
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: $foo already defined
+    $foo: "oops";           // error: $foo already defined
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ $name: "Alice", $age: 30 }
+{ $name: "Alice", $age: 30 }
+Alice
+30
+Bob
+Bob
+{ $name: "Bob", $age: 30 }
+{ $foo: 42, $bar: "hello" }
+hello
+100
+{ $foo: 100, $bar: "hello" }
+{ }
+{ }
+error: '$someKey'
+    $emptyTable.someKey;    // error: 'someKey' does not exist on this table
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ $inner: { $val: 42, $arr: [ 10, 20 ] } }
+42
+20
+100
+100
+{ $tbl: { $a: [ 100, 200 ], $b: "x" }, $lst: [ { $foo: 1 }, { $foo: 2 } ] }
+100
+2
+{ $first: [ 1, 2 ], $second: [ 3, 4 ] }
+2
+[ 3, 4 ]
+{ $x: { $y: { $z: 7 } } }
+7
+{ $foo: 1 }
+error: '$bar'
+    $table9.bar;         // error: '$bar' (not found)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: index applies to lists
+    $table9.1;           // error: index applies to lists
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: property access applies to tables
+    $table9.foo.bar;     // error: '$bar' (not found after foo)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+999
+error: property rebind applies to tables
+    $prim.someKey <: 5;       // error: can't rebind to non-existent property
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ $a: 1 }
+error: index applies to lists
+    $myTbl.1;                 // error: index applies to lists
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Syntax error: Unexpected character 'o' at line 2, column 5.
+        ops: [($x: ; $x + 1;), ($x: ; $x * 2;)]
+        ^
+Syntax error: Unexpected token '}' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+    };
+    ^
+Syntax error: Unexpected token '(' at line 1, column 12.
+Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $calc.ops.2(4);           // → 8
+               ^
+oops
+error: index applies to lists
+    $notalist.1;
+    ^^^^^^^^^^^^
+error: $prim already defined
+    $prim: 999;
+    ^^^^^^^^^^^
+error: property rebind applies to tables
+    $prim.someKey <: 5;
+    ^^^^^^^^^^^^^^^^^^^
+error: $myTbl already defined
+    $myTbl: { $a: 1 };
+    ^^^^^^^^^^^^^^^^^^
+error: index applies to lists
+    $myTbl.1;
+    ^^^^^^^^^
+error: $x already defined
+    $x: ;
+    ^^^^^
+error: undefined: $undefinedVar
+    $undefinedVar;      // error: undefined: $undefinedVar
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: $x already defined
+    $x: 10;
+    ^^^^^^^
+7
+1
+error: $a already defined
+    $a: 2;              // error: $a already defined
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+100
+100
+error: $x already defined
+    $x: 99;             // error: $x already defined
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: cannot assign Text to Number
+    $x <: "hello";      // error: cannot assign Text to Number
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: $z already defined
+    $z: 3 + 4;          // z = 7
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8
+error: cannot assign Text to Number
+    $z <: "oops";       // error: cannot assign Text to Number
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+10
+10
+20
+20
+30
+error: $123abc already defined
+    $123abc: 5;         // allowed
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: $_ already defined
+    $_: 9;              // allowed
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: $-foo already defined
+    $-foo: 3;           // allowed
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5
+9
+3
+55
+55
+error: cannot assign Text to Number
+    $newImplicit <: "oops";     // error: cannot assign Text to Number
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+cool dude
+cool dude
+3
+3
+2
+Syntax error: Unexpected token ';' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+    ;;;;;;              // error: extra semicolons
+    ^
+Syntax error: Unexpected token ';' at line 1, column 22.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+    $meaning-of-life: 42;;          // error: extra semicolons
+                         ^
+Syntax error: Unexpected token ';' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+    ;   ;         // error: extra semicolons
+    ^

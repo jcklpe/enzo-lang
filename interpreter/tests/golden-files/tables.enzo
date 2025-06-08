@@ -1,0 +1,58 @@
+{ $name: "Alice", $age: 30 }
+{ $name: "Alice", $age: 30 }
+Alice
+30
+Bob
+Bob
+{ $name: "Bob", $age: 30 }
+{ $foo: 42, $bar: "hello" }
+hello
+100
+{ $foo: 100, $bar: "hello" }
+{ }
+{ }
+error: '$someKey'
+    $emptyTable.someKey;    // error: 'someKey' does not exist on this table
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ $inner: { $val: 42, $arr: [ 10, 20 ] } }
+42
+20
+100
+100
+{ $tbl: { $a: [ 100, 200 ], $b: "x" }, $lst: [ { $foo: 1 }, { $foo: 2 } ] }
+100
+2
+{ $first: [ 1, 2 ], $second: [ 3, 4 ] }
+2
+[ 3, 4 ]
+{ $x: { $y: { $z: 7 } } }
+7
+{ $foo: 1 }
+error: '$bar'
+    $table9.bar;         // error: '$bar' (not found)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: index applies to lists
+    $table9.1;           // error: index applies to lists
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: property access applies to tables
+    $table9.foo.bar;     // error: '$bar' (not found after foo)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+999
+error: property rebind applies to tables
+    $prim.someKey <: 5;       // error: can't rebind to non-existent property
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ $a: 1 }
+error: index applies to lists
+    $myTbl.1;                 // error: index applies to lists
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Syntax error: Unexpected character 'o' at line 2, column 5.
+        ops: [($x: ; $x + 1;), ($x: ; $x * 2;)]
+        ^
+Syntax error: Unexpected token '}' at line 1, column 1.
+Expected one of: LPAR, LSQB, LBRACE, STRING, SIGNED_NUMBER, NAME
+    };
+    ^
+Syntax error: Unexpected token '(' at line 1, column 12.
+Expected one of: DOTINT, RPAR, SEMICOLON, __ANON_0, RSQB, DOTPROP, PLUS, COMMA, MINUS, RBRACE, SLASH, STAR, DOTVAR, __ANON_1
+    $calc.ops.2(4);           // → 8
+               ^

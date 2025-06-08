@@ -1,0 +1,70 @@
+[ ]
+[ ]
+error: list index out of range
+    $emptyListTest.1;  // error: list index out of range
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: $empty-list already defined
+    $empty-list: 50;    //error: $empty-list already defined
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[ "now not empty" ]
+[ "now not empty" ]
+[ "red", "green", "blue", "yellow" ]
+blue
+2
+green
+[ [ 1, 2 ], [ 3, 4 ] ]
+3
+{ $lst: [ "a", "b", "c" ] }
+b
+[ { $x: 5 }, { $x: 7 } ]
+[ { $x: 5 }, { $x: 7 } ]
+7
+[ 1, 2, 3 ]
+Syntax error: Unexpected token '.0' at line 1, column 6.
+Expected one of: MINUS, DOTVAR, SEMICOLON, DOTPROP, __ANON_1, COLON, PLUS, STAR, SLASH, __ANON_0, DOTINT
+    $list.0;            // error: index out of range (0 is not allowed, should be 1-based)
+         ^
+error: list index out of range
+    $list.4;            // error: index out of range
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Syntax error: Unexpected character '.' at line 1, column 6.
+    $list.-1;           // error: negative index not allowed
+         ^
+Syntax error: Unexpected character '.' at line 1, column 6.
+    $list."foo";        // error: index must be a number
+         ^
+error: index applies to lists
+    $list.1.1;          // error: index applies to lists (cannot index an integer)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[ 1, 2 ]
+5
+[ 5, 2 ]
+error: list index out of range
+    $mutable.3 <: 9;        // error: list index out of range
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+double comma (remove one comma).
+    $lt: [1,,2];            // error: double comma
+            ^
+[ 1, 2, 3 ]
+[ 1, 2, 3 ]
+double comma (remove one comma).
+    $badList1: [1,,2];                        // error: double comma
+                  ^
+leading comma (remove the comma at the start).
+    $badList2: [,1,2];                        // error: leading comma
+                ^
+leading comma (remove the comma at the start).
+    $badList3: [,];                           // error: just comma
+                ^
+Syntax error: Unexpected token ':' at line 1, column 12.
+Expected one of: RPAR, DOTPROP, RBRACE, __ANON_1, RSQB, SLASH, DOTINT, DOTVAR, MINUS, SEMICOLON, PLUS, STAR, __ANON_0, COMMA
+    $funs: [($x: ; $x + 1;), ($x: ; $x * 2;)];
+               ^
+Syntax error: Unexpected token '(' at line 1, column 8.
+Expected one of: RPAR, DOTPROP, RBRACE, __ANON_1, RSQB, SLASH, DOTINT, DOTVAR, MINUS, SEMICOLON, PLUS, STAR, __ANON_0, COMMA
+    $funs.1(10);              // → 11
+           ^
+Syntax error: Unexpected token '(' at line 1, column 8.
+Expected one of: RPAR, DOTPROP, RBRACE, __ANON_1, RSQB, SLASH, DOTINT, DOTVAR, MINUS, SEMICOLON, PLUS, STAR, __ANON_0, COMMA
+    $funs.2(10);              // → 20
+           ^

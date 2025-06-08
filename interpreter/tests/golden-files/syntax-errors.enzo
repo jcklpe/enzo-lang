@@ -1,0 +1,39 @@
+{ $foo: 1, $bar: 2 }
+{ $foo: 1, $bar: 2 }
+double comma (remove one comma).
+    $badTable1: { $foo: 1,, $bar: 2 };        // error: double comma
+                          ^
+leading comma (remove the comma at the start).
+    $badTable2: { ,$foo: 1, $bar: 2 };        // error: leading comma
+                  ^
+leading comma (remove the comma at the start).
+    $badTable3: { , };                        // error: just comma
+                  ^
+double comma (remove one comma).
+    $badList1: [1,,2];                        // error: double comma
+                  ^
+leading comma (remove the comma at the start).
+    $badList2: [,1,2];                        // error: leading comma
+                ^
+leading comma (remove the comma at the start).
+    $badList3: [,];                           // error: just comma
+                ^
+Syntax error: Unexpected token ';' at line 1, column 7.
+Expected one of: RPAR
+    (1 + 2;                 // error: unmatched parenthesis
+          ^
+Syntax error: Unexpected token ';' at line 1, column 9.
+Expected one of: RSQB, COMMA
+    [1, 2, 3;               // error: unmatched bracket
+            ^
+Syntax error: Unexpected token ';' at line 1, column 15.
+Expected one of: COMMA, RBRACE
+    { $a: 1, $b: 2;         // error: unmatched brace
+                  ^
+7
+error: cannot assign Text to Number
+    $foo <: "text";         // error: cannot assign Text to Number
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: $foo already defined
+    $foo: "oops";           // error: $foo already defined
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

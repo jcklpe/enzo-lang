@@ -1,0 +1,62 @@
+// ── FUNCTIONS  -------------------
+
+//nameless functions one liner with implicit return
+($x: 3, $y: 2; $x + $y);   // prints 5
+
+// nameless function multi-line
+(
+$x: 100;
+$y: 100;
+return($x + $y);
+); // prints 200
+
+($x: 1;
+ $y: 2;
+ $x + $y;
+);         // error: no explicit return in multi-line function
+
+($x: 101;
+$y: 100;
+return($x + $y);); // prints 201
+
+2-times-2: (2 * 2); // single line named functions can use implicit returns
+2-times-2();       // prints 4
+
+adder: (
+param $x: 6; // these are default values
+param $y: 6;
+return($y + $x);
+);
+
+adder();                       // prints 12
+$adder();                      // prints 12
+$referenced-function: $adder;  // does not invoke adder function just saves it to another variable as a reference
+$referenced-function();        // prints 12
+adder(4, 5);                   // prints 9
+adder(4, 5, 6);                // error: too many args
+$nada: ;
+$adder($nada, 1000)            // prints 1006
+$adder("", 500);               // error: arg is type number not text
+$referenced-function(4, 5);    // prints 9
+
+adder-plus-1(
+    param $x: 6;
+    param $y: 4;
+    $z: 1;
+    return($x + $y + $z);
+);
+
+adder-plus-1();    // prints 11
+adder-plus-1(2, 2);   // prints 5
+
+$subtractor: (
+    param $x: ;
+    param $y: ;
+    return($x - $y);
+);
+
+subtractor(3, 2);   // prints 1
+$subtractor(3, 2);   // prints 1
+subtractor();        // prints 0 I think? empty values get coerced to 0?
+
+$subtractor(4);   //

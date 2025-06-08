@@ -1,0 +1,12 @@
+oops
+error: index applies to lists
+    $notalist.1;
+    ^^^^^^^^^^^^
+999
+error: property rebind applies to tables
+    $prim.someKey <: 5;
+    ^^^^^^^^^^^^^^^^^^^
+{ $a: 1 }
+error: index applies to lists
+    $myTbl.1;
+    ^^^^^^^^^
