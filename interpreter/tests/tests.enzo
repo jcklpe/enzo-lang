@@ -1,0 +1,9 @@
+@include ./test-modules/edge-cases.enzo
+@include ./test-modules/functions.enzo
+@include ./test-modules/interpolation.enzo
+@include ./test-modules/lists.enzo
+@include ./test-modules/math.enzo
+@include ./test-modules/syntax-errors.enzo
+@include ./test-modules/tables.enzo
+@include ./test-modules/type-errors.enzo
+@include ./test-modules/vars.enzo

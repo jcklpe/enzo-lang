@@ -1,22 +1,31 @@
 #!/usr/bin/env python3
-import subprocess, difflib, os, sys
+import subprocess
+import difflib
+import os
+import sys
 
-# 1) This is the single .enzo file you want to test
-TEST_FILE = "tests.enzo"
+# 1) Path to your .enzo test suite, now inside the tests/ folder
+TEST_FILE   = os.path.join("tests", "tests.enzo")
 
-# 2) This is where your golden output lives
+# 2) Path to the golden file you want to compare against
 GOLDEN_FILE = os.path.join("tests", "golden-files", "tests.enzo")
 
 def main():
-    # Run your interpreter via poetry
+    if not os.path.exists(TEST_FILE):
+        print(f"❗ Test file not found: {TEST_FILE}")
+        sys.exit(1)
+
+    # Run your interpreter via Poetry, feeding it the TEST_FILE
     proc = subprocess.run(
         ["poetry", "run", "enzo", TEST_FILE],
-        capture_output=True, text=True
+        capture_output=True,
+        text=True
     )
 
     actual = proc.stdout.rstrip("\n")
+
     if not os.path.exists(GOLDEN_FILE):
-        print(f"❗ Golden file not found at {GOLDEN_FILE}")
+        print(f"❗ Golden file not found: {GOLDEN_FILE}")
         sys.exit(1)
 
     with open(GOLDEN_FILE) as f:
