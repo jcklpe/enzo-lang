@@ -1,0 +1,30 @@
+{
+  "name": "enzo-language",
+  "displayName": "Enzo",
+  "description": "Basic syntax highlighting for Enzo language",
+  "version": "0.0.1",
+  "publisher": "jcklpe",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "enzo",
+        "aliases": ["Enzo", "enzo"],
+        "extensions": [".enzo"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "enzo",
+        "scopeName": "source.enzo",
+        "path": "./syntaxes/enzo.tmLanguage.json"
+      }
+    ]
+  }
+}

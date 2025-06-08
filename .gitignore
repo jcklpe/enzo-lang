@@ -33,3 +33,17 @@ enzo-code/
 .DS_Store
 .AppleDouble
 .LSOverride
+Thumbs.db
+
+
+
+# ===== VS Code extension bits =====
+# (if you ever `npm install` inside enzo-vscode/)
+enzo-vscode/node_modules/
+# packaged extension
+*.vsix
+.vscode/
+
+# Byte-compiled and package-sharing
+*.egg-info/
+.eggs/

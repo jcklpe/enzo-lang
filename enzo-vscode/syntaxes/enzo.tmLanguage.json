@@ -1,0 +1,86 @@
+{
+  "scopeName": "source.enzo",
+  "name": "Enzo",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#variables"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#operators"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.enzo",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.enzo",
+          "begin": "/'",
+          "end": "'/"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.enzo",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.enzo",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.enzo",
+          "match": "\\b-?\\d+(?:\\.\\d+)?\\b"
+        }
+      ]
+    },
+    "variables": {
+      "patterns": [
+        {
+          "name": "variable.other.enzo",
+          "match": "\\$[a-zA-Z_\\-][a-zA-Z0-9_\\-]*"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.enzo",
+          "match": "\\b(?:if|then|else|end|param|return|for|while|and|or|not|filter|transform|function)\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.enzo",
+          "match": "[:<]{1,2>|[+\\-*/=]|\\.|,|;|\\{|\\}|\\[|\\]|\\(|\\)"
+        }
+      ]
+    }
+  }
+}

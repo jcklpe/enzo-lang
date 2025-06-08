@@ -1,0 +1,33 @@
+{
+  // ===== Comments =====
+  "comments": {
+    // single-line comments
+    "lineComment": "//",
+    // block comments using /' ... '/
+    "blockComment": ["/'", "'/"]
+  },
+
+  // ===== Brackets =====
+  "brackets": [
+    ["{", "}"],
+    ["[", "]"],
+    ["(", ")"]
+  ],
+
+  // ===== Auto-closing pairs =====
+  // when you type the open character, VS Code will auto-insert the close
+  "autoClosingPairs": [
+    { "open": "{", "close": "}" },
+    { "open": "[", "close": "]" },
+    { "open": "(", "close": ")" },
+    { "open": "\"", "close": "\"", "notIn": ["string"] },
+    { "open": "'",  "close": "'",  "notIn": ["string", "comment"] }
+  ],
+
+  // ===== Surrounding pairs =====
+  // when you select text and type one of these opens, it surrounds the selection
+  "surroundingPairs": [
+    { "open": "{", "close": "}" },
+    { "open": "[", "close": "]" },
+    { "open": "(", "close": ")" },
+    { "open":
