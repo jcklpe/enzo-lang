@@ -45,14 +45,20 @@ error: property rebind applies to tables
 error: index applies to lists
     $myTbl.1;                 // error: index applies to lists
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Syntax error: Unexpected character 'o' at line 2, column 5.
-        ops: [($x: ; $x + 1;), ($x: ; $x * 2;)]
-        ^
-Syntax error: Unexpected token '}' at line 1, column 1.
-Expected one of: LPAR, LSQB, LBRACE, STRING, SIGNED_NUMBER, NAME
-    };
-    ^
-Syntax error: Unexpected token '(' at line 1, column 12.
-Expected one of: DOTINT, RPAR, SEMICOLON, __ANON_0, RSQB, DOTPROP, PLUS, COMMA, MINUS, RBRACE, SLASH, STAR, DOTVAR, __ANON_1
-    $calc.ops.2(4);           // → 8
-               ^
+{ $x: 1 }
+99
+{ $x: 99 }
+error: "'$y' not found for rebinding"
+    $tbl.y <: 42;           // error: '$y' not found for rebinding
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+{ $foo: 1, $bar: 2 }
+{ $foo: 1, $bar: 2 }
+double comma (remove one comma).
+    $badTable1: { $foo: 1,, $bar: 2 };
+                          ^
+leading comma (remove the comma at the start).
+    $badTable2: { ,$foo: 1, $bar: 2 };
+                  ^
+leading comma (remove the comma at the start).
+    $badTable3: { , };
+                  ^

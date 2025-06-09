@@ -1,5 +1,4 @@
 // ── FUNCTIONS  -------------------
-
 //nameless functions one liner with implicit return
 ($x: 3, $y: 2; $x + $y);   // prints 5
 
@@ -60,3 +59,141 @@ $subtractor(3, 2);   // prints 1
 subtractor();        // prints 0 I think? empty values get coerced to 0?
 
 $subtractor(4);   //
+
+// List of functions
+$funs: [($x: ; $x + 1;), ($x: ; $x * 2;)];
+$funs.1(10);              // → 11
+$funs.2(10);              // → 20
+
+double: ($x: 2; $x * 2);
+$ref: $double;       // should NOT invoke — should just bind the function object
+$ref(5);             // → 10
+
+// Direct invocation should work too:
+double(3);           // → 6
+
+// Function reference must use $, no parens:
+double;              // error: function reference must use $ sigil
+
+apply: (
+    param $function-arg:;
+    param $value: 7;
+    return($function-arg($value));
+);
+
+apply($double, 4);   // → 8
+apply($double);      // → 14 (default $val: 7)
+
+apply(double, 4);    // error: must pass function reference with $ sigil
+
+// table function
+$counter: {
+    $count: 10,
+    inc: (
+        $self.count <: $self.count + 1;
+        return($self.count);
+    )
+};
+$counter.inc();      // → 11
+$counter.inc();      // → 12
+$counter.count;      // → 12
+$counter.inc;        // function doesn't invoke, just returns the counter.inc function as a reference.
+
+// table function as a variable
+$table-reference: {
+    $add-one: (
+        param $x: 10;
+        return($x + 1);
+    )
+};
+$referencing-function: $table-reference.add-one;      // should be a function reference, not invoked
+$referencing-function();              // → 11
+$referencing-function(5);             // → 6
+
+// nested function with param name shadowing
+outer: (
+    param $x: 10;
+    inner: (
+        param $y: 5;
+        return($x + $y);
+    );
+    return($inner(7));
+);
+outer();             // → 17
+outer(20);           // → 27
+
+// duplicate param declaration error
+duplicate-params: (
+    param $x: 1;
+    param $x: 2; // error: duplicate parameter name '$x' in function definition
+    return($x);
+);
+
+// empty function declaration
+empty-fn: ();
+empty-fn();     // returns empty.
+
+// function default param reference previous param
+sum-default: (
+    param $a: 5;
+    param $b: $a;
+    return($a + $b);
+);
+sum-default();            // → 10
+sum-default(2);           // → 4
+sum-default(2, 10);       // → 12
+
+// trailing comma in params multiline function declaration
+trailing-comma: (
+    param $x: 1, // error: trailing comma
+    param $y: 2  // error: missing semicolon
+    return($x + $y);
+);
+
+// Table with list of functions
+$calc: {
+    $ops: [($x: ; $x + 1;), ($x: ; $x * 2;)]
+};
+$calc.ops.2(4);           // → 8
+
+// Table function and interpolation with self behavior
+$doggie: {
+    $name: "ralph",
+    $age: 50,
+    $speak: ("Hi, my name is <$self.name>."),
+    $roll-over: (
+        param $direction: "left";
+        return ("I'm now spinning <$direction>."
+    )
+};
+$doggie.speak();              // prints "Hi, my name is ralph."
+$doggie.roll-over("right");   // prints "I'm now spinning right."
+
+// functions as members of lists
+$weird-member: 20;
+$weird-list: [1, 2, ($x: 9; $x + 1;), ($weird-member + 1)];
+$weird-list.3; // prints 10
+$weird-list.4; // prints 21
+
+// number name as a param name
+number-name-param: (
+    param $123: 4;
+    return($123);
+);
+number-name-param();    // prints 4
+
+// early exit
+early-exit: (
+    $a: 99;
+    return($a);
+    $a<: 1; // should not execute
+);
+early-exit(); // should return 99
+
+// Function param name shadowing
+$whatever: 42;
+shadow: (
+    param $whatever: 1;
+    return($whatever);
+);
+shadow();    // prints 1 not 42

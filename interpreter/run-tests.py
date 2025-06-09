@@ -5,10 +5,10 @@ import os
 import sys
 
 # 1) Path to your .enzo test suite, now inside the tests/ folder
-TEST_FILE   = os.path.join("tests", "tests.enzo")
+TEST_FILE   = os.path.join("tests", "combined-tests.enzo")
 
 # 2) Path to the golden file you want to compare against
-GOLDEN_FILE = os.path.join("tests", "golden-files", "tests.enzo")
+GOLDEN_FILE = os.path.join("tests", "combined-tests.golden.enzo")
 
 def main():
     if not os.path.exists(TEST_FILE):

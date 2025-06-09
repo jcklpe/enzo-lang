@@ -1,0 +1,20 @@
+Syntax error: Unexpected token ';' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+    ;;;;;;    // error: too many semicolons
+    ^
+Syntax error: Unexpected token ';' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+    ;   ;     // error: too many semicolons
+    ^
+Syntax error: Unexpected token ';' at line 1, column 7.
+Expected one of: RPAR
+    (1 + 2;                 // error: unmatched parenthesis
+          ^
+Syntax error: Unexpected token ';' at line 1, column 9.
+Expected one of: COMMA, RSQB
+    [1, 2, 3;               // error: unmatched bracket
+            ^
+Syntax error: Unexpected token ';' at line 1, column 15.
+Expected one of: COMMA, RBRACE
+    { $a: 1, $b: 2;         // error: unmatched brace
+                  ^
