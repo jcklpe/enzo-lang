@@ -59,6 +59,7 @@ def eval_ast(node):
 
     # ── function literal ────────────────────────────────────────────────
     if typ == "function":
+        print("DEBUG function rest[0]:", rest[0])
         # node = ("function", ("function_body", params, body))
         _tag, params, body = rest[0]
         param_pairs = []

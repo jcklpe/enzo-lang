@@ -70,15 +70,17 @@ class AST(Transformer):
         return ("var", tok[0].value)
 
     def function(self, v):
-        # v[0] is function_core node
+        # v[0] is function_core node (always ("function_body", params, body))
         return ("function", v[0])
 
     def function_core(self, v):
-        # function_param_list + function_body_stmts or just function_body_stmts
+        # v: [params, body] or just [body]
         if len(v) == 2:
-            params, body = v
+            params = v[0]
+            body = v[1]
         else:
-            params, body = [], v[0]
+            params = []
+            body = v[0]
         return ("function_body", params, body)
 
     def function_param_list(self, v):
