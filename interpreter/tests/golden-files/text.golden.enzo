@@ -2,15 +2,13 @@ rebinding this text and
 this is text example 2
 just a plain text
 rebinding this text and this is text example 2
-error: parse error in interpolation
-    "100 plus 5 is: <$x + $y>";           // prints “100 plus 5 is: 105”
-                    ^
-error: parse error in interpolation
-    $text-about-colors-list: "color <$i> is <$colors.$i>";
-                                    ^
-error: undefined: $text-about-colors-list
-    $text-about-colors-list;   // prints “color 2 is green”
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+100
+5
+100 plus 5 is: 105
+2
+[ "red", "purple", "green", "silver" ]
+color 2 is purple
+color 2 is purple
 7
 3
 Sum=10 Prod=21

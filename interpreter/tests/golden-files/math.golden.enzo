@@ -1,0 +1,19 @@
+100
+5
+105
+14
+14
+20
+20
+15
+1234567890
+1234567890
+-5
+-5
+-10
+0
+0
+Syntax error: Unexpected token '-' at line 1, column 9.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SEMICOLON, SIGNED_NUMBER, STRING
+    $weird: --5;              // error: double minus not allowed
+            ^

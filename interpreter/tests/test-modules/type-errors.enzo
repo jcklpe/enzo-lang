@@ -1,7 +1,0 @@
-// 33) VARIOUS TYPE‐ERRORS FOR BAD INDEX/PROP REBIND
-$notalist: "oops";
-$notalist.1;
-$prim: 999;
-$prim.someKey <: 5;
-$myTbl: { $a: 1 };
-$myTbl.1;

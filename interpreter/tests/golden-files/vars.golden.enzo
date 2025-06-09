@@ -2,17 +2,13 @@ error: undefined: $undefinedVar
     $undefinedVar;      // error: undefined: $undefinedVar
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 error: $x already defined
-    $x: 10;
-    ^^^^^^^
-1
-error: $a already defined
-    $a: 2;              // error: $a already defined
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-100
-100
+    $x: 10;             // error $x has already been declared
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 error: $x already defined
-    $x: 99;             // error: $x already defined
+    $x: 1;              // error: $a already defined
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+100
+100
 error: cannot assign Text to Number
     $x <: "hello";      // error: cannot assign Text to Number
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -21,17 +17,16 @@ error: cannot assign Text to Number
 error: cannot assign Text to Number
     $z <: "oops";       // error: cannot assign Text to Number
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: $z already defined
+    $z : "oops";       // error: $z already defined
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 10
 10
 20
 20
 30
-5
-9
-3
-5
-9
-3
+30
+30
 55
 55
 error: cannot assign Text to Number
@@ -42,15 +37,14 @@ cool dude
 3
 3
 2
-Syntax error: Unexpected token ';' at line 1, column 1.
-Expected one of: LBRACE, LSQB, LPAR, NAME, SIGNED_NUMBER, STRING
-    ;;;;;;              // error: extra semicolons
-    ^
+2
+5
+9
+3
+5
+9
+3
 Syntax error: Unexpected token ';' at line 1, column 22.
-Expected one of: LBRACE, LSQB, LPAR, NAME, SIGNED_NUMBER, STRING
-    $meaning-of-life: 42;;          // error: extra semicolons
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+    $meaning-of-life: 42;;  // error: extra semi-colon
                          ^
-Syntax error: Unexpected token ';' at line 1, column 1.
-Expected one of: LBRACE, LSQB, LPAR, NAME, SIGNED_NUMBER, STRING
-    ;   ;         // error: extra semicolons
-    ^

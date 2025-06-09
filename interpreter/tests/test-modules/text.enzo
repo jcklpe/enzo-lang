@@ -1,4 +1,4 @@
-// ── 10) TEXT + INTERPOLATION ───────────────────────────────────────────────────
+// ── TEXT + INTERPOLATION ───────────────────────────────────────────────────
 $text-example: ;
 $text-example <: "rebinding this text and ";
 $text-example2: "this is text example 2";
@@ -6,30 +6,34 @@ $text-example2: "this is text example 2";
 "just a plain text";   // prints “just a plain text”
 
 "<$text-example; $text-example2;>";   // prints “rebinding this text and this is text example 2”
-"100 plus 5 is: <$x + $y>";           // prints “100 plus 5 is: 105”
+$math1-interp: 100;
+$math2-interp: 5;
+"100 plus 5 is: <$math1-interp + $math2-interp>";           // prints “100 plus 5 is: 105”
 
-// ── 15) NOW THAT $colors & $i ARE DEFINED, INTERPOLATE A STRING THAT USES THEM ─
-$text-about-colors-list: "color <$i> is <$colors.$i>";
-$text-about-colors-list;   // prints “color 2 is green”
+// ── NOW THAT $colors & $i ARE DEFINED, INTERPOLATE A STRING THAT USES THEM ─
+$index-interp: 2;
+$colors-interp: ["red", "purple", "green", "silver"];
+$text-about-colors-list: "color <$index-interp> is <$colors-interp.$index-interp>";
+$text-about-colors-list;   // prints “color 2 is purple
 
-// ── 23) COMPLEX MATH INTERPOLATION ● MULTIPLE EXPRESSIONS ───────────────────
+// ── COMPLEX MATH INTERPOLATION ● MULTIPLE EXPRESSIONS ───────────────────
 $x <: 7;
 $y <: 3;
 "Sum=<$x + $y;> Prod=<$x * $y;>";   // prints “Sum=10Prod=21”
 
-// ── 28) COMPOUND INTERPOLATION WITH TABLE+LIST ACCESS ────────────────────────
+// ── COMPOUND INTERPOLATION WITH TABLE+LIST ACCESS ────────────────────────
 $myTable: { $greeting: "hi", $nums: [2, 4] };
 "<$myTable.greeting;>! The nums are:<$myTable.nums.1;>, and <$myTable.nums.2;>";
                          // prints “hi! The nums are: 2,4”
 
-// 12. Unicode and weird strings
+// Unicode and weird strings
 $str: "π≈3.14";
 $str;                   // prints π≈3.14
 $esc: "foo\nbar";       // prints foo\nbar (unless you support real newlines; for now print literal)
 $esc2: "foo\"bar\"baz";
 $esc2;                  // prints foo"bar"baz
 
-// 6. Interpolation errors
+// Interpolation errors
 "text <bad syntax>";    // error: undefined variable or parse error in interp
 "hello <$foo + >";      // error: parse error in interpolation
 "hello <<$foo>>";       // error: nested <...> not allowed (for now)
