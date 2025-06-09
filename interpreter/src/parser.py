@@ -69,6 +69,46 @@ class AST(Transformer):
         # tok[0].value is something like "$foo"
         return ("var", tok[0].value)
 
+    def function(self, v):
+        # v[0] is function_core node
+        return ("function", v[0])
+
+    def function_core(self, v):
+        # function_param_list + function_body_stmts or just function_body_stmts
+        if len(v) == 2:
+            params, body = v
+        else:
+            params, body = [], v[0]
+        return ("function_body", params, body)
+
+    def function_param_list(self, v):
+        # Flatten out param tuples
+        return [x for x in v]
+
+    def function_param(self, v):
+        # Handles both "param $x: expr" and "$x: expr"
+        if len(v) == 3 and v[0] == "param":
+            # Multi-line param
+            _, name_tok, expr_node = v
+            return ("param", name_tok.value, expr_node)
+        else:
+            name_tok, expr_node = v[-2:] # (might be just [name, expr])
+            return ("param", name_tok.value, expr_node)
+
+    def function_body_stmts(self, v):
+        return v
+
+    def call(self, v):
+        name_tok = v[0]
+        args = v[1] if len(v) > 1 else []
+        return ("call", name_tok.value, args)
+
+    def call_args(self, v):
+        return v
+
+    def return_stmt(self, v):
+        return ("return", v[0])
+
     # ── arithmetic ───────────────────────────────────────────────────────
     def add(self, v):
         return ("add", *v)
