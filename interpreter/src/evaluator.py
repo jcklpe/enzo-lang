@@ -59,14 +59,14 @@ def eval_ast(node):
 
     # ── function literal ────────────────────────────────────────────────
     if typ == "function":
-        print("DEBUG function rest[0]:", rest[0])
-        # node = ("function", ("function_body", params, body))
-        _tag, params, body = rest[0]
-        param_pairs = []
-        for p in params:
-            # ("param", name, default)
-            param_pairs.append((p[1], p[2]))
-        # Disallow 0-param single-line anon fns
+        # Accepts both ('function_body', ...) and ('function', ('function_body', ...))
+        function_body = rest[0]
+        if function_body[0] == "function":
+            function_body = function_body[1]
+        if function_body[0] != "function_body":
+            raise ValueError(f"Expected function_body in function node, got {function_body}")
+        _, params, body = function_body
+        param_pairs = [(p[1], p[2]) for p in params]
         if len(param_pairs) == 0 and isinstance(body, list) and len(body) == 1 and not isinstance(body[0], tuple):
             raise TypeError("Anonymous functions must declare at least one parameter.")
         return EnzoFunction(param_pairs, body, _env.copy())
