@@ -193,8 +193,6 @@ say($full-name("Alice", "Smith"));
 
 Use $-bound nameless functions when the value the function returns is the primary focus, when the function itself feels like data in your mental model.
 
-**Note:** Nameless functions can be immediately invoked with the `do` operator which will be covered later in this doc.
-
 ##### Empty variables (null, undefined)
 
 A variable can be created that is empty.
@@ -722,45 +720,6 @@ $thirdUppercaseColor:
 - No nesting. Keeps your code flat and readable.
 - No method chaining. Functions remain standalone and there's no overloading of dot notation for table property access and piping stuff together.
 - Clear data-flow. You always read top-to-bottom, left-to-right.
-
-#### `do` operator
-
-**Immediately invoke an anonymous function using its declared default parameters.**
-
-* **Syntax:**
-
-  ```enzo
-  do(<anonymous function>)
-  ```
-
-* **Behavior:**
-
-  * Evaluates and runs the provided anonymous function.
-  * All parameters use their default values, as specified in the function definition.
-  * Returns the function’s result.
-
-* **Examples:**
-
-  ```enzo
-  do($x: 2, $y: 3; $x + $y);     // returns 5
-
-  do($msg: "hi"; $msg + "!");    // returns "hi!"
-  ```
-
-* **Pipeline usage:**
-
-  * When pipelined, the left-hand value is used as the first parameter of the function.
-  * Additional parameters use their defaults.
-  * Example:
-
-    ```enzo
-    10 then do($x: , $y: 7; $x * $y); then do($x: ; $x + 2)  // returns 72
-    ```
-
-* **Notes:**
-
-  * It is an error to use `do` on a function with no parameters and no default values.
-  * Extra values in a pipeline cause an error.
 
 # Misc implementation details
 

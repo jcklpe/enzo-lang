@@ -69,36 +69,42 @@ class AST(Transformer):
         # tok[0].value is something like "$foo"
         return ("var", tok[0].value)
 
-    def function(self, v):
-        # v[0] is function_core node (always ("function_body", params, body))
-        return ("function", v[0])
+    def block_body(self, items):
+        # filter out separators
+        return [x for x in items if x is not None]
 
-    def function_core(self, v):
-        # v: [params, body] or just [body]
-        if len(v) == 2:
-            params = v[0]
-            body = v[1]
-        else:
-            params = []
-            body = v[0]
-        return ("function_body", params, body)
+    def block_item(self, items):
+        return items[0]
 
-    def function_param_list(self, v):
-        # Flatten out param tuples
-        return [x for x in v]
+    def block_binding(self, items):
+        name_tok, expr = items
+        return ("bind", name_tok.value, expr)
 
-    def function_param(self, v):
-        # Handles both "param $x: expr" and "$x: expr"
-        if len(v) == 3 and v[0] == "param":
-            # Multi-line param
-            _, name_tok, expr_node = v
-            return ("param", name_tok.value, expr_node)
-        else:
-            name_tok, expr_node = v[-2:] # (might be just [name, expr])
-            return ("param", name_tok.value, expr_node)
+    def block_sep(self, items):
+        # Ignore block separators in block_body
+        return None
 
-    def function_body_stmts(self, v):
-        return v
+    def block_expr(self, v):
+        # Lark sometimes gives v as [Tree(...)] or [tuple,...]
+        # We need to flatten v if it's a list of a single list (the common Lark output)
+        parts = v
+        if len(parts) == 1 and isinstance(parts[0], list):
+            parts = parts[0]
+        print("DEBUG: block_expr parts:", parts)
+        bindings = []
+        stmts = []
+        for part in parts:
+            # Bindings: ("bind", name, expr)
+            if isinstance(part, tuple) and part and part[0] == "bind":
+                bindings.append((part[1], part[2]))
+            # Empty bindings ("bind_empty", ...)
+            elif isinstance(part, tuple) and part and part[0] == "bind_empty":
+                bindings.append((part[1], None))
+            else:
+                stmts.append(part)
+        # If there are NO stmts (e.g. just bindings), inject None or an error
+        return ("block_expr", bindings, stmts)
+
 
     def call(self, v):
         name_tok = v[0]
@@ -156,10 +162,10 @@ class AST(Transformer):
     # ── statements / assignments ─────────────────────────────────────────────────
     def bind(self, v):
         name_tok, expr_node = v
+        # name_tok could be Token('ASSIGN_NAME', ...) at top-level
         return ("bind", name_tok.value, expr_node)
 
     def bind_empty(self, v):
-        # v is a single‐element list: [Token(NAME)]
         name_tok = v[0]
         return ("bind_empty", name_tok.value)
 
@@ -167,14 +173,14 @@ class AST(Transformer):
         name_tok, expr_node = v
         return ("rebind", name_tok.value, expr_node)
 
+    def rebind_lr(self, v):
+        expr_node, name_tok = v
+        return ("rebind", name_tok.value, expr_node)
+
     def prop_rebind(self, v):
         # v = [ baseAST(for something like $tbl.name), newExprAST ]
         base_node, new_expr = v
         return ("prop_rebind", base_node, new_expr)
-
-    def rebind_lr(self, v):
-        expr_node, name_tok = v
-        return ("rebind", name_tok.value, expr_node)
 
     def expr_stmt(self, v):
         # wrap a bare expression into (“expr”, AST)
