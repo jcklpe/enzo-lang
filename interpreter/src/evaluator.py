@@ -22,6 +22,7 @@ class ReturnSignal(Exception):
 
 # ── handle a block of multiple statements ─────────────────────────────
 def eval_ast(node):
+    global _env
     typ, *rest = node
 
     # ── “block” means “evaluate each child in turn, return last” ───────
@@ -57,6 +58,7 @@ def eval_ast(node):
             raise NameError(f"undefined: {name}")
         return _env[name]
 
+<<<<<<< HEAD
     # ── function literal ────────────────────────────────────────────────
     if typ == "function":
         # node = ("function", ("function_body", params, body))
@@ -77,6 +79,29 @@ def eval_ast(node):
         if len(param_pairs) == 0 and isinstance(body, list) and len(body) == 1 and not isinstance(body[0], tuple):
             raise TypeError("Anonymous functions must declare at least one parameter.")
         return EnzoFunction(param_pairs, body, _env.copy())
+=======
+    # ──  block experession ──────────────────────────────────────────────
+    if typ == "block_expr":
+        bindings, stmts = rest
+        # Create a new local scope
+        parent_env = _env.copy()
+        local_env = parent_env.copy()
+        # Evaluate all bindings first
+        for name, expr in bindings:
+            if name in local_env:
+                raise NameError(f"{name} already defined in block")
+            local_env[name] = eval_ast(expr)
+        # Now evaluate stmts in local_env
+        old_env = _env
+        _env = local_env
+        try:
+            result = None
+            for s in stmts:
+                result = eval_ast(s)
+            return result
+        finally:
+            _env = old_env
+>>>>>>> b6b2c99 (got single line nameless functions and grouping paren unified expression grammark working)
 
     # ── function call ──────────────────────────────────────────────────
     if typ == "call":
