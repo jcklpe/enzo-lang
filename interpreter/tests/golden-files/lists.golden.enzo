@@ -1,59 +1,69 @@
+//= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
 [ ]
 [ ]
 error: list index out of range
-    $emptyListTest.1;  // error: list index out of range
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $emptyListTest.1;
+    ^^^^^^^^^^^^^^^^^
+//= BIND EMPTY AND THEN FILL WITH LIST ────────────────────────────────────
 error: $empty-list already defined
-    $empty-list: 50;    //error: $empty-list already defined
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $empty-list: 50;
+    ^^^^^^^^^^^^^^^^
 [ "now not empty" ]
 [ "now not empty" ]
+//= DECLARE LIST AND ACCESS ITEMS ────────────────────────────────────────
 [ "red", "green", "blue", "yellow" ]
 blue
 2
 green
+//= NESTED LISTS WITH INDEXING ────────────────────────────────────────────
 [ [ 1, 2 ], [ 3, 4 ] ]
 3
+//= MIXED LIST‐INSIDE‐TABLE ● INDEX VS ATTR ──────────────────────────────
 { $lst: [ "a", "b", "c" ] }
 b
+//= LIST OF TABLES + INDEX OF TABLE ────────────────────────────────────
 [ { $x: 5 }, { $x: 7 } ]
 [ { $x: 5 }, { $x: 7 } ]
 7
+//= Out-of-bounds and weird list indices
 [ 1, 2, 3 ]
 Syntax error: Unexpected token '.0' at line 1, column 6.
 Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $list.0;            // error: list index out of range
+    $list.0;
          ^
 error: list index out of range
-    $list.4;            // error: list index out of range
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $list.4;
+    ^^^^^^^^
 Syntax error: Unexpected character '.' at line 1, column 6.
-    $list.-1;           // error: list index out of range
+    $list.-1;
          ^
 Syntax error: Unexpected character '.' at line 1, column 6.
-    $list."foo";        // error: list index out of range
+    $list."foo";
          ^
 error: index applies to lists
-    $list.1.1;          // error: list index out of range
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $list.1.1;
+    ^^^^^^^^^^
+//= List/table mutation
 [ 1, 2 ]
 5
 [ 5, 2 ]
 error: list index out of range
-    $mutable.3 <: 9;        // error: list index out of range
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $mutable.3 <: 9;
+    ^^^^^^^^^^^^^^^^
+//= Trailing commas
 [ 1, 2, 3 ]
 [ 1, 2, 3 ]
 double comma (remove one comma).
-    $badList1: [1,,2];                        // error: remove one comma
+    $badList1: [1,,2];
                   ^
 leading comma (remove the comma at the start).
-    $badList2: [,1,2];                        // error: leading comma
+    $badList2: [,1,2];
                 ^
 leading comma (remove the comma at the start).
-    $badList3: [,];                           // error: just comma
+    $badList3: [,];
                 ^
+//= Various type errors
 oops
 error: index applies to lists
-    $notalist.1;                              // index applies to lists
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $notalist.1;
+    ^^^^^^^^^^^^

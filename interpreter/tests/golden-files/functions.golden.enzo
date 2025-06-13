@@ -1,7 +1,9 @@
+//= Nameless functions one liner with implicit return
 Syntax error: Unexpected token ':' at line 1, column 4.
 Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    ($x: 3, $y: 2; $x + $y);   // prints 5
+    ($x: 3, $y: 2; $x + $y);
        ^
+//= Nameless function: multi-line with explicit return
 Syntax error: Unexpected token ':' at line 2, column 3.
 Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
     $x: 100;
@@ -12,8 +14,9 @@ Syntax error: Unexpected character 'r' at line 1, column 1.
     ^
 Syntax error: Unexpected token ')' at line 1, column 1.
 Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
-    ); // prints 200
+    );
     ^
+//= Nameless function: multi-line with no explicit return (should error)
 Syntax error: Unexpected token ':' at line 1, column 4.
 Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
     ($x: 1;
@@ -26,8 +29,9 @@ error: undefined: $x
     ^^^^^^^^
 Syntax error: Unexpected token ')' at line 1, column 1.
 Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
-    );         // error: no explicit return in multi-line function
+    );
     ^
+//= Nameless function: multi-line, explicit return, different values
 Syntax error: Unexpected token ':' at line 1, column 4.
 Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
     ($x: 101;
@@ -36,14 +40,16 @@ error: $y already defined
     $y: 100;
     ^^^^^^^^
 Syntax error: Unexpected character 'r' at line 1, column 1.
-    return($x + $y);); // prints 201
+    return($x + $y););
     ^
+//= Single line, implicit return
 Syntax error: Unexpected character 't' at line 1, column 3.
-    2-times-2: (2 * 2); // single line named functions can use implicit returns
+    2-times-2: (2 * 2);
       ^
 Syntax error: Unexpected character 't' at line 1, column 3.
-    2-times-2();       // prints 4
+    2-times-2();
       ^
+//= Multi-line with params and default values
 Syntax error: Unexpected character 'a' at line 1, column 1.
     adder: (
     ^
@@ -58,33 +64,34 @@ Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 'a' at line 1, column 1.
-    adder();                       // prints 12
+    adder();
     ^
 Syntax error: Unexpected token '(' at line 1, column 7.
 Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $adder();                      // prints 12
+    $adder();
           ^
 error: undefined: $adder
-    $referenced-function: $adder;  // does not invoke adder function just saves it to another variable as a reference
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $referenced-function: $adder;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Syntax error: Unexpected token '(' at line 1, column 21.
 Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $referenced-function();        // prints 12
+    $referenced-function();
                         ^
 Syntax error: Unexpected character 'a' at line 1, column 1.
-    adder(4, 5);                   // prints 9
+    adder(4, 5);
     ^
 Syntax error: Unexpected character 'a' at line 1, column 1.
-    adder(4, 5, 6);                // error: too many args
+    adder(4, 5, 6);
     ^
 Syntax error: Unexpected token '(' at line 1, column 7.
 Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $adder($nada, 1000)            // prints 1006
+    $adder($nada, 1000)
           ^
 Syntax error: Unexpected token '(' at line 1, column 21.
 Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $referenced-function(4, 5);    // prints 9
+    $referenced-function(4, 5);
                         ^
+//= Named function with local variable
 Syntax error: Unexpected character 'a' at line 1, column 1.
     adder-plus-1(
     ^
@@ -100,11 +107,12 @@ Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 'a' at line 1, column 1.
-    adder-plus-1();    // prints 11
+    adder-plus-1();
     ^
 Syntax error: Unexpected character 'a' at line 1, column 1.
-    adder-plus-1(2, 2);   // prints 5
+    adder-plus-1(2, 2);
     ^
+//= Subtraction with empty default
 Syntax error: Unexpected character 'p' at line 2, column 5.
         param $x: ;
         ^
@@ -119,47 +127,50 @@ Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 's' at line 1, column 1.
-    subtractor(3, 2);   // prints 1
+    subtractor(3, 2);
     ^
 Syntax error: Unexpected token '(' at line 1, column 12.
 Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $subtractor(3, 2);   // prints 1
+    $subtractor(3, 2);
                ^
 Syntax error: Unexpected character 's' at line 1, column 1.
-    subtractor();        // prints 0 I think? empty values get coerced to 0?
+    subtractor();
     ^
 Syntax error: Unexpected token '(' at line 1, column 12.
 Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $subtractor(4);   //
+    $subtractor(4);
                ^
+//= List of functions called by index
 Syntax error: Unexpected token ':' at line 1, column 12.
 Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
     $funs: [($x: ; $x + 1;), ($x: ; $x * 2;)];
                ^
 Syntax error: Unexpected token '(' at line 1, column 8.
 Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $funs.1(10);              // → 11
+    $funs.1(10);
            ^
 Syntax error: Unexpected token '(' at line 1, column 8.
 Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $funs.2(10);              // → 20
+    $funs.2(10);
            ^
+//= Named function, then function reference and direct invocation
 Syntax error: Unexpected character 'd' at line 1, column 1.
     double: ($x: 2; $x * 2);
     ^
 error: undefined: $double
-    $ref: $double;       // should NOT invoke — should just bind the function object
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $ref: $double;
+    ^^^^^^^^^^^^^^
 Syntax error: Unexpected token '(' at line 1, column 5.
 Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $ref(5);             // → 10
+    $ref(5);
         ^
 Syntax error: Unexpected character 'd' at line 1, column 1.
-    double(3);           // → 6
+    double(3);
     ^
 Syntax error: Unexpected character 'd' at line 1, column 1.
-    double;              // error: function reference must use $ sigil
+    double;
     ^
+//= Higher-order function: passing function as param and using default param
 Syntax error: Unexpected character 'a' at line 1, column 1.
     apply: (
     ^
@@ -174,14 +185,15 @@ Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 'a' at line 1, column 1.
-    apply($double, 4);   // → 8
+    apply($double, 4);
     ^
 Syntax error: Unexpected character 'a' at line 1, column 1.
-    apply($double);      // → 14 (default $val: 7)
+    apply($double);
     ^
 Syntax error: Unexpected character 'a' at line 1, column 1.
-    apply(double, 4);    // error: must pass function reference with $ sigil
+    apply(double, 4);
     ^
+//= Table with function member and self mutation
 Syntax error: Unexpected character 'i' at line 3, column 5.
         inc: (
         ^
@@ -194,18 +206,19 @@ Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
     ^
 Syntax error: Unexpected token '(' at line 1, column 13.
 Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $counter.inc();      // → 11
+    $counter.inc();
                 ^
 Syntax error: Unexpected token '(' at line 1, column 13.
 Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $counter.inc();      // → 12
+    $counter.inc();
                 ^
 error: undefined: $counter
-    $counter.count;      // → 12
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $counter.count;
+    ^^^^^^^^^^^^^^^
 error: undefined: $counter
-    $counter.inc;        // function doesn't invoke, just returns the counter.inc function as a reference.
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $counter.inc;
+    ^^^^^^^^^^^^^
+//= Table of functions: referencing as variables
 Syntax error: Unexpected character 'p' at line 3, column 9.
             param $x: 10;
             ^
@@ -217,16 +230,17 @@ Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
     )
     ^
 error: undefined: $table-reference
-    $referencing-function: $table-reference.add-one;      // should be a function reference, not invoked
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $referencing-function: $table-reference.add-one;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Syntax error: Unexpected token '(' at line 1, column 22.
 Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $referencing-function();              // → 11
+    $referencing-function();
                          ^
 Syntax error: Unexpected token '(' at line 1, column 22.
 Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $referencing-function(5);             // → 6
+    $referencing-function(5);
                          ^
+//= Nested function: inner function shadows param
 Syntax error: Unexpected character 'o' at line 1, column 1.
     outer: (
     ^
@@ -248,16 +262,17 @@ Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 'o' at line 1, column 1.
-    outer();             // → 17
+    outer();
     ^
 Syntax error: Unexpected character 'o' at line 1, column 1.
-    outer(20);           // → 27
+    outer(20);
     ^
+//= Duplicate param name error in function declaration
 Syntax error: Unexpected character 'd' at line 1, column 1.
     duplicate-params: (
     ^
 Syntax error: Unexpected character 'p' at line 1, column 1.
-    param $x: 2; // error: duplicate parameter name '$x' in function definition
+    param $x: 2;
     ^
 Syntax error: Unexpected character 'r' at line 1, column 1.
     return($x);
@@ -266,12 +281,14 @@ Syntax error: Unexpected token ')' at line 1, column 1.
 Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
     );
     ^
+//= Empty function declaration and call
 Syntax error: Unexpected character 'e' at line 1, column 1.
     empty-fn: ();
     ^
 Syntax error: Unexpected character 'e' at line 1, column 1.
-    empty-fn();     // returns empty.
+    empty-fn();
     ^
+//= Function with default param referencing previous param
 Syntax error: Unexpected character 's' at line 1, column 1.
     sum-default: (
     ^
@@ -286,14 +303,15 @@ Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 's' at line 1, column 1.
-    sum-default();            // → 10
+    sum-default();
     ^
 Syntax error: Unexpected character 's' at line 1, column 1.
-    sum-default(2);           // → 4
+    sum-default(2);
     ^
 Syntax error: Unexpected character 's' at line 1, column 1.
-    sum-default(2, 10);       // → 12
+    sum-default(2, 10);
     ^
+//= Trailing commas and extra semi-colon errors
 Syntax error: Unexpected character 't' at line 1, column 1.
     trailing-comma: (
     ^
@@ -301,6 +319,7 @@ Syntax error: Unexpected token ')' at line 1, column 1.
 Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
     );
     ^
+//= Table with a list of functions as a property
 Syntax error: Unexpected token ':' at line 2, column 15.
 Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
         $ops: [($x: ; $x + 1;), ($x: ; $x * 2;)]
@@ -311,8 +330,9 @@ Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
     ^
 Syntax error: Unexpected token '(' at line 1, column 12.
 Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $calc.ops.2(4);           // → 8
+    $calc.ops.2(4);
                ^
+//= Table function and interpolation with self behavior
 Syntax error: Unexpected character 'p' at line 6, column 9.
             param $direction: "left";
             ^
@@ -321,23 +341,25 @@ Syntax error: Unexpected character 'r' at line 1, column 1.
     ^
 Syntax error: Unexpected token '(' at line 1, column 14.
 Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $doggie.speak();              // prints "Hi, my name is ralph."
+    $doggie.speak();
                  ^
 Syntax error: Unexpected token '(' at line 1, column 18.
 Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $doggie.roll-over("right");   // prints "I'm now spinning right."
+    $doggie.roll-over("right");
                      ^
+//= Functions as members of lists
 20
 Syntax error: Unexpected token ':' at line 1, column 24.
 Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
     $weird-list: [1, 2, ($x: 9; $x + 1;), ($weird-member + 1)];
                            ^
 error: undefined: $weird-list
-    $weird-list.3; // prints 10
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $weird-list.3;
+    ^^^^^^^^^^^^^^
 error: undefined: $weird-list
-    $weird-list.4; // prints 21
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $weird-list.4;
+    ^^^^^^^^^^^^^^
+//= Function with numeric param name
 Syntax error: Unexpected character 'n' at line 1, column 1.
     number-name-param: (
     ^
@@ -349,8 +371,9 @@ Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 'n' at line 1, column 1.
-    number-name-param();    // prints 4
+    number-name-param();
     ^
+//= Early exit
 Syntax error: Unexpected character 'e' at line 1, column 1.
     early-exit: (
     ^
@@ -363,8 +386,9 @@ Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 'e' at line 1, column 1.
-    early-exit(); // should return 99
+    early-exit();
     ^
+//= Function param name shadows outer variable
 42
 Syntax error: Unexpected character 's' at line 1, column 1.
     shadow: (
@@ -377,5 +401,5 @@ Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 's' at line 1, column 1.
-    shadow();    // prints 1 not 42
+    shadow();
     ^

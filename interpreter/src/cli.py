@@ -51,6 +51,10 @@ def read_statement(stdin, interactive):
         # Skip blank/comment lines unless already in a statement
         if not line.strip() and not buffer:
             continue
+        if line.strip().startswith('//=') and not buffer:
+            # Pass test title through as a statement so it prints
+            buffer.append(line)
+            break
         if line.strip().startswith('//') and not buffer:
             continue
 
@@ -75,7 +79,19 @@ def run_enzo_file(filename):
         if stmt is None:
             break
         line = stmt.strip()
-        if not line or line.startswith("//"):
+        if not line:
+            continue
+        # --- PRINT //= TITLES TO STDOUT, EVEN IN FILE MODE ---
+        if line.startswith("//="):
+            print(line)
+            continue
+        # Skip full-line comments (but not //= titles)
+        if line.startswith("//"):
+            continue
+        # Strip inline comments (for code lines only)
+        if "//" in line:
+            line = line.split("//", 1)[0].rstrip()
+        if not line:
             continue
         try:
             ast = parse(line)
@@ -159,7 +175,17 @@ def main():
         line = stmt.strip()
         if not line:
             continue
+        # Print test titles (//= ...) to stdout as part of output
+        if line.startswith("//="):
+            print(line)
+            continue
+        # Skip full-line comments (but not //= titles)
         if line.startswith("//"):
+            continue
+        # Strip inline comments (for code lines only)
+        if "//" in line:
+            line = line.split("//", 1)[0].rstrip()
+        if not line:
             continue
 
         try:
