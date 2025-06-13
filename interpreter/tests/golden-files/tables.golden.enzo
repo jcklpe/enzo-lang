@@ -1,58 +1,70 @@
+//= TABLE STUFF ───────────────────────────────────────────────────────────
 { $name: "Alice", $age: 30 }
 { $name: "Alice", $age: 30 }
 Alice
 30
+//= REBINDING TABLE PROPERTIES ────────────────────────────────────────────
 Bob
 Bob
 { $name: "Bob", $age: 30 }
+//= ANOTHER TABLE + PROPERTY REBIND ───────────────────────────────────────
 { $foo: 42, $bar: "hello" }
 hello
 100
 { $foo: 100, $bar: "hello" }
+//= EMPTY TABLE LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
 { }
 { }
 error: '$someKey'
-    $emptyTable.someKey;    // error: 'someKey' does not exist on this table
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $emptyTable.someKey;
+    ^^^^^^^^^^^^^^^^^^^^
+//= NESTED TABLE + MIXED INDEX/ATTR ───────────────────────────────────────
 { $inner: { $val: 42, $arr: [ 10, 20 ] } }
 42
 20
+//= REBINDING NESTED TABLES ───────────────────────────────────────────────
 100
 100
+//= COMPLEX TABLE + LIST INDEX/PROPERTY ACCESS ─────────────────────────
 { $tbl: { $a: [ 100, 200 ], $b: "x" }, $lst: [ { $foo: 1 }, { $foo: 2 } ] }
 100
 2
+//= TABLE OF LISTS + INDEX OF LIST ─────────────────────────────────────
 { $first: [ 1, 2 ], $second: [ 3, 4 ] }
 2
 [ 3, 4 ]
+//= MORE TABLE WEIRDNESS
 { $x: { $y: { $z: 7 } } }
 7
+//= Table property errors
 { $foo: 1 }
 error: '$bar'
-    $table9.bar;         // error: '$bar' (not found)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $table9.bar;
+    ^^^^^^^^^^^^
 error: index applies to lists
-    $table9.1;           // error: index applies to lists
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $table9.1;
+    ^^^^^^^^^^
 error: property access applies to tables
-    $table9.foo.bar;     // error: '$bar' (not found after foo)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $table9.foo.bar;
+    ^^^^^^^^^^^^^^^^
 999
 error: property rebind applies to tables
-    $prim.someKey <: 5;       // error: can't rebind to non-existent property
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $prim.someKey <: 5;
+    ^^^^^^^^^^^^^^^^^^^
 { $a: 1 }
 error: index applies to lists
-    $myTbl.1;                 // error: index applies to lists
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $myTbl.1;
+    ^^^^^^^^^
 { $x: 1 }
 99
 { $x: 99 }
 error: "'$y' not found for rebinding"
-    $tbl.y <: 42;           // error: '$y' not found for rebinding
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    $tbl.y <: 42;
+    ^^^^^^^^^^^^^
+//= Valid trailing commas (should succeed)
 { $foo: 1, $bar: 2 }
 { $foo: 1, $bar: 2 }
+//= invalid trailing commas (should error)
 double comma (remove one comma).
     $badTable1: { $foo: 1,, $bar: 2 };
                           ^

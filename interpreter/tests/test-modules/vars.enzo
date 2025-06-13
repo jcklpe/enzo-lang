@@ -1,25 +1,25 @@
 // INVOKING AN UNDEFINED VARIABLE
 $undefinedVar;      // error: undefined: $undefinedVar
 
-// ── EMPTY BIND ────────────────────────────────────────────────────────────
+//= EMPTY BIND ────────────────────────────────────────────────────────────
 $x: ;
 
-// ── REDECLARING A VARIABLE (USING “:”) ERRORS ────────────────────────────
+//= REDECLARING A VARIABLE (USING “:”) ERRORS ────────────────────────────
 $x: 10;             // error $x has already been declared
 $x: 1;              // error: $a already defined
 
-// ── REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
+//= REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
 $x <: 100;
 $x;                 // prints 100
 $x <: "hello";      // error: cannot assign Text to Number
 
-// ── FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
+//= FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
 $z: 3 + 4;          // z = 7
 $z <: 8;            // rebind OK, z now 8
 $z <: "oops";       // error: cannot assign Text to Number
 $z : "oops";       // error: $z already defined
 
-// ── MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
+//= MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
 $Var123: 10;
 $Var123;                  // prints “10”
 $var-xyz: 20;
@@ -28,20 +28,20 @@ $Var123 + $var-xyz;       // prints “30”
 $var_xyz: 30;
 $var_xyz;                 // prints “30”
 
-// ── REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
+//= REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
 55 :> $newImplicit;
 $newImplicit;               // prints “55”
 $newImplicit <: "oops";     // error: cannot assign Text to Number
 $dougie <: "cool dude";     // should not error.
 $dougie;                    // prints "cool dude".
 
-// ── MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
+//= MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
 $u: 1; $v: 2; $u + $v;    // prints “3”
 $apples:1;$bananas:2; $apples+$bananas;       // prints 3
 $apricot :  1 ; $boranges: 2;        // spacing should not break anything
 $boranges;
 
-// Var naming
+//= Var naming
 $123abc: 5;      // prints 5
 $_: 9;           // prints 9
 $-foo: 3;        // prints 3

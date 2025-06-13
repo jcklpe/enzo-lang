@@ -1,8 +1,8 @@
-// Redundant semicolons and whitespace
+//= Redundant semicolons and whitespace
 ;;;;;;    // error: too many semicolons
 ;   ;     // error: too many semicolons
 
-// 10. Invalid parenthesis/brackets/braces
+//= Invalid parenthesis/brackets/braces
 (1 + 2;                 // error: unmatched parenthesis
 [1, 2, 3;               // error: unmatched bracket
 { $a: 1, $b: 2;         // error: unmatched brace
