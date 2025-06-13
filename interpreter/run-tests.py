@@ -4,39 +4,64 @@ import difflib
 import os
 import sys
 
-# 1) Path to your .enzo test suite, now inside the tests/ folder
-TEST_FILE   = os.path.join("tests", "combined-tests.enzo")
+# Adjust path if run from project root, so 'src' is on the import path
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SRC_PATH = os.path.join(SCRIPT_DIR, "src")
+if SRC_PATH not in sys.path:
+    sys.path.insert(0, SRC_PATH)
 
-# 2) Path to the golden file you want to compare against
-GOLDEN_FILE = os.path.join("tests", "combined-tests.golden.enzo")
+try:
+    from color_helpers import color_error, color_info, color_diff
+except ImportError:
+    # Fallback: import from src.color_helpers if running from inside interpreter/
+    from src.color_helpers import color_error, color_info, color_diff
+
+def usage():
+    print(color_error(f"Usage: {sys.argv[0]} [module_name]"))
+    print(color_error("  If no module_name is given, runs combined-tests."))
+    print(color_error("  Else, runs tests/test-modules/<module_name>.enzo against tests/golden-files/<module_name>.golden.enzo"))
+    sys.exit(1)
+
+def get_test_and_golden(module=None):
+    if module is None:
+        test_file   = os.path.join("tests", "combined-tests.enzo")
+        golden_file = os.path.join("tests", "combined-tests.golden.enzo")
+    else:
+        test_file   = os.path.join("tests", "test-modules", f"{module}.enzo")
+        golden_file = os.path.join("tests", "golden-files", f"{module}.golden.enzo")
+    return test_file, golden_file
 
 def main():
-    if not os.path.exists(TEST_FILE):
-        print(f"❗ Test file not found: {TEST_FILE}")
-        sys.exit(1)
+    # Support help flags
+    if len(sys.argv) > 1 and sys.argv[1] in {"-h", "--help"}:
+        usage()
 
-    # Run your interpreter via Poetry, feeding it the TEST_FILE
+    module = sys.argv[1] if len(sys.argv) > 1 else None
+    test_file, golden_file = get_test_and_golden(module)
+
+    if not os.path.exists(test_file):
+        print(color_error(f"❗ Test file not found: {test_file}"))
+        usage()
+    if not os.path.exists(golden_file):
+        print(color_error(f"❗ Golden file not found: {golden_file}"))
+        usage()
+
+    # Run the interpreter
     proc = subprocess.run(
-        ["poetry", "run", "enzo", TEST_FILE],
+        ["poetry", "run", "enzo", test_file],
         capture_output=True,
         text=True
     )
 
     actual = proc.stdout.rstrip("\n")
-
-    if not os.path.exists(GOLDEN_FILE):
-        print(f"❗ Golden file not found: {GOLDEN_FILE}")
-        sys.exit(1)
-
-    with open(GOLDEN_FILE) as f:
+    with open(golden_file) as f:
         expected = f.read().rstrip("\n")
 
     if actual == expected:
-        print(f"✅ {TEST_FILE} matches golden file.")
+        print(color_info(f"✅ {test_file} matches golden file."))
         sys.exit(0)
     else:
-        print(f"❌ {TEST_FILE} does NOT match golden file.")
-        print()
+        print(color_error(f"❌ {test_file} does NOT match golden file.\n"))
         for line in difflib.unified_diff(
             expected.splitlines(),
             actual.splitlines(),
@@ -44,8 +69,9 @@ def main():
             tofile="actual",
             lineterm=""
         ):
-            print(line)
-        sys.exit(1)
+            if line.startswith('@@'):
+                print()  # blank line before each new diff hunk
+            print(color_diff(line))
 
 if __name__ == "__main__":
     main()
