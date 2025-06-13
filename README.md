@@ -662,7 +662,7 @@ say($transformed-list);
 ```
 
 ### Dataflow Operators
-#### `then` pipeline operator
+
 Enzo provides a pipeline operator,`then`, to thread a value through a sequence of standalone transformations without nesting or method chaining.
 
 By default it passes the output of the last function to the next function as it's first argument.
@@ -721,7 +721,7 @@ $thirdUppercaseColor:
 - No method chaining. Functions remain standalone and there's no overloading of dot notation for table property access and piping stuff together.
 - Clear data-flow. You always read top-to-bottom, left-to-right.
 
-# Misc implementation details
+# Misc implemention details
 
 1. Enzo is expression oriented rather than statement oriented.
 2. Enzo is static (lexical) scoped.
