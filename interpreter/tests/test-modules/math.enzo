@@ -1,19 +1,19 @@
-// ── BINDING MATH OPERATIONS ────────────────────────────────────────────────
+//= BINDING MATH OPERATIONS ────────────────────────────────────────────────
 $math1: 100;            // prints 100
 $math2: 3 + 2;          // prints
 $math1 + $math2;            // prints 105
 
-// ── ARITHMETIC PRECEDENCE CHECK ─────────────────────────────────────────────
+//= ARITHMETIC PRECEDENCE CHECK ─────────────────────────────────────────────
 $precedence-check: 2 + 3 * 4;      // prints 14
 $precedence-check;                 // prints 14
 
 $precedence-check2: (2 + 3) * 4;    // prints 20
 $precedence-check2;                 // prints 20
 
-// ── PARENTHESIZED EXPRESSIONS AS STAND‐ALONE ─────────────────────────────
+//= PARENTHESIZED EXPRESSIONS AS STAND‐ALONE ─────────────────────────────
 (10 + 5);                 // prints “15”
 
-// ── LARGE NUMBERS + NEGATIVE NUMBERS ────────────────────────────────────
+//= LARGE NUMBERS + NEGATIVE NUMBERS ────────────────────────────────────
 $big: 1234567890;         // prints “1234567890”
 $big;                     // prints “1234567890”
 $neg: -5;                 // prints “-5”

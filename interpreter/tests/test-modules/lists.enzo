@@ -1,34 +1,34 @@
-// ── LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
+//= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
 $emptyListTest: [];
 $emptyListTest;    // prints “[ ]”
 $emptyListTest.1;  // error: list index out of range
 
-// ── BIND EMPTY AND THEN FILL WITH LIST ────────────────────────────────────
+//= BIND EMPTY AND THEN FILL WITH LIST ────────────────────────────────────
 $empty-list: ;
 $empty-list: 50;    //error: $empty-list already defined
 $empty-list<: ["now not empty"];
 $empty-list;       // prints “[ "now not empty" ]”
 
-// ── DECLARE LIST AND ACCESS ITEMS ────────────────────────────────────────
+//= DECLARE LIST AND ACCESS ITEMS ────────────────────────────────────────
 $colors: ["red", "green", "blue", "yellow"];
 $colors.3;         // prints “blue”
 $i: 2;
 $colors.$i;        // prints “green”
 
-// ── NESTED LISTS WITH INDEXING ────────────────────────────────────────────
+//= NESTED LISTS WITH INDEXING ────────────────────────────────────────────
 $nestedList: [[1, 2], [3, 4]];
 $nestedList.2.1;   // prints “3”
 
-// ── MIXED LIST‐INSIDE‐TABLE ● INDEX VS ATTR ──────────────────────────────
+//= MIXED LIST‐INSIDE‐TABLE ● INDEX VS ATTR ──────────────────────────────
 $mix: { $lst: ["a", "b", "c"] };
 $mix.lst.2;                // prints “b”
 
-// ── LIST OF TABLES + INDEX OF TABLE ────────────────────────────────────
+//= LIST OF TABLES + INDEX OF TABLE ────────────────────────────────────
 $lot: [ { $x: 5 }, { $x: 7 } ];
 $lot;                 // prints “[ { $x: 5 }, { $x: 7 } ]”
 $lot.2.x;             // prints “7”
 
-// Out-of-bounds and weird list indices
+//= Out-of-bounds and weird list indices
 $list: [1,2,3];
 $list.0;            // error: list index out of range
 $list.4;            // error: list index out of range
@@ -36,13 +36,13 @@ $list.-1;           // error: list index out of range
 $list."foo";        // error: list index out of range
 $list.1.1;          // error: list index out of range
 
-// List/table mutation — mutation should be supported!
+//= List/table mutation
 $mutable: [1,2];
 $mutable.1 <: 5;        // updates first element to 5
 $mutable;               // prints [ 5, 2 ]
 $mutable.3 <: 9;        // error: list index out of range
 
-// Trailing commas
+//= Trailing commas
 // These are fine
 $goodList: [1, 2, 3, ];
 $goodList;
@@ -51,5 +51,6 @@ $badList1: [1,,2];                        // error: remove one comma
 $badList2: [,1,2];                        // error: leading comma
 $badList3: [,];                           // error: just comma
 
+//= Various type errors
 $notalist: "oops";
 $notalist.1;                              // index applies to lists

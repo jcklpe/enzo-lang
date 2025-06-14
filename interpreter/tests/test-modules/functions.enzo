@@ -1,24 +1,27 @@
 // ── FUNCTIONS  -------------------
-//nameless functions one liner with implicit return
+//= Nameless functions one liner with implicit return
 ($x: 3, $y: 2; $x + $y);   // prints 5
 
-// nameless function multi-line
+//= Nameless function: multi-line with explicit return
 (
 $x: 100;
 $y: 100;
 return($x + $y);
 ); // prints 200
 
+//= Nameless function: multi-line with no explicit return (should error)
 ($x: 1;
  $y: 2;
  $x + $y;
 );         // error: no explicit return in multi-line function
 
+//= Nameless function: multi-line, explicit return, different values
 ($x: 101;
 $y: 100;
 return($x + $y);); // prints 201
 
-2-times-2: (2 * 2); // single line named functions can use implicit returns
+//= Single line, implicit return
+2-times-2: (2 * 2);
 2-times-2();       // prints 4
 
 // anon function and pipes (pipes not yet implemented so they have been commented out)
@@ -40,6 +43,7 @@ return($x + $y);); // prints 201
 // Use with different pipeline stages (future-proof for more chaining)
 //(2) then ($x: 10; $x + 10) then ($x: 0; $x * 3); // → 36
 
+//= Multi-line with params and default values
 adder: (
 param $x: 6; // these are default values
 param $y: 6;
@@ -57,6 +61,7 @@ $adder($nada, 1000)            // prints 1006
 $adder("", 500);               // error: arg is type number not text
 $referenced-function(4, 5);    // prints 9
 
+//= Named function with local variable
 adder-plus-1(
     param $x: 6;
     param $y: 4;
@@ -67,6 +72,7 @@ adder-plus-1(
 adder-plus-1();    // prints 11
 adder-plus-1(2, 2);   // prints 5
 
+//= Subtraction with empty default
 $subtractor: (
     param $x: ;
     param $y: ;
@@ -79,11 +85,12 @@ subtractor();        // prints 0 I think? empty values get coerced to 0?
 
 $subtractor(4);   //
 
-// List of functions
+//= List of functions called by index
 $funs: [($x: ; $x + 1;), ($x: ; $x * 2;)];
 $funs.1(10);              // → 11
 $funs.2(10);              // → 20
 
+//= Named function, then function reference and direct invocation
 double: ($x: 2; $x * 2);
 $ref: $double;       // should NOT invoke — should just bind the function object
 $ref(5);             // → 10
@@ -94,6 +101,7 @@ double(3);           // → 6
 // Function reference must use $, no parens:
 double;              // error: function reference must use $ sigil
 
+//= Higher-order function: passing function as param and using default param
 apply: (
     param $function-arg:;
     param $value: 7;
@@ -105,7 +113,7 @@ apply($double);      // → 14 (default $val: 7)
 
 apply(double, 4);    // error: must pass function reference with $ sigil
 
-// table function
+//= Table with function member and self mutation
 $counter: {
     $count: 10,
     inc: (
@@ -118,7 +126,7 @@ $counter.inc();      // → 12
 $counter.count;      // → 12
 $counter.inc;        // function doesn't invoke, just returns the counter.inc function as a reference.
 
-// table function as a variable
+//= Table of functions: referencing as variables
 $table-reference: {
     $add-one: (
         param $x: 10;
@@ -129,7 +137,7 @@ $referencing-function: $table-reference.add-one;      // should be a function re
 $referencing-function();              // → 11
 $referencing-function(5);             // → 6
 
-// nested function with param name shadowing
+//= Nested function: inner function shadows param
 outer: (
     param $x: 10;
     inner: (
@@ -141,18 +149,18 @@ outer: (
 outer();             // → 17
 outer(20);           // → 27
 
-// duplicate param declaration error
+//= Duplicate param name error in function declaration
 duplicate-params: (
     param $x: 1;
     param $x: 2; // error: duplicate parameter name '$x' in function definition
     return($x);
 );
 
-// empty function declaration
+//= Empty function declaration and call
 empty-fn: ();
 empty-fn();     // returns empty.
 
-// function default param reference previous param
+//= Function with default param referencing previous param
 sum-default: (
     param $a: 5;
     param $b: $a;
@@ -162,20 +170,20 @@ sum-default();            // → 10
 sum-default(2);           // → 4
 sum-default(2, 10);       // → 12
 
-// trailing comma in params multiline function declaration
+//= Trailing commas and extra semi-colon errors
 trailing-comma: (
     param $x: 1, // error: trailing comma
     param $y: 2  // error: missing semicolon
     return($x + $y);
 );
 
-// Table with list of functions
+//= Table with a list of functions as a property
 $calc: {
     $ops: [($x: ; $x + 1;), ($x: ; $x * 2;)]
 };
 $calc.ops.2(4);           // → 8
 
-// Table function and interpolation with self behavior
+//= Table function and interpolation with self behavior
 $doggie: {
     $name: "ralph",
     $age: 50,
@@ -188,20 +196,20 @@ $doggie: {
 $doggie.speak();              // prints "Hi, my name is ralph."
 $doggie.roll-over("right");   // prints "I'm now spinning right."
 
-// functions as members of lists
+//= Functions as members of lists
 $weird-member: 20;
 $weird-list: [1, 2, ($x: 9; $x + 1;), ($weird-member + 1)];
 $weird-list.3; // prints 10
 $weird-list.4; // prints 21
 
-// number name as a param name
+//= Function with numeric param name
 number-name-param: (
     param $123: 4;
     return($123);
 );
 number-name-param();    // prints 4
 
-// early exit
+//= Early exit
 early-exit: (
     $a: 99;
     return($a);
@@ -209,7 +217,7 @@ early-exit: (
 );
 early-exit(); // should return 99
 
-// Function param name shadowing
+//= Function param name shadows outer variable
 $whatever: 42;
 shadow: (
     param $whatever: 1;
