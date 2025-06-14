@@ -1,8 +1,5 @@
 //= Nameless functions one liner with implicit return
-Syntax error: Unexpected token ':' at line 1, column 4.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    ($x: 3, $y: 2; $x + $y);
-       ^
+5
 //= Nameless function: multi-line with explicit return
 Syntax error: Unexpected token ':' at line 2, column 3.
 Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
