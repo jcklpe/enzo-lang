@@ -44,7 +44,19 @@ return_stmt: "return" "(" expr ")" ";"
         | NAME                    -> var
 
 ##############################################################################
-# BLOCK EXPRESSION: every parenthesis is a new scope/block
+# BLOCK EXPRESSION:
+#   - Every parenthesis is a new scope/block.
+#   - Params and statements can be separated by "," or ";" (or mixed).
+#   - Both:
+#         ($x: 1, $y: 2; $x + $y);
+#         ($x: 1; $y: 2; $x + $y);
+#     ...are valid and treated identically.
+#   - Multi-line forms are also supported:
+#         (
+#            $x: 1,
+#            $y: 2;
+#            return($x + $y);
+#         );
 ##############################################################################
 
 # All parens become block_expr, with any order/combination of bindings and stmts.
