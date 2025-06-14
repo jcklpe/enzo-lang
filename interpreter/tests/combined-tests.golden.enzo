@@ -1,26 +1,25 @@
 //= Nameless functions one liner with implicit return
-Syntax error: Unexpected token ':' at line 1, column 4.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+error: not enough values to unpack (expected 3, got 2)
     ($x: 3, $y: 2; $x + $y);
-       ^
+    ^^^^^^^^^^^^^^^^^^^^^^^^
 //= Nameless function: multi-line with explicit return
-Syntax error: Unexpected token ':' at line 2, column 3.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+Syntax error: Unexpected token '' at line 2, column 8.
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, RPAR, SIGNED_NUMBER, STRING
     $x: 100;
-      ^
+           ^
 100
-Syntax error: Unexpected character 'r' at line 1, column 1.
+error: undefined: $x
     return($x + $y);
-    ^
+    ^^^^^^^^^^^^^^^^
 Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     );
     ^
 //= Nameless function: multi-line with no explicit return (should error)
-Syntax error: Unexpected token ':' at line 1, column 4.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+Syntax error: Unexpected token '' at line 1, column 7.
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, RPAR, SIGNED_NUMBER, STRING
     ($x: 1;
-       ^
+          ^
 error: $y already defined
     $y: 2;
     ^^^^^^
@@ -28,20 +27,21 @@ error: undefined: $x
     $x + $y;
     ^^^^^^^^
 Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     );
     ^
 //= Nameless function: multi-line, explicit return, different values
-Syntax error: Unexpected token ':' at line 1, column 4.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+Syntax error: Unexpected token '' at line 1, column 9.
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, RPAR, SIGNED_NUMBER, STRING
     ($x: 101;
-       ^
+            ^
 error: $y already defined
     $y: 100;
     ^^^^^^^^
-Syntax error: Unexpected character 'r' at line 1, column 1.
+Syntax error: Unexpected token ')' at line 1, column 17.
+Expected one of: $END, SEMICOLON
     return($x + $y););
-    ^
+                    ^
 //= Single line, implicit return
 Syntax error: Unexpected character 't' at line 1, column 3.
     2-times-2: (2 * 2);
@@ -49,61 +49,71 @@ Syntax error: Unexpected character 't' at line 1, column 3.
 Syntax error: Unexpected character 't' at line 1, column 3.
     2-times-2();
       ^
+error: not enough values to unpack (expected 3, got 2)
+    ($x: 1, $y: 5; $x + $y);
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+6
 //= Multi-line with params and default values
 Syntax error: Unexpected character 'a' at line 1, column 1.
     adder: (
     ^
-Syntax error: Unexpected character 'p' at line 1, column 1.
+Syntax error: Unexpected token 'param' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     param $y: 6;
     ^
-Syntax error: Unexpected character 'r' at line 1, column 1.
+error: undefined: $x
     return($y + $x);
-    ^
+    ^^^^^^^^^^^^^^^^
 Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 'a' at line 1, column 1.
     adder();
     ^
-Syntax error: Unexpected token '(' at line 1, column 7.
-Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
     $adder();
-          ^
+    ^^^^^^^^^
 error: undefined: $adder
     $referenced-function: $adder;
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Syntax error: Unexpected token '(' at line 1, column 21.
-Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
     $referenced-function();
-                        ^
+    ^^^^^^^^^^^^^^^^^^^^^^^
 Syntax error: Unexpected character 'a' at line 1, column 1.
     adder(4, 5);
     ^
 Syntax error: Unexpected character 'a' at line 1, column 1.
     adder(4, 5, 6);
     ^
-Syntax error: Unexpected token '(' at line 1, column 7.
-Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
     $adder($nada, 1000)
-          ^
-Syntax error: Unexpected token '(' at line 1, column 21.
-Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    ^^^^^^^^^^^^^^^^^^^
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
     $referenced-function(4, 5);
-                        ^
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //= Named function with local variable
 Syntax error: Unexpected character 'a' at line 1, column 1.
     adder-plus-1(
     ^
-Syntax error: Unexpected character 'p' at line 1, column 1.
+Syntax error: Unexpected token 'param' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     param $y: 4;
     ^
 1
-Syntax error: Unexpected character 'r' at line 1, column 1.
+error: undefined: $x
     return($x + $y + $z);
-    ^
+    ^^^^^^^^^^^^^^^^^^^^^
 Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 'a' at line 1, column 1.
@@ -113,44 +123,48 @@ Syntax error: Unexpected character 'a' at line 1, column 1.
     adder-plus-1(2, 2);
     ^
 //= Subtraction with empty default
-Syntax error: Unexpected character 'p' at line 2, column 5.
+Syntax error: Unexpected token ';' at line 2, column 15.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
         param $x: ;
-        ^
-Syntax error: Unexpected character 'p' at line 1, column 1.
+                  ^
+Syntax error: Unexpected token 'param' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     param $y: ;
     ^
-Syntax error: Unexpected character 'r' at line 1, column 1.
+error: undefined: $x
     return($x - $y);
-    ^
+    ^^^^^^^^^^^^^^^^
 Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 's' at line 1, column 1.
     subtractor(3, 2);
     ^
-Syntax error: Unexpected token '(' at line 1, column 12.
-Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
     $subtractor(3, 2);
-               ^
+    ^^^^^^^^^^^^^^^^^^
 Syntax error: Unexpected character 's' at line 1, column 1.
     subtractor();
     ^
-Syntax error: Unexpected token '(' at line 1, column 12.
-Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
     $subtractor(4);
-               ^
+    ^^^^^^^^^^^^^^^
 //= List of functions called by index
-Syntax error: Unexpected token ':' at line 1, column 12.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+Syntax error: Unexpected token ';' at line 1, column 14.
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, RPAR, SIGNED_NUMBER, STRING
     $funs: [($x: ; $x + 1;), ($x: ; $x * 2;)];
-               ^
+                 ^
 Syntax error: Unexpected token '(' at line 1, column 8.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+Expected one of: $END, SEMICOLON
     $funs.1(10);
            ^
 Syntax error: Unexpected token '(' at line 1, column 8.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+Expected one of: $END, SEMICOLON
     $funs.2(10);
            ^
 //= Named function, then function reference and direct invocation
@@ -160,10 +174,11 @@ Syntax error: Unexpected character 'd' at line 1, column 1.
 error: undefined: $double
     $ref: $double;
     ^^^^^^^^^^^^^^
-Syntax error: Unexpected token '(' at line 1, column 5.
-Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
     $ref(5);
-        ^
+    ^^^^^^^^
 Syntax error: Unexpected character 'd' at line 1, column 1.
     double(3);
     ^
@@ -174,14 +189,17 @@ Syntax error: Unexpected character 'd' at line 1, column 1.
 Syntax error: Unexpected character 'a' at line 1, column 1.
     apply: (
     ^
-Syntax error: Unexpected character 'p' at line 1, column 1.
+Syntax error: Unexpected token 'param' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     param $value: 7;
     ^
-Syntax error: Unexpected character 'r' at line 1, column 1.
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
     return($function-arg($value));
-    ^
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 'a' at line 1, column 1.
@@ -197,19 +215,19 @@ Syntax error: Unexpected character 'a' at line 1, column 1.
 Syntax error: Unexpected character 'i' at line 3, column 5.
         inc: (
         ^
-Syntax error: Unexpected character 'r' at line 1, column 1.
+error: undefined: $self
     return($self.count);
-    ^
+    ^^^^^^^^^^^^^^^^^^^^
 Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     )
     ^
 Syntax error: Unexpected token '(' at line 1, column 13.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+Expected one of: $END, SEMICOLON
     $counter.inc();
                 ^
 Syntax error: Unexpected token '(' at line 1, column 13.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+Expected one of: $END, SEMICOLON
     $counter.inc();
                 ^
 error: undefined: $counter
@@ -219,27 +237,30 @@ error: undefined: $counter
     $counter.inc;
     ^^^^^^^^^^^^^
 //= Table of functions: referencing as variables
-Syntax error: Unexpected character 'p' at line 3, column 9.
+Syntax error: Unexpected token '' at line 3, column 21.
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, RPAR, SIGNED_NUMBER, STRING
             param $x: 10;
-            ^
-Syntax error: Unexpected character 'r' at line 1, column 1.
+                        ^
+error: undefined: $x
     return($x + 1);
-    ^
+    ^^^^^^^^^^^^^^^
 Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     )
     ^
 error: undefined: $table-reference
     $referencing-function: $table-reference.add-one;
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Syntax error: Unexpected token '(' at line 1, column 22.
-Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
     $referencing-function();
-                         ^
-Syntax error: Unexpected token '(' at line 1, column 22.
-Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
     $referencing-function(5);
-                         ^
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
 //= Nested function: inner function shadows param
 Syntax error: Unexpected character 'o' at line 1, column 1.
     outer: (
@@ -247,18 +268,20 @@ Syntax error: Unexpected character 'o' at line 1, column 1.
 Syntax error: Unexpected character 'i' at line 1, column 1.
     inner: (
     ^
-Syntax error: Unexpected character 'r' at line 1, column 1.
+error: undefined: $x
     return($x + $y);
-    ^
+    ^^^^^^^^^^^^^^^^
 Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     );
     ^
-Syntax error: Unexpected character 'r' at line 1, column 1.
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
     return($inner(7));
-    ^
+    ^^^^^^^^^^^^^^^^^^
 Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 'o' at line 1, column 1.
@@ -271,14 +294,15 @@ Syntax error: Unexpected character 'o' at line 1, column 1.
 Syntax error: Unexpected character 'd' at line 1, column 1.
     duplicate-params: (
     ^
-Syntax error: Unexpected character 'p' at line 1, column 1.
+Syntax error: Unexpected token 'param' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     param $x: 2;
     ^
-Syntax error: Unexpected character 'r' at line 1, column 1.
+error: undefined: $x
     return($x);
-    ^
+    ^^^^^^^^^^^
 Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     );
     ^
 //= Empty function declaration and call
@@ -292,14 +316,15 @@ Syntax error: Unexpected character 'e' at line 1, column 1.
 Syntax error: Unexpected character 's' at line 1, column 1.
     sum-default: (
     ^
-Syntax error: Unexpected character 'p' at line 1, column 1.
+Syntax error: Unexpected token 'param' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     param $b: $a;
     ^
-Syntax error: Unexpected character 'r' at line 1, column 1.
+error: undefined: $a
     return($a + $b);
-    ^
+    ^^^^^^^^^^^^^^^^
 Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 's' at line 1, column 1.
@@ -316,43 +341,45 @@ Syntax error: Unexpected character 't' at line 1, column 1.
     trailing-comma: (
     ^
 Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     );
     ^
 //= Table with a list of functions as a property
-Syntax error: Unexpected token ':' at line 2, column 15.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+Syntax error: Unexpected token ';' at line 2, column 17.
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, RPAR, SIGNED_NUMBER, STRING
         $ops: [($x: ; $x + 1;), ($x: ; $x * 2;)]
-                  ^
+                    ^
 Syntax error: Unexpected token '}' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     };
     ^
 Syntax error: Unexpected token '(' at line 1, column 12.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+Expected one of: $END, SEMICOLON
     $calc.ops.2(4);
                ^
 //= Table function and interpolation with self behavior
-Syntax error: Unexpected character 'p' at line 6, column 9.
+Syntax error: Unexpected token '' at line 6, column 33.
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, RPAR, SIGNED_NUMBER, STRING
             param $direction: "left";
-            ^
-Syntax error: Unexpected character 'r' at line 1, column 1.
-    return ("I'm now spinning <$direction>."
+                                    ^
+Syntax error: Unexpected token '}' at line 3, column 1.
+Expected one of: SEMICOLON
+    };
     ^
 Syntax error: Unexpected token '(' at line 1, column 14.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+Expected one of: $END, SEMICOLON
     $doggie.speak();
                  ^
 Syntax error: Unexpected token '(' at line 1, column 18.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+Expected one of: $END, SEMICOLON
     $doggie.roll-over("right");
                      ^
 //= Functions as members of lists
 20
-Syntax error: Unexpected token ':' at line 1, column 24.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+Syntax error: Unexpected token ';' at line 1, column 35.
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, RPAR, SIGNED_NUMBER, STRING
     $weird-list: [1, 2, ($x: 9; $x + 1;), ($weird-member + 1)];
-                           ^
+                                      ^
 error: undefined: $weird-list
     $weird-list.3;
     ^^^^^^^^^^^^^^
@@ -363,11 +390,11 @@ error: undefined: $weird-list
 Syntax error: Unexpected character 'n' at line 1, column 1.
     number-name-param: (
     ^
-Syntax error: Unexpected character 'r' at line 1, column 1.
+error: undefined: $123
     return($123);
-    ^
+    ^^^^^^^^^^^^^
 Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 'n' at line 1, column 1.
@@ -377,12 +404,12 @@ Syntax error: Unexpected character 'n' at line 1, column 1.
 Syntax error: Unexpected character 'e' at line 1, column 1.
     early-exit: (
     ^
-Syntax error: Unexpected character 'r' at line 1, column 1.
+error: undefined: $a
     return($a);
-    ^
+    ^^^^^^^^^^^
 1
 Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 'e' at line 1, column 1.
@@ -393,11 +420,11 @@ Syntax error: Unexpected character 'e' at line 1, column 1.
 Syntax error: Unexpected character 's' at line 1, column 1.
     shadow: (
     ^
-Syntax error: Unexpected character 'r' at line 1, column 1.
+error: 42
     return($whatever);
-    ^
+    ^^^^^^^^^^^^^^^^^^
 Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     );
     ^
 Syntax error: Unexpected character 's' at line 1, column 1.
@@ -432,7 +459,7 @@ b
 //= Out-of-bounds and weird list indices
 [ 1, 2, 3 ]
 Syntax error: Unexpected token '.0' at line 1, column 6.
-Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+Expected one of: $END, SEMICOLON
     $list.0;
          ^
 error: list index out of range
@@ -491,25 +518,25 @@ error: index applies to lists
 0
 0
 Syntax error: Unexpected token '-' at line 1, column 9.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SEMICOLON, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, RPAR, SEMICOLON, SIGNED_NUMBER, STRING
     $weird: --5;
             ^
 //= Redundant semicolons and whitespace
 Syntax error: Unexpected token ';' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     ;;;;;;
     ^
 Syntax error: Unexpected token ';' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     ;   ;
     ^
 //= Invalid parenthesis/brackets/braces
 Syntax error: Unexpected token ';' at line 1, column 7.
-Expected one of: RPAR
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, RPAR, SIGNED_NUMBER, STRING, __ANON_0, __ANON_1
     (1 + 2;
           ^
 Syntax error: Unexpected token ';' at line 1, column 9.
-Expected one of: COMMA, RSQB
+Expected one of: COMMA, RPAR, RSQB
     [1, 2, 3;
             ^
 Syntax error: Unexpected token ';' at line 1, column 15.
@@ -688,6 +715,6 @@ cool dude
 9
 3
 Syntax error: Unexpected token ';' at line 1, column 22.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
     $meaning-of-life: 42;;
                          ^

@@ -7,6 +7,19 @@ class InterpolationParseError(Exception):
 
 _env = {}  # single global environment
 
+class EnzoFunction:
+    def __init__(self, params, body, closure_env):
+        self.params = params          # list of (name, default)
+        self.body = body              # list of AST stmts
+        self.closure_env = closure_env.copy()  # captured env for closure
+
+    def __repr__(self):
+        return f"<function ({', '.join(p[0] for p in self.params)}) ...>"
+
+class ReturnSignal(Exception):
+    def __init__(self, value):
+        self.value = value
+
 # ── handle a block of multiple statements ─────────────────────────────
 def eval_ast(node):
     typ, *rest = node
@@ -19,7 +32,7 @@ def eval_ast(node):
             result = eval_ast(stmt_node)
         return result
 
-    # ── literals / lookup ───────────────────────────────────────────────
+    # ── literals / lookup ───────────────────────────────────────────────────────
     if typ == "num":
         return rest[0]
 
@@ -27,9 +40,7 @@ def eval_ast(node):
         return _interp(rest[0])
 
     if typ == "list":
-        # Defensive: always turn rest[0] into a real list of AST nodes
         children = rest[0] if rest else []
-        # If children is [None], treat as []
         if children == [None]:
             children = []
         return [eval_ast(el) for el in children]
@@ -45,6 +56,50 @@ def eval_ast(node):
         if name not in _env:
             raise NameError(f"undefined: {name}")
         return _env[name]
+
+    # ── function literal ────────────────────────────────────────────────
+    if typ == "function":
+        # node = ("function", ("function_body", params, body))
+        _tag, params, body = rest[0]
+        param_pairs = []
+        for p in params:
+            # ("param", name, default)
+            param_pairs.append((p[1], p[2]))
+        # Disallow 0-param single-line anon fns
+        if len(param_pairs) == 0 and isinstance(body, list) and len(body) == 1 and not isinstance(body[0], tuple):
+            raise TypeError("Anonymous functions must declare at least one parameter.")
+        return EnzoFunction(param_pairs, body, _env.copy())
+
+    # ── function call ──────────────────────────────────────────────────
+    if typ == "call":
+        # node = ("call", func_name, [args...])
+        funcname, args = rest
+        func = _env[funcname]
+        if not isinstance(func, EnzoFunction):
+            raise TypeError(f"{funcname} is not a function")
+        if len(args) > len(func.params):
+            raise TypeError("Too many arguments for function call")
+        call_env = func.closure_env.copy()
+        # Evaluate provided arguments
+        for (param_name, default), arg in zip(func.params, args):
+            call_env[param_name] = eval_ast(arg)
+        # Fill in any missing params using their defaults
+        if len(args) < len(func.params):
+            for (param_name, default) in func.params[len(args):]:
+                call_env[param_name] = eval_ast(default)
+        # Run body in this new env
+        try:
+            res = None
+            for stmt in func.body:
+                res = eval_ast(stmt)
+        except ReturnSignal as ret:
+            return ret.value
+        return res
+
+    # ── return statement ───────────────────────────────────────────────
+    if typ == "return":
+        val = eval_ast(rest[0])
+        raise ReturnSignal(val)
 
     # ── arithmetic ───────────────────────────────────────────────────────
     if typ == "add":
