@@ -8,6 +8,8 @@ from src.parse_errors import format_parse_error
 from lark import UnexpectedToken, UnexpectedInput, UnexpectedCharacters
 from src.color_helpers import color_error, color_code
 
+DISABLE_COLOR = not sys.stdout.isatty() or os.environ.get("NO_COLOR") == "1"
+
 def say(val):
     print(val)
 

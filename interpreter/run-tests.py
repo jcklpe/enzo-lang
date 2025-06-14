@@ -130,10 +130,10 @@ def main():
                 if line.startswith('---') or line.startswith('+++'):
                     continue
                 # Highlight Lark parse errors in red
-                if "Syntax error:" in line or "Expected one of:" in line:
-                    print(color_red(line))
-                elif line.startswith('+'):
+                if line.startswith('+'):
                     print(color_actual_line_override(line))
+                elif "Syntax error:" in line or "Expected one of:" in line:
+                    print(color_red(line))
                 elif line.startswith('-'):
                     print(color_diff(line))
                 elif line.startswith('@@'):

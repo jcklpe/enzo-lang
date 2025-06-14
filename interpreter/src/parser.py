@@ -90,7 +90,7 @@ class AST(Transformer):
         parts = v
         if len(parts) == 1 and isinstance(parts[0], list):
             parts = parts[0]
-        print("DEBUG: block_expr parts:", parts)
+        # print("DEBUG: block_expr parts:", parts)
         bindings = []
         stmts = []
         for part in parts:
