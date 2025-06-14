@@ -58,28 +58,6 @@ def eval_ast(node):
             raise NameError(f"undefined: {name}")
         return _env[name]
 
-<<<<<<< HEAD
-    # ── function literal ────────────────────────────────────────────────
-    if typ == "function":
-        # node = ("function", ("function_body", params, body))
-        _tag, params, body = rest[0]
-        param_pairs = []
-        for p in params:
-            # ("param", name, default)
-            param_pairs.append((p[1], p[2]))
-        # Disallow 0-param single-line anon fns
-        # Accepts both ('function_body', ...) and ('function', ('function_body', ...))
-        function_body = rest[0]
-        if function_body[0] == "function":
-            function_body = function_body[1]
-        if function_body[0] != "function_body":
-            raise ValueError(f"Expected function_body in function node, got {function_body}")
-        _, params, body = function_body
-        param_pairs = [(p[1], p[2]) for p in params]
-        if len(param_pairs) == 0 and isinstance(body, list) and len(body) == 1 and not isinstance(body[0], tuple):
-            raise TypeError("Anonymous functions must declare at least one parameter.")
-        return EnzoFunction(param_pairs, body, _env.copy())
-=======
     # ──  block experession ──────────────────────────────────────────────
     if typ == "block_expr":
         bindings, stmts = rest
@@ -101,7 +79,6 @@ def eval_ast(node):
             return result
         finally:
             _env = old_env
->>>>>>> b6b2c99 (got single line nameless functions and grouping paren unified expression grammark working)
 
     # ── function call ──────────────────────────────────────────────────
     if typ == "call":
