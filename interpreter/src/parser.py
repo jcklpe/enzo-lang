@@ -42,7 +42,7 @@ class AST(Transformer):
         return ("list", items)
 
     # ── table literal ───────────────────────────────────────────────────
-    # kvpair: KEY ":" expr
+    # kvpair: NAME ":" expr
     #   key_tok.value is something like "$foo"
     def kvpair(self, v):
         key_tok, val_node = v
@@ -162,7 +162,6 @@ class AST(Transformer):
     # ── statements / assignments ─────────────────────────────────────────────────
     def bind(self, v):
         name_tok, expr_node = v
-        # name_tok could be Token('ASSIGN_NAME', ...) at top-level
         return ("bind", name_tok.value, expr_node)
 
     def bind_empty(self, v):

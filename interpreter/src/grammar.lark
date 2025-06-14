@@ -15,11 +15,11 @@
 return_stmt: "return" "(" expr ")" ";"
 
 # ── assignment forms ─────────────────────────────────────────────────────────
-?assign_stmt: ASSIGN_NAME ":"            -> bind_empty      // e.g. “$x:;” with no right‐hand side
-            | ASSIGN_NAME ":"  expr       -> bind            // normal bind with an expression
-            | ASSIGN_NAME "<:" expr       -> rebind
+?assign_stmt: NAME ":"            -> bind_empty      // e.g. “$x:;” with no right‐hand side
+            | NAME ":"  expr       -> bind            // normal bind with an expression
+            | NAME "<:" expr       -> rebind
             | expr "<:" expr       -> prop_rebind
-            | expr ":>" ASSIGN_NAME       -> rebind_lr
+            | expr ":>" NAME       -> rebind_lr
 
 # ── full expression precedence ────────────────────────────────────────────────
 ?expr: sum
@@ -65,12 +65,10 @@ expr_list: expr ("," expr)* [","]
 # ── table literal ────────────────────────────────────────────────────────────
 table: "{" [kvpair_list] "}"      -> table
 kvpair_list: kvpair ("," kvpair)* [","]
-kvpair: KEY ":" expr
+kvpair: NAME ":" expr
 
 # ── tokens ───────────────────────────────────────────────────────────────────
-ASSIGN_NAME: /\$[a-zA-Z0-9_-]+/
 NAME:    /\$[a-zA-Z0-9_-]+/
-KEY:     /\$[a-zA-Z0-9_-]+/
 
 DOTINT.5:   /\.[1-9][0-9]*/            // “.1”, “.42”  1‐based numeric indexing
 DOTVAR.6:   /\.[$][a-zA-Z0-9_-]+/      // “.$foo”
