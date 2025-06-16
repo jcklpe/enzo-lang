@@ -1,18 +1,7 @@
 //= Nameless functions one liner with implicit return
 5
 //= Nameless function: multi-line with explicit return
-Syntax error: Unexpected token ':' at line 2, column 3.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    $x: 100;
-      ^
-100
-Syntax error: Unexpected character 'r' at line 1, column 1.
-    return($x + $y);
-    ^
-Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
-    );
-    ^
+200
 //= Nameless function: multi-line with no explicit return (should error)
 Syntax error: Unexpected token ':' at line 1, column 4.
 Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
@@ -29,16 +18,7 @@ Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
     );
     ^
 //= Nameless function: multi-line, explicit return, different values
-Syntax error: Unexpected token ':' at line 1, column 4.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
-    ($x: 101;
-       ^
-error: $y already defined
-    $y: 100;
-    ^^^^^^^^
-Syntax error: Unexpected character 'r' at line 1, column 1.
-    return($x + $y););
-    ^
+201
 //= Single line, implicit return
 Syntax error: Unexpected character 't' at line 1, column 3.
     2-times-2: (2 * 2);
