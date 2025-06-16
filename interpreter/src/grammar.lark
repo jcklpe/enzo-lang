@@ -35,8 +35,8 @@ return_stmt: "return" "(" expr ")" ";"
 # ── postfix handles “.INT” (list‐index), “.$foo” (var‐index), or “.foo” (prop‐access)
 ?postfix: primary ( DOTINT | DOTVAR | DOTPROP )*    -> index_chain
 
-?primary: list
-        | table
+?primary: list_literal
+        | table_literal
         | block_expr              -> block_expr
         | call                    -> call
         | SIGNED_NUMBER           -> number
@@ -60,28 +60,38 @@ return_stmt: "return" "(" expr ")" ";"
 ##############################################################################
 
 # All parens become block_expr, with any order/combination of bindings, params, statements (including return), and expressions.
-block_expr: "(" block_body ")"
-block_body: block_item (block_sep block_item)* block_sep?
+block_expr: LPAR _nl* block_body _nl* RPAR
+block_body: (block_item block_sep)* block_item block_sep?
 block_item: block_binding
           | param_binding
           | return_stmt
           | expr
 block_binding: NAME ":" expr
 param_binding: "param" NAME ":" expr
-block_sep: "," | ";"
+block_sep: _nl* ("," | ";") _nl*
+
+LPAR: "("
+RPAR: ")"
 
 # ── function call ────────────────────────────────────────────────
 call: NAME "(" [call_args] ")"
 call_args: expr ("," expr)* [","]
 
 # ── list literal ─────────────────────────────────────────────────────────────
-list: "[" [expr_list] "]"         -> list
-expr_list: expr ("," expr)* [","]
+list_literal: "[" _nl* "]"                          -> list
+            | "[" _nl* expr_list _nl* "]"           -> list
+expr_list: expr (list_sep expr)* [list_sep]
+list_sep: _nl* "," _nl* | _nl+
 
 # ── table literal ────────────────────────────────────────────────────────────
-table: "{" [kvpair_list] "}"      -> table
-kvpair_list: kvpair ("," kvpair)* [","]
+table_literal: "{" _nl* "}"                          -> table
+             | "{" _nl* kvpair_list _nl* "}"         -> table
+kvpair_list: kvpair (kvpair_sep kvpair)* [kvpair_sep]
+kvpair_sep: _nl* "," _nl* | _nl+
 kvpair: NAME ":" expr
+
+# ── Helper for repeated (possibly empty) newlines
+_nl: NEWLINE
 
 # ── tokens ───────────────────────────────────────────────────────────────────
 NAME:    /\$[a-zA-Z0-9_-]+/
@@ -90,6 +100,8 @@ DOTINT.5:   /\.[1-9][0-9]*/            // “.1”, “.42”  1‐based numeric
 DOTVAR.6:   /\.[$][a-zA-Z0-9_-]+/      // “.$foo”
 DOTPROP.7:  /\.[a-zA-Z][a-zA-Z0-9_-]*/ // “.foo”  (property‐access)
 
+NEWLINE: /(\r?\n)+/
+
 %import common.SIGNED_NUMBER
 %import common.ESCAPED_STRING   -> STRING
 %import common.WS_INLINE
@@ -97,4 +109,3 @@ DOTPROP.7:  /\.[a-zA-Z][a-zA-Z0-9_-]*/ // “.foo”  (property‐access)
 # ── ignore spaces/tabs, single‐line “//” comments, and newlines ───────────────
 %ignore WS_INLINE
 # %ignore /\/\/[^\n]*/
-%ignore /[\r\n]+/

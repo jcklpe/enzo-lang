@@ -3,20 +3,12 @@
 //= Nameless function: multi-line with explicit return
 200
 //= Nameless function: multi-line with no explicit return (should error)
-Syntax error: Unexpected token ':' at line 1, column 4.
-Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+error: multi-line anonymous functions require explicit return
     ($x: 1;
-       ^
-error: $y already defined
-    $y: 2;
-    ^^^^^^
-error: undefined: $x
-    $x + $y;
-    ^^^^^^^^
-Syntax error: Unexpected token ')' at line 1, column 1.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
-    );
-    ^
+ $y: 2;
+ $x + $y;
+);
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //= Nameless function: multi-line, explicit return, different values
 201
 //= Single line, implicit return

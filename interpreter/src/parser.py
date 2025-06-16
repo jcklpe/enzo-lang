@@ -4,8 +4,11 @@ from lark import Tree, Lark, Transformer, Token
 # ───────────────────────────
 # Load the grammar (grammar.lark must already be in place)
 # ───────────────────────────
+grammar_path = Path(__file__).with_name("grammar.lark")
+# print("GRAMMAR PATH:", grammar_path.absolute())
+# print("LOADING LARK PARSER in src/parser.py")
 _parser = Lark(
-    Path(__file__).with_name("grammar.lark").read_text(),
+    grammar_path.read_text(),
     parser="lalr",
     start="start",
 )
@@ -34,11 +37,11 @@ class AST(Transformer):
         return ("str", tok[0][1:-1])
 
     def list(self, vals):
-        # Lark: vals is [] for [], or [expr_list] for [a, b, ...]
-        # expr_list is [] for [ ], [item, ...] for [a, ...], [None] for [ , ]
+        # Lark gives: vals == [] for [], or [expr_list] for [a, ...]
+        # expr_list is [] for [ ], or [item, ...] for [a, ...]
         if not vals or vals == [None]:
             return ("list", [])
-        # If we get a [None], treat it as empty list
+        # Accept both [expr_list] and expr_list directly
         items = vals[0] if isinstance(vals[0], list) else vals
         if items == [None]:
             items = []
@@ -53,18 +56,20 @@ class AST(Transformer):
         return (key_tok.value, val_node)
 
     def table(self, pairs):
-        # Lark: pairs is [] for {}, or [kvpair_list] for {...}
-        # kvpair_list is [] for { }, [item, ...] for {a: b, ...}, [None] for { , }
+        # pairs will be [] for {}, or [kvpair_list] for { ... }
         if not pairs or pairs == [None]:
             return ("table", {})
-        kvlist = pairs[0] if isinstance(pairs[0], list) else pairs
-        if kvlist == [None]:
-            kvlist = []
+        # Sometimes pairs is [[...]], sometimes it's just [...]
+        def flatten(l):
+            for x in l:
+                if isinstance(x, list):
+                    yield from flatten(x)
+                elif isinstance(x, tuple) and len(x) == 2:
+                    yield x
+                # else: ignore anything else (like tokens, Nones, etc)
+        kvlist = list(flatten(pairs))
         d = {}
-        for item in kvlist:
-            if not isinstance(item, tuple) or len(item) != 2:
-                raise ValueError(f"Invalid kvpair in table: {item!r}")
-            key, val_node = item
+        for key, val_node in kvlist:
             d[key] = val_node
         return ("table", d)
 
@@ -87,28 +92,51 @@ class AST(Transformer):
         # Ignore block separators in block_body
         return None
 
-    def block_expr(self, v):
-        # Flatten v if it's [[...]]
-        parts = v
-        if len(parts) == 1 and isinstance(parts[0], list):
-            parts = parts[0]
-        params = []
-        bindings = []
-        stmts = []
-        for part in parts:
-            if isinstance(part, tuple) and part:
-                tag = part[0]
-                if tag == "param":
-                    params.append((part[1], part[2]))
-                elif tag == "bind":
-                    bindings.append((part[1], part[2]))
-                elif tag == "bind_empty":
-                    bindings.append((part[1], None))
+    def block_expr(self, items):
+        # Accept both the normal form and the "just grouping" form
+        if (
+            len(items) == 1 and
+            isinstance(items[0], list) and
+            len(items[0]) == 1 and
+            (isinstance(items[0][0], tuple) or isinstance(items[0][0], Tree))
+        ):
+            # Just a grouped expression: (2 + 3) etc
+            return items[0][0]
+        elif (
+            len(items) == 3 and
+            isinstance(items[0], Token) and
+            isinstance(items[1], list) and
+            isinstance(items[2], Token)
+        ):
+            # Normal block_expr (multi or single)
+            lpar_token, parts, rpar_token = items
+            # flatten parts if needed
+            if len(parts) == 1 and isinstance(parts[0], list):
+                parts = parts[0]
+            params = []
+            bindings = []
+            stmts = []
+            for part in parts:
+                if isinstance(part, tuple) and part:
+                    tag = part[0]
+                    if tag == "param":
+                        params.append((part[1], part[2]))
+                    elif tag == "bind":
+                        bindings.append((part[1], part[2]))
+                    elif tag == "bind_empty":
+                        bindings.append((part[1], None))
+                    else:
+                        stmts.append(part)
                 else:
                     stmts.append(part)
-            else:
-                stmts.append(part)
-        return ("block_expr", params, bindings, stmts)
+            is_multiline = lpar_token.line != rpar_token.line
+            return ("block_expr", params, bindings, stmts, is_multiline)
+        else:
+            # fallback: treat as a single expr
+            if isinstance(items[0], tuple):
+                return items[0]
+            return items
+
 
 
     def call(self, v):
@@ -191,12 +219,13 @@ class AST(Transformer):
         return ("expr", v[0])
 
     def expr_list(self, items):
-        # Remove stray Nones (from trailing commas)
-        return [x for x in items if x is not None]
+        # Only keep actual expr nodes (usually tuples, ints, or str)
+        return [x for x in items if isinstance(x, (tuple, int, str))]
 
     def kvpair_list(self, items):
-        # Remove stray Nones (from trailing commas)
-        return [x for x in items if x is not None]
+        # print("TABLE DEBUG: kvlist =", kvlist)
+        # Remove Nones and Trees for kvpair_sep and any other non-tuple junk
+        return [x for x in items if isinstance(x, tuple) and len(x) == 2]
 
 
 def parse(src: str):

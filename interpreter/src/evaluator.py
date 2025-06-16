@@ -58,9 +58,9 @@ def eval_ast(node):
             raise NameError(f"undefined: {name}")
         return _env[name]
 
-    # ──  block experession ──────────────────────────────────────────────
+    # ──  block expression ──────────────────────────────────────────────
     if typ == "block_expr":
-        params, bindings, stmts = rest
+        params, bindings, stmts, has_newline = rest
         parent_env = _env.copy()
         local_env = parent_env.copy()
         # Evaluate params first (params can be used in default values)
@@ -77,10 +77,26 @@ def eval_ast(node):
         old_env = _env
         _env = local_env
         try:
-            result = None
-            for s in stmts:
-                result = eval_ast(s)
-            return result
+            # If multi-line block, must have explicit return
+            if has_newline:
+                found_return = False
+                for s in stmts:
+                    if isinstance(s, tuple) and s and s[0] == "return":
+                        found_return = True
+                        break
+                if not found_return:
+                    raise Exception("multi-line anonymous functions require explicit return")
+                # evaluate normally, so explicit `return` will work as expected
+                result = None
+                for s in stmts:
+                    result = eval_ast(s)
+                return result
+            else:
+                # single-line: implicit return of last statement
+                result = None
+                for s in stmts:
+                    result = eval_ast(s)
+                return result
         finally:
             _env = old_env
 
