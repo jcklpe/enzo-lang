@@ -60,15 +60,19 @@ def eval_ast(node):
 
     # ──  block experession ──────────────────────────────────────────────
     if typ == "block_expr":
-        bindings, stmts = rest
-        # Create a new local scope
+        params, bindings, stmts = rest
         parent_env = _env.copy()
         local_env = parent_env.copy()
-        # Evaluate all bindings first
+        # Evaluate params first (params can be used in default values)
+        for name, expr in params:
+            if name in local_env:
+                raise NameError(f"{name} already defined in block (param)")
+            local_env[name] = eval_ast(expr)
+        # Then bindings
         for name, expr in bindings:
             if name in local_env:
-                raise NameError(f"{name} already defined in block")
-            local_env[name] = eval_ast(expr)
+                raise NameError(f"{name} already defined in block (binding)")
+            local_env[name] = eval_ast(expr) if expr is not None else None
         # Now evaluate stmts in local_env
         old_env = _env
         _env = local_env

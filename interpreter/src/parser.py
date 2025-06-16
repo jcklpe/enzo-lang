@@ -12,6 +12,9 @@ _parser = Lark(
 
 
 class AST(Transformer):
+    def param_binding(self, items):
+        name_tok, expr = items
+        return ("param", name_tok.value, expr)
     # ── Top‐level “start” folds into a block of statements ───────────────
     def start(self, v):
         # v is a list of AST nodes for each semicolon‐terminated stmt.
@@ -85,25 +88,27 @@ class AST(Transformer):
         return None
 
     def block_expr(self, v):
-        # Lark sometimes gives v as [Tree(...)] or [tuple,...]
-        # We need to flatten v if it's a list of a single list (the common Lark output)
+        # Flatten v if it's [[...]]
         parts = v
         if len(parts) == 1 and isinstance(parts[0], list):
             parts = parts[0]
-        # print("DEBUG: block_expr parts:", parts)
+        params = []
         bindings = []
         stmts = []
         for part in parts:
-            # Bindings: ("bind", name, expr)
-            if isinstance(part, tuple) and part and part[0] == "bind":
-                bindings.append((part[1], part[2]))
-            # Empty bindings ("bind_empty", ...)
-            elif isinstance(part, tuple) and part and part[0] == "bind_empty":
-                bindings.append((part[1], None))
+            if isinstance(part, tuple) and part:
+                tag = part[0]
+                if tag == "param":
+                    params.append((part[1], part[2]))
+                elif tag == "bind":
+                    bindings.append((part[1], part[2]))
+                elif tag == "bind_empty":
+                    bindings.append((part[1], None))
+                else:
+                    stmts.append(part)
             else:
                 stmts.append(part)
-        # If there are NO stmts (e.g. just bindings), inject None or an error
-        return ("block_expr", bindings, stmts)
+        return ("block_expr", params, bindings, stmts)
 
 
     def call(self, v):

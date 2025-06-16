@@ -1,0 +1,234 @@
+//= Nameless functions one liner with implicit return
+5
+//= Nameless function: multi-line with explicit return
+error: 200
+    (
+$x: 100;
+$y: 100;
+return($x + $y);
+);
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//= Nameless function: multi-line with no explicit return (should error)
+3
+//= Nameless function: multi-line, explicit return, different values
+error: 201
+    ($x: 101;
+$y: 100;
+return($x + $y););
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//= Single line, implicit return
+Syntax error: Unexpected character 't' at line 1, column 3.
+    2-times-2: (2 * 2);
+      ^
+Syntax error: Unexpected character 't' at line 1, column 3.
+    2-times-2();
+      ^
+6
+6
+//= Multi-line with params and default values
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder: (
+    ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder();
+    ^
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
+    $adder();
+    ^^^^^^^^^
+error: undefined: $adder
+    $referenced-function: $adder;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
+    $referenced-function();
+    ^^^^^^^^^^^^^^^^^^^^^^^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder(4, 5);
+    ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder(4, 5, 6);
+    ^
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
+    $adder($nada, 1000)
+    ^^^^^^^^^^^^^^^^^^^
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
+    $referenced-function(4, 5);
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//= Named function with local variable
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder-plus-1(
+    ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder-plus-1();
+    ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    adder-plus-1(2, 2);
+    ^
+//= Subtraction with empty default
+Syntax error: Unexpected token ';' at line 2, column 15.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+        param $x: ;
+                  ^
+Syntax error: Unexpected character 's' at line 1, column 1.
+    subtractor(3, 2);
+    ^
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
+    $subtractor(3, 2);
+    ^^^^^^^^^^^^^^^^^^
+Syntax error: Unexpected character 's' at line 1, column 1.
+    subtractor();
+    ^
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
+    $subtractor(4);
+    ^^^^^^^^^^^^^^^
+//= List of functions called by index
+Syntax error: Unexpected token ';' at line 1, column 14.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+    $funs: [($x: ; $x + 1;), ($x: ; $x * 2;)];
+                 ^
+Syntax error: Unexpected token '(' at line 1, column 8.
+Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $funs.1(10);
+           ^
+Syntax error: Unexpected token '(' at line 1, column 8.
+Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $funs.2(10);
+           ^
+//= Named function, then function reference and direct invocation
+Syntax error: Unexpected character 'd' at line 1, column 1.
+    double: ($x: 2; $x * 2);
+    ^
+error: undefined: $double
+    $ref: $double;
+    ^^^^^^^^^^^^^^
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
+    $ref(5);
+    ^^^^^^^^
+Syntax error: Unexpected character 'd' at line 1, column 1.
+    double(3);
+    ^
+Syntax error: Unexpected character 'd' at line 1, column 1.
+    double;
+    ^
+//= Higher-order function: passing function as param and using default param
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    apply: (
+    ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    apply($double, 4);
+    ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    apply($double);
+    ^
+Syntax error: Unexpected character 'a' at line 1, column 1.
+    apply(double, 4);
+    ^
+//= Table with function member and self mutation
+Syntax error: Unexpected character 'i' at line 3, column 5.
+        inc: (
+        ^
+Syntax error: Unexpected token '(' at line 1, column 13.
+Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $counter.inc();
+                ^
+Syntax error: Unexpected token '(' at line 1, column 13.
+Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $counter.inc();
+                ^
+error: undefined: $counter
+    $counter.count;
+    ^^^^^^^^^^^^^^^
+error: undefined: $counter
+    $counter.inc;
+    ^^^^^^^^^^^^^
+//= Table of functions: referencing as variables
+error: cannot unpack non-iterable Tree object
+    $table-reference: {
+    $add-one: (
+        param $x: 10;
+        return($x + 1);
+    )
+};
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: undefined: $table-reference
+    $referencing-function: $table-reference.add-one;
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
+    $referencing-function();
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+error: Error trying to process rule "call":
+
+'tuple' object has no attribute 'value'
+    $referencing-function(5);
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+//= Nested function: inner function shadows param
+Syntax error: Unexpected character 'o' at line 1, column 1.
+    outer: (
+    ^
+Syntax error: Unexpected character 'o' at line 1, column 1.
+    outer();
+    ^
+Syntax error: Unexpected character 'o' at line 1, column 1.
+    outer(20);
+    ^
+//= Duplicate param name error in function declaration
+Syntax error: Unexpected character 'd' at line 1, column 1.
+    duplicate-params: (
+    ^
+//= Empty function declaration and call
+Syntax error: Unexpected character 'e' at line 1, column 1.
+    empty-fn: ();
+    ^
+Syntax error: Unexpected character 'e' at line 1, column 1.
+    empty-fn();
+    ^
+//= Function with default param referencing previous param
+Syntax error: Unexpected character 's' at line 1, column 1.
+    sum-default: (
+    ^
+Syntax error: Unexpected character 's' at line 1, column 1.
+    sum-default();
+    ^
+Syntax error: Unexpected character 's' at line 1, column 1.
+    sum-default(2);
+    ^
+Syntax error: Unexpected character 's' at line 1, column 1.
+    sum-default(2, 10);
+    ^
+//= Trailing commas and extra semi-colon errors
+Syntax error: Unexpected character 't' at line 1, column 1.
+    trailing-comma: (
+    ^
+//= Table with a list of functions as a property
+Syntax error: Unexpected token ';' at line 2, column 17.
+Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
+        $ops: [($x: ; $x + 1;), ($x: ; $x * 2;)]
+                    ^
+Syntax error: Unexpected token '}' at line 1, column 1.
+Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
+    };
+    ^
+Syntax error: Unexpected token '(' at line 1, column 12.
+Expected one of: COMMA, DOTINT, DOTPROP, DOTVAR, MINUS, PLUS, RBRACE, RPAR, RSQB, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+    $calc.ops.2(4);
+               ^
+//= Table function and interpolation with self behavior
+Syntax error: Unexpected token '}' at line 9, column 1.
+Expected one of: SEMICOLON
+    };
+    ^

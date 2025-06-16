@@ -2,7 +2,7 @@ import sys
 import re
 import os
 from src.parser       import parse
-from src.evaluator    import eval_ast, InterpolationParseError
+from src.evaluator    import eval_ast, InterpolationParseError, ReturnSignal
 from src.ast_helpers  import Table, format_val
 from src.parse_errors import format_parse_error
 from lark import UnexpectedToken, UnexpectedInput, UnexpectedCharacters
@@ -37,6 +37,7 @@ def print_enzo_error(msg):
 
 def read_statement(stdin, interactive):
     buffer = []
+    paren_depth = 0
     while True:
         if interactive:
             prompt = "enzo> " if not buffer else "...   "
@@ -60,10 +61,17 @@ def read_statement(stdin, interactive):
         if line.strip().startswith('//') and not buffer:
             continue
 
+        # Update paren_depth for every '(' or ')' in the line
+        for char in line:
+            if char == '(':
+                paren_depth += 1
+            elif char == ')':
+                paren_depth -= 1
+
         buffer.append(line)
 
-        # If any semicolon is found, treat as end of statement
-        if ';' in line:
+        # Only break if we're not inside unclosed parens
+        if paren_depth <= 0 and ';' in line:
             break
 
     return '\n'.join(buffer) if buffer else None
@@ -116,6 +124,9 @@ def run_enzo_file(filename):
                 print(color_code(context))
             else:
                 print(color_error(fullmsg))
+        except ReturnSignal as ret:
+            # At the top-level, treat 'return' as just yielding the value (for block expressions).
+            print(ret.value)
         except Exception as e:
             print(color_error(f"error: {e}"))
             print(color_code("    " + line))
@@ -211,6 +222,9 @@ def main():
                 print(color_code(context))
             else:
                 print(color_error(fullmsg))
+        except ReturnSignal as ret:
+            # At the top-level, treat 'return' as just yielding the value (for block expressions).
+            print(ret.value)
         except Exception as e:
             print(color_error(f"error: {e}"))
             print(color_code("    " + line))

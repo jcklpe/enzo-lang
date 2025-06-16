@@ -59,11 +59,15 @@ return_stmt: "return" "(" expr ")" ";"
 #         );
 ##############################################################################
 
-# All parens become block_expr, with any order/combination of bindings and stmts.
+# All parens become block_expr, with any order/combination of bindings, params, statements (including return), and expressions.
 block_expr: "(" block_body ")"
 block_body: block_item (block_sep block_item)* block_sep?
-block_item: block_binding | expr
+block_item: block_binding
+          | param_binding
+          | return_stmt
+          | expr
 block_binding: NAME ":" expr
+param_binding: "param" NAME ":" expr
 block_sep: "," | ";"
 
 # ── function call ────────────────────────────────────────────────
