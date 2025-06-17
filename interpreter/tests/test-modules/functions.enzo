@@ -21,8 +21,8 @@ $y: 100;
 return($x + $y);); // prints 201
 
 //= Single line, implicit return
-2-times-2and5: (2 * 2) + 5;
-2-times-2and5();       // prints 9
+2-times-2: (2 * 2);
+2-times-2();       // prints 4
 
 //= Bare parens
 (6);

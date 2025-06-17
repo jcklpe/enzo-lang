@@ -12,8 +12,8 @@ error: multi-line anonymous functions require explicit return
 //= Nameless function: multi-line, explicit return, different values
 201
 //= Single line, implicit return
-9
-9
+4
+4
 //= Bare parens
 6
 //= Multi-line with params and default values
