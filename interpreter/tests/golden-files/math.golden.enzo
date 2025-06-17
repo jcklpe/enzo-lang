@@ -17,7 +17,7 @@
 -10
 0
 0
-Syntax error: Unexpected token '-' at line 1, column 9.
-Expected one of: LBRACE, LPAR, LSQB, NAME, NEWLINE, SEMICOLON, SIGNED_NUMBER, STRING
+Syntax error: Unexpected token ';' at line 1, column 12.
+Expected one of: LPAR
     $weird: --5;
-            ^
+               ^

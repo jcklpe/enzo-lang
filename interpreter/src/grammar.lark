@@ -15,8 +15,9 @@ start: _nl* stmt (";" _nl* stmt)* ";"? _nl*
 return_stmt: "return" "(" expr ")" ";"
 
 # ── assignment forms ─────────────────────────────────────────────────────────
-?assign_stmt: NAME ":"            -> bind_empty      // e.g. “$x:;” with no right‐hand side
-            | NAME ":"  expr       -> bind            // normal bind with an expression
+?assign_stmt: FUNCNAME ":" expr  -> bind_func
+            | NAME ":"  expr      -> bind
+            | NAME ":"            -> bind_empty
             | NAME "<:" expr       -> rebind
             | expr "<:" expr       -> prop_rebind
             | expr ":>" NAME       -> rebind_lr
@@ -66,7 +67,7 @@ block_item: block_binding
           | param_binding
           | return_stmt
           | expr
-block_binding: NAME ":" expr
+block_binding: (NAME | FUNCNAME) ":" expr
 param_binding: "param" NAME ":" expr
 block_sep: _nl* ("," | ";") _nl*
 
@@ -74,7 +75,7 @@ LPAR: "("
 RPAR: ")"
 
 # ── function call ────────────────────────────────────────────────
-call: NAME "(" [call_args] ")"
+call: (NAME | FUNCNAME) "(" [call_args] ")"
 call_args: expr ("," expr)* [","]
 
 # ── list literal ─────────────────────────────────────────────────────────────
@@ -95,6 +96,7 @@ _nl: NEWLINE
 
 # ── tokens ───────────────────────────────────────────────────────────────────
 NAME:    /\$[a-zA-Z0-9_-]+/
+FUNCNAME: /[a-zA-Z0-9_-]+/
 
 DOTINT.5:   /\.[1-9][0-9]*/            // “.1”, “.42”  1‐based numeric indexing
 DOTVAR.6:   /\.[$][a-zA-Z0-9_-]+/      // “.$foo”

@@ -11,6 +11,7 @@ _parser = Lark(
     grammar_path.read_text(),
     parser="lalr",
     start="start",
+    debug=True
 )
 
 
@@ -148,6 +149,7 @@ class AST(Transformer):
     def call(self, v):
         name_tok = v[0]
         args = v[1] if len(v) > 1 else []
+        # Support both NAME (Token) and FUNCNAME (Token)
         return ("call", name_tok.value, args)
 
     def call_args(self, v):
@@ -200,6 +202,10 @@ class AST(Transformer):
 
     # ── statements / assignments ─────────────────────────────────────────────────
     def bind(self, v):
+        name_tok, expr_node = v
+        return ("bind", name_tok.value, expr_node)
+
+    def bind_func(self, v):
         name_tok, expr_node = v
         return ("bind", name_tok.value, expr_node)
 

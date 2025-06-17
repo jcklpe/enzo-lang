@@ -1,5 +1,6 @@
 from src.parser       import parse
 from src.ast_helpers  import Table, format_val
+from collections import ChainMap
 
 class InterpolationParseError(Exception):
     pass
@@ -61,23 +62,21 @@ def eval_ast(node):
     # ──  block expression ──────────────────────────────────────────────
     if typ == "block_expr":
         params, bindings, stmts, has_newline = rest
-        parent_env = _env.copy()
-        local_env = parent_env.copy()
-        # Evaluate params first (params can be used in default values)
-        for name, expr in params:
-            if name in local_env:
-                raise NameError(f"{name} already defined in block (param)")
-            local_env[name] = eval_ast(expr)
-        # Then bindings
-        for name, expr in bindings:
-            if name in local_env:
-                raise NameError(f"{name} already defined in block (binding)")
-            local_env[name] = eval_ast(expr) if expr is not None else None
-        # Now evaluate stmts in local_env
-        old_env = _env
-        _env = local_env
+        parent_env = _env
+        local_env = {}
+        _env = ChainMap(local_env, parent_env)
         try:
-            # If multi-line block, must have explicit return, and return its value.
+            # Evaluate params first (params can be used in default values)
+            for name, expr in params:
+                if name in local_env:
+                    raise NameError(f"{name} already defined in block (param)")
+                local_env[name] = eval_ast(expr)
+            # Then bindings
+            for name, expr in bindings:
+                if name in local_env:
+                    raise NameError(f"{name} already defined in block (binding)")
+                local_env[name] = eval_ast(expr) if expr is not None else None
+            # Now evaluate stmts in local_env
             if has_newline:
                 try:
                     result = None
@@ -94,7 +93,7 @@ def eval_ast(node):
                     result = eval_ast(s)
                 return result
         finally:
-            _env = old_env
+            _env = parent_env
 
     # ── function call ──────────────────────────────────────────────────
     if typ == "call":
