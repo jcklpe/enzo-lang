@@ -1,0 +1,181 @@
+//= Multi-line with params and default values
+adder: (
+param $x: 6; // these are default values
+param $y: 6;
+return($y + $x);
+);
+
+adder();                       // prints 12
+$adder();                      // prints 12
+$referenced-function: $adder;  // does not invoke adder function just saves it to another variable as a reference
+$referenced-function();        // prints 12
+adder(4, 5);                   // prints 9
+adder(4, 5, 6);                // error: too many args
+$nada: ;
+$adder($nada, 1000)            // prints 1006
+$adder("", 500);               // error: arg is type number not text
+$referenced-function(4, 5);    // prints 9
+
+//= Named function with local variable
+adder-plus-1(
+    param $x: 6;
+    param $y: 4;
+    $z: 1;
+    return($x + $y + $z);
+);
+
+adder-plus-1();    // prints 11
+adder-plus-1(2, 2);   // prints 5
+
+//= Subtraction with empty default
+$subtractor: (
+    param $x: ;
+    param $y: ;
+    return($x - $y);
+);
+
+subtractor(3, 2);   // prints 1
+$subtractor(3, 2);   // prints 1
+subtractor();        // prints 0 I think? empty values get coerced to 0?
+
+$subtractor(4);   //
+
+//= List of functions called by index
+$funs: [($x: ; $x + 1;), ($x: ; $x * 2;)];
+$funs.1(10);              // → 11
+$funs.2(10);              // → 20
+
+//= Named function, then function reference and direct invocation
+double: ($x: 2; $x * 2);
+$ref: $double;       // should NOT invoke — should just bind the function object
+$ref(5);             // → 10
+
+// Direct invocation should work too:
+double(3);           // → 6
+
+// Function reference must use $, no parens:
+double;              // error: function reference must use $ sigil
+
+//= Higher-order function: passing function as param and using default param
+apply: (
+    param $function-arg:;
+    param $value: 7;
+    return($function-arg($value));
+);
+
+apply($double, 4);   // → 8
+apply($double);      // → 14 (default $val: 7)
+
+apply(double, 4);    // error: must pass function reference with $ sigil
+
+//= Table with function member and self mutation
+$counter: {
+    $count: 10,
+    inc: (
+        $self.count <: $self.count + 1;
+        return($self.count);
+    )
+};
+$counter.inc();      // → 11
+$counter.inc();      // → 12
+$counter.count;      // → 12
+$counter.inc;        // function doesn't invoke, just returns the counter.inc function as a reference.
+
+//= Table of functions: referencing as variables
+$table-reference: {
+    $add-one: (
+        param $x: 10;
+        return($x + 1);
+    )
+};
+$referencing-function: $table-reference.add-one;      // should be a function reference, not invoked
+$referencing-function();              // → 11
+$referencing-function(5);             // → 6
+
+//= Nested function: inner function shadows param
+outer: (
+    param $x: 10;
+    inner: (
+        param $y: 5;
+        return($x + $y);
+    );
+    return($inner(7));
+);
+outer();             // → 17
+outer(20);           // → 27
+
+//= Duplicate param name error in function declaration
+duplicate-params: (
+    param $x: 1;
+    param $x: 2; // error: duplicate parameter name '$x' in function definition
+    return($x);
+);
+
+//= Empty function declaration and call
+empty-fn: ();
+empty-fn();     // returns empty.
+
+//= Function with default param referencing previous param
+sum-default: (
+    param $a: 5;
+    param $b: $a;
+    return($a + $b);
+);
+sum-default();            // → 10
+sum-default(2);           // → 4
+sum-default(2, 10);       // → 12
+
+//= Trailing commas and extra semi-colon errors
+trailing-comma: (
+    param $x: 1, // error: trailing comma
+    param $y: 2  // error: missing semicolon
+    return($x + $y);
+);
+
+//= Table with a list of functions as a property
+$calc: {
+    $ops: [($x: ; $x + 1;), ($x: ; $x * 2;)]
+};
+$calc.ops.2(4);           // → 8
+
+//= Table function and interpolation with self behavior
+$doggie: {
+    $name: "ralph",
+    $age: 50,
+    $speak: ("Hi, my name is <$self.name>."),
+    $roll-over: (
+        param $direction: "left";
+        return ("I'm now spinning <$direction>."
+    )
+};
+$doggie.speak();              // prints "Hi, my name is ralph."
+$doggie.roll-over("right");   // prints "I'm now spinning right."
+
+//= Functions as members of lists
+$weird-member: 20;
+$weird-list: [1, 2, ($x: 9; $x + 1;), ($weird-member + 1)];
+$weird-list.3; // prints 10
+$weird-list.4; // prints 21
+
+//= Function with numeric param name
+number-name-param: (
+    param $123: 4;
+    return($123);
+);
+number-name-param();    // prints 4
+
+//= Early exit
+early-exit: (
+    $a: 99;
+    return($a);
+    $a<: 1; // should not execute
+);
+early-exit(); // should return 99
+
+//= Function param name shadows outer variable
+$whatever: 42;
+shadow: (
+    param $whatever: 1;
+    return($whatever);
+);
+shadow();    // prints 1 not 42
