@@ -5,7 +5,7 @@
 # Top‐level: one or more statements, separated (and optionally
 # terminated) by semicolons (“;”).  Newlines are not significant here—
 # only “;” really ends a statement.
-?start: stmt (";" stmt)* ";"?
+start: _nl* stmt (";" _nl* stmt)* ";"? _nl*
 
 # A single statement is either an assignment form or a bare expression.
 ?stmt: assign_stmt
@@ -60,8 +60,8 @@ return_stmt: "return" "(" expr ")" ";"
 ##############################################################################
 
 # All parens become block_expr, with any order/combination of bindings, params, statements (including return), and expressions.
-block_expr: LPAR _nl* block_body _nl* RPAR
-block_body: (block_item block_sep)* block_item block_sep?
+block_expr: LPAR block_body RPAR
+block_body: _nl* (block_item block_sep)* block_item block_sep? _nl*
 block_item: block_binding
           | param_binding
           | return_stmt

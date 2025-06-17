@@ -18,6 +18,6 @@
 0
 0
 Syntax error: Unexpected token '-' at line 1, column 9.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SEMICOLON, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, NEWLINE, SEMICOLON, SIGNED_NUMBER, STRING
     $weird: --5;
             ^

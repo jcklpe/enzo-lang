@@ -53,6 +53,6 @@ cool dude
 9
 3
 Syntax error: Unexpected token ';' at line 1, column 22.
-Expected one of: LBRACE, LPAR, LSQB, NAME, RETURN, SIGNED_NUMBER, STRING
+Expected one of: LBRACE, LPAR, LSQB, NAME, NEWLINE, RETURN, SIGNED_NUMBER, STRING
     $meaning-of-life: 42;;
                          ^

@@ -22,6 +22,7 @@ class AST(Transformer):
     def start(self, v):
         # v is a list of AST nodes for each semicolon‐terminated stmt.
         # Instead of returning only the last one, we return ("block", [stmt1, stmt2, …]).
+        v = [x for x in v if not isinstance(x, Token)]
         return ("block", v)
 
     def stmt(self, v):
@@ -78,8 +79,8 @@ class AST(Transformer):
         return ("var", tok[0].value)
 
     def block_body(self, items):
-        # filter out separators
-        return [x for x in items if x is not None]
+        # filter out separators AND newlines
+        return [x for x in items if x is not None and not (isinstance(x, Token) and x.type == "NEWLINE")]
 
     def block_item(self, items):
         return items[0]
@@ -92,50 +93,55 @@ class AST(Transformer):
         # Ignore block separators in block_body
         return None
 
+
     def block_expr(self, items):
-        # Accept both the normal form and the "just grouping" form
-        if (
-            len(items) == 1 and
-            isinstance(items[0], list) and
-            len(items[0]) == 1 and
-            (isinstance(items[0][0], tuple) or isinstance(items[0][0], Tree))
-        ):
-            # Just a grouped expression: (2 + 3) etc
-            return items[0][0]
-        elif (
-            len(items) == 3 and
-            isinstance(items[0], Token) and
-            isinstance(items[1], list) and
-            isinstance(items[2], Token)
-        ):
-            # Normal block_expr (multi or single)
-            lpar_token, parts, rpar_token = items
-            # flatten parts if needed
-            if len(parts) == 1 and isinstance(parts[0], list):
-                parts = parts[0]
-            params = []
-            bindings = []
-            stmts = []
-            for part in parts:
-                if isinstance(part, tuple) and part:
-                    tag = part[0]
-                    if tag == "param":
-                        params.append((part[1], part[2]))
-                    elif tag == "bind":
-                        bindings.append((part[1], part[2]))
-                    elif tag == "bind_empty":
-                        bindings.append((part[1], None))
-                    else:
-                        stmts.append(part)
+        # Always force the body to be a flat list of AST tuples
+        lpar_token, rpar_token = None, None
+        body = None
+
+        for it in items:
+            if isinstance(it, Token) and it.type == "LPAR":
+                lpar_token = it
+            elif isinstance(it, Token) and it.type == "RPAR":
+                rpar_token = it
+            elif isinstance(it, Tree) and it.data == "block_body":
+                body = [self._transform_child(x) for x in it.children]
+            elif isinstance(it, list):
+                body = it
+            elif isinstance(it, tuple):
+                body = [it]
+
+        # Fallback: body is just the items
+        if body is None:
+            body = []
+            for i in items:
+                if isinstance(i, (tuple, Tree)):
+                    body.append(i)
+
+        # If tokens weren't found, fake them (for grouped exprs, etc.)
+        if lpar_token is None:
+            lpar_token = Token("LPAR", "(", 0, 0, 0)
+        if rpar_token is None:
+            rpar_token = Token("RPAR", ")", 0, 0, 0)
+
+        params = []
+        bindings = []
+        stmts = []
+        for part in body:
+            if isinstance(part, tuple) and part:
+                tag = part[0]
+                if tag == "param":
+                    params.append((part[1], part[2]))
+                elif tag == "bind":
+                    bindings.append((part[1], part[2]))
+                elif tag == "bind_empty":
+                    bindings.append((part[1], None))
                 else:
                     stmts.append(part)
-            is_multiline = lpar_token.line != rpar_token.line
-            return ("block_expr", params, bindings, stmts, is_multiline)
-        else:
-            # fallback: treat as a single expr
-            if isinstance(items[0], tuple):
-                return items[0]
-            return items
+            else:
+                stmts.append(part)
+        is_multiline = lpar_token.line != rpar_token.line
+        return ("block_expr", params, bindings, stmts, is_multiline)
 
 
 
