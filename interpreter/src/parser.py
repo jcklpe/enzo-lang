@@ -17,8 +17,12 @@ _parser = Lark(
 
 class AST(Transformer):
     def param_binding(self, items):
-        name_tok, expr = items
+        # Always: [PARAM, NAME, expr], may get as tokens or tree, so just always pick last two.
+        # items[0] == PARAM (Token or str), items[1] == NAME (Token), items[2] == expr
+        name_tok = items[1]
+        expr = items[2]
         return ("param", name_tok.value, expr)
+
     # ── Top‐level “start” folds into a block of statements ───────────────
     def start(self, v):
         # v is a list of AST nodes for each semicolon‐terminated stmt.
@@ -84,7 +88,10 @@ class AST(Transformer):
         return [x for x in items if x is not None and not (isinstance(x, Token) and x.type == "NEWLINE")]
 
     def block_item(self, items):
-        return items[0]
+        # Flatten nested items (needed for some edge-cases in param/return)
+        if isinstance(items, list) and len(items) == 1:
+            return items[0]
+        return items
 
     def block_binding(self, items):
         name_tok, expr = items
@@ -149,14 +156,27 @@ class AST(Transformer):
     def call(self, v):
         name_tok = v[0]
         args = v[1] if len(v) > 1 else []
-        # Support both NAME (Token) and FUNCNAME (Token)
-        return ("call", name_tok.value, args)
+        # Support NAME (Token), FUNCNAME (Token), or ("var", "$foo")
+        if hasattr(name_tok, 'value'):
+            name = name_tok.value
+        elif isinstance(name_tok, str):
+            name = name_tok
+        elif isinstance(name_tok, tuple):
+            # If it's ("var", "$foo")
+            if len(name_tok) >= 2:
+                name = name_tok[1]
+            else:
+                raise Exception(f"Unexpected call node form: {name_tok!r}")
+        else:
+            raise Exception(f"Unknown call target: {name_tok!r}")
+        return ("call", name, args)
 
     def call_args(self, v):
         return v
 
     def return_stmt(self, v):
-        return ("return", v[0])
+        # Just grab the second item, which is the expr
+        return ("return", v[-1])
 
     # ── arithmetic ───────────────────────────────────────────────────────
     def add(self, v):

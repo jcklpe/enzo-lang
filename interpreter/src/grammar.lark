@@ -12,7 +12,8 @@ start: _nl* stmt (";" _nl* stmt)* ";"? _nl*
      | return_stmt
      | expr              -> expr_stmt
 
-return_stmt: "return" "(" expr ")" ";"
+return_stmt: RETURN "(" expr ")" ";"
+
 
 # ── assignment forms ─────────────────────────────────────────────────────────
 ?assign_stmt: FUNCNAME ":" expr  -> bind_func
@@ -62,17 +63,18 @@ return_stmt: "return" "(" expr ")" ";"
 
 # All parens become block_expr, with any order/combination of bindings, params, statements (including return), and expressions.
 block_expr: LPAR block_body RPAR
+
 block_body: _nl* (block_item block_sep)* block_item block_sep? _nl*
-block_item: block_binding
-          | param_binding
+
+block_item: param_binding
+          | block_binding
           | return_stmt
           | expr
 block_binding: (NAME | FUNCNAME) ":" expr
-param_binding: "param" NAME ":" expr
+param_binding: PARAM NAME ":" expr
 block_sep: _nl* ("," | ";") _nl*
 
-LPAR: "("
-RPAR: ")"
+
 
 # ── function call ────────────────────────────────────────────────
 call: (NAME | FUNCNAME) "(" [call_args] ")"
@@ -103,6 +105,11 @@ DOTVAR.6:   /\.[$][a-zA-Z0-9_-]+/      // “.$foo”
 DOTPROP.7:  /\.[a-zA-Z][a-zA-Z0-9_-]*/ // “.foo”  (property‐access)
 
 NEWLINE: /(\r?\n)+/
+
+LPAR: "("
+RPAR: ")"
+PARAM: "param"
+RETURN: "return"
 
 %import common.SIGNED_NUMBER
 %import common.ESCAPED_STRING   -> STRING
