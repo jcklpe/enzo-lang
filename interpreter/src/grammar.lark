@@ -30,20 +30,31 @@ return_stmt: RETURN "(" expr ")" ";"
     | sum "+" product             -> add
     | sum "-" product             -> sub
 
-?product: postfix
-        | product "*" postfix     -> mul
-        | product "/" postfix     -> div
+?product: unary
+        | product "*" unary       -> mul
+        | product "/" unary       -> div
+
+# Handle unary minus as right-associative, so -5, -x, or --5 all work
+?unary: "-" unary                -> neg
+      | postfix
 
 # ── postfix handles “.INT” (list‐index), “.$foo” (var‐index), or “.foo” (prop‐access)
-?postfix: primary ( DOTINT | DOTVAR | DOTPROP )*    -> index_chain
+?postfix: atom ( DOTINT | DOTVAR | DOTPROP )*    -> index_chain
 
-?primary: list_literal
-        | table_literal
-        | block_expr              -> block_expr
-        | call                    -> call
-        | SIGNED_NUMBER           -> number
-        | STRING                  -> string
-        | NAME                    -> var
+# All values, calls, and blocks are atoms
+?atom: list_literal
+     | table_literal
+     | block_expr              -> block_expr
+     | call                    -> call
+     | func_ref                -> func_ref
+     | SIGNED_NUMBER           -> number
+     | STRING                  -> string
+     | var
+
+var: NAME
+
+# --- function object reference ---
+func_ref: ATNAME
 
 ##############################################################################
 # BLOCK EXPRESSION:
@@ -93,28 +104,30 @@ kvpair_list: kvpair (kvpair_sep kvpair)* [kvpair_sep]
 kvpair_sep: _nl* "," _nl* | _nl+
 kvpair: NAME ":" expr
 
+# ── tokens ───────────────────────────────────────────────────────────────────
+
 # ── Helper for repeated (possibly empty) newlines
 _nl: NEWLINE
 
-# ── tokens ───────────────────────────────────────────────────────────────────
-NAME:    /\$[a-zA-Z0-9_-]+/
-FUNCNAME: /[a-zA-Z0-9_-]+/
+PARAM.1: "param"
+RETURN.1: "return"
+NAME.3:    /\$[a-zA-Z0-9_-]+/
+FUNCNAME.10: /[a-zA-Z_][a-zA-Z0-9_-]*/
 
 DOTINT.5:   /\.[1-9][0-9]*/            // “.1”, “.42”  1‐based numeric indexing
 DOTVAR.6:   /\.[$][a-zA-Z0-9_-]+/      // “.$foo”
 DOTPROP.7:  /\.[a-zA-Z][a-zA-Z0-9_-]*/ // “.foo”  (property‐access)
 
-NEWLINE: /(\r?\n)+/
+ATNAME: "@" FUNCNAME
 
+NEWLINE: /(\r?\n)+/
 LPAR: "("
 RPAR: ")"
-PARAM: "param"
-RETURN: "return"
 
-%import common.SIGNED_NUMBER
+
+SIGNED_NUMBER.2: /[0-9]+/
 %import common.ESCAPED_STRING   -> STRING
 %import common.WS_INLINE
 
 # ── ignore spaces/tabs, single‐line “//” comments, and newlines ───────────────
 %ignore WS_INLINE
-# %ignore /\/\/[^\n]*/

@@ -6,7 +6,7 @@
 (
 $x: 100;
 $y: 100;
-return($x + $y);
+return(($x + $y));
 ); // prints 200
 
 //= Nameless function: multi-line with no explicit return (should error)
@@ -18,7 +18,7 @@ return($x + $y);
 //= Nameless function: multi-line, explicit return, different values
 ($x: 101;
 $y: 100;
-return($x + $y);); // prints 201
+return(($x + $y));); // prints 201
 
 //= Single line, implicit return
 times2: (2 * 2);
@@ -31,7 +31,7 @@ times2();       // prints 4
 adder: (
 param $x: 6; // these are default values
 param $y: 6;
-return($y + $x);
+return(($y + $x));
 );
 
 adder();                       // prints 12

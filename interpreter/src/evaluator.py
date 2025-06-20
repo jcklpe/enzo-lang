@@ -1,12 +1,40 @@
 from src.parser       import parse
 from src.ast_helpers  import Table, format_val
 from collections import ChainMap
+import sys
 
 class InterpolationParseError(Exception):
     pass
 
 
 _env = {}  # single global environment
+
+# utility function
+def force_value(val):
+    global _env
+    val = unwrap_single_block(val)
+    while isinstance(val, tuple) and val[0] == "block_expr":
+        _, params, bindings, stmts, is_multiline = unwrap_single_block(val)
+        # If this is a multi-line block, check for explicit return statement
+        if is_multiline:
+            # If the last statement is not a ('return', ...), error
+            if not stmts or (not isinstance(stmts[-1], tuple)) or stmts[-1][0] != "return":
+                raise Exception("error: multi-line anonymous functions require explicit return")
+        parent_env = _env
+        local_env = {}
+        _env = ChainMap(local_env, parent_env)
+        try:
+            for (name, expr) in params:
+                local_env[name] = force_value(eval_ast(expr))
+            for (name, expr) in bindings:
+                local_env[name] = force_value(eval_ast(expr))
+            result = None
+            for stmt in stmts:
+                result = force_value(eval_ast(stmt))
+            val = result
+        finally:
+            _env = parent_env
+    return val
 
 class EnzoFunction:
     def __init__(self, params, body, closure_env):
@@ -21,17 +49,68 @@ class ReturnSignal(Exception):
     def __init__(self, value):
         self.value = value
 
+def is_return_call(node):
+    # Accept ("call", "return", [expr]) only
+    return (
+        isinstance(node, tuple)
+        and node[0] == "call"
+        and node[1] == "return"
+        and isinstance(node[2], list)
+        and len(node[2]) == 1
+    )
+
+def get_func_name(funcname):
+    # Try as-is
+    if funcname in _env:
+        return funcname
+    # Try adding/removing $
+    if funcname.startswith('$'):
+        alt = funcname[1:]
+        if alt in _env:
+            return alt
+    else:
+        alt = '$' + funcname
+        if alt in _env:
+            return alt
+    raise NameError(f"undefined: {funcname}")
+
+def unwrap_single_block(block):
+    """
+    If a block_expr only wraps a single block_expr, unwrap recursively.
+    Prevents redundant nesting for parens and function bodies.
+    """
+    while (
+        isinstance(block, tuple)
+        and block[0] == "block_expr"
+        and len(block[3]) == 1
+        and isinstance(block[3][0], tuple)
+        and block[3][0][0] == "block_expr"
+    ):
+        block = block[3][0]
+    return block
+
 # ── handle a block of multiple statements ─────────────────────────────
 def eval_ast(node):
     global _env
     typ, *rest = node
+
+    # if typ in ("block_expr", "bind", "bind_func", "expr"):
+    #     print(f"eval_ast typ={typ} node={node}")
 
     # ── “block” means “evaluate each child in turn, return last” ───────
     if typ == "block":
         stmts = rest[0]                # a Python list of AST‐nodes
         result = None
         for stmt_node in stmts:
-            result = eval_ast(stmt_node)
+            # If stmt_node is a bare literal/var/list/table, eval as if it were an "expr"
+            if (
+                isinstance(stmt_node, tuple)
+                and stmt_node
+                and stmt_node[0] in ("var", "num", "str", "list", "table")
+            ):
+                result = eval_ast(("expr", stmt_node))
+            else:
+                result = eval_ast(stmt_node)
         return result
 
     # ── literals / lookup ───────────────────────────────────────────────────────
@@ -45,61 +124,109 @@ def eval_ast(node):
         children = rest[0] if rest else []
         if children == [None]:
             children = []
-        return [eval_ast(el) for el in children]
+        return [force_value(eval_ast(el)) for el in children]
 
     if typ == "table":
         d = {}
         for (k, v_ast) in rest[0].items():
-            d[k] = eval_ast(v_ast)
+            d[k] = force_value(eval_ast(v_ast))
         return Table(d)
 
     if typ == "var":
         name = rest[0]
         if name not in _env:
             raise NameError(f"undefined: {name}")
-        return _env[name]
+        return force_value(_env[name])
 
-    # ──  block expression ──────────────────────────────────────────────
+    # --- function reference (object) ---
+    if typ == "func_ref":
+        funcname = rest[0]
+        # Accept both with/without leading $
+        if funcname in _env:
+            val = _env[funcname]
+        elif ('$' + funcname) in _env:
+            val = _env['$' + funcname]
+        else:
+            raise NameError(f"undefined: {funcname}")
+        if not isinstance(val, EnzoFunction):
+            raise TypeError(f"{funcname} is not a function")
+        return val
+
+    # ── block_expr, block_body, block_item (local scope, param/default, explicit/implicit return) ──
     if typ == "block_expr":
-        params, bindings, stmts, has_newline = rest
-        parent_env = _env
-        local_env = {}
-        _env = ChainMap(local_env, parent_env)
-        try:
-            # Evaluate params first (params can be used in default values)
-            for name, expr in params:
-                if name in local_env:
-                    raise NameError(f"{name} already defined in block (param)")
-                local_env[name] = eval_ast(expr)
-            # Then bindings
-            for name, expr in bindings:
-                if name in local_env:
-                    raise NameError(f"{name} already defined in block (binding)")
-                local_env[name] = eval_ast(expr) if expr is not None else None
-            # Now evaluate stmts in local_env
-            if has_newline:
-                try:
-                    result = None
-                    for s in stmts:
-                        result = eval_ast(s)
-                    # If we get here, no return was executed!
-                    raise Exception("multi-line anonymous functions require explicit return")
-                except ReturnSignal as rs:
-                    return rs.value
+        # Just return the tuple; don't execute here
+        return (typ, *rest)
+
+    if typ == "index_chain":
+        # ("index_chain", base, [accessor1, accessor2...])
+        base, *accessors = rest
+        value = eval_ast(base)
+        # If no accessors, just return base
+        if not accessors:
+            return value
+        # Each accessor is a tuple: (kind, value)
+        for accessor in accessors:
+            if isinstance(accessor, tuple) and len(accessor) == 2:
+                kind, val = accessor
+                if kind == "DOTINT":
+                    # 1-based index
+                    idx = int(val)
+                    if not isinstance(value, list):
+                        raise TypeError("index applies to lists")
+                    i = idx - 1
+                    if i < 0 or i >= len(value):
+                        raise IndexError("list index out of range")
+                    value = value[i]
+                elif kind == "DOTPROP":
+                    if not isinstance(value, (dict, Table)):
+                        raise TypeError("property access applies to tables")
+                    if val not in value:
+                        raise KeyError(val)
+                    value = value[val]
+                elif kind == "DOTVAR":
+                    # variable property lookup
+                    prop = val
+                    if not isinstance(value, (dict, Table)):
+                        raise TypeError("property access applies to tables")
+                    if prop not in value:
+                        raise KeyError(prop)
+                    value = value[prop]
+                else:
+                    raise ValueError(f"unknown accessor kind {kind}")
             else:
-                # single-line: implicit return of last statement
-                result = None
-                for s in stmts:
-                    result = eval_ast(s)
-                return result
-        finally:
-            _env = parent_env
+                # Could be bare index: int or str
+                value = value[accessor]
+        return value
 
     # ── function call ──────────────────────────────────────────────────
     if typ == "call":
-        # node = ("call", func_name, [args...])
         funcname, args = rest
-        func = _env[funcname]
+        if funcname == "return":
+            if len(args) != 1:
+                raise Exception("return() takes exactly one value")
+            val = eval_ast(args[0])
+            raise ReturnSignal(val)
+        func = _env.get(get_func_name(funcname))
+        # If this is a ("block_expr", ...), treat as lambda (call the block!)
+        if isinstance(func, tuple) and func and func[0] == "block_expr":
+            _, params, bindings, stmts, is_multiline = func
+            parent_env = _env
+            local_env = {}
+            _env = ChainMap(local_env, parent_env)
+            try:
+                for (name, expr), arg in zip(params, args):
+                    local_env[name] = eval_ast(arg)
+                # fill missing params with defaults
+                for i in range(len(args), len(params)):
+                    local_env[params[i][0]] = eval_ast(params[i][1])
+                for name, expr in bindings:
+                    local_env[name] = eval_ast(expr)
+                result = None
+                for stmt in stmts:
+                    result = eval_ast(stmt)
+                return result
+            finally:
+                _env = parent_env
         if not isinstance(func, EnzoFunction):
             raise TypeError(f"{funcname} is not a function")
         if len(args) > len(func.params):
@@ -112,7 +239,6 @@ def eval_ast(node):
         if len(args) < len(func.params):
             for (param_name, default) in func.params[len(args):]:
                 call_env[param_name] = eval_ast(default)
-        # Run body in this new env
         try:
             res = None
             for stmt in func.body:
@@ -129,16 +255,18 @@ def eval_ast(node):
     # ── arithmetic ───────────────────────────────────────────────────────
     if typ == "add":
         a, b = rest
-        return eval_ast(a) + eval_ast(b)
+        return force_value(eval_ast(a)) + force_value(eval_ast(b))
     if typ == "sub":
         a, b = rest
-        return eval_ast(a) - eval_ast(b)
+        return force_value(eval_ast(a)) - force_value(eval_ast(b))
     if typ == "mul":
         a, b = rest
-        return eval_ast(a) * eval_ast(b)
+        return force_value(eval_ast(a)) * force_value(eval_ast(b))
     if typ == "div":
         a, b = rest
-        return eval_ast(a) / eval_ast(b)
+        return force_value(eval_ast(a)) / force_value(eval_ast(b))
+    if typ == "neg":
+        return -force_value(eval_ast(rest[0]))
 
     # ── list indexing (1-based) ────────────────────────────────────────
     if typ == "index":
@@ -201,13 +329,21 @@ def eval_ast(node):
         raise TypeError("property rebind applies to tables or lists")
 
     # ── bind / rebind ─────────────────────────────────────────────────────
-    if typ == "bind":
+    if typ in ("bind", "bind_func"):
         name, expr_ast = rest
-        # Disallow redeclaration, even if it's still None (empty)
         if name in _env:
             raise NameError(f"{name} already defined")
-        # Fresh bind (name not present at all)
-        _env[name] = eval_ast(expr_ast)
+        # If this is a block_expr:
+        if isinstance(expr_ast, tuple) and expr_ast[0] == "block_expr":
+            # If this block_expr has any params or bindings, treat as a lambda and store it unevaluated.
+            _, params, bindings, stmts, is_multiline = unwrap_single_block(expr_ast)
+            if params or bindings or is_multiline:
+                _env[name] = expr_ast
+            else:
+                # Single-expression, no params/bindings: eagerly evaluate, store result.
+                _env[name] = force_value(expr_ast)
+        else:
+            _env[name] = eval_ast(expr_ast)
         return _env[name]
 
     if typ == "bind_empty":
@@ -258,8 +394,42 @@ def eval_ast(node):
 
     # ── bare expression statement ─────────────────────────────────────────
     if typ == "expr":
-        return eval_ast(rest[0])
+        inner = rest[0]
+        val = eval_ast(inner)
+        # If it's an anonymous block_expr (not assigned, not called), always eval immediately.
+        if isinstance(val, tuple) and val[0] == "block_expr":
+            _, params, bindings, stmts, is_multiline = unwrap_single_block(val)
+            if not params and not bindings:
+                # Multi-line anonymous requires explicit return at end
+                if is_multiline and (not stmts or stmts[-1][0] != "return"):
+                    raise Exception("error: multi-line anonymous functions require explicit return")
+                # Always force evaluation for all top-level anonymous block_expr
+                return force_value(val)
+            else:
+                # Named/parameterized blocks get returned as function/lambda
+                return val
+        else:
+            return val
 
+    # [DEBUG] Fallback for unknown node types: print AST node for diagnosis
+    try:
+        import pprint
+        sys.stderr.write("unknown node encountered!\n")
+        sys.stderr.write(f"node: {typ}\n")
+        sys.stderr.write(pprint.pformat(node) + "\n")
+        print(f"DEBUG unknown node: {node}", file=sys.stderr)
+    except Exception:
+        pass
+    raise ValueError(f"unknown node: {typ}")
+
+    # Fallback for unknown node types
+    try:
+        import pprint
+        sys.stderr.write("unknown node encountered!\n")
+        sys.stderr.write(f"node: {typ}\n")
+        sys.stderr.write(pprint.pformat(node) + "\n")
+    except Exception:
+        pass
     raise ValueError(f"unknown node: {typ}")
 
 

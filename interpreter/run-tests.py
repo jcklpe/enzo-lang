@@ -4,6 +4,7 @@ import difflib
 import os
 import sys
 import re
+import pathlib
 
 # Adjust path if run from project root, so 'src' is on the import path
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -57,13 +58,13 @@ def split_blocks(text):
     return blocks
 
 def color_actual_line_override(line):
-    # Green for additions
+    # Now: Red for additions ("+" = actual/failing), Green for deletions ("-" = expected/passing)
     if not sys.stdout.isatty():
         return line
     if line.startswith('+'):
-        return f"\033[92m{line}\033[0m"  # Green for additions
+        return f"\033[91m{line}\033[0m"  # Red for additions (actual)
     if line.startswith('-'):
-        return f"\033[91m{line}\033[0m"  # Red for deletions
+        return f"\033[92m{line}\033[0m"  # Green for deletions (expected)
     if line.startswith('@@'):
         return f"\033[93;1m{line}\033[0m"
     return line
@@ -74,6 +75,25 @@ def main():
         sys.exit(1)
 
     module = sys.argv[1] if len(sys.argv) > 1 else None
+
+    # --- NEW: Regenerate combined-tests.enzo if running the full suite ---
+    if not module:
+        regen_script = os.path.join(SCRIPT_DIR, "tests", "regen-combined-tests.py")
+        if not os.path.exists(regen_script):
+            print(color_error(f"❗ regen-combined-tests.py not found at {regen_script}"))
+            sys.exit(1)
+        result = subprocess.run(
+            [sys.executable, regen_script],
+            cwd=os.path.join(SCRIPT_DIR, "tests"),
+            capture_output=True,
+            text=True
+        )
+        if result.returncode != 0:
+            print(color_error("❗ Failed to regenerate combined-tests.enzo:"))
+            print(result.stdout)
+            print(result.stderr)
+            sys.exit(1)
+
     test_file = f"tests/test-modules/{module}.enzo" if module else "tests/combined-tests.enzo"
     golden_file = f"tests/golden-files/{module}.golden.enzo" if module else "tests/combined-tests.golden.enzo"
 
@@ -106,8 +126,8 @@ def main():
     num_blocks = min(len(actual_blocks), len(expected_blocks))
 
     # Print diff header only once at top
-    print(color_expected_header('--- actual'))
-    print(color_actual_header('+++ expected'))
+    print(color_actual_header('--- actual'))
+    print(color_expected_header('+++ expected'))
 
     for i in range(num_blocks):
         title, exp_lines = expected_blocks[i]
@@ -116,11 +136,12 @@ def main():
         if [l.rstrip() for l in exp_lines] != [l.rstrip() for l in act_lines]:
             print()
             print(color_block_title(f"//= {title}"))
+            # Note: Swap the order of act_lines and exp_lines
             diff = difflib.unified_diff(
-                act_lines,
-                exp_lines,
-                fromfile="actual",
-                tofile="expected",
+                exp_lines,      # expected as first arg (was act_lines)
+                act_lines,      # actual as second arg (was exp_lines)
+                fromfile="expected",
+                tofile="actual",
                 lineterm=""
             )
             for line in diff:
@@ -131,11 +152,11 @@ def main():
                     continue
                 # Highlight Lark parse errors in red
                 if line.startswith('+'):
-                    print(color_actual_line_override(line))
+                    print(color_actual_line_override(line))  # Now red: actual (failing)
                 elif "Syntax error:" in line or "Expected one of:" in line:
                     print(color_red(line))
                 elif line.startswith('-'):
-                    print(color_diff(line))
+                    print(color_actual_line_override(line))  # Now green: expected (passing)
                 elif line.startswith('@@'):
                     print(color_diff(line))
                 else:

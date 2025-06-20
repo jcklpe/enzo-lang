@@ -12,7 +12,7 @@ error: multi-line anonymous functions require explicit return
 //= Nameless function: multi-line, explicit return, different values
 201
 //= Single line, implicit return
-4
+<function () ...>
 4
 //= Bare parens
 6

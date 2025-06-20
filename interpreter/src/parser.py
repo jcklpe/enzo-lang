@@ -17,8 +17,11 @@ _parser = Lark(
 
 class AST(Transformer):
     def param_binding(self, items):
-        # Always: [PARAM, NAME, expr], may get as tokens or tree, so just always pick last two.
-        # items[0] == PARAM (Token or str), items[1] == NAME (Token), items[2] == expr
+        # print("DEBUG param_binding items:", items)
+        # items should be [Token('PARAM'), Token('NAME'), expr]
+        # But Lark sometimes gives Tree nodes, so be robust
+        if len(items) < 3:
+            raise ValueError(f"param_binding expected 3 items, got {len(items)}: {items!r}")
         name_tok = items[1]
         expr = items[2]
         return ("param", name_tok.value, expr)
@@ -31,11 +34,29 @@ class AST(Transformer):
         return ("block", v)
 
     def stmt(self, v):
-        # unwrap a single statement into its AST (either bind, rebind, expr, etc.)
-        return v[0]
+        ast = v[0]
+        # Accept bare literals, vars, lists, tables, block_expr
+        if (
+            isinstance(ast, tuple)
+            and ast
+            and ast[0] == "expr"
+        ):
+            inner = ast[1]
+            if isinstance(inner, tuple) and inner[0] in ("num", "str", "var", "list", "table", "block_expr"):
+                return ast
+            # Not a bare literal or block_expr: error
+            raise Exception("Top-level arithmetic or expressions must be parenthesized")
+        elif (
+            isinstance(ast, tuple)
+            and ast
+            and ast[0] in ("num", "str", "var", "list", "table", "block_expr")
+        ):
+            return ("expr", ast)
+        return ast
 
     # ── literals ─────────────────────────────────────────────────────────
     def number(self, tok):
+        # print("NUMBER DEBUG:", tok)
         return ("num", int(tok[0]))
 
     def string(self, tok):
@@ -80,6 +101,7 @@ class AST(Transformer):
         return ("table", d)
 
     def var(self, tok):
+        # print("DEBUG VAR:", tok)
         # tok[0].value is something like "$foo"
         return ("var", tok[0].value)
 
@@ -194,6 +216,13 @@ class AST(Transformer):
     def paren(self, v):
         return v[0]
 
+    def neg(self, v):
+        operand = v[0]
+        # If already a negation node, error
+        if isinstance(operand, tuple) and operand[0] == "neg":
+            raise Exception("double negation '--' is not allowed")
+        return ("neg", operand)
+
     # ── selector chain: (.3, .$foo, .prop) ─────────────────────────────
     def index_chain(self, v):
         base, *toks = v
@@ -220,8 +249,16 @@ class AST(Transformer):
 
         return node
 
+    def func_ref(self, v):
+        # v[0] is a Token('ATNAME', '@foo')
+        # Strip '@' and get just the function name
+        token = v[0]
+        funcname = token[1:] if token.startswith('@') else token
+        return ("func_ref", funcname)
+
     # ── statements / assignments ─────────────────────────────────────────────────
     def bind(self, v):
+        # print("BIND DEBUG:", v)
         name_tok, expr_node = v
         return ("bind", name_tok.value, expr_node)
 
@@ -247,6 +284,7 @@ class AST(Transformer):
         return ("prop_rebind", base_node, new_expr)
 
     def expr_stmt(self, v):
+        # print("EXPR_STMT DEBUG:", v)
         # wrap a bare expression into (“expr”, AST)
         return ("expr", v[0])
 

@@ -27,8 +27,7 @@ b
 7
 //= Out-of-bounds and weird list indices
 [ 1, 2, 3 ]
-Syntax error: Unexpected token '.0' at line 1, column 6.
-Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, LPAR, MINUS, NEWLINE, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+Syntax error: Unexpected character '.' at line 1, column 6.
     $list.0;
          ^
 error: list index out of range
@@ -86,10 +85,11 @@ error: index applies to lists
 -10
 0
 0
-Syntax error: Unexpected token ';' at line 1, column 12.
-Expected one of: LPAR
+error: Error trying to process rule "neg":
+
+double negation '--' is not allowed
     $weird: --5;
-               ^
+    ^^^^^^^^^^^^
 //= TABLE STUFF ───────────────────────────────────────────────────────────
 { $name: "Alice", $age: 30 }
 { $name: "Alice", $age: 30 }
@@ -260,7 +260,7 @@ cool dude
 9
 3
 Syntax error: Unexpected token ';' at line 1, column 22.
-Expected one of: FUNCNAME, LBRACE, LPAR, LSQB, NAME, NEWLINE, SIGNED_NUMBER, STRING
+Expected one of: ATNAME, FUNCNAME, LBRACE, LPAR, LSQB, MINUS, NAME, NEWLINE, RETURN, SIGNED_NUMBER, STRING
     $meaning-of-life: 42;;
                          ^
 //= Nameless functions one liner with implicit return
@@ -277,7 +277,7 @@ error: multi-line anonymous functions require explicit return
 //= Nameless function: multi-line, explicit return, different values
 201
 //= Single line, implicit return
-4
+<function () ...>
 4
 //= Bare parens
 6
