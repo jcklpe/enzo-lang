@@ -1,84 +1,104 @@
 # enzo-lang
+![image](https://hackmd.io/_uploads/BJTFqAWVex.png)
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jcklpe/enzo-lang/blob/master/interpreter/demo.ipynb)
+
 Code is the ultimate user interface. It is the final user interface on which all other user interfaces are built. So I think it’s interesting to explore this space as a UX designer. I have no intention of actually implementing it but playing with syntax like this helps me better understand programming concepts as I’m learning them.
 
-This is just sort of fantasy sketch of what I think a nice language syntax would look like. As I'm learning programming stuff, I'll make notes on what I don't understand or find confusing, and I sketch out what I think could be different, which both provides an outlet and helps me to better understand the real programming language that I'm trying to learn.
+This is just sort of fantasy sketch of what I think a nice language syntax would look like. As I'm learning programming stuff, I'll make notes on what I don't understand or find confusing, and I sketch out what I think could be different, which provides a creative outlet and helps me to better understand the real programming language that I'm trying to learn.
 
 I'm def interested in feedback but also understand that this is basically just a kid drawing pictures of racecars and wishing he was Batman. I'm doing this for my own enjoyment and to help me better understand programming.
 
 Also want to give a shout out to the ["Quorum Language Project"](https://quorumlanguage.com/) for opening my eyes to the intersection between UX practice and syntax design.
 
 ## Syntax Reference
-
 ### Comments
 
 ```javascript!
-// single line comment
-```
-
-```javascript!
-//- Comment Title (styled different in editor and can be used for auto documentation purposes)
+// single line comment, will not appear in final output. This allows you to write things in the source code for you to read and help remember what stuff does.
 ```
 
 ```javascript!
 /' block comment, the use of single quote has better keyboard ergonomics than the star symbol typically used '/
 ```
 
-### Variable Types and Declaration
-
-Types are static but inferred.
-
-Variables are declared with the `:` operator.
-
-#### Text (string)
-
 ```javascript!
-$text-example: "here is some text";
+//= Test case title commment. Used for breaking up test cases as part of the automated regression testing and will appear on the frontend to the user.  
 ```
 
-#### Text interpolation
+### Atoms
+Atoms are the most basic parts of the enzo language. Atoms are separated by a semi-colon `;` punctuation. 
 
+Atoms can be assigned a keyname using the `:` operator. Keynames are distinguished with the `$` sigil. 
 ```javascript!
-$number-example: 5;
-$number-example2: 3;
-$text-example: "the result of the two variables added together is <$number-example + $number-example2>"
+$keyname: atomvalue;
+$keyname; // this invokes the atomvalue
+```
+You use keynames to more easily invoke that atomvalue where you need in code. An atom bound to a keyname is a variable.
 
-$text-example;
-//returns the text 'the result of the two variables added together is 8'
+There are 5 types of atoms. These types are [static but inferred](https://www.perplexity.ai/search/plain-language-explanation-of-bIpK7TNKTtCK.Ao8RdeIuw). 
+#### Numbers
+A number atom is any [real number](https://en.wikipedia.org/wiki/Real_number).
+```javascript!
+100;
+0;
+120000;
+0.5;
+-300;
 ```
 
-#### Number
-
+Example of a number atom assigned a keyname:
 ```javascript!
 $number-example: 888;
 ```
 
-##### Number operations
-
+#### Text (string)
+A text atom is any sequence of characters enclosed in double quotes `"..."`.
+This includes letters, numbers, punctuation, spaces, emoji, or [any valid Unicode symbol](https://en.wikipedia.org/wiki/Unicode).
 ```javascript!
-1+2;
-//addition: returns 3
+"hello world";
+"100";     // note: this is *text*, not a number
+"π ≈ 3.14159";
+"emoji: 😀";
+"name_stuff_123";
+"line\nbreak"; // newlines and escape sequences allowed
+```
 
-3-1;
-// subtraction: returns 2
+Example of text atom assigned a keyname:
+```javascript!
+$text-example: "here is some text";
+```
 
-2*3;
-// multiplication: returns 6
+##### Text interpolation
+```javascript!
+$name: "Bob";
+$favorite-color: "blue";
+$request-shirt: "Hi, my name is <$name>, can I get a <$favorite-color> shirt, please?";
+$request-shirt; // invokes "Hi, my name is Bob, can I get a blue shirt, please?"
 
-4/4;
-// division: returns 1
+// You can also run functions in interpolation (functions explained below)
+$number-example: 5;
+$number-example2: 3;
+$text-example: "the result of the two variables added together is <($number-example + $number-example2;)>"
 
+$text-example;
+//returns the text "the result of the two variables added together is 8"
 ```
 
 #### List (array)
-
+A list atom is an ordered sequence of atoms (or keynames referencing those atomvalues), enclosed in brackets `[...]`.
 ```javascript!
-$list-example: ["here is some text", 666, $variable-example];
+[1, 2, 3];
+["a", "b", "c"];
+[1, "two", [3], $four, {$5-table: "value"}];
+```
+
+Example of list atom assigned to a keyname:
+```javascript!
+$list-example: ["here is some text", 666, $keyname-example];
 ```
 
 You can access a specific item in the list as follows:
-
 ```javascript!
 $colors: ["red", "green", "blue", "yellow"];
 
@@ -95,11 +115,23 @@ $reversed: reverse($colors);  // ["yellow","blue","green","red"]
 $pick:     $reversed.2;       // → "blue"
 
 ```
-
 The numeric indexing of lists starts at 1.
 
-#### Table (objects/maps)
+#### Table (object/map)
+A table atom is a collection of keyname-atomvalue pairs, enclosed in braces `{...}`. 
+```javascript!
+{$name: "Alice", $age: 30};
 
+{
+    $one: 1,
+    $two-and-three: [2, 3],
+    $can-nest: {
+        $nested: "yes"
+    }
+};
+```
+
+Example of table atom assigned to a keyname:
 ```javascript!
 $table-example: {
 	$property: "this is a value which is paired to the property",
@@ -117,8 +149,7 @@ $table-example: {
                 $property3:"this property value could be invoked using '$table-example.property4.property3'"}
 };
 ```
-
-### Dot-Numeric vs. Table Property Access
+##### Dot-Numeric vs. Table Property Access
 
 - **Table property access** uses a “dot + identifier” (e.g. `$user.name`).
 - **List indexing** uses a “dot + integer literal” (e.g. `$user.friends.2`)—the parser sees the digit immediately after the dot and interprets it as list indexing rather than property lookup.
@@ -140,15 +171,42 @@ $secondLog: $user.logs.2;    // → "logout"
 
 Always ensure that the expression to the **left of the dot** is known to be a List at compile time, or you’ll get a type mismatch error.
 
-#### Functions
+#### Function (anonymous function/expression block)
+A function atom is a piece of code that does something and gives an atomvalue back.
 
+Examples:
+
+Basic arithmetic
+```javascript!
+(2 + 2);    // returns 4
+(2 - 3);    // returns -1
+(50 * 100); // returns 5000
+(20 / 5);   // returns 4
+```
+
+Function atoms can also have keynames declared inside of them like so:
+```javascript!
+($x: 4; $y: 6; $x + $y); // returns 10
+($x: 5, $y: 5; $x * $y); // commas can also be used to separate keyname assignment declarations
+```
+
+Function atoms can also be multi-line though they require explicit return function:
+```javascript!
+(
+$x: 100;
+$y: 100;
+return(($x + $y));
+); // returns 200
+```
+
+Function atoms can also be assigned to a keyname. 
 ```javascript!
 function-example: (
 
     // Parameters are declared inside the function definition.
     // the param keyword distinguishes parameter from private function scoped variables.
     param $argument1: ;
-    //Parameters can be assigned an initial value that it defaults unless otherwise specified when the function is called.
+    //Parameters can be assigned an initial value that it defaults unless otherwise specified when the function is called. If it is declared with an empty (explained below) then that function throws an error. 
     param $argument2: 12;
     $example-variable: 666;
 
@@ -156,41 +214,24 @@ function-example: (
 );
 ```
 
-##### Nameless functions (lambda)
-
+A named function is simply a nameless function bound to a keyname. We omit the $ on named functions to keep things more readable. All  of the following are valid:
 ```javascript!
-(6, 5; $a * $b;)
-// returns 30
-```
-
-A named function is simply a nameless function bound to an identifier. We omit the $ on named functions to keep things more readable. But if you think of a function more like a computed piece of data, something you’ll pass around, store in tables, or use inline, you can bind a nameless function to a $variable like so:
-
-```javascript!
-// Treating the lambda as “data” that computes a full name:
-$full-name: (
-    param $first: ;
-    param $last: ;
-    return(<$first $last>)
+$function1: (
+    param $a: 4;
+    $x: 5; 
+    return(($x + $a));
 );
+$function1;      // returns 9
+function1();     // returns 9
+$function1();    // returns 9
+$function1(5);   // returns 10
 
-// Invoking it looks just like invoking any other function:
-say($full-name("Alice", "Smith"));
-// Expected output: "Alice Smith"
+function2: ($y: 2; $y + 3);
+$function2;      // returns 9
+function2();     // returns 9
+$function2();    // returns 9
+$function2(5);   // returns 10
 ```
-
-You can even declare the function without the `$` but still call it with the `$` like so:
-
-```javascript!
-full-name: (
-    param $first: ;
-    param $last: ;
-    return(<$first $last>)
-);
-
-say($full-name("Alice", "Smith"));
-// Expected output: "Alice Smith"
-```
-
 Use $-bound nameless functions when the value the function returns is the primary focus, when the function itself feels like data in your mental model.
 
 ##### Empty variables (null, undefined)
@@ -255,7 +296,7 @@ function-example: (
     param $first-number: 1;
     param $second-number: 1;
     $third-number: 1;
-    return($first-number + $second-number + $third-number);
+    return(($first-number + $second-number + $third-number));
     );
 
 function-example();
@@ -269,7 +310,7 @@ function-example2: (
     param $second-number: ;
     param $third-number: number: ;
 
-    return($first-number * $second-number / $third-number);
+    return(($first-number * $second-number / $third-number);
 )
 
 // arguments can be assigned to parameters either by order
@@ -293,12 +334,14 @@ Invoking a function has parentheses, like this:
 function-name();
 //or
 $function-name();
+// or even just this as long as you don't need to pass any arguments to the parameters
+$function-name;
 ```
 
-Referencing a function does not have parentheseses and must have the `$` sigil like so:
+Referencing a function however has an `@` sigil:
 
 ```javascript!
-$function-name;
+@function-name;
 ```
 
 Example of this in action:
@@ -315,7 +358,7 @@ $total: increment(5);
 // 6 is now assigned to $total
 
 // 3) Reference it as data (must use $):
-$op: $increment;
+$op: @increment;
 // ✓ $op now holds the function object
 
 // 4) Call via your $-bound alias:
@@ -330,7 +373,7 @@ applyTwice: (
 );
 
 // Pass the function **reference** with `$` and without `()`:
-$twice: applyTwice($increment, 7);
+$twice: applyTwice(@increment, 7);
 // 9 assigned to $twice
 ```
 
@@ -691,7 +734,7 @@ While `:>` is usualy used to rebind values, it can be used to also declare and b
 
 You can also explicitly target any parameter slot with $0, it simply gets replaced by the piped-in value:
 
-```
+```javascript!
 // move-in($house, $pet)
 // teach ($pet,  $command)
 // reward($pet,  $treat)
@@ -721,7 +764,7 @@ $thirdUppercaseColor:
 - No method chaining. Functions remain standalone and there's no overloading of dot notation for table property access and piping stuff together.
 - Clear data-flow. You always read top-to-bottom, left-to-right.
 
-# Misc implemention details
+# Misc implementation details
 
 1. Enzo is expression oriented rather than statement oriented.
 2. Enzo is static (lexical) scoped.
