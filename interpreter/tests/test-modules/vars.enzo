@@ -14,7 +14,7 @@ $x;                 // prints 100
 $x <: "hello";      // error: cannot assign Text to Number
 
 //= FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
-$z: 3 + 4;          // z = 7
+$z: (3 + 4);          // z = 7
 $z <: 8;            // rebind OK, z now 8
 $z <: "oops";       // error: cannot assign Text to Number
 $z : "oops";       // error: $z already defined

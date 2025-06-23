@@ -2,6 +2,8 @@ import sys
 import os
 from colorama import init, Fore, Back, Style
 
+
+
 # Initialize colorama for cross-platform color support
 init(autoreset=True)
 
@@ -52,14 +54,23 @@ def color_block_title(msg: str) -> str:
 def color_actual_header(msg: str) -> str:
     if not use_color:
         return msg
-    return f"{Fore.GREEN}{msg}{Style.RESET_ALL}"
+    return f"{Fore.RED}{msg}{Style.RESET_ALL}"
 
 def color_expected_header(msg: str) -> str:
     if not use_color:
         return msg
-    return f"{Fore.RED}{msg}{Style.RESET_ALL}"
+    return f"{Fore.GREEN}{msg}{Style.RESET_ALL}"
 
 def color_red(msg: str) -> str:
     if not use_color:
         return msg
     return f"{Fore.RED}{msg}{Style.RESET_ALL}"
+
+def color_checkmark(line: str) -> str:
+    if not use_color:
+        return line
+    if line.startswith('✔'):
+        return f"{Fore.GREEN}{line}{Style.RESET_ALL}"
+    if line.startswith('✖'):
+        return f"{Fore.RED}{line}{Style.RESET_ALL}"
+    return line

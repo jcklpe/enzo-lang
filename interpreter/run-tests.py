@@ -4,6 +4,11 @@ import difflib
 import os
 import sys
 import re
+import pathlib
+
+# Use these for diff output instead of '+' and '-'
+EXPECTED_MARK = '✔'
+ACTUAL_MARK = '✖'
 
 # Adjust path if run from project root, so 'src' is on the import path
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -56,14 +61,14 @@ def split_blocks(text):
         blocks.append((title, lines))
     return blocks
 
-def color_actual_line_override(line):
-    # Green for additions
+def color_diff_symbol_line(line):
+    # Color lines based on our new markers
     if not sys.stdout.isatty():
         return line
-    if line.startswith('+'):
-        return f"\033[92m{line}\033[0m"  # Green for additions
-    if line.startswith('-'):
-        return f"\033[91m{line}\033[0m"  # Red for deletions
+    if line.startswith(ACTUAL_MARK):
+        return f"\033[91m{line}\033[0m"  # Red for actual/failing
+    if line.startswith(EXPECTED_MARK):
+        return f"\033[92m{line}\033[0m"  # Green for expected/passing
     if line.startswith('@@'):
         return f"\033[93;1m{line}\033[0m"
     return line
@@ -74,6 +79,25 @@ def main():
         sys.exit(1)
 
     module = sys.argv[1] if len(sys.argv) > 1 else None
+
+    # --- NEW: Regenerate combined-tests.enzo if running the full suite ---
+    if not module:
+        regen_script = os.path.join(SCRIPT_DIR, "tests", "regen-combined-tests.py")
+        if not os.path.exists(regen_script):
+            print(color_error(f"❗ regen-combined-tests.py not found at {regen_script}"))
+            sys.exit(1)
+        result = subprocess.run(
+            [sys.executable, regen_script],
+            cwd=os.path.join(SCRIPT_DIR, "tests"),
+            capture_output=True,
+            text=True
+        )
+        if result.returncode != 0:
+            print(color_error("❗ Failed to regenerate combined-tests.enzo:"))
+            print(result.stdout)
+            print(result.stderr)
+            sys.exit(1)
+
     test_file = f"tests/test-modules/{module}.enzo" if module else "tests/combined-tests.enzo"
     golden_file = f"tests/golden-files/{module}.golden.enzo" if module else "tests/combined-tests.golden.enzo"
 
@@ -106,8 +130,9 @@ def main():
     num_blocks = min(len(actual_blocks), len(expected_blocks))
 
     # Print diff header only once at top
-    print(color_expected_header('--- actual'))
-    print(color_actual_header('+++ expected'))
+    print(color_expected_header('✔ correct expected outcome'))
+    print(color_actual_header('✖ failing actual outcome'))
+
 
     for i in range(num_blocks):
         title, exp_lines = expected_blocks[i]
@@ -116,26 +141,28 @@ def main():
         if [l.rstrip() for l in exp_lines] != [l.rstrip() for l in act_lines]:
             print()
             print(color_block_title(f"//= {title}"))
+            # Note: Swap the order of act_lines and exp_lines
             diff = difflib.unified_diff(
-                act_lines,
                 exp_lines,
+                act_lines,
                 fromfile="actual",
                 tofile="expected",
                 lineterm=""
             )
             for line in diff:
+                # Swap -/+ for ✔/✖ for output and coloring
                 if line.lstrip('-+ ').startswith(f"//= {title}"):
                     continue
-                # Skip redundant headers
                 if line.startswith('---') or line.startswith('+++'):
                     continue
-                # Highlight Lark parse errors in red
                 if line.startswith('+'):
-                    print(color_actual_line_override(line))
+                    line = ACTUAL_MARK + line[1:]
+                    print(color_diff_symbol_line(line))
                 elif "Syntax error:" in line or "Expected one of:" in line:
                     print(color_red(line))
                 elif line.startswith('-'):
-                    print(color_diff(line))
+                    line = EXPECTED_MARK + line[1:]
+                    print(color_diff_symbol_line(line))
                 elif line.startswith('@@'):
                     print(color_diff(line))
                 else:
