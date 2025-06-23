@@ -57,14 +57,14 @@ $notalist.1;                              // index applies to lists
 
 //= BINDING MATH OPERATIONS ────────────────────────────────────────────────
 $math1: 100;            // prints 100
-$math2: (3 + 2);          // prints
+$math2: (3 + 2);          // returns function object
 ($math1 + $math2);            // prints 105
 
 //= ARITHMETIC PRECEDENCE CHECK ─────────────────────────────────────────────
-$precedence-check: (2 + 3 * 4);      // prints 14
+$precedence-check: (2 + 3 * 4);      // function object
 $precedence-check;                 // prints 14
 
-$precedence-check2: ((2 + 3) * 4);    // prints 20
+$precedence-check2: ((2 + 3) * 4);    // function object
 $precedence-check2;                 // prints 20
 
 //= PARENTHESIZED EXPRESSIONS AS STAND‐ALONE ─────────────────────────────
@@ -215,7 +215,7 @@ $x;                 // prints 100
 $x <: "hello";      // error: cannot assign Text to Number
 
 //= FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
-$z: (3 + 4);          // z = 7
+$z: 7;          // returns function object
 $z <: 8;            // rebind OK, z now 8
 $z <: "oops";       // error: cannot assign Text to Number
 $z : "oops";       // error: $z already defined
@@ -225,7 +225,7 @@ $Var123: 10;
 $Var123;                  // prints “10”
 $var-xyz: 20;
 $var-xyz;                 // prints “20”
-$Var123 + $var-xyz;       // prints “30”
+($Var123 + $var-xyz);       // prints “30”
 $var_xyz: 30;
 $var_xyz;                 // prints “30”
 
@@ -237,8 +237,8 @@ $dougie <: "cool dude";     // should not error.
 $dougie;                    // prints "cool dude".
 
 //= MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
-$u: 1; $v: 2; $u + $v;    // prints “3”
-$apples:1;$bananas:2; $apples+$bananas;       // prints 3
+$u: 1; $v: 2; ($u + $v);    // prints “3”
+$apples:1;$bananas:2; ($apples+$bananas);       // prints 3
 $apricot :  1 ; $boranges: 2;        // spacing should not break anything
 $boranges;
 

@@ -1,9 +1,22 @@
 #!/usr/bin/env python3
 from src.parser import parse
-from src.evaluator import eval_ast
+from lark import Tree
 
-# Test 2: simple bind
-code = "$y: (10 + 5); $y;"
-tree = parse(code)
-print("BIND AST:", tree)
-eval_ast(tree)
+code = """
+adder: (
+param $x: 6;
+param $y: 6;
+return(($y + $x));
+);
+
+adder();
+$adder();
+"""
+
+try:
+    tree = parse(code)
+    print("=== PARSED AST ===")
+    print(tree)
+except Exception as e:
+    print("=== PARSE ERROR ===")
+    print(e)

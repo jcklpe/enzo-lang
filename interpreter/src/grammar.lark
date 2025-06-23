@@ -2,18 +2,17 @@
 # grammar.lark
 # ──────────────────────────────────────────────────────────────────────────────
 
-# Top‐level: one or more statements, separated (and optionally
-# terminated) by semicolons (“;”).  Newlines are not significant here—
-# only “;” really ends a statement.
+##############################################################################
+# Only atoms may be top-level statements, NOT arbitrary expressions.
+# Atoms = number, string, list, table, block_expr (function atom)
+##############################################################################
 start: _nl* stmt (";" _nl* stmt)* ";"? _nl*
 
-# A single statement is either an assignment form or a bare expression.
 ?stmt: assign_stmt
      | return_stmt
-     | expr              -> expr_stmt
+     | postfix              -> expr_stmt
 
 return_stmt: RETURN "(" expr ")" ";"
-
 
 # ── assignment forms ─────────────────────────────────────────────────────────
 ?assign_stmt: FUNCNAME ":" expr  -> bind_func

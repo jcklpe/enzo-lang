@@ -57,7 +57,31 @@ def eval_ast(node):
         name = rest[0]
         if name not in _env:
             raise NameError(f"undefined: {name}")
-        return _env[name]
+        val = _env[name]
+        # --- Always auto-invoke EnzoFunction when referenced ---
+        if isinstance(val, EnzoFunction):
+            # Prepare arg values: use defaults or error if any param missing default (you may want to allow None as default)
+            arg_values = []
+            for (param_name, default) in val.params:
+                if default is not None:
+                    arg_values.append(eval_ast(default))
+                else:
+                    # If you want empty binds to count as default, allow None; otherwise, error:
+                    # For now, treat None as valid (will pass None as value)
+                    arg_values.append(None)
+            # Build call env
+            call_env = val.closure_env.copy()
+            for (param_name, _), arg_val in zip(val.params, arg_values):
+                call_env[param_name] = arg_val
+            # Evaluate body
+            try:
+                res = None
+                for stmt in val.body:
+                    res = eval_ast(stmt)
+            except ReturnSignal as ret:
+                return ret.value
+            return res
+        return val
 
     # ──  block expression ──────────────────────────────────────────────
     if typ == "block_expr":
@@ -206,7 +230,13 @@ def eval_ast(node):
         # Disallow redeclaration, even if it's still None (empty)
         if name in _env:
             raise NameError(f"{name} already defined")
-        # Fresh bind (name not present at all)
+        # If the right-hand side is a block_expr, store as a function, not its value!
+        if isinstance(expr_ast, tuple) and expr_ast[0] == "block_expr":
+            params, bindings, stmts, is_multiline = expr_ast[1:]
+            fn = EnzoFunction(params, stmts, _env)
+            _env[name] = fn
+            return fn
+        # Otherwise, evaluate and store result as usual
         _env[name] = eval_ast(expr_ast)
         return _env[name]
 

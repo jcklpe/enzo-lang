@@ -1,13 +1,13 @@
 //= BINDING MATH OPERATIONS ────────────────────────────────────────────────
 $math1: 100;            // prints 100
-$math2: (3 + 2);          // prints
+$math2: (3 + 2);          // returns function object
 ($math1 + $math2);            // prints 105
 
 //= ARITHMETIC PRECEDENCE CHECK ─────────────────────────────────────────────
-$precedence-check: (2 + 3 * 4);      // prints 14
+$precedence-check: (2 + 3 * 4);      // function object
 $precedence-check;                 // prints 14
 
-$precedence-check2: ((2 + 3) * 4);    // prints 20
+$precedence-check2: ((2 + 3) * 4);    // function object
 $precedence-check2;                 // prints 20
 
 //= PARENTHESIZED EXPRESSIONS AS STAND‐ALONE ─────────────────────────────

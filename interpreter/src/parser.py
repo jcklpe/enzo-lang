@@ -31,8 +31,22 @@ class AST(Transformer):
         return ("block", v)
 
     def stmt(self, v):
-        # unwrap a single statement into its AST (either bind, rebind, expr, etc.)
-        return v[0]
+        # Only allow top-level atoms as statements, plus assignments/rebinds
+        node = v[0]
+        # Disallow 'return' at top level!
+        if isinstance(node, tuple):
+            tag = node[0]
+            if tag == "return":
+                raise SyntaxError("return(...) is only allowed inside block expressions, not at the top level.")
+            if tag in ("bind", "rebind", "bind_empty", "num", "str", "list", "table", "block_expr", "expr"):
+                return node
+            # If we ever see ("expr", ...) at top-level, only allow if it's an atom inside
+            if tag == "expr":
+                inner = node[1]
+                if isinstance(inner, tuple) and inner[0] in ("num", "str", "list", "table", "block_expr"):
+                    return node
+        # If we get here, this was an illegal top-level non-atom expr
+        raise SyntaxError("Only atoms (number, string, list, table, function/block) are allowed as top-level statements. Wrap expressions in parens.")
 
     # ── literals ─────────────────────────────────────────────────────────
     def number(self, tok):
@@ -103,52 +117,34 @@ class AST(Transformer):
 
 
     def block_expr(self, items):
-        # Always force the body to be a flat list of AST tuples
-        lpar_token, rpar_token = None, None
-        body = None
-
-        for it in items:
-            if isinstance(it, Token) and it.type == "LPAR":
-                lpar_token = it
-            elif isinstance(it, Token) and it.type == "RPAR":
-                rpar_token = it
-            elif isinstance(it, Tree) and it.data == "block_body":
-                body = [self._transform_child(x) for x in it.children]
-            elif isinstance(it, list):
-                body = it
-            elif isinstance(it, tuple):
-                body = [it]
-
-        # Fallback: body is just the items
-        if body is None:
-            body = []
-            for i in items:
-                if isinstance(i, (tuple, Tree)):
-                    body.append(i)
-
-        # If tokens weren't found, fake them (for grouped exprs, etc.)
-        if lpar_token is None:
-            lpar_token = Token("LPAR", "(", 0, 0, 0)
-        if rpar_token is None:
-            rpar_token = Token("RPAR", ")", 0, 0, 0)
-
+        # Flattens nested block_exprs and collects params/bindings/statements at top level
         params = []
         bindings = []
         stmts = []
-        for part in body:
-            if isinstance(part, tuple) and part:
-                tag = part[0]
-                if tag == "param":
-                    params.append((part[1], part[2]))
-                elif tag == "bind":
-                    bindings.append((part[1], part[2]))
-                elif tag == "bind_empty":
-                    bindings.append((part[1], None))
-                else:
-                    stmts.append(part)
+
+        def extract_block_parts(block):
+            if not isinstance(block, tuple):
+                return [], [], [block]
+            if block[0] == "block_expr":
+                inner_params, inner_bindings, inner_stmts, _ = block[1:]
+                return inner_params, inner_bindings, inner_stmts
+            elif block[0] == "param":
+                return [ (block[1], block[2]) ], [], []
+            elif block[0] == "bind":
+                return [], [ (block[1], block[2]) ], []
+            elif block[0] == "bind_empty":
+                return [], [ (block[1], None) ], []
             else:
-                stmts.append(part)
-        is_multiline = lpar_token.line != rpar_token.line
+                return [], [], [block]
+
+        for it in items:
+            p, b, s = extract_block_parts(it)
+            params += p
+            bindings += b
+            stmts += s
+
+        # For now, keep is_multiline as False (restore old logic if needed)
+        is_multiline = False
         return ("block_expr", params, bindings, stmts, is_multiline)
 
 

@@ -69,12 +69,12 @@ error: index applies to lists
     ^^^^^^^^^^^^
 //= BINDING MATH OPERATIONS ────────────────────────────────────────────────
 100
-5
+<function () ...>
 105
 //= ARITHMETIC PRECEDENCE CHECK ─────────────────────────────────────────────
+<function () ...>
 14
-14
-20
+<function () ...>
 20
 //= PARENTHESIZED EXPRESSIONS AS STAND‐ALONE ─────────────────────────────
 15
