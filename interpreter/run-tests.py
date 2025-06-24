@@ -168,5 +168,17 @@ def main():
                 else:
                     print(line)
 
+# --- RUN DEBUG MODULE AT THE END OF TEST OUTPUT ---
+def run_debug_module():
+    print("\n" + "=" * 60)
+    print("🟡  [debug-module.py] Running optional debug diagnostics...\n")
+    try:
+        subprocess.run([sys.executable, "-u", "tests/debug-module.py"], check=False)
+    except Exception as e:
+        print("[debug-module.py] Exception running debug module:", e)
+    print("=" * 60)
+    print("🟡  [debug-module.py] Debug diagnostics complete.\n")
+
 if __name__ == "__main__":
     main()
+    run_debug_module()

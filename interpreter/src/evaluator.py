@@ -21,6 +21,36 @@ class ReturnSignal(Exception):
     def __init__(self, value):
         self.value = value
 
+# ── helper for auto-invoking function objects in any value context ──
+def _auto_invoke_if_fn(val):
+    global _env
+    # Convert raw block_expr tuples to EnzoFunction before invoking
+    if isinstance(val, tuple) and val[0] == "block_expr":
+        params, bindings, stmts, has_newline = val[1:]
+        val = EnzoFunction(params, stmts, _env)
+    if isinstance(val, EnzoFunction):
+        arg_values = []
+        for (param_name, default) in val.params:
+            if default is not None:
+                arg_values.append(eval_ast(default))
+            else:
+                arg_values.append(None)
+        call_env = val.closure_env.copy()
+        for (param_name, _), arg_val in zip(val.params, arg_values):
+            call_env[param_name] = arg_val
+        _prev_env = _env
+        _env = ChainMap(call_env, _prev_env)
+        try:
+            res = None
+            for stmt in val.body:
+                res = eval_ast(stmt)
+            return res
+        except ReturnSignal as ret:
+            return ret.value
+        finally:
+            _env = _prev_env
+    return val
+
 # ── handle a block of multiple statements ─────────────────────────────
 def eval_ast(node):
     global _env
@@ -45,6 +75,7 @@ def eval_ast(node):
         children = rest[0] if rest else []
         if children == [None]:
             children = []
+        # DO NOT auto-invoke! Just store as returned.
         return [eval_ast(el) for el in children]
 
     if typ == "table":
@@ -58,66 +89,17 @@ def eval_ast(node):
         if name not in _env:
             raise NameError(f"undefined: {name}")
         val = _env[name]
-        # --- Always auto-invoke EnzoFunction when referenced ---
-        if isinstance(val, EnzoFunction):
-            # Prepare arg values: use defaults or error if any param missing default (you may want to allow None as default)
-            arg_values = []
-            for (param_name, default) in val.params:
-                if default is not None:
-                    arg_values.append(eval_ast(default))
-                else:
-                    # If you want empty binds to count as default, allow None; otherwise, error:
-                    # For now, treat None as valid (will pass None as value)
-                    arg_values.append(None)
-            # Build call env
-            call_env = val.closure_env.copy()
-            for (param_name, _), arg_val in zip(val.params, arg_values):
-                call_env[param_name] = arg_val
-            # Evaluate body
-            try:
-                res = None
-                for stmt in val.body:
-                    res = eval_ast(stmt)
-            except ReturnSignal as ret:
-                return ret.value
-            return res
-        return val
+        # Always auto-invoke EnzoFunction when referenced (see below for DRY)
+        return _auto_invoke_if_fn(val)
 
-    # ──  block expression ──────────────────────────────────────────────
+    # ── block expression as value/expression ──
     if typ == "block_expr":
         params, bindings, stmts, has_newline = rest
-        parent_env = _env
-        local_env = {}
-        _env = ChainMap(local_env, parent_env)
-        try:
-            # Evaluate params first (params can be used in default values)
-            for name, expr in params:
-                if name in local_env:
-                    raise NameError(f"{name} already defined in block (param)")
-                local_env[name] = eval_ast(expr)
-            # Then bindings
-            for name, expr in bindings:
-                if name in local_env:
-                    raise NameError(f"{name} already defined in block (binding)")
-                local_env[name] = eval_ast(expr) if expr is not None else None
-            # Now evaluate stmts in local_env
-            if has_newline:
-                try:
-                    result = None
-                    for s in stmts:
-                        result = eval_ast(s)
-                    # If we get here, no return was executed!
-                    raise Exception("multi-line anonymous functions require explicit return")
-                except ReturnSignal as rs:
-                    return rs.value
-            else:
-                # single-line: implicit return of last statement
-                result = None
-                for s in stmts:
-                    result = eval_ast(s)
-                return result
-        finally:
-            _env = parent_env
+        # Always return a function atom, which gets auto-invoked everywhere else
+        return EnzoFunction(params, stmts, _env)
+
+    # Note: block_expr is now always a function atom. Its invocation is handled by _auto_invoke_if_fn in all value contexts.
+
 
     # ── function call ──────────────────────────────────────────────────
     if typ == "call":
@@ -153,16 +135,16 @@ def eval_ast(node):
     # ── arithmetic ───────────────────────────────────────────────────────
     if typ == "add":
         a, b = rest
-        return eval_ast(a) + eval_ast(b)
+        return _auto_invoke_if_fn(eval_ast(a)) + _auto_invoke_if_fn(eval_ast(b))
     if typ == "sub":
         a, b = rest
-        return eval_ast(a) - eval_ast(b)
+        return _auto_invoke_if_fn(eval_ast(a)) - _auto_invoke_if_fn(eval_ast(b))
     if typ == "mul":
         a, b = rest
-        return eval_ast(a) * eval_ast(b)
+        return _auto_invoke_if_fn(eval_ast(a)) * _auto_invoke_if_fn(eval_ast(b))
     if typ == "div":
         a, b = rest
-        return eval_ast(a) / eval_ast(b)
+        return _auto_invoke_if_fn(eval_ast(a)) / _auto_invoke_if_fn(eval_ast(b))
 
     # ── list indexing (1-based) ────────────────────────────────────────
     if typ == "index":
@@ -288,7 +270,8 @@ def eval_ast(node):
 
     # ── bare expression statement ─────────────────────────────────────────
     if typ == "expr":
-        return eval_ast(rest[0])
+        return _auto_invoke_if_fn(eval_ast(rest[0]))
+
 
     raise ValueError(f"unknown node: {typ}")
 
@@ -314,30 +297,21 @@ def _interp(s: str):
         if j == -1:
             out.append(s[i:])
             break
-        # Append text before "<"
         out.append(s[i:j])
-
-        # Find closing ">"
         k = s.find(">", j + 1)
         if k == -1:
             raise ValueError("unterminated interpolation in string")
-
-        # Extract inside-of-<...>, including any semicolons
         expr_src = s[j + 1 : k].strip()
-        # Split on semicolons to allow multiple expressions
         parts = [p.strip() for p in expr_src.split(";") if p.strip()]
         concatenated = ""
         for part in parts:
             try:
-                # For each sub‐expression, parse and evaluate it
                 expr_ast = parse(part)
                 val = eval_ast(expr_ast)
+                val = _auto_invoke_if_fn(val)
                 concatenated += str(val)
             except Exception:
-                # Raise a special error so the outer code can format it
                 raise InterpolationParseError()
         out.append(concatenated)
-
         i = k + 1
-
     return "".join(out)

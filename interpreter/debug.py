@@ -1,22 +1,25 @@
 #!/usr/bin/env python3
 from src.parser import parse
-from lark import Tree
+from src.evaluator import eval_ast, _env
 
-code = """
-adder: (
-param $x: 6;
-param $y: 6;
-return(($y + $x));
-);
+def debug_expr(src):
+    print("Source:", src)
+    ast = parse(src)
+    print("AST:", ast)
+    try:
+        result = eval_ast(ast)
+        print("Result:", result)
+    except Exception as e:
+        print("Exception:", e)
 
-adder();
-$adder();
-"""
+# Try the problematic case(s):
+# Case 1: Paren expression as top-level
+debug_expr("(10 + 5);")
 
-try:
-    tree = parse(code)
-    print("=== PARSED AST ===")
-    print(tree)
-except Exception as e:
-    print("=== PARSE ERROR ===")
-    print(e)
+# Case 2: Arithmetic with bound math functions
+_env.clear()
+debug_expr("$math1: (10); $math2: (5); ($math1 + $math2);")
+
+# Case 3: String interpolation with paren
+_env.clear()
+debug_expr('"2 times 2 is <(2*2)>.";')

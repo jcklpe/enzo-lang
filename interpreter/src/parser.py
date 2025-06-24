@@ -98,8 +98,16 @@ class AST(Transformer):
         return ("var", tok[0].value)
 
     def block_body(self, items):
-        # filter out separators AND newlines
-        return [x for x in items if x is not None and not (isinstance(x, Token) and x.type == "NEWLINE")]
+        # Remove tokens, flatten any nested lists
+        flat = []
+        for x in items:
+            if x is None: continue
+            if isinstance(x, Token): continue
+            if isinstance(x, list):
+                flat.extend(x)
+            else:
+                flat.append(x)
+        return flat
 
     def block_item(self, items):
         # Flatten nested items (needed for some edge-cases in param/return)
