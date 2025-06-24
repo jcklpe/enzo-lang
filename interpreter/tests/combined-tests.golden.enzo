@@ -282,6 +282,7 @@ error: multi-line anonymous functions require explicit return
 //= Bare parens
 6
 //= Multi-line with params and default values
+<function () ...>
 12
 12
 12

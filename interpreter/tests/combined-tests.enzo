@@ -289,4 +289,5 @@ return(($y + $x));
 
 adder();                       // prints 12
 $adder();                      // prints 12
+$adder;                      // prints 12
 
