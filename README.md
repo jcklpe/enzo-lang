@@ -3,11 +3,11 @@
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jcklpe/enzo-lang/blob/master/interpreter/demo.ipynb)
 
-Code is the ultimate user interface. It is the final user interface on which all other user interfaces are built. So I think it’s interesting to explore this space as a UX designer. I have no intention of actually implementing it but playing with syntax like this helps me better understand programming concepts as I’m learning them.
+Code is the ultimate user interface. It is the final user interface on which all other user interfaces are built. So I think it’s interesting to explore this space as a UX designer. 
 
-This is just sort of fantasy sketch of what I think a nice language syntax would look like. As I'm learning programming stuff, I'll make notes on what I don't understand or find confusing, and I sketch out what I think could be different, which provides a creative outlet and helps me to better understand the real programming language that I'm trying to learn.
+Originally this started as a fantasy sketch of what I thought a nice language syntax would look like. As I was learning programming stuff, I'd get frustrated or find a particular way of doing things ugly or confusing, so I'd creatively vent by writing this document and it helped me understand the programming concepts for the real language I was learning. I had no intention of implementing it, but now I am!
 
-I'm def interested in feedback but also understand that this is basically just a kid drawing pictures of racecars and wishing he was Batman. I'm doing this for my own enjoyment and to help me better understand programming.
+I'm def interested in feedback but also understand that this is basically just a kid drawing pictures of racecars and wishing he was Batman. I'm doing this for my own enjoyment and to help me better understand programming, and I make no pretense that this language is going to ever be used in the real world, or is superior to existing languages in any fashion, aesthetic or otherwise. This is more of an art project. 
 
 Also want to give a shout out to the ["Quorum Language Project"](https://quorumlanguage.com/) for opening my eyes to the intersection between UX practice and syntax design.
 
@@ -190,7 +190,7 @@ Function atoms can also have keynames declared inside of them like so:
 ($x: 5, $y: 5; $x * $y); // commas can also be used to separate keyname assignment declarations
 ```
 
-Function atoms can also be multi-line though they require explicit return function:
+Function atoms can also be multi-line:
 ```javascript!
 (
 $x: 100;
@@ -198,6 +198,8 @@ $y: 100;
 return(($x + $y));
 ); // returns 200
 ```
+
+Single line function atoms do not require an explicit return. Multi-line function atoms must always have an explicit return. 
 
 Function atoms can also be assigned to a keyname. 
 ```javascript!
@@ -232,7 +234,6 @@ function2();     // returns 9
 $function2();    // returns 9
 $function2(5);   // returns 10
 ```
-Use $-bound nameless functions when the value the function returns is the primary focus, when the function itself feels like data in your mental model.
 
 ##### Empty variables (null, undefined)
 
@@ -310,7 +311,7 @@ function-example2: (
     param $second-number: ;
     param $third-number: number: ;
 
-    return(($first-number * $second-number / $third-number);
+    return(($first-number * $second-number / $third-number));
 )
 
 // arguments can be assigned to parameters either by order
@@ -338,10 +339,16 @@ $function-name();
 $function-name;
 ```
 
+A function name with no sigil or parens is always an error:
+```javascript!
+function-name; // this is always an error!
+```
+
 Referencing a function however has an `@` sigil:
 
 ```javascript!
-@function-name;
+@function-name;   // returns the function object
+@function-name(); // this is an error. You can't do this. 
 ```
 
 Example of this in action:
@@ -768,19 +775,22 @@ $thirdUppercaseColor:
 
 1. Enzo is expression oriented rather than statement oriented.
 2. Enzo is static (lexical) scoped.
+3. Enzo does not use parentheses for the dual purpose of groupings and code blocks. All parentheses are anon-functions/expression-blocks/code-blocks, however you want to phrase it. In this way Enzo is a lot like LISP. There is no meaningful distinction between `(10 + 2)` and `($x + 4)`. 
+4. 
 
 ---
 
 ## Operator Precedence
-
+(the following might be out of date and is subject to change)
 1. table property invocation (`.`)
 2. function invocation
 3. multiplication and division ( `*`, `/` )
 4. addition, subtraction (`+`, `-`)
-5. comparison operators (`is`, `not`, `is not`, `less than`, `greather than`, `at most`, `at least` )
-6. logical operators (`and`, `or`)
-7. pipeline operator (`then`)
-8. variable declaration and assignment ( `:` `<:` `:>`)
+5. variable declaration and assignment ( `:` `<:` `:>`)
+6. pipeline operator (`then`)
+7. comparison operators (`is`, `not`, `is not`, `less than`, `greather than`, `at most`, `at least` )
+8. logical operators (`and`, `or`)
+
 
 ## Desugaring catalogue
 | Sugar syntax                                    | Core form after parse-rewrite               |
