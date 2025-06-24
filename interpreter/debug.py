@@ -1,25 +1,24 @@
 #!/usr/bin/env python3
-from src.parser import parse
-from src.evaluator import eval_ast, _env
+from lark import Lark, Transformer
 
-def debug_expr(src):
-    print("Source:", src)
-    ast = parse(src)
-    print("AST:", ast)
-    try:
-        result = eval_ast(ast)
-        print("Result:", result)
-    except Exception as e:
-        print("Exception:", e)
+grammar = """
+?start: expr
+?expr: atom
+     | expr "+" atom   -> add
+     | expr "*" atom   -> mul
+?atom: NUMBER           -> number
+     | "(" expr ")"     -> paren
+%import common.NUMBER
+%import common.WS
+%ignore WS
+"""
 
-# Try the problematic case(s):
-# Case 1: Paren expression as top-level
-debug_expr("(10 + 5);")
+class AST(Transformer):
+    def number(self, v): return int(v[0])
+    def add(self, v): return ("add", v[0], v[1])
+    def mul(self, v): return ("mul", v[0], v[1])
+    def paren(self, v): return v[0]
 
-# Case 2: Arithmetic with bound math functions
-_env.clear()
-debug_expr("$math1: (10); $math2: (5); ($math1 + $math2);")
-
-# Case 3: String interpolation with paren
-_env.clear()
-debug_expr('"2 times 2 is <(2*2)>.";')
+parser = Lark(grammar, parser='lalr', transformer=AST())
+tree = parser.parse("(10 + 5)")
+print(tree)

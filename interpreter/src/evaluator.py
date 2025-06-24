@@ -24,9 +24,16 @@ class ReturnSignal(Exception):
 # ── helper for auto-invoking function objects in any value context ──
 def _auto_invoke_if_fn(val):
     global _env
-    # Convert raw block_expr tuples to EnzoFunction before invoking
     if isinstance(val, tuple) and val[0] == "block_expr":
         params, bindings, stmts, has_newline = val[1:]
+        # Single-line, no params/bindings: treat as value, not function
+        if not params and not bindings and len(stmts) == 1:
+            # Directly evaluate the single statement
+            return eval_ast(stmts[0])
+        # Multi-line anonymous blocks require explicit return (if called directly)
+        if not params and not bindings and len(stmts) > 1:
+            # Only legal if called as a function (should be enforced in block_expr handler)
+            raise ValueError("multi-line anonymous functions require explicit return")
         val = EnzoFunction(params, stmts, _env)
     if isinstance(val, EnzoFunction):
         arg_values = []
@@ -95,8 +102,42 @@ def eval_ast(node):
     # ── block expression as value/expression ──
     if typ == "block_expr":
         params, bindings, stmts, has_newline = rest
-        # Always return a function atom, which gets auto-invoked everywhere else
-        return EnzoFunction(params, stmts, _env)
+        # Simple group: just (expr)
+        if not params and not bindings and len(stmts) == 1:
+            return eval_ast(stmts[0])
+
+        # Multi-line, no params/bindings, NO explicit return: error!
+        if not params and not bindings and len(stmts) > 1:
+            has_return = any(isinstance(s, tuple) and s[0] == "return" for s in stmts)
+            if not has_return:
+                raise ValueError("multi-line anonymous functions require explicit return")
+
+        # If used as value (i.e., NOT assigned to a name), immediately invoke with local scope
+        # Detect by walking up the call stack, or just always immediately invoke if not being assigned
+        # (We're inside eval_ast, so to avoid side effects, let's be explicit:
+        # - If block_expr is hit here, outside of a bind/rebind/call context, it must be immediately evaluated)
+        local_env = {}
+        # Add param default values (should be none in paren form, but for future proof)
+        for name, default in params:
+            local_env[name] = eval_ast(default) if default is not None else None
+        # Add block bindings
+        for name, expr in bindings:
+            local_env[name] = eval_ast(expr)
+
+        # Save current env
+        # global _env
+        prev_env = _env
+        _env = ChainMap(local_env, _env)
+        try:
+            res = None
+            for stmt in stmts:
+                res = eval_ast(stmt)
+        except ReturnSignal as ret:
+            _env = prev_env
+            return ret.value
+        finally:
+            _env = prev_env
+        return res
 
     # Note: block_expr is now always a function atom. Its invocation is handled by _auto_invoke_if_fn in all value contexts.
 

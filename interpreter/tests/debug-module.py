@@ -16,6 +16,7 @@ def debug_case(source):
         except Exception as e:
             print("Exception during eval:", type(e).__name__, e)
             print(traceback.format_exc(limit=2))
+            traceback.print_exc()
     except Exception as e:
         print("Exception during parse:", type(e).__name__, e)
         print(traceback.format_exc(limit=2))
@@ -31,6 +32,7 @@ def run_debug_module():
         debug_case(src)
     print("=" * 60)
     print("[debug-module.py] End of debug output.\n")
+
 
 if __name__ == "__main__":
     run_debug_module()

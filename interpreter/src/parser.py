@@ -98,13 +98,18 @@ class AST(Transformer):
         return ("var", tok[0].value)
 
     def block_body(self, items):
-        # Remove tokens, flatten any nested lists
+        # Remove tokens, flatten nested lists, filter only AST nodes
         flat = []
         for x in items:
-            if x is None: continue
-            if isinstance(x, Token): continue
+            if x is None:
+                continue
+            if isinstance(x, Token):
+                continue
             if isinstance(x, list):
-                flat.extend(x)
+                for y in x:
+                    if y is None or isinstance(y, Token):
+                        continue
+                    flat.append(y)
             else:
                 flat.append(x)
         return flat
@@ -125,7 +130,7 @@ class AST(Transformer):
 
 
     def block_expr(self, items):
-        # Flattens nested block_exprs and collects params/bindings/statements at top level
+        # Flatten block items into params, bindings, stmts (ignore any Tokens or nested lists)
         params = []
         bindings = []
         stmts = []
@@ -146,13 +151,24 @@ class AST(Transformer):
                 return [], [], [block]
 
         for it in items:
-            p, b, s = extract_block_parts(it)
-            params += p
-            bindings += b
-            stmts += s
+            # Filter out tokens/lists here too
+            if it is None or isinstance(it, Token):
+                continue
+            if isinstance(it, list):
+                for sub in it:
+                    if sub is None or isinstance(sub, Token):
+                        continue
+                    p, b, s = extract_block_parts(sub)
+                    params += p
+                    bindings += b
+                    stmts += s
+            else:
+                p, b, s = extract_block_parts(it)
+                params += p
+                bindings += b
+                stmts += s
 
-        # For now, keep is_multiline as False (restore old logic if needed)
-        is_multiline = False
+        is_multiline = False  # (can be updated if you want later)
         return ("block_expr", params, bindings, stmts, is_multiline)
 
 
