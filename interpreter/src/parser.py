@@ -129,12 +129,24 @@ class AST(Transformer):
         return None
 
 
-    def block_expr(self, items):
-        # Flatten block items into params, bindings, stmts (ignore any Tokens or nested lists)
-        params = []
-        bindings = []
-        stmts = []
+    def block_expr_single(self, items):
+        # items is a Tree or list, possibly deeply nested.
+        # Always unwrap to tuple here!
+        if isinstance(items, list) and len(items) == 1 and isinstance(items[0], tuple) and items[0][0] == "block_expr":
+            return items[0]  # Already transformed!
+        params, bindings, stmts = self._block_parts(items)
+        return ("block_expr", params, bindings, stmts, False)
 
+    def block_expr_multi(self, items):
+        # Always unwrap to tuple here!
+        if isinstance(items, list) and len(items) == 1 and isinstance(items[0], tuple) and items[0][0] == "block_expr":
+            return items[0]  # Already transformed!
+        params, bindings, stmts = self._block_parts(items)
+        return ("block_expr", params, bindings, stmts, True)
+
+    def _block_parts(self, items):
+        # Flatten block items into params, bindings, stmts
+        params, bindings, stmts = [], [], []
         def extract_block_parts(block):
             if not isinstance(block, tuple):
                 return [], [], [block]
@@ -149,9 +161,7 @@ class AST(Transformer):
                 return [], [ (block[1], None) ], []
             else:
                 return [], [], [block]
-
         for it in items:
-            # Filter out tokens/lists here too
             if it is None or isinstance(it, Token):
                 continue
             if isinstance(it, list):
@@ -167,9 +177,7 @@ class AST(Transformer):
                 params += p
                 bindings += b
                 stmts += s
-
-        is_multiline = False  # (can be updated if you want later)
-        return ("block_expr", params, bindings, stmts, is_multiline)
+        return params, bindings, stmts
 
 
 
@@ -280,5 +288,24 @@ class AST(Transformer):
         return [x for x in items if isinstance(x, tuple) and len(x) == 2]
 
 
+def ast_sanitize(node):
+    from lark import Tree, Token
+    if isinstance(node, Tree):
+        # Recursively convert Lark Tree to tuple of its sanitized children
+        return tuple(ast_sanitize(c) for c in node.children)
+    elif isinstance(node, Token):
+        # Always extract .value from Tokens
+        return node.value
+    elif isinstance(node, list):
+        return [ast_sanitize(x) for x in node]
+    elif isinstance(node, tuple):
+        return tuple(ast_sanitize(x) for x in node)
+    elif isinstance(node, dict):
+        return {k: ast_sanitize(v) for k, v in node.items()}
+    else:
+        return node
+
 def parse(src: str):
-    return AST().transform(_parser.parse(src))
+    tree = _parser.parse(src)
+    ast = AST().transform(tree)
+    return ast_sanitize(ast)

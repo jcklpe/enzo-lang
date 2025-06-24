@@ -17,6 +17,10 @@ class EnzoFunction:
     def __repr__(self):
         return f"<function ({', '.join(p[0] for p in self.params)}) ...>"
 
+def is_fn_atom(val):
+    return isinstance(val, EnzoFunction) or (isinstance(val, tuple) and val[0] == "block_expr")
+
+
 class ReturnSignal(Exception):
     def __init__(self, value):
         self.value = value
@@ -39,36 +43,33 @@ def _pretty_block_error(params, bindings, stmts):
     block_str = "(\n" + "\n".join(code_lines) + "\n);"
     return block_str
 
-def check_explicit_return(params, bindings, stmts):
-    # Enforce: If block has >1 statement and no return, it's an error.
-    has_return = any(isinstance(s, tuple) and s[0] == "return" for s in stmts)
-    if len(stmts) > 1 and not has_return:
-        block_str = _pretty_block_error(params, bindings, stmts)
-        raise ValueError(
-            "multi-line anonymous functions require explicit return\n"
-            + block_str +
-            "\n    " + "^" * (len(block_str.strip()))
-        )
+def check_explicit_return(params, bindings, stmts, has_newline):
+    """
+    Require explicit return for all multi-line function atoms (named or anon).
+    """
+    if has_newline:
+        has_return = any(isinstance(s, tuple) and s[0] == "return" for s in stmts)
+        if not has_return:
+            block_str = _pretty_block_error(params, bindings, stmts)
+            raise ValueError(
+                "multi-line function atoms require explicit return\n"
+                + block_str +
+                "\n    " + "^" * (len(block_str.strip()))
+            )
 
 def _auto_invoke_if_fn(val):
     global _env
+    # block_expr auto-wrap to EnzoFunction, check return rule if multi-line
     if isinstance(val, tuple) and val[0] == "block_expr":
         params, bindings, stmts, has_newline = val[1:]
-        # Only enforce error for direct evaluation
-        check_explicit_return(params, bindings, stmts)
-        if len(stmts) == 1:
-            return eval_ast(stmts[0])
-        val = EnzoFunction(params, stmts, _env)
+        check_explicit_return(params, bindings, stmts, has_newline)
+        fn = EnzoFunction(params, stmts, _env)
+        val = fn
     if isinstance(val, EnzoFunction):
-        arg_values = []
-        for (param_name, default) in val.params:
-            if default is not None:
-                arg_values.append(eval_ast(default))
-            else:
-                arg_values.append(None)
         call_env = val.closure_env.copy()
-        for (param_name, _), arg_val in zip(val.params, arg_values):
-            call_env[param_name] = arg_val
+        # All parameters get their default values in auto-invoke context
+        for (param_name, default) in val.params:
+            call_env[param_name] = eval_ast(default) if default is not None else None
         _prev_env = _env
         _env = ChainMap(call_env, _prev_env)
         try:
@@ -89,10 +90,14 @@ def eval_ast(node):
 
     # ── “block” means “evaluate each child in turn, return last” ───────
     if typ == "block":
-        stmts = rest[0]                # a Python list of AST‐nodes
+        stmts = rest[0]  # a Python list of AST‐nodes
         result = None
         for stmt_node in stmts:
-            result = eval_ast(stmt_node)
+            # TOP LEVEL: if it's a block_expr, auto-invoke it!
+            if isinstance(stmt_node, tuple) and stmt_node[0] == "block_expr":
+                result = _auto_invoke_if_fn(stmt_node)
+            else:
+                result = eval_ast(stmt_node)
         return result
 
     # ── literals / lookup ───────────────────────────────────────────────────────
@@ -130,7 +135,6 @@ def eval_ast(node):
     # ── block expression as value/expression ──
     if typ == "block_expr":
         params, bindings, stmts, has_newline = rest
-        check_explicit_return(params, bindings, stmts)
         local_env = {}
         for name, default in params:
             local_env[name] = eval_ast(default) if default is not None else None
@@ -156,7 +160,7 @@ def eval_ast(node):
     if typ == "call":
         # node = ("call", func_name, [args...])
         funcname, args = rest
-        func = _env[funcname]
+        func = _env[funcname] if funcname in _env else _env.get('$' + funcname)
         if not isinstance(func, EnzoFunction):
             raise TypeError(f"{funcname} is not a function")
         if len(args) > len(func.params):
@@ -168,14 +172,17 @@ def eval_ast(node):
         # Fill in any missing params using their defaults
         if len(args) < len(func.params):
             for (param_name, default) in func.params[len(args):]:
-                call_env[param_name] = eval_ast(default)
-        # Run body in this new env
+                call_env[param_name] = eval_ast(default) if default is not None else None
+        _prev_env = _env
+        _env = ChainMap(call_env, _prev_env)
         try:
             res = None
             for stmt in func.body:
                 res = eval_ast(stmt)
         except ReturnSignal as ret:
             return ret.value
+        finally:
+            _env = _prev_env
         return res
 
     # ── return statement ───────────────────────────────────────────────
@@ -186,16 +193,24 @@ def eval_ast(node):
     # ── arithmetic ───────────────────────────────────────────────────────
     if typ == "add":
         a, b = rest
-        return _auto_invoke_if_fn(eval_ast(a)) + _auto_invoke_if_fn(eval_ast(b))
+        aval = eval_ast(a)
+        bval = eval_ast(b)
+        return _auto_invoke_if_fn(aval) + _auto_invoke_if_fn(bval)
     if typ == "sub":
         a, b = rest
-        return _auto_invoke_if_fn(eval_ast(a)) - _auto_invoke_if_fn(eval_ast(b))
+        aval = eval_ast(a)
+        bval = eval_ast(b)
+        return _auto_invoke_if_fn(aval) - _auto_invoke_if_fn(bval)
     if typ == "mul":
         a, b = rest
-        return _auto_invoke_if_fn(eval_ast(a)) * _auto_invoke_if_fn(eval_ast(b))
+        aval = eval_ast(a)
+        bval = eval_ast(b)
+        return _auto_invoke_if_fn(aval) * _auto_invoke_if_fn(bval)
     if typ == "div":
         a, b = rest
-        return _auto_invoke_if_fn(eval_ast(a)) / _auto_invoke_if_fn(eval_ast(b))
+        aval = eval_ast(a)
+        bval = eval_ast(b)
+        return _auto_invoke_if_fn(aval) / _auto_invoke_if_fn(bval)
 
     # ── list indexing (1-based) ────────────────────────────────────────
     if typ == "index":
@@ -263,15 +278,17 @@ def eval_ast(node):
         # Disallow redeclaration, even if it's still None (empty)
         if name in _env:
             raise NameError(f"{name} already defined")
-        # If the right-hand side is a block_expr, store as a function, not its value!
+        # Always store block_expr as EnzoFunction, never auto-invoked!
         if isinstance(expr_ast, tuple) and expr_ast[0] == "block_expr":
-            params, bindings, stmts, is_multiline = expr_ast[1:]
+            params, bindings, stmts, has_newline = expr_ast[1:]
+            check_explicit_return(params, bindings, stmts, has_newline)
             fn = EnzoFunction(params, stmts, _env)
             _env[name] = fn
             return fn
         # Otherwise, evaluate and store result as usual
-        _env[name] = eval_ast(expr_ast)
-        return _env[name]
+        val = eval_ast(expr_ast)
+        _env[name] = val
+        return val
 
     if typ == "bind_empty":
         name = rest[0]

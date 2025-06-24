@@ -60,10 +60,19 @@ return_stmt: RETURN "(" expr ")" ";"
 #         );
 ##############################################################################
 
-# All parens become block_expr, with any order/combination of bindings, params, statements (including return), and expressions.
-block_expr: LPAR block_body RPAR
+block_expr: block_expr_single | block_expr_multi
 
-block_body: _nl* (block_item block_sep)* block_item block_sep? _nl*
+# Single-line block: no NEWLINE allowed between LPAR and RPAR (all semicolon/comma separated)
+block_expr_single: LPAR block_body_single RPAR
+block_body_single: (block_item block_sep_single)* block_item block_sep_single?
+block_sep_single: "," | ";"
+
+# Multi-line block: must contain at least one NEWLINE between LPAR and RPAR
+block_expr_multi: LPAR _ml_start block_body_multi RPAR
+# Require at least one NEWLINE after LPAR, before RPAR, or between items
+_ml_start: _nl+
+block_body_multi: (block_item block_sep_multi)* block_item block_sep_multi?
+block_sep_multi: _nl* ("," | ";") _nl+  | _nl+
 
 block_item: param_binding
           | block_binding
