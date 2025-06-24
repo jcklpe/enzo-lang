@@ -22,18 +22,42 @@ class ReturnSignal(Exception):
         self.value = value
 
 # ── helper for auto-invoking function objects in any value context ──
+def _pretty_block_error(params, bindings, stmts):
+    code_lines = []
+    for stmt in stmts:
+        if isinstance(stmt, tuple):
+            if stmt[0] == "bind":
+                code_lines.append(f" ${stmt[1]}: {stmt[2]};")
+            elif stmt[0] == "num":
+                code_lines.append(f" {stmt[1]};")
+            elif stmt[0] == "add":
+                code_lines.append(f" {stmt[1]} + {stmt[2]};")
+            else:
+                code_lines.append(f" {stmt};")
+        else:
+            code_lines.append(f" {stmt};")
+    block_str = "(\n" + "\n".join(code_lines) + "\n);"
+    return block_str
+
+def check_explicit_return(params, bindings, stmts):
+    # Enforce: If block has >1 statement and no return, it's an error.
+    has_return = any(isinstance(s, tuple) and s[0] == "return" for s in stmts)
+    if len(stmts) > 1 and not has_return:
+        block_str = _pretty_block_error(params, bindings, stmts)
+        raise ValueError(
+            "multi-line anonymous functions require explicit return\n"
+            + block_str +
+            "\n    " + "^" * (len(block_str.strip()))
+        )
+
 def _auto_invoke_if_fn(val):
     global _env
     if isinstance(val, tuple) and val[0] == "block_expr":
         params, bindings, stmts, has_newline = val[1:]
-        # Single-line, no params/bindings: treat as value, not function
-        if not params and not bindings and len(stmts) == 1:
-            # Directly evaluate the single statement
+        # Only enforce error for direct evaluation
+        check_explicit_return(params, bindings, stmts)
+        if len(stmts) == 1:
             return eval_ast(stmts[0])
-        # Multi-line anonymous blocks require explicit return (if called directly)
-        if not params and not bindings and len(stmts) > 1:
-            # Only legal if called as a function (should be enforced in block_expr handler)
-            raise ValueError("multi-line anonymous functions require explicit return")
         val = EnzoFunction(params, stmts, _env)
     if isinstance(val, EnzoFunction):
         arg_values = []
@@ -93,39 +117,25 @@ def eval_ast(node):
 
     if typ == "var":
         name = rest[0]
+        # Try raw name, then without $ if not found
         if name not in _env:
-            raise NameError(f"undefined: {name}")
+            alt_name = name[1:] if name.startswith('$') else ('$' + name)
+            if alt_name in _env:
+                name = alt_name
+            else:
+                raise NameError(f"undefined: {name}")
         val = _env[name]
-        # Always auto-invoke EnzoFunction when referenced (see below for DRY)
         return _auto_invoke_if_fn(val)
 
     # ── block expression as value/expression ──
     if typ == "block_expr":
         params, bindings, stmts, has_newline = rest
-        # Simple group: just (expr)
-        if not params and not bindings and len(stmts) == 1:
-            return eval_ast(stmts[0])
-
-        # Multi-line, no params/bindings, NO explicit return: error!
-        if not params and not bindings and len(stmts) > 1:
-            has_return = any(isinstance(s, tuple) and s[0] == "return" for s in stmts)
-            if not has_return:
-                raise ValueError("multi-line anonymous functions require explicit return")
-
-        # If used as value (i.e., NOT assigned to a name), immediately invoke with local scope
-        # Detect by walking up the call stack, or just always immediately invoke if not being assigned
-        # (We're inside eval_ast, so to avoid side effects, let's be explicit:
-        # - If block_expr is hit here, outside of a bind/rebind/call context, it must be immediately evaluated)
+        check_explicit_return(params, bindings, stmts)
         local_env = {}
-        # Add param default values (should be none in paren form, but for future proof)
         for name, default in params:
             local_env[name] = eval_ast(default) if default is not None else None
-        # Add block bindings
         for name, expr in bindings:
             local_env[name] = eval_ast(expr)
-
-        # Save current env
-        # global _env
         prev_env = _env
         _env = ChainMap(local_env, _env)
         try:

@@ -1,38 +1,24 @@
-# tests/debug-module.py
-
 from src.parser import parse
-from src.evaluator import eval_ast
-import traceback
+from src.evaluator import eval_ast, InterpolationParseError
 
-def debug_case(source):
-    print("=" * 60)
-    print(f"Source: {source}")
+test_cases = [
+    # Multi-line anonymous, no explicit return
+    "($x: 1;\n $y: 2;\n $x + $y;\n);",
+    # Multi-line with explicit return
+    "(\n$x: 100;\n$y: 100;\nreturn(($x + $y));\n);",
+    # Param + default values, multi-line
+    "adder: (\nparam $x: 6;\nparam $y: 6;\nreturn(($y + $x));\n); adder(); $adder(); $adder;",
+]
+
+for src in test_cases:
+    print("="*60)
+    print("Source:", src)
     try:
-        ast = parse(source)
+        ast = parse(src)
         print("AST:", ast)
-        try:
-            result = eval_ast(ast)
-            print("Result:", result)
-        except Exception as e:
-            print("Exception during eval:", type(e).__name__, e)
-            print(traceback.format_exc(limit=2))
-            traceback.print_exc()
+        result = eval_ast(ast)
+        print("Result:", result)
     except Exception as e:
-        print("Exception during parse:", type(e).__name__, e)
-        print(traceback.format_exc(limit=2))
-
-def run_debug_module():
-    CASES = [
-        "(10 + 5);",
-        "$math1: (10); $math2: (5); ($math1 + $math2);",
-        '"2 times 2 is <(2*2)>.";',
-        # Add more minimal or pathological cases as you need!
-    ]
-    for src in CASES:
-        debug_case(src)
-    print("=" * 60)
-    print("[debug-module.py] End of debug output.\n")
-
-
-if __name__ == "__main__":
-    run_debug_module()
+        print("Exception during eval:", e)
+print("="*60)
+print("[debug-module.py] End of debug output.\n")
