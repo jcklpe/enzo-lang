@@ -4,7 +4,7 @@
 
 ##############################################################################
 # Only atoms may be top-level statements, NOT arbitrary expressions.
-# Atoms = number, string, list, table, block_expr (function atom)
+# Atoms = number, string, list, table, function_atom (function atom)
 ##############################################################################
 start: _nl* stmt (";" _nl* stmt)* ";"? _nl*
 
@@ -38,7 +38,7 @@ return_stmt: RETURN "(" expr ")" ";"
 
 ?primary: list_literal
         | table_literal
-        | block_expr              -> block_expr
+        | function_atom              -> function_atom
         | call                    -> call
         | SIGNED_NUMBER           -> number
         | STRING                  -> string
@@ -60,18 +60,18 @@ return_stmt: RETURN "(" expr ")" ";"
 #         );
 ##############################################################################
 
-block_expr: block_expr_single | block_expr_multi
+function_atom: function_atom_single | function_atom_multi
 
 # Single-line block: no NEWLINE allowed between LPAR and RPAR (all semicolon/comma separated)
-block_expr_single: LPAR block_body_single RPAR
-block_body_single: (block_item block_sep_single)* block_item block_sep_single?
+function_atom_single: LPAR function_atom_body_single RPAR
+function_atom_body_single: (block_item block_sep_single)* block_item block_sep_single?
 block_sep_single: "," | ";"
 
 # Multi-line block: must contain at least one NEWLINE between LPAR and RPAR
-block_expr_multi: LPAR _ml_start block_body_multi RPAR
+function_atom_multi: LPAR _ml_start function_atom_body_multi RPAR
 # Require at least one NEWLINE after LPAR, before RPAR, or between items
 _ml_start: _nl+
-block_body_multi: (block_item block_sep_multi)* block_item block_sep_multi?
+function_atom_body_multi: (block_item block_sep_multi)* block_item block_sep_multi?
 block_sep_multi: _nl* ("," | ";") _nl+  | _nl+
 
 block_item: param_binding
@@ -116,7 +116,7 @@ NEWLINE: /(\r?\n)+/
 
 LPAR: "("
 RPAR: ")"
-PARAM: "param"
+PARAM: "param_binding"
 RETURN: "return"
 
 %import common.SIGNED_NUMBER

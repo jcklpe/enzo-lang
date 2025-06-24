@@ -8,7 +8,7 @@ class InterpolationParseError(Exception):
 
 _env = {}  # single global environment
 
-class EnzoFunction:
+class FunctionAtomInstance:
     def __init__(self, params, body, closure_env):
         self.params = params          # list of (name, default)
         self.body = body              # list of AST stmts
@@ -18,7 +18,7 @@ class EnzoFunction:
         return f"<function ({', '.join(p[0] for p in self.params)}) ...>"
 
 def is_fn_atom(val):
-    return isinstance(val, EnzoFunction) or (isinstance(val, tuple) and val[0] == "block_expr")
+    return isinstance(val, FunctionAtomInstance) or (isinstance(val, tuple) and val[0] == "function_atom")
 
 
 class ReturnSignal(Exception):
@@ -32,7 +32,7 @@ def _pretty_block_error(params, bindings, stmts):
         if isinstance(stmt, tuple):
             if stmt[0] == "bind":
                 code_lines.append(f" ${stmt[1]}: {stmt[2]};")
-            elif stmt[0] == "num":
+            elif stmt[0] == "number":
                 code_lines.append(f" {stmt[1]};")
             elif stmt[0] == "add":
                 code_lines.append(f" {stmt[1]} + {stmt[2]};")
@@ -59,13 +59,13 @@ def check_explicit_return(params, bindings, stmts, has_newline):
 
 def _auto_invoke_if_fn(val):
     global _env
-    # block_expr auto-wrap to EnzoFunction, check return rule if multi-line
-    if isinstance(val, tuple) and val[0] == "block_expr":
+    # function_atom auto-wrap to FunctionAtomInstance, check return rule if multi-line
+    if isinstance(val, tuple) and val[0] == "function_atom":
         params, bindings, stmts, has_newline = val[1:]
         check_explicit_return(params, bindings, stmts, has_newline)
-        fn = EnzoFunction(params, stmts, _env)
+        fn = FunctionAtomInstance(params, stmts, _env)
         val = fn
-    if isinstance(val, EnzoFunction):
+    if isinstance(val, FunctionAtomInstance):
         call_env = val.closure_env.copy()
         # All parameters get their default values in auto-invoke context
         for (param_name, default) in val.params:
@@ -93,18 +93,18 @@ def eval_ast(node):
         stmts = rest[0]  # a Python list of AST‐nodes
         result = None
         for stmt_node in stmts:
-            # TOP LEVEL: if it's a block_expr, auto-invoke it!
-            if isinstance(stmt_node, tuple) and stmt_node[0] == "block_expr":
+            # TOP LEVEL: if it's a function_atom, auto-invoke it!
+            if isinstance(stmt_node, tuple) and stmt_node[0] == "function_atom":
                 result = _auto_invoke_if_fn(stmt_node)
             else:
                 result = eval_ast(stmt_node)
         return result
 
     # ── literals / lookup ───────────────────────────────────────────────────────
-    if typ == "num":
+    if typ == "number":
         return rest[0]
 
-    if typ == "str":
+    if typ == "text":
         return _interp(rest[0])
 
     if typ == "list":
@@ -133,7 +133,7 @@ def eval_ast(node):
         return _auto_invoke_if_fn(val)
 
     # ── block expression as value/expression ──
-    if typ == "block_expr":
+    if typ == "function_atom":
         params, bindings, stmts, has_newline = rest
         local_env = {}
         for name, default in params:
@@ -153,7 +153,7 @@ def eval_ast(node):
             _env = prev_env
         return res
 
-    # Note: block_expr is now always a function atom. Its invocation is handled by _auto_invoke_if_fn in all value contexts.
+    # Note: function_atom is now always a function atom. Its invocation is handled by _auto_invoke_if_fn in all value contexts.
 
 
     # ── function call ──────────────────────────────────────────────────
@@ -161,7 +161,7 @@ def eval_ast(node):
         # node = ("call", func_name, [args...])
         funcname, args = rest
         func = _env[funcname] if funcname in _env else _env.get('$' + funcname)
-        if not isinstance(func, EnzoFunction):
+        if not isinstance(func, FunctionAtomInstance):
             raise TypeError(f"{funcname} is not a function")
         if len(args) > len(func.params):
             raise TypeError("Too many arguments for function call")
@@ -278,11 +278,11 @@ def eval_ast(node):
         # Disallow redeclaration, even if it's still None (empty)
         if name in _env:
             raise NameError(f"{name} already defined")
-        # Always store block_expr as EnzoFunction, never auto-invoked!
-        if isinstance(expr_ast, tuple) and expr_ast[0] == "block_expr":
+        # Always store function_atom as FunctionAtomInstance, never auto-invoked!
+        if isinstance(expr_ast, tuple) and expr_ast[0] == "function_atom":
             params, bindings, stmts, has_newline = expr_ast[1:]
             check_explicit_return(params, bindings, stmts, has_newline)
-            fn = EnzoFunction(params, stmts, _env)
+            fn = FunctionAtomInstance(params, stmts, _env)
             _env[name] = fn
             return fn
         # Otherwise, evaluate and store result as usual

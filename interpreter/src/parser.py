@@ -21,7 +21,7 @@ class AST(Transformer):
         # items[0] == PARAM (Token or str), items[1] == NAME (Token), items[2] == expr
         name_tok = items[1]
         expr = items[2]
-        return ("param", name_tok.value, expr)
+        return ("param_binding", name_tok.value, expr)
 
     # ── Top‐level “start” folds into a block of statements ───────────────
     def start(self, v):
@@ -38,23 +38,23 @@ class AST(Transformer):
             tag = node[0]
             if tag == "return":
                 raise SyntaxError("return(...) is only allowed inside block expressions, not at the top level.")
-            if tag in ("bind", "rebind", "bind_empty", "num", "str", "list", "table", "block_expr", "expr"):
+            if tag in ("bind", "rebind", "bind_empty", "number", "text", "list", "table", "function_atom", "expr"):
                 return node
             # If we ever see ("expr", ...) at top-level, only allow if it's an atom inside
             if tag == "expr":
                 inner = node[1]
-                if isinstance(inner, tuple) and inner[0] in ("num", "str", "list", "table", "block_expr"):
+                if isinstance(inner, tuple) and inner[0] in ("number", "text", "list", "table", "function_atom"):
                     return node
         # If we get here, this was an illegal top-level non-atom expr
         raise SyntaxError("Only atoms (number, string, list, table, function/block) are allowed as top-level statements. Wrap expressions in parens.")
 
     # ── literals ─────────────────────────────────────────────────────────
     def number(self, tok):
-        return ("num", int(tok[0]))
+        return ("number", int(tok[0]))
 
     def string(self, tok):
         # tok[0] looks like "\"hello\"", so strip the outer quotes
-        return ("str", tok[0][1:-1])
+        return ("text", tok[0][1:-1])
 
     def list(self, vals):
         # Lark gives: vals == [] for [], or [expr_list] for [a, ...]
@@ -129,20 +129,20 @@ class AST(Transformer):
         return None
 
 
-    def block_expr_single(self, items):
+    def function_atom_single(self, items):
         # items is a Tree or list, possibly deeply nested.
         # Always unwrap to tuple here!
-        if isinstance(items, list) and len(items) == 1 and isinstance(items[0], tuple) and items[0][0] == "block_expr":
+        if isinstance(items, list) and len(items) == 1 and isinstance(items[0], tuple) and items[0][0] == "function_atom":
             return items[0]  # Already transformed!
         params, bindings, stmts = self._block_parts(items)
-        return ("block_expr", params, bindings, stmts, False)
+        return ("function_atom", params, bindings, stmts, False)
 
-    def block_expr_multi(self, items):
+    def function_atom_multi(self, items):
         # Always unwrap to tuple here!
-        if isinstance(items, list) and len(items) == 1 and isinstance(items[0], tuple) and items[0][0] == "block_expr":
+        if isinstance(items, list) and len(items) == 1 and isinstance(items[0], tuple) and items[0][0] == "function_atom":
             return items[0]  # Already transformed!
         params, bindings, stmts = self._block_parts(items)
-        return ("block_expr", params, bindings, stmts, True)
+        return ("function_atom", params, bindings, stmts, True)
 
     def _block_parts(self, items):
         # Flatten block items into params, bindings, stmts
@@ -150,10 +150,10 @@ class AST(Transformer):
         def extract_block_parts(block):
             if not isinstance(block, tuple):
                 return [], [], [block]
-            if block[0] == "block_expr":
+            if block[0] == "function_atom":
                 inner_params, inner_bindings, inner_stmts, _ = block[1:]
                 return inner_params, inner_bindings, inner_stmts
-            elif block[0] == "param":
+            elif block[0] == "param_binding":
                 return [ (block[1], block[2]) ], [], []
             elif block[0] == "bind":
                 return [], [ (block[1], block[2]) ], []
@@ -229,7 +229,7 @@ class AST(Transformer):
         for t in toks:
             if isinstance(t, Token) and t.type == "DOTINT":
                 # e.g. ".3" → literal integer 3
-                idx_node = ("num", int(t[1:]))
+                idx_node = ("number", int(t[1:]))
                 node = ("index", node, idx_node)
 
             elif isinstance(t, Token) and t.type == "DOTVAR":

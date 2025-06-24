@@ -31,7 +31,7 @@
 - [ ] Update/add tests for reactivity and rebinding.
 
 ## 4. Top-Level Invocation/Statement Atoms
-- [ ] Make sure bare number, string, list, table, and block_expr atoms at the top level evaluate/return themselves (or evaluate block_expr).
+- [ ] Make sure bare number, string, list, table, and function_atom atoms at the top level evaluate/return themselves (or evaluate function_atom).
 - [ ] Audit parser to ensure only atoms can be top-level statements.
 - [ ] Audit parser to error on bare expressions at top level (except inside block).
 - [ ] Update/add tests for statement-style evaluation.
