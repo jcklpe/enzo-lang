@@ -1,10 +1,10 @@
 //= Redundant semicolons and whitespace
 Syntax error: Unexpected token ';' at line 1, column 1.
-Expected one of: FUNCNAME, LBRACE, LPAR, LSQB, NAME, NEWLINE, SIGNED_NUMBER, STRING
+Expected one of: FUNCNAME, LBRACE, LPAR, LSQB, NAME, NEWLINE, NUMBER_ATOM, STRING
     ;;;;;;
     ^
 Syntax error: Unexpected token ';' at line 1, column 1.
-Expected one of: FUNCNAME, LBRACE, LPAR, LSQB, NAME, NEWLINE, SIGNED_NUMBER, STRING
+Expected one of: FUNCNAME, LBRACE, LPAR, LSQB, NAME, NEWLINE, NUMBER_ATOM, STRING
     ;   ;
     ^
 //= Invalid parenthesis/brackets/braces

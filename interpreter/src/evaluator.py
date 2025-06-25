@@ -28,7 +28,7 @@ def _pretty_block_error(params, bindings, stmts):
         if isinstance(stmt, tuple):
             if stmt[0] == "bind":
                 code_lines.append(f" ${stmt[1]}: {stmt[2]};")
-            elif stmt[0] == "num":
+            elif stmt[0] == "number_atom":
                 code_lines.append(f" {stmt[1]};")
             elif stmt[0] == "add":
                 code_lines.append(f" {stmt[1]} + {stmt[2]};")
@@ -91,7 +91,7 @@ def eval_ast(node):
         return result
 
     # ── literals / lookup ───────────────────────────────────────────────────────
-    if typ == "num":
+    if typ == "number_atom":
         return rest[0]
 
     if typ == "text_atom":
@@ -196,7 +196,11 @@ def eval_ast(node):
     if typ == "index":
         base_ast, idx_ast = rest
         seq = eval_ast(base_ast)
-        idx = eval_ast(idx_ast)
+        # Accept both ('number_atom', n) and int for indices
+        if isinstance(idx_ast, tuple) and idx_ast[0] == "number_atom":
+            idx = idx_ast[1]
+        else:
+            idx = eval_ast(idx_ast) if isinstance(idx_ast, tuple) else idx_ast
         if not isinstance(seq, list):
             raise TypeError("index applies to lists")
         if not isinstance(idx, int):
@@ -212,15 +216,18 @@ def eval_ast(node):
         tbl = eval_ast(base_ast)
         if not isinstance(tbl, (dict, Table)):
             raise TypeError("property access applies to tables")
-        if prop_name not in tbl:
-            raise KeyError(prop_name)
-        return tbl[prop_name]
+        key_dollar = f"${prop_name}" if not prop_name.startswith("$") else prop_name
+        key_plain = prop_name.lstrip("$")
+        if key_dollar in tbl:
+            return tbl[key_dollar]
+        if key_plain in tbl:
+            return tbl[key_plain]
+        raise Exception(f"'{key_dollar}'")
 
     # ── single‐property or list‐index rebind (“expr .prop <: expr” or “expr .idx <: expr”) ─
     if typ == "prop_rebind":
         base_node, new_expr = rest
 
-        # Support rebinding for both ("attr", ...) (table property) and ("index", ...) (list element)
         if isinstance(base_node, tuple):
             # Table property: ("attr", table_node, prop_name)
             if base_node[0] == "attr":
@@ -228,17 +235,26 @@ def eval_ast(node):
                 tbl = eval_ast(table_node)
                 if not isinstance(tbl, (dict, Table)):
                     raise TypeError("property rebind applies to tables")
-                if prop_name not in tbl:
-                    raise KeyError(f"'{prop_name}' not found for rebinding")
-                new_val = eval_ast(new_expr)
-                tbl[prop_name] = new_val
-                return new_val
+                key_dollar = f"${prop_name}" if not prop_name.startswith("$") else prop_name
+                key_plain = prop_name.lstrip("$")
+                if key_dollar in tbl:
+                    tbl[key_dollar] = eval_ast(new_expr)
+                    return tbl[key_dollar]
+                if key_plain in tbl:
+                    tbl[key_plain] = eval_ast(new_expr)
+                    return tbl[key_plain]
+                # Always error as error: '$prop' not found for rebinding (no extra quotes)
+                raise Exception(f"'{key_dollar}' not found for rebinding")
 
             # List element: ("index", list_node, idx_node)
             elif base_node[0] == "index":
                 _, list_node, idx_node = base_node
                 seq = eval_ast(list_node)
-                idx = eval_ast(idx_node)
+                # Accept both ('number_atom', n) and int for indices
+                if isinstance(idx_node, tuple) and idx_node[0] == "number_atom":
+                    idx = idx_node[1]
+                else:
+                    idx = eval_ast(idx_node) if isinstance(idx_node, tuple) else idx_node
                 if not isinstance(seq, list):
                     raise TypeError("index applies to lists")
                 if not isinstance(idx, int):
@@ -246,9 +262,8 @@ def eval_ast(node):
                 i = idx - 1
                 if i < 0 or i >= len(seq):
                     raise IndexError("list index out of range")
-                new_val = eval_ast(new_expr)
-                seq[i] = new_val
-                return new_val
+                seq[i] = eval_ast(new_expr)
+                return seq[i]
 
         raise TypeError("property rebind applies to tables or lists")
 

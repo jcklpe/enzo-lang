@@ -18,7 +18,7 @@ def format_val(v):
       - Table → "{ $k1: val1, $k2: val2, … }"
       - list  → "[ val1, val2, … ]"
       - text_atom (Python str) → '"…"'
-      - int   → "123"
+      - number_atom (Python int/float) → "123"
       - other (float/bool/…) via str()
     """
     if isinstance(v, Table):

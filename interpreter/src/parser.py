@@ -38,19 +38,20 @@ class AST(Transformer):
             tag = node[0]
             if tag == "return":
                 raise SyntaxError("return(...) is only allowed inside block expressions, not at the top level.")
-            if tag in ("bind", "rebind", "bind_empty", "num", "str", "list", "table", "block_expr", "expr"):
+            if tag in ("bind", "rebind", "bind_empty", "number_atom", "text_atom", "list", "table", "block_expr", "expr"):
                 return node
             # If we ever see ("expr", ...) at top-level, only allow if it's an atom inside
             if tag == "expr":
                 inner = node[1]
-                if isinstance(inner, tuple) and inner[0] in ("num", "str", "list", "table", "block_expr"):
+                if isinstance(inner, tuple) and inner[0] in ("number_atom", "text_atom", "list", "table", "block_expr"):
                     return node
         # If we get here, this was an illegal top-level non-atom expr
-        raise SyntaxError("Only atoms (number, string, list, table, function/block) are allowed as top-level statements. Wrap expressions in parens.")
+        raise SyntaxError("Only atoms (number atom, text atom, list, table, function/block) are allowed as top-level statements. Wrap expressions in parens.")
 
     # ── literals ─────────────────────────────────────────────────────────
-    def number(self, tok):
-        return ("num", int(tok[0]))
+    def number_atom(self, tok):
+        # tok[0] is a string like '42' or '-3'
+        return ("number_atom", int(tok[0]))
 
     def text_atom(self, tok):
         # tok[0] looks like '"hello"', so strip the outer quotes
@@ -220,24 +221,22 @@ class AST(Transformer):
         node = base
         for t in toks:
             if isinstance(t, Token) and t.type == "DOTINT":
-                # e.g. ".3" → literal integer 3
-                idx_node = ("num", int(t[1:]))
+                # e.g. ".3" → literal integer 3 (as plain int, not number_atom)
+                idx_node = int(t[1:])
                 node = ("index", node, idx_node)
 
             elif isinstance(t, Token) and t.type == "DOTVAR":
                 # e.g. ".$foo" → lookup variable $foo
-                # t.value == ".$foo", so [1:] == "$foo"
-                idx_node = ("var", t.value[1:])
-                node = ("index", node, idx_node)
+                var_name = t[1:]
+                node = ("index", node, ("var", var_name))
 
             elif isinstance(t, Token) and t.type == "DOTPROP":
-                # e.g. ".foo" → attribute access of key "$foo"
-                prop_name = "$" + t.value[1:]  # t.value==".foo", so t.value[1:]=="foo"
+                # e.g. ".foo" → property access
+                prop_name = t[1:]
                 node = ("attr", node, prop_name)
 
             else:
-                raise ValueError(f"Unexpected token in index_chain: {t!r}")
-
+                raise Exception(f"Unknown index_chain token: {t!r}")
         return node
 
     # ── statements / assignments ─────────────────────────────────────────────────

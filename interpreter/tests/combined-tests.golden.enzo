@@ -150,7 +150,7 @@ error: index applies to lists
 { $x: 1 }
 99
 { $x: 99 }
-error: "'$y' not found for rebinding"
+error: '$y' not found for rebinding
     $tbl.y <: 42;
     ^^^^^^^^^^^^^
 //= Valid trailing commas (should succeed)
@@ -260,7 +260,7 @@ cool dude
 9
 3
 Syntax error: Unexpected token ';' at line 1, column 22.
-Expected one of: FUNCNAME, LBRACE, LPAR, LSQB, NAME, NEWLINE, SIGNED_NUMBER, STRING
+Expected one of: FUNCNAME, LBRACE, LPAR, LSQB, NAME, NEWLINE, NUMBER_ATOM, STRING
     $meaning-of-life: 42;;
                          ^
 //= Nameless functions one liner with implicit return

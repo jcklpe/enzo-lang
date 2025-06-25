@@ -4,7 +4,7 @@
 
 ##############################################################################
 # Only atoms may be top-level statements, NOT arbitrary expressions.
-# Atoms = number, text atom, list, table, block_expr (function atom)
+# Atoms = number atom, text atom, list, table, block_expr (function atom)
 ##############################################################################
 start: _nl* stmt (";" _nl* stmt)* ";"? _nl*
 
@@ -40,7 +40,7 @@ return_stmt: RETURN "(" expr ")" ";"
         | table_literal
         | block_expr              -> block_expr
         | call                    -> call
-        | SIGNED_NUMBER           -> number
+        | NUMBER_ATOM             -> number_atom
         | TEXT_ATOM               -> text_atom
         | NAME                    -> var
 
@@ -109,7 +109,7 @@ RPAR: ")"
 PARAM: "param"
 RETURN: "return"
 
-%import common.SIGNED_NUMBER
+%import common.SIGNED_NUMBER   -> NUMBER_ATOM
 %import common.ESCAPED_STRING   -> TEXT_ATOM
 %import common.WS_INLINE
 

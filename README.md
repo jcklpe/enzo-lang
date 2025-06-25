@@ -37,7 +37,7 @@ $keyname; // this invokes the atomvalue
 You use keynames to more easily invoke that atomvalue where you need in code. An atom bound to a keyname is a variable.
 
 There are 5 types of atoms. These types are [static but inferred](https://www.perplexity.ai/search/plain-language-explanation-of-bIpK7TNKTtCK.Ao8RdeIuw).
-#### Numbers
+#### Number atom
 A number atom is any [real number](https://en.wikipedia.org/wiki/Real_number).
 ```javascript!
 100;
@@ -835,5 +835,3 @@ toggle()
 // like saying status = !status
 
 ```
-
----

@@ -58,7 +58,7 @@ error: index applies to lists
 { $x: 1 }
 99
 { $x: 99 }
-error: "'$y' not found for rebinding"
+error: '$y' not found for rebinding
     $tbl.y <: 42;
     ^^^^^^^^^^^^^
 //= Valid trailing commas (should succeed)
