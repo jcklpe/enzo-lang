@@ -104,7 +104,7 @@ class AST(Transformer):
             return items[0]
         return items
 
-    def block_body(self, items):
+    def function_body(self, items):
         # Remove tokens, flatten nested lists, filter only AST nodes
         flat = []
         for x in items:

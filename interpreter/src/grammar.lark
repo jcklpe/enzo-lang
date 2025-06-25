@@ -61,9 +61,9 @@ return_stmt: RETURN "(" expr ")" ";"
 ##############################################################################
 
 # All parens become block_expr, with any order/combination of bindings, params, statements (including return), and expressions.
-block_expr: LPAR block_body RPAR
+block_expr: LPAR function_body RPAR
 
-block_body: _nl* (function_item block_sep)* function_item block_sep? _nl*
+function_body: _nl* (function_item block_sep)* function_item block_sep? _nl*
 
 function_item: param_binding
           | block_binding
