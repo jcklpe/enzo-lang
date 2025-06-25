@@ -16,12 +16,12 @@ _parser = Lark(
 
 
 class AST(Transformer):
-    def param_binding(self, items):
+    def function_param(self, items):
         # Always: [PARAM, NAME, expr], may get as tokens or tree, so just always pick last two.
         # items[0] == PARAM (Token or str), items[1] == NAME (Token), items[2] == expr
         name_tok = items[1]
         expr = items[2]
-        return ("param_binding", name_tok.value, expr)
+        return ("function_param", name_tok.value, expr)
 
     # ── Top‐level “start” folds into a block of statements ───────────────
     def start(self, v):
@@ -37,7 +37,7 @@ class AST(Transformer):
         if isinstance(node, tuple):
             tag = node[0]
             if tag == "return":
-                raise SyntaxError("return(...) is only allowed inside block expressions, not at the top level.")
+                raise SyntaxError("return(...) is only allowed inside function atoms, not at the top level.")
             if tag in ("bind", "rebind", "bind_empty", "number", "text", "list", "table", "function_atom", "expr"):
                 return node
             # If we ever see ("expr", ...) at top-level, only allow if it's an atom inside
@@ -57,26 +57,26 @@ class AST(Transformer):
         return ("text", tok[0][1:-1])
 
     def list(self, vals):
-        # Lark gives: vals == [] for [], or [expr_list] for [a, ...]
-        # expr_list is [] for [ ], or [item, ...] for [a, ...]
+        # Lark gives: vals == [] for [], or [atom_list] for [a, ...]
+        # atom_list is [] for [ ], or [item, ...] for [a, ...]
         if not vals or vals == [None]:
             return ("list", [])
-        # Accept both [expr_list] and expr_list directly
+        # Accept both [atom_list] and atom_list directly
         items = vals[0] if isinstance(vals[0], list) else vals
         if items == [None]:
             items = []
         return ("list", items)
 
     # ── table literal ───────────────────────────────────────────────────
-    # kvpair: NAME ":" expr
+    # table_item: NAME ":" expr
     #   key_tok.value is something like "$foo"
-    def kvpair(self, v):
+    def table_item(self, v):
         key_tok, val_node = v
         # Keep leading "$" on the property name
         return (key_tok.value, val_node)
 
     def table(self, pairs):
-        # pairs will be [] for {}, or [kvpair_list] for { ... }
+        # pairs will be [] for {}, or [table_item_list] for { ... }
         if not pairs or pairs == [None]:
             return ("table", {})
         # Sometimes pairs is [[...]], sometimes it's just [...]
@@ -114,17 +114,17 @@ class AST(Transformer):
                 flat.append(x)
         return flat
 
-    def block_item(self, items):
+    def function_item(self, items):
         # Flatten nested items (needed for some edge-cases in param/return)
         if isinstance(items, list) and len(items) == 1:
             return items[0]
         return items
 
-    def block_binding(self, items):
+    def function_local_binding(self, items):
         name_tok, expr = items
         return ("bind", name_tok.value, expr)
 
-    def block_sep(self, items):
+    def function_separator(self, items):
         # Ignore block separators in block_body
         return None
 
@@ -145,7 +145,7 @@ class AST(Transformer):
         return ("function_atom", params, bindings, stmts, True)
 
     def _block_parts(self, items):
-        # Flatten block items into params, bindings, stmts
+        # Flatten function items into params, bindings, stmts
         params, bindings, stmts = [], [], []
         def extract_block_parts(block):
             if not isinstance(block, tuple):
@@ -153,7 +153,7 @@ class AST(Transformer):
             if block[0] == "function_atom":
                 inner_params, inner_bindings, inner_stmts, _ = block[1:]
                 return inner_params, inner_bindings, inner_stmts
-            elif block[0] == "param_binding":
+            elif block[0] == "function_param":
                 return [ (block[1], block[2]) ], [], []
             elif block[0] == "bind":
                 return [], [ (block[1], block[2]) ], []
@@ -199,10 +199,10 @@ class AST(Transformer):
             raise Exception(f"Unknown call target: {name_tok!r}")
         return ("call", name, args)
 
-    def call_args(self, v):
+    def function_arg_list(self, v):
         return v
 
-    def return_stmt(self, v):
+    def return_statement(self, v):
         # Just grab the second item, which is the expr
         return ("return", v[-1])
 
@@ -253,7 +253,7 @@ class AST(Transformer):
         name_tok, expr_node = v
         return ("bind", name_tok.value, expr_node)
 
-    def bind_func(self, v):
+    def bind_function(self, v):
         name_tok, expr_node = v
         return ("bind", name_tok.value, expr_node)
 
@@ -274,17 +274,17 @@ class AST(Transformer):
         base_node, new_expr = v
         return ("prop_rebind", base_node, new_expr)
 
-    def expr_stmt(self, v):
+    def atom_statement(self, v):
         # wrap a bare expression into (“expr”, AST)
         return ("expr", v[0])
 
-    def expr_list(self, items):
+    def atom_list(self, items):
         # Only keep actual expr nodes (usually tuples, ints, or str)
         return [x for x in items if isinstance(x, (tuple, int, str))]
 
-    def kvpair_list(self, items):
+    def table_item_list(self, items):
         # print("TABLE DEBUG: kvlist =", kvlist)
-        # Remove Nones and Trees for kvpair_sep and any other non-tuple junk
+        # Remove Nones and Trees for table_separator and any other non-tuple junk
         return [x for x in items if isinstance(x, tuple) and len(x) == 2]
 
 

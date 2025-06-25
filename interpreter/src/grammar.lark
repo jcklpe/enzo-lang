@@ -4,18 +4,18 @@
 
 ##############################################################################
 # Only atoms may be top-level statements, NOT arbitrary expressions.
-# Atoms = number, string, list, table, function_atom (function atom)
+# Atoms = number, text, list, table, function_atom (function atom)
 ##############################################################################
 start: _nl* stmt (";" _nl* stmt)* ";"? _nl*
 
 ?stmt: assign_stmt
-     | return_stmt
-     | postfix              -> expr_stmt
+     | return_statement
+     | postfix              -> atom_statement
 
-return_stmt: RETURN "(" expr ")" ";"
+return_statement: RETURN "(" expr ")" ";"
 
 # ── assignment forms ─────────────────────────────────────────────────────────
-?assign_stmt: FUNCNAME ":" expr  -> bind_func
+?assign_stmt: FUNCNAME ":" expr  -> bind_function
             | NAME ":"  expr      -> bind
             | NAME ":"            -> bind_empty
             | NAME "<:" expr       -> rebind
@@ -36,8 +36,8 @@ return_stmt: RETURN "(" expr ")" ";"
 # ── postfix handles “.INT” (list‐index), “.$foo” (var‐index), or “.foo” (prop‐access)
 ?postfix: primary ( DOTINT | DOTVAR | DOTPROP )*    -> index_chain
 
-?primary: list_literal
-        | table_literal
+?primary: list_atom
+        | table_atom
         | function_atom              -> function_atom
         | call                    -> call
         | SIGNED_NUMBER           -> number
@@ -45,7 +45,7 @@ return_stmt: RETURN "(" expr ")" ";"
         | NAME                    -> var
 
 ##############################################################################
-# BLOCK EXPRESSION:
+# FUNCTION ATOM:
 #   - Every parenthesis is a new scope/block.
 #   - Params and statements can be separated by "," or ";" (or mixed).
 #   - Both:
@@ -63,43 +63,43 @@ return_stmt: RETURN "(" expr ")" ";"
 function_atom: function_atom_single | function_atom_multi
 
 # Single-line block: no NEWLINE allowed between LPAR and RPAR (all semicolon/comma separated)
-function_atom_single: LPAR function_atom_body_single RPAR
-function_atom_body_single: (block_item block_sep_single)* block_item block_sep_single?
-block_sep_single: "," | ";"
+function_atom_single: LPAR function_body_single RPAR
+function_body_single: (function_item function_separator_single)* function_item function_separator_single?
+function_separator_single: "," | ";"
 
 # Multi-line block: must contain at least one NEWLINE between LPAR and RPAR
-function_atom_multi: LPAR _ml_start function_atom_body_multi RPAR
+function_atom_multi: LPAR _ml_start function_body_multi RPAR
 # Require at least one NEWLINE after LPAR, before RPAR, or between items
 _ml_start: _nl+
-function_atom_body_multi: (block_item block_sep_multi)* block_item block_sep_multi?
-block_sep_multi: _nl* ("," | ";") _nl+  | _nl+
+function_body_multi: (function_item function_separator_multi)* function_item function_separator_multi?
+function_separator_multi: _nl* ("," | ";") _nl+  | _nl+
 
-block_item: param_binding
-          | block_binding
-          | return_stmt
+function_item: function_param
+          | function_local_binding
+          | return_statement
           | expr
-block_binding: (NAME | FUNCNAME) ":" expr
-param_binding: PARAM NAME ":" expr
-block_sep: _nl* ("," | ";") _nl*
+function_local_binding: (NAME | FUNCNAME) ":" expr
+function_param: PARAM NAME ":" expr
+function_separator: _nl* ("," | ";") _nl*
 
 
 
 # ── function call ────────────────────────────────────────────────
-call: (NAME | FUNCNAME) "(" [call_args] ")"
-call_args: expr ("," expr)* [","]
+call: (NAME | FUNCNAME) "(" [function_arg_list] ")"
+function_arg_list: expr ("," expr)* [","]
 
-# ── list literal ─────────────────────────────────────────────────────────────
-list_literal: "[" _nl* "]"                          -> list
-            | "[" _nl* expr_list _nl* "]"           -> list
-expr_list: expr (list_sep expr)* [list_sep]
+# ── list atom ─────────────────────────────────────────────────────────────
+list_atom: "[" _nl* "]"                          -> list
+            | "[" _nl* atom_list _nl* "]"           -> list
+atom_list: expr (list_sep expr)* [list_sep]
 list_sep: _nl* "," _nl* | _nl+
 
 # ── table literal ────────────────────────────────────────────────────────────
-table_literal: "{" _nl* "}"                          -> table
-             | "{" _nl* kvpair_list _nl* "}"         -> table
-kvpair_list: kvpair (kvpair_sep kvpair)* [kvpair_sep]
-kvpair_sep: _nl* "," _nl* | _nl+
-kvpair: NAME ":" expr
+table_atom: "{" _nl* "}"                          -> table
+             | "{" _nl* table_item_list _nl* "}"         -> table
+table_item_list: table_item (table_separator table_item)* [table_separator]
+table_separator: _nl* "," _nl* | _nl+
+table_item: NAME ":" expr
 
 # ── Helper for repeated (possibly empty) newlines
 _nl: NEWLINE
@@ -116,7 +116,7 @@ NEWLINE: /(\r?\n)+/
 
 LPAR: "("
 RPAR: ")"
-PARAM: "param_binding"
+PARAM: "function_param"
 RETURN: "return"
 
 %import common.SIGNED_NUMBER

@@ -775,7 +775,7 @@ $thirdUppercaseColor:
 
 1. Enzo is expression oriented rather than statement oriented.
 2. Enzo is static (lexical) scoped.
-3. Enzo does not use parentheses for the dual purpose of groupings and code blocks. All parentheses are anon-functions/expression-blocks/code-blocks, however you want to phrase it. In this way Enzo is a lot like LISP. There is no meaningful distinction between `(10 + 2)` and `($x + 4)`.
+3. Enzo does not use parentheses for the dual purpose of groupings and code blocks. All parentheses function atoms. In this way Enzo is a lot like LISP. There is no meaningful distinction between `(10 + 2)` and `($x + 4)`.
 4.
 
 ---
