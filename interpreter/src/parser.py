@@ -98,6 +98,12 @@ class AST(Transformer):
         # tok[0].value is something like "$foo"
         return ("var", tok[0].value)
 
+    def function_item(self, items):
+        # Flatten nested items (needed for some edge-cases in param/return)
+        if isinstance(items, list) and len(items) == 1:
+            return items[0]
+        return items
+
     def block_body(self, items):
         # Remove tokens, flatten nested lists, filter only AST nodes
         flat = []
@@ -114,12 +120,6 @@ class AST(Transformer):
             else:
                 flat.append(x)
         return flat
-
-    def block_item(self, items):
-        # Flatten nested items (needed for some edge-cases in param/return)
-        if isinstance(items, list) and len(items) == 1:
-            return items[0]
-        return items
 
     def block_binding(self, items):
         name_tok, expr = items
