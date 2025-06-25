@@ -68,15 +68,15 @@ class AST(Transformer):
         return ("list", items)
 
     # ── table literal ───────────────────────────────────────────────────
-    # kvpair: NAME ":" expr
+    # table_item: NAME ":" expr
     #   key_tok.value is something like "$foo"
-    def kvpair(self, v):
+    def table_item(self, v):
         key_tok, val_node = v
         # Keep leading "$" on the property name
         return (key_tok.value, val_node)
 
     def table(self, pairs):
-        # pairs will be [] for {}, or [kvpair_list] for { ... }
+        # pairs will be [] for {}, or [table_item_list] for { ... }
         if not pairs or pairs == [None]:
             return ("table", {})
         # Sometimes pairs is [[...]], sometimes it's just [...]
@@ -274,7 +274,7 @@ class AST(Transformer):
         # Only keep actual expr nodes (usually tuples, ints, or str)
         return [x for x in items if isinstance(x, (tuple, int, str))]
 
-    def kvpair_list(self, items):
+    def table_item_list(self, items):
         # print("TABLE DEBUG: kvlist =", kvlist)
         # Remove Nones and Trees for kvpair_sep and any other non-tuple junk
         return [x for x in items if isinstance(x, tuple) and len(x) == 2]

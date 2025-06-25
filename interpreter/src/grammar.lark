@@ -87,10 +87,10 @@ list_sep: _nl* "," _nl* | _nl+
 
 # ── table literal ────────────────────────────────────────────────────────────
 table_literal: "{" _nl* "}"                          -> table
-             | "{" _nl* kvpair_list _nl* "}"         -> table
-kvpair_list: kvpair (kvpair_sep kvpair)* [kvpair_sep]
+             | "{" _nl* table_item_list _nl* "}"         -> table
+table_item_list: table_item (kvpair_sep table_item)* [kvpair_sep]
 kvpair_sep: _nl* "," _nl* | _nl+
-kvpair: NAME ":" expr
+table_item: NAME ":" expr
 
 # ── Helper for repeated (possibly empty) newlines
 _nl: NEWLINE
