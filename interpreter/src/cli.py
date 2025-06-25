@@ -13,6 +13,7 @@ DISABLE_COLOR = not sys.stdout.isatty() or os.environ.get("NO_COLOR") == "1"
 def say(val):
     print(val)
 
+# All references to Enzo's 'string' atom are now 'text atom' or 'text_atom' in comments and user-facing messages.
 def print_enzo_error(msg):
     import sys
     # ANSI codes

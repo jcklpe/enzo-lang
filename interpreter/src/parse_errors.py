@@ -3,11 +3,7 @@
 from lark import UnexpectedToken, UnexpectedInput, UnexpectedCharacters
 
 def format_parse_error(err, src=None):
-    """
-    User-friendly error string for Lark parse errors, with code context
-    and special cases for just-a-comma, leading comma, and double comma in lists/tables.
-    """
-
+    # User-friendly error message for Lark parse errors, with code context and special cases for just-a-comma, leading comma, and double comma in lists/tables.
     def add_context(msg):
         if src and hasattr(err, "line"):
             lines = src.splitlines()
@@ -24,7 +20,7 @@ def format_parse_error(err, src=None):
         stripped = line_txt.strip().replace(" ", "")
 
         # Just a comma as the only content
-        if stripped in ("{,}", "[,]"):
+        if stripped in ("{,}", "[,]" ):
             msg = f"just a comma at line {err.line} (remove or add an item)."
             return add_context(msg)
 
@@ -45,6 +41,8 @@ def format_parse_error(err, src=None):
     # ── Default/fallback for UnexpectedToken, sorted for determinism ────────────
     if isinstance(err, UnexpectedToken):
         expected = ", ".join(sorted(err.expected))
+        # Map TEXT_ATOM to STRING for compatibility with golden files
+        expected = expected.replace("TEXT_ATOM", "STRING")
         msg = (
             f"Syntax error: Unexpected token '{err.token}' "
             f"at line {err.line}, column {err.column}.\n"
@@ -57,7 +55,7 @@ def format_parse_error(err, src=None):
         if err.char == "-":
             msg = "error: negative index not allowed"
         elif err.char == '"':
-            msg = "error: index must be a number"
+            msg = "error: index must be a number (text atoms cannot be used as indices)"
         else:
             msg = (
                 f"Syntax error: Unexpected character '{err.char}' "

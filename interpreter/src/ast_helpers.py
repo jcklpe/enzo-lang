@@ -17,7 +17,7 @@ def format_val(v):
     Convert a Python value back into Enzo‐literal syntax:
       - Table → "{ $k1: val1, $k2: val2, … }"
       - list  → "[ val1, val2, … ]"
-      - str   → "\"…\""
+      - text_atom (Python str) → '"…"'
       - int   → "123"
       - other (float/bool/…) via str()
     """
@@ -33,6 +33,7 @@ def format_val(v):
         items = ", ".join(format_val(el) for el in v)
         return "[ " + items + " ]"
 
+    # Enzo text atom (Python str)
     if isinstance(v, str):
         return '"' + v.replace('"', r'\"') + '"'
 

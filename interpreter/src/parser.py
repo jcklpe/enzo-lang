@@ -52,9 +52,9 @@ class AST(Transformer):
     def number(self, tok):
         return ("num", int(tok[0]))
 
-    def string(self, tok):
-        # tok[0] looks like "\"hello\"", so strip the outer quotes
-        return ("str", tok[0][1:-1])
+    def text_atom(self, tok):
+        # tok[0] looks like '"hello"', so strip the outer quotes
+        return ("text_atom", tok[0][1:-1])
 
     def list(self, vals):
         # Lark gives: vals == [] for [], or [expr_list] for [a, ...]

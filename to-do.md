@@ -15,8 +15,8 @@
     - [ ] Table atom: `{ $x: 1 };`
     - [ ] Function atom: `(return(3));` (should work)
 - [ ] Add a test: block expr inside parens works as intended (e.g. `($x: 1; $x + 2);` returns 3)
-- [ ] Add a test: string interpolation only accepts paren-wrapped expressions (`"<($x + $y)>"`)
-- [ ] Add a test: string interpolation with bare `$x + $y` **fails**
+- [ ] Add a test: text atom interpolation only accepts paren-wrapped expressions (`"<($x + $y)>"`)
+- [ ] Add a test: text atom interpolation with bare `$x + $y` **fails**
 - [ ] Add tests: function reference syntax with `@function-name` works, and `$function-name` always returns the value, never the reference
 
 ## 2. Function Reference Syntax (`@funcname`)
@@ -31,7 +31,7 @@
 - [ ] Update/add tests for reactivity and rebinding.
 
 ## 4. Top-Level Invocation/Statement Atoms
-- [ ] Make sure bare number, string, list, table, and block_expr atoms at the top level evaluate/return themselves (or evaluate block_expr).
+- [ ] Make sure bare number, text atom, list, table, and block_expr atoms at the top level evaluate/return themselves (or evaluate block_expr).
 - [ ] Audit parser to ensure only atoms can be top-level statements.
 - [ ] Audit parser to error on bare expressions at top level (except inside block).
 - [ ] Update/add tests for statement-style evaluation.

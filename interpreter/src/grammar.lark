@@ -4,7 +4,7 @@
 
 ##############################################################################
 # Only atoms may be top-level statements, NOT arbitrary expressions.
-# Atoms = number, string, list, table, block_expr (function atom)
+# Atoms = number, text atom, list, table, block_expr (function atom)
 ##############################################################################
 start: _nl* stmt (";" _nl* stmt)* ";"? _nl*
 
@@ -41,7 +41,7 @@ return_stmt: RETURN "(" expr ")" ";"
         | block_expr              -> block_expr
         | call                    -> call
         | SIGNED_NUMBER           -> number
-        | STRING                  -> string
+        | TEXT_ATOM               -> text_atom
         | NAME                    -> var
 
 ##############################################################################
@@ -74,7 +74,6 @@ param_binding: PARAM NAME ":" expr
 block_sep: _nl* ("," | ";") _nl*
 
 
-
 # ── function call ────────────────────────────────────────────────
 call: (NAME | FUNCNAME) "(" [call_args] ")"
 call_args: expr ("," expr)* [","]
@@ -100,7 +99,7 @@ NAME:    /\$[a-zA-Z0-9_-]+/
 FUNCNAME: /[a-zA-Z0-9_-]+/
 
 DOTINT.5:   /\.[1-9][0-9]*/            // “.1”, “.42”  1‐based numeric indexing
-DOTVAR.6:   /\.[$][a-zA-Z0-9_-]+/      // “.$foo”
+DOTVAR.6:   /\.[\$][a-zA-Z0-9_-]+/      // “.$foo”
 DOTPROP.7:  /\.[a-zA-Z][a-zA-Z0-9_-]*/ // “.foo”  (property‐access)
 
 NEWLINE: /(\r?\n)+/
@@ -111,9 +110,11 @@ PARAM: "param"
 RETURN: "return"
 
 %import common.SIGNED_NUMBER
-%import common.ESCAPED_STRING   -> STRING
+%import common.ESCAPED_STRING   -> TEXT_ATOM
 %import common.WS_INLINE
 
 # ── ignore spaces/tabs, single‐line “//” comments, and newlines ───────────────
 %ignore WS_INLINE
 # %ignore /\/\/[^\n]*/
+#
+# Note: In Enzo, a text atom is any sequence of characters in double quotes, e.g. "hello". The TEXT_ATOM token matches these.

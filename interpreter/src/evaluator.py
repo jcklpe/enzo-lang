@@ -60,15 +60,10 @@ def _auto_invoke_if_fn(val):
             return eval_ast(stmts[0])
         val = EnzoFunction(params, stmts, _env)
     if isinstance(val, EnzoFunction):
-        arg_values = []
-        for (param_name, default) in val.params:
-            if default is not None:
-                arg_values.append(eval_ast(default))
-            else:
-                arg_values.append(None)
+        # Bind parameters with defaults in a new local environment
         call_env = val.closure_env.copy()
-        for (param_name, _), arg_val in zip(val.params, arg_values):
-            call_env[param_name] = arg_val
+        for param_name, default in val.params:
+            call_env[param_name] = eval_ast(default)
         _prev_env = _env
         _env = ChainMap(call_env, _prev_env)
         try:
@@ -99,7 +94,7 @@ def eval_ast(node):
     if typ == "num":
         return rest[0]
 
-    if typ == "str":
+    if typ == "text_atom":
         return _interp(rest[0])
 
     if typ == "list":
@@ -327,7 +322,7 @@ def eval_ast(node):
     raise ValueError(f"unknown node: {typ}")
 
 
-# ── string‐interpolation helper ───────────────────────────────────────────
+# ── text_atom‐interpolation helper ───────────────────────────────────────────
 def _interp(s: str):
     """
     Given a Python string `s`, expand each “<expr>” by:
@@ -351,7 +346,7 @@ def _interp(s: str):
         out.append(s[i:j])
         k = s.find(">", j + 1)
         if k == -1:
-            raise ValueError("unterminated interpolation in string")
+            raise ValueError("unterminated interpolation in text_atom")
         expr_src = s[j + 1 : k].strip()
         parts = [p.strip() for p in expr_src.split(";") if p.strip()]
         concatenated = ""
