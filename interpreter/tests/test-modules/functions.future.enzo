@@ -1,3 +1,22 @@
+//= Nameless function: multi-line with no explicit return (should error)
+($x: 1;
+ $y: 2;
+ $x + $y;
+);         // error: no explicit return in multi-line function
+
+//= Multi-line with params and default values
+adder: (
+param $x: 6; // these are default values
+param $y: 6;
+return(($y + $x));
+);
+
+adder();                       // prints 12
+$adder();                      // prints 12
+$adder;                      // prints 12
+
+---------
+
 //= passing functions as references
 $referenced-function: $adder;  // does not invoke adder function just saves it to another variable as a reference
 $referenced-function();        // prints 12

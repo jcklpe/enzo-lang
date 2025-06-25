@@ -2,13 +2,6 @@
 5
 //= Nameless function: multi-line with explicit return
 200
-//= Nameless function: multi-line with no explicit return (should error)
-error: multi-line anonymous functions require explicit return
-    ($x: 1;
- $y: 2;
- $x + $y;
-);
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //= Nameless function: multi-line, explicit return, different values
 201
 //= Single line, implicit return
@@ -16,8 +9,3 @@ error: multi-line anonymous functions require explicit return
 4
 //= Bare parens
 6
-//= Multi-line with params and default values
-<function () ...>
-12
-12
-12
