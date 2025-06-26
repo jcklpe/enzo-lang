@@ -1,10 +1,11 @@
 import sys
 import re
 import os
-from src.parser       import parse
-from src.evaluator    import eval_ast, InterpolationParseError, ReturnSignal
-from src.ast_helpers  import Table, format_val
-from src.parse_errors import format_parse_error
+from src.enzo_parser.parser import parse  # Use new parser
+from src.evaluator    import eval_ast
+from src.runtime_helpers import Table, format_val
+from src.error_handling import InterpolationParseError, ReturnSignal
+from src.error_messaging import format_parse_error, error_message_unterminated_interpolation, error_message_included_file_not_found, error_message_generic
 from lark import UnexpectedToken, UnexpectedInput, UnexpectedCharacters
 from src.color_helpers import color_error, color_code
 
@@ -113,7 +114,7 @@ def run_enzo_file(filename):
                 else:
                     print(out)
         except InterpolationParseError:
-            print(color_error("error: parse error in interpolation"))
+            print(color_error(error_message_unterminated_interpolation()))
             print(color_code("    " + line))
             underline = "    " + " " * line.find("<") + "^"
             print(color_code(underline))
@@ -126,18 +127,14 @@ def run_enzo_file(filename):
             else:
                 print(color_error(fullmsg))
         except ReturnSignal as ret:
-            # At the top-level, treat 'return' as just yielding the value (for block expressions).
             print(ret.value)
         except Exception as e:
-            print(color_error(f"error: {e}"))
+            print(color_error(format_parse_error(e, src=line) if hasattr(e, 'line') else error_message_generic(str(e))))
             print(color_code("    " + line))
             print(color_code("    " + "^" * len(line)))
 
 def process_includes(lines, base_dir=None, already_included=None):
-    """
-    Given a list of source lines, yield each line,
-    but expand any `@include filename` directives inline.
-    """
+    #Given a list of source lines, yield each line, but expand any `@include filename` directives inline.
     if already_included is None:
         already_included = set()
     if base_dir is None:
@@ -153,7 +150,7 @@ def process_includes(lines, base_dir=None, already_included=None):
                 continue
             already_included.add(abs_path)
             if not os.path.isfile(abs_path):
-                print(f"error: included file not found: {fname}")
+                print(error_message_included_file_not_found(fname))
                 continue
             with open(abs_path) as f:
                 sub_lines = f.readlines()
@@ -211,7 +208,7 @@ def main():
                 else:
                     print(out)
         except InterpolationParseError:
-            print(color_error("error: parse error in interpolation"))
+            print(color_error(error_message_unterminated_interpolation()))
             print(color_code("    " + line))
             underline = "    " + " " * line.find("<") + "^"
             print(color_code(underline))
@@ -224,10 +221,9 @@ def main():
             else:
                 print(color_error(fullmsg))
         except ReturnSignal as ret:
-            # At the top-level, treat 'return' as just yielding the value (for block expressions).
             print(ret.value)
         except Exception as e:
-            print(color_error(f"error: {e}"))
+            print(color_error(format_parse_error(e, src=line) if hasattr(e, 'line') else error_message_generic(str(e))))
             print(color_code("    " + line))
             print(color_code("    " + "^" * len(line)))
         # — CRITICAL FIX: after error or success, **continue the loop**

@@ -41,9 +41,7 @@ except ImportError:
 DELIM_RE = re.compile(r'^//= *(.*)$', re.MULTILINE)
 
 def split_blocks(text):
-    """
-    Returns a list of (title, block_lines_list)
-    """
+    #Returns a list of (title, block_lines_list)
     matches = list(DELIM_RE.finditer(text))
     if not matches:
         # Fallback: no block delimiters found, return the whole file as one unnamed block
@@ -133,15 +131,15 @@ def main():
     print(color_expected_header('✔ correct expected outcome'))
     print(color_actual_header('✖ failing actual outcome'))
 
-
+    fail_count = 0
     for i in range(num_blocks):
         title, exp_lines = expected_blocks[i]
         _, act_lines = actual_blocks[i]
         # Compare ignoring leading/trailing whitespace
         if [l.rstrip() for l in exp_lines] != [l.rstrip() for l in act_lines]:
+            fail_count += 1
             print()
             print(color_block_title(f"//= {title}"))
-            # Note: Swap the order of act_lines and exp_lines
             diff = difflib.unified_diff(
                 exp_lines,
                 act_lines,
@@ -167,18 +165,19 @@ def main():
                     print(color_diff(line))
                 else:
                     print(line)
+    print("\n==================== TEST SUMMARY ====================")
+    print(f"Failing test blocks: {fail_count} / {num_blocks}")
+    if fail_count == 0:
+        print(color_info("All test blocks passed!"))
+    else:
+        print(color_error(f"{fail_count} test blocks failed."))
 
-# --- RUN DEBUG MODULE AT THE END OF TEST OUTPUT ---
-def run_debug_module():
+    # --- RUN DEBUG MODULE AT THE END OF TEST OUTPUT ---
     print("\n" + "=" * 60)
     print("🟡  [debug-module.py] Running optional debug diagnostics...\n")
-    try:
-        subprocess.run([sys.executable, "-u", "tests/debug-module.py"], check=False)
-    except Exception as e:
-        print("[debug-module.py] Exception running debug module:", e)
+    subprocess.run([sys.executable, "tests/debug_module.py"], check=False)
     print("=" * 60)
     print("🟡  [debug-module.py] Debug diagnostics complete.\n")
 
 if __name__ == "__main__":
     main()
-    run_debug_module()
