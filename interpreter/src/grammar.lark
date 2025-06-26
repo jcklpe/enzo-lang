@@ -75,8 +75,8 @@ block_sep: _nl* ("," | ";") _nl*
 
 
 # ── function call ────────────────────────────────────────────────
-call: (NAME | FUNCNAME) "(" [call_args] ")"
-call_args: expr ("," expr)* [","]
+call: (NAME | FUNCNAME) "(" [function_arg_list] ")"
+function_arg_list: expr ("," expr)* [","]
 
 # ── list literal ─────────────────────────────────────────────────────────────
 list_literal: "[" _nl* "]"                          -> list

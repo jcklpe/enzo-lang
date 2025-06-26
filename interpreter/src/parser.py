@@ -183,7 +183,7 @@ class AST(Transformer):
             raise Exception(f"Unknown call target: {name_tok!r}")
         return ("call", name, args)
 
-    def call_args(self, v):
+    def function_arg_list(self, v):
         return v
 
     def return_stmt(self, v):
