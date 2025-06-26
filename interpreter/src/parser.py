@@ -121,9 +121,9 @@ class AST(Transformer):
                 flat.append(x)
         return flat
 
-    def block_binding(self, items):
+    def function_local_var(self, items):
         name_tok, expr = items
-        return ("bind", name_tok.value, expr)
+        return ("function_local_var", name_tok.value, expr)
 
     def block_sep(self, items):
         # Ignore block separators in block_body
@@ -138,18 +138,17 @@ class AST(Transformer):
 
         def extract_block_parts(block):
             if not isinstance(block, tuple):
-                return [], [], [block]
+                return
             if block[0] == "block_expr":
-                inner_params, inner_bindings, inner_stmts, _ = block[1:]
-                return inner_params, inner_bindings, inner_stmts
+                stmts.append(block)
             elif block[0] == "param":
-                return [ (block[1], block[2]) ], [], []
-            elif block[0] == "bind":
-                return [], [ (block[1], block[2]) ], []
+                params.append((block[1], block[2]))
+            elif block[0] == "function_local_var":
+                bindings.append((block[1], block[2]))
             elif block[0] == "bind_empty":
-                return [], [ (block[1], None) ], []
+                bindings.append((block[1], None))
             else:
-                return [], [], [block]
+                stmts.append(block)
 
         for it in items:
             # Filter out tokens/lists here too
@@ -157,17 +156,9 @@ class AST(Transformer):
                 continue
             if isinstance(it, list):
                 for sub in it:
-                    if sub is None or isinstance(sub, Token):
-                        continue
-                    p, b, s = extract_block_parts(sub)
-                    params += p
-                    bindings += b
-                    stmts += s
+                    extract_block_parts(sub)
             else:
-                p, b, s = extract_block_parts(it)
-                params += p
-                bindings += b
-                stmts += s
+                extract_block_parts(it)
 
         is_multiline = False  # (can be updated if you want later)
         return ("block_expr", params, bindings, stmts, is_multiline)

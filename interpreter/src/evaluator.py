@@ -130,7 +130,7 @@ def eval_ast(node):
         for name, default in params:
             local_env[name] = eval_ast(default) if default is not None else None
         for name, expr in bindings:
-            local_env[name] = eval_ast(expr)
+            local_env[name] = eval_ast(expr) if expr is not None else None
         prev_env = _env
         _env = ChainMap(local_env, _env)
         try:

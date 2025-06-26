@@ -66,10 +66,10 @@ block_expr: LPAR function_body RPAR
 function_body: _nl* (function_item block_sep)* function_item block_sep? _nl*
 
 function_item: param_binding
-          | block_binding
+          | function_local_var
           | return_stmt
           | expr
-block_binding: (NAME | FUNCNAME) ":" expr
+function_local_var: (NAME | FUNCNAME) ":" expr
 param_binding: PARAM NAME ":" expr
 block_sep: _nl* ("," | ";") _nl*
 
