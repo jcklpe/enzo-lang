@@ -11,7 +11,7 @@ class Token(NamedTuple):
 
 TOKEN_SPEC = [
     # Multi-character operators must come first!
-    ("OPERATOR", r"<:|<=|>=|==|!=|"  # multi-char ops first
+    ("OPERATOR", r":>|<:|<=|>=|==|!=|"  # multi-char ops first, now includes :>
                   r"[\[\]\(\)\{\},;:\.\+\-\*/<>=!]|"  # single-char ops
                   r"\.\$[a-zA-Z_][a-zA-Z0-9_-]*|\.[a-zA-Z_][a-zA-Z0-9_-]*|\.\d+"),
     ("NUMBER_TOKEN",   r"-?\d+(?:\.\d+)?"),
