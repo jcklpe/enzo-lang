@@ -107,12 +107,12 @@ def run_enzo_file(filename):
             continue
         try:
             ast = parse(line)
-            out = eval_ast(ast)
-            if out is not None:
-                if isinstance(out, list) or isinstance(out, (dict, Table)):
-                    print(format_val(out))
+            result = eval_ast(ast, value_demand=True)
+            if result is not None:
+                if isinstance(result, list) or isinstance(result, (dict, Table)):
+                    print(format_val(result))
                 else:
-                    print(out)
+                    print(result)
         except InterpolationParseError:
             print(color_error(error_message_unterminated_interpolation()))
             print(color_code("    " + line))
@@ -201,12 +201,12 @@ def main():
 
         try:
             ast = parse(line)
-            out = eval_ast(ast)
-            if out is not None:
-                if isinstance(out, list) or isinstance(out, (dict, Table)):
-                    print(format_val(out))
+            result = eval_ast(ast, value_demand=True)
+            if result is not None:
+                if isinstance(result, list) or isinstance(result, (dict, Table)):
+                    print(format_val(result))
                 else:
-                    print(out)
+                    print(result)
         except InterpolationParseError:
             print(color_error(error_message_unterminated_interpolation()))
             print(color_code("    " + line))

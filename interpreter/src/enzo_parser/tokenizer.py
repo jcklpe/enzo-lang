@@ -10,10 +10,31 @@ class Token(NamedTuple):
     end: int
 
 TOKEN_SPEC = [
-    # Multi-character operators must come first!
-    ("OPERATOR", r":>|<:|<=|>=|==|!=|"  # multi-char ops first, now includes :>
-                  r"[\[\]\(\)\{\},;:\.\+\-\*/<>=!]|"  # single-char ops
-                  r"\.\$[a-zA-Z_][a-zA-Z0-9_-]*|\.[a-zA-Z_][a-zA-Z0-9_-]*|\.\d+"),
+    ("COLON_GT", r":>"),
+    ("LT_COLON", r"<:"),
+    ("LE", r"<="),
+    ("GE", r">="),
+    ("EQ", r"=="),
+    ("NE", r"!="),
+    ("LPAR", r"\("),
+    ("RPAR", r"\)"),
+    ("LBRACK", r"\["),
+    ("RBRACK", r"\]"),
+    ("LBRACE", r"\{"),
+    ("RBRACE", r"\}"),
+    ("COMMA", r","),
+    ("SEMICOLON", r";"),
+    ("COLON", r":"),
+    ("DOT", r"\."),
+    ("PLUS", r"\+"),
+    ("MINUS", r"-"),
+    ("STAR", r"\*"),
+    ("SLASH", r"/"),
+    ("LT", r"<"),
+    ("GT", r">"),
+    ("EQ_SINGLE", r"="),
+    ("BANG", r"!"),
+    ("AT", r"@"),
     ("NUMBER_TOKEN",   r"-?\d+(?:\.\d+)?"),
     ("TEXT_TOKEN", r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\''),
     # Allow dashes in variable names after the first character for both $-prefixed and non-prefixed

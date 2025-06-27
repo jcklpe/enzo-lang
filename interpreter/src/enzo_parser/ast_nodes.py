@@ -96,4 +96,10 @@ class BindOrRebind(ASTNode):
         self.value = value    # value expression
     def __repr__(self):
         return f"BindOrRebind(target={self.target!r}, value={self.value!r})"
+
+class FunctionRef(ASTNode):
+    def __init__(self, name):
+        self.name = name
+    def __repr__(self):
+        return f"FunctionRef(name={self.name!r})"
 # ...add more as needed
