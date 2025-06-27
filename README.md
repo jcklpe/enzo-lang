@@ -235,6 +235,13 @@ $function2();    // returns 9
 $function2(5);   // returns 10
 ```
 
+##### Function Atom Evaluation
+In Enzo, parentheses always create a function atom (an anonymous function/code block).
+
+If a function atom appears in a context that requires its value immediately (such as a top-level statement, string interpolation, or as a value in a return statement), it is immediately invoked.
+If a function atom is being bound to a variable, stored in a table or list, or passed as an argument to a function that expects a function, it is stored as a function object and only invoked when called.
+This is called demand-driven function atom evaluation.
+
 ##### Empty variables (null, undefined)
 
 A variable can be created that is empty.

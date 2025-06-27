@@ -27,40 +27,59 @@ class Parser:
 
     def parse_function_atom(self):
         self.expect("OPERATOR")  # '('
-        items = []
-        sep_seen = False
-        while self.peek() and not (self.peek().type == "OPERATOR" and self.peek().value == ")"):
-            t = self.peek()
-            if t.type == "KEYNAME":
-                name = self.advance().value
-                if self.peek() and self.peek().type == "OPERATOR" and self.peek().value == ":":
-                    self.advance()
-                    if self.peek() and not (self.peek().type == "OPERATOR" and self.peek().value in (",", ";", ")")):
-                        value_expression = self.parse_value_expression()
-                        items.append(Binding(name, value_expression))
+        # Look ahead: function definition or value expression?
+        t = self.peek()
+        if t and t.type == "KEYNAME":
+            # Look ahead for KEYNAME : (function param or local var)
+            save_pos = self.pos
+            name = t.value
+            self.advance()
+            if self.peek() and self.peek().type == "OPERATOR" and self.peek().value == ":":
+                # Function definition or local var
+                self.pos = save_pos  # rewind
+                items = []
+                sep_seen = False
+                while self.peek() and not (self.peek().type == "OPERATOR" and self.peek().value == ")"):
+                    t = self.peek()
+                    if t.type == "KEYNAME":
+                        name = self.advance().value
+                        if self.peek() and self.peek().type == "OPERATOR" and self.peek().value == ":":
+                            self.advance()
+                            if self.peek() and not (self.peek().type == "OPERATOR" and self.peek().value in (",", ";", ")")):
+                                value_expression = self.parse_value_expression()
+                                items.append(Binding(name, value_expression))
+                            else:
+                                items.append(Binding(name, None))
+                        else:
+                            items.append(name)
                     else:
-                        items.append(Binding(name, None))
-                else:
-                    items.append(name)
+                        items.append(self.parse_value_expression())
+                    if self.peek() and self.peek().type == "OPERATOR" and self.peek().value in (",", ";"):
+                        sep_seen = True
+                        self.advance()
+                self.expect("OPERATOR")  # ')'
+                params = []
+                local_vars = []
+                body = []
+                for item in items:
+                    if isinstance(item, Binding) and item.value is None:
+                        params.append(item.name)
+                    elif isinstance(item, Binding):
+                        local_vars.append(item)
+                    elif isinstance(item, str):
+                        params.append(item)
+                    else:
+                        body.append(item)
+                if not params and not local_vars and len(body) == 1:
+                    return FunctionAtom([], [], body)
+                return FunctionAtom(params, local_vars, body)
             else:
-                items.append(self.parse_value_expression())
-            if self.peek() and self.peek().type == "OPERATOR" and self.peek().value in (",", ";"):
-                sep_seen = True
-                self.advance()
+                # Not a function definition, treat as value expression
+                self.pos = save_pos  # rewind
+        # Not a function definition: parse a single value expression
+        expr = self.parse_value_expression()
         self.expect("OPERATOR")  # ')'
-        params = []
-        local_vars = []
-        body = []
-        for item in items:
-            if isinstance(item, Binding) and item.value is None:
-                params.append(item.name)
-            elif isinstance(item, Binding):
-                local_vars.append(item)
-            elif isinstance(item, str):
-                params.append(item)
-            else:
-                body.append(item)
-        return FunctionAtom(params, local_vars, body)
+        return FunctionAtom([], [], [expr])
 
     def parse_list_atom(self):
         self.expect("OPERATOR")  # '['
@@ -130,12 +149,7 @@ class Parser:
             node = self.parse_postfix(node)
             return node
         elif t.type == "OPERATOR" and t.value == "(":
-            self.advance()
-            if self.peek() and self.peek().type == "KEYNAME" and self.pos + 1 < len(self.tokens) and self.tokens[self.pos + 1].type == "OPERATOR" and self.tokens[self.pos + 1].value == ":":
-                node = self.parse_function_atom()
-            else:
-                node = self.parse_value_expression()
-                self.expect("OPERATOR")  # ')'
+            node = self.parse_function_atom()
             node = self.parse_postfix(node)
             return node
         elif t.type == "OPERATOR" and t.value == "[":

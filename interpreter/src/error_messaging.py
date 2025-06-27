@@ -31,6 +31,9 @@ def error_message_expected_type(expected, got):
     return f"Expected {expected}, got {got}"
 
 def error_message_unexpected_token(token):
+    # Special case: double semicolon
+    if getattr(token, 'type', None) == 'OPERATOR' and getattr(token, 'value', None) == ';':
+        return "error: extra semicolon"
     return f"Unexpected token: {token}"
 
 # User-friendly error message for parse errors, with code context.

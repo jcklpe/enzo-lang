@@ -1,4 +1,4 @@
-error: undefined: $undefinedVar
+unknown variable: $$undefinedVar
     $undefinedVar;
     ^^^^^^^^^^^^^^
 //= EMPTY BIND ────────────────────────────────────────────────────────────
@@ -52,7 +52,6 @@ cool dude
 5
 9
 3
-Syntax error: Unexpected token ';' at line 1, column 22.
-Expected one of: FUNCNAME, LBRACE, LPAR, LSQB, NAME, NEWLINE, NUMBER_ATOM, STRING
+error: extra semicolon
     $meaning-of-life: 42;;
-                         ^
+    ^^^^^^^^^^^^^^^^^^^^^^
