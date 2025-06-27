@@ -102,4 +102,18 @@ class FunctionRef(ASTNode):
         self.name = name
     def __repr__(self):
         return f"FunctionRef(name={self.name!r})"
+
+class ListIndex(ASTNode):
+    def __init__(self, base, index):
+        self.base = base  # The list expression
+        self.index = index  # The index expression (should be NumberAtom or VarInvoke)
+    def __repr__(self):
+        return f"ListIndex(base={self.base!r}, index={self.index!r})"
+
+class TableIndex(ASTNode):
+    def __init__(self, base, key):
+        self.base = base  # The table expression
+        self.key = key    # The key (should be a string or VarInvoke)
+    def __repr__(self):
+        return f"TableIndex(base={self.base!r}, key={self.key!r})"
 # ...add more as needed

@@ -1,7 +1,7 @@
 from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val
 from collections import ChainMap
-from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, TableIndex
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError
 from src.error_messaging import (
     error_message_already_defined,
@@ -201,6 +201,30 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None):
             raise EnzoRuntimeError(error_message_cannot_assign(enzo_type(new_val), enzo_type(old_val)))
         env[name] = new_val
         return None  # Do not output anything for assignment
+    if isinstance(node, ListIndex):
+        base_val = eval_ast(node.base, value_demand=True, env=env)
+        idx_val = eval_ast(node.index, value_demand=True, env=env)
+        if not isinstance(base_val, list):
+            raise EnzoRuntimeError(error_message_index_applies_to_lists())
+        if not isinstance(idx_val, int):
+            raise EnzoRuntimeError(error_message_index_must_be_integer())
+        if idx_val < 1 or idx_val > len(base_val):
+            raise EnzoRuntimeError(error_message_list_index_out_of_range())
+        return base_val[idx_val - 1]
+    if isinstance(node, TableIndex):
+        base_val = eval_ast(node.base, value_demand=True, env=env)
+        key_val = node.key
+        if isinstance(key_val, str):
+            key = key_val
+        elif isinstance(key_val, VarInvoke):
+            key = key_val.name
+        else:
+            key = eval_ast(key_val, value_demand=True, env=env)
+        if not isinstance(base_val, dict):
+            raise EnzoRuntimeError(error_message_table_property_not_found(key))
+        if key not in base_val:
+            raise EnzoRuntimeError(error_message_table_property_not_found(key))
+        return base_val[key]
     raise EnzoRuntimeError(error_message_unknown_node(node))
 
 # ── text_atom‐interpolation helper ───────────────────────────────────────────

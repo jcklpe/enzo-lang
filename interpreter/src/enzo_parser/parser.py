@@ -117,16 +117,26 @@ class Parser:
         return TableAtom(items)
 
     def parse_postfix(self, base):
-        # Update to use DOT token for property/index access
+        # Use DOT token for property/index access
         while self.peek() and self.peek().type == "DOT":
             self.advance()
             t = self.peek()
             if t and t.type == "NUMBER_TOKEN":
-                num = float(self.advance().value)
-                base = Invoke(base, [NumberAtom(num)])
+                num_token = self.advance().value
+                # Use int if possible, else float
+                if '.' in num_token:
+                    num = float(num_token)
+                else:
+                    num = int(num_token)
+                base = ListIndex(base, NumberAtom(num))
             elif t and t.type == "KEYNAME":
                 key = self.advance().value
-                base = Invoke(base, [VarInvoke(key)])
+                if key.startswith("$"):
+                    # Variable index: ListIndex(base, VarInvoke(key))
+                    base = ListIndex(base, VarInvoke(key))
+                else:
+                    # Property access: TableIndex(base, key)
+                    base = TableIndex(base, key)
             else:
                 break
         return base
