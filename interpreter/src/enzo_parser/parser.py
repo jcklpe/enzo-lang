@@ -139,12 +139,17 @@ class Parser:
                 else:
                     debug_chain.append(f".{key}")  # DEBUG
                     base = TableIndex(base, key)
+            elif t and t.type == "TEXT_TOKEN":
+                # Allow string as index: $list."foo"
+                text_val = self.advance().value[1:-1]
+                debug_chain.append(f'."{text_val}"')  # DEBUG
+                base = ListIndex(base, TextAtom(text_val))
             else:
                 # If not a valid index or property, break
                 break
         # DEBUG: print the final AST for chained dot access
-        #if debug_chain:
-            #print(f"[DEBUG parser] parse_postfix chain: {debug_chain} -> AST: {base}")
+        if debug_chain:
+            pass  # print(f"[DEBUG parser] parse_postfix chain: {debug_chain} -> AST: {base}")
         return base
 
     def parse_atom(self):

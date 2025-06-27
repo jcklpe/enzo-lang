@@ -20,20 +20,19 @@ error: $empty-list already defined
 7
 //= Out-of-bounds and weird list indices
 [ 1, 2, 3 ]
-Syntax error: Unexpected token '.0' at line 1, column 6.
-Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, LPAR, MINUS, NEWLINE, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+error: list index out of range
     $list.0;
-         ^
+    ^^^^^^^^
 error: list index out of range
     $list.4;
     ^^^^^^^^
-Syntax error: Unexpected character '.' at line 1, column 6.
+error: list index out of range
     $list.-1;
-         ^
-Syntax error: Unexpected character '.' at line 1, column 6.
+    ^^^^^^^^^
+error: can't use string as index
     $list."foo";
-         ^
-error: index applies to lists
+     ^^^^^^^^^^^
+error: list index out of range
     $list.1.1;
     ^^^^^^^^^^
 //= List/table mutation

@@ -29,11 +29,12 @@ $lot;                 // prints “[ { $x: 5 }, { $x: 7 } ]”
 $lot.2.x;             // prints “7”
 
 //= Out-of-bounds and weird list indices
-$list: [1,2,3];
+$list: [1,2,3];     // binds list
+$list;
 $list.0;            // error: list index out of range
 $list.4;            // error: list index out of range
 $list.-1;           // error: list index out of range
-$list."foo";        // error: list index out of range
+$list."foo";        // error: can't use string as index
 $list.1.1;          // error: list index out of range
 
 //= List/table mutation

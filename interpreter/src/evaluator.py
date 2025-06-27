@@ -15,6 +15,8 @@ from src.error_messaging import (
     error_message_index_must_be_integer,
     error_message_list_index_out_of_range,
     error_message_table_property_not_found,
+    error_message_cant_use_string_as_index,
+    error_message_index_applies_to_lists
 )
 
 _env = {}  # single global environment
@@ -202,38 +204,32 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None):
         env[name] = new_val
         return None  # Do not output anything for assignment
     if isinstance(node, ListIndex):
-        base_val = eval_ast(node.base, value_demand=True, env=env)
-        idx_val = eval_ast(node.index, value_demand=True, env=env)
-        #print(f"[DEBUG eval] ListIndex: base={repr(base_val)}, index={repr(idx_val)} (type={type(idx_val)})")  # DEBUG
-        if not isinstance(base_val, list):
+        base = eval_ast(node.base, env=env)
+        idx = eval_ast(node.index, env=env)
+        # If index is a string, error
+        if isinstance(idx, str):
+            raise EnzoRuntimeError(error_message_cant_use_string_as_index())
+        # If base is not a list, error
+        if not isinstance(base, list):
             raise EnzoRuntimeError(error_message_index_applies_to_lists())
-        # Accept int, or float that is integer-valued
-        if isinstance(idx_val, float) and idx_val.is_integer():
-            idx_val = int(idx_val)
-        if not isinstance(idx_val, int):
-            raise EnzoRuntimeError(error_message_index_must_be_integer())
-        if idx_val < 1 or idx_val > len(base_val):
+        # Index must be int and in range
+        if not isinstance(idx, int) or idx < 1 or idx > len(base):
             raise EnzoRuntimeError(error_message_list_index_out_of_range())
-        return base_val[idx_val - 1]
+        return base[idx - 1]
     if isinstance(node, TableIndex):
-        base_val = eval_ast(node.base, value_demand=True, env=env)
-        key_val = node.key
-        if isinstance(key_val, str):
-            key = key_val
-        elif isinstance(key_val, VarInvoke):
-            key = key_val.name
-        else:
-            key = eval_ast(key_val, value_demand=True, env=env)
-        if not isinstance(base_val, dict):
+        base = eval_ast(node.base, env=env)
+        key = node.key
+        # If key is a VarInvoke, evaluate it
+        if isinstance(key, VarInvoke):
+            key = eval_ast(key, env=env)
+        if isinstance(base, dict):
+            # Try both $key and key
+            if key in base:
+                return base[key]
+            if isinstance(key, str) and not key.startswith('$') and ('$' + key) in base:
+                return base['$' + key]
             raise EnzoRuntimeError(error_message_table_property_not_found(key))
-        # Try key as-is, then with $ prefix if not found
-        if key not in base_val:
-            alt_key = f"${key}" if not key.startswith("$") else key[1:]
-            if alt_key in base_val:
-                key = alt_key
-            else:
-                raise EnzoRuntimeError(error_message_table_property_not_found(key))
-        return base_val[key]
+        raise EnzoRuntimeError(error_message_table_property_not_found(key))
     raise EnzoRuntimeError(error_message_unknown_node(node))
 
 # ── text_atom‐interpolation helper ───────────────────────────────────────────

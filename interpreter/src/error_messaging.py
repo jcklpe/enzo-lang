@@ -47,6 +47,9 @@ def error_message_double_minus(token=None):
 def error_message_list_index_out_of_range():
     return "error: list index out of range"
 
+def error_message_cant_use_string_as_index():
+    return "error: can't use string as index"
+
 def error_message_index_applies_to_lists():
     return "error: index applies to lists"
 
