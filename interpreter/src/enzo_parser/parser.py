@@ -188,26 +188,22 @@ class Parser:
         t = self.peek()
         if t and t.type == "KEYNAME":
             name = t.value
+            # Check for rebinding: $x <: expr
             if self.pos + 1 < len(self.tokens):
-                next_t = self.tokens[self.pos + 1]
-                if next_t.type == "COLON":
-                    self.advance()
-                    self.advance()
-                    if self.peek() and not (self.peek().type in ("SEMICOLON", "COMMA", "RPAR")):
-                        value = self.parse_value_expression()
-                        return Binding(name, value)
-                    else:
-                        return Binding(name, None)
-                elif next_t.type == "LT_COLON":
-                    self.advance()
-                    self.advance()
-                    value = self.parse_value_expression()
-                    return ("rebind", name, value)
-                elif next_t.type == "COLON_GT":
-                    self.advance()
-                    self.advance()
+                next_tok = self.tokens[self.pos + 1]
+                if next_tok.type == "LT_COLON":
+                    self.advance()  # KEYNAME
+                    self.advance()  # LT_COLON
                     value = self.parse_value_expression()
                     return BindOrRebind(name, value)
+                elif next_tok.type == "COLON":
+                    self.advance()  # KEYNAME
+                    self.advance()  # COLON
+                    # Support empty bind: $x: ;
+                    if self.peek() and self.peek().type == "SEMICOLON":
+                        return Binding(name, None)
+                    value = self.parse_value_expression()
+                    return Binding(name, value)
         expr1 = self.parse_value_expression()
         if self.peek() and self.peek().type == "COLON_GT":
             self.advance()

@@ -10,6 +10,7 @@ from src.error_messaging import (
     error_message_tuple_ast,
     error_message_unknown_node,
     error_message_unterminated_interpolation,
+    error_message_cannot_assign,
 )
 
 _env = {}  # single global environment
@@ -21,7 +22,9 @@ class EnzoFunction:
         self.closure_env = closure_env.copy()  # captured env for closure
 
     def __repr__(self):
-        return f"<function ({', '.join(self.params)}) ...>"
+        # Show only param names for readability
+        param_names = [p[0] if isinstance(p, (list, tuple)) else str(p) for p in self.params]
+        return f"<function ({', '.join(param_names)}) ...>"
 
 def invoke_function(fn, args, env):
     if not isinstance(fn, EnzoFunction):
@@ -45,6 +48,9 @@ def invoke_function(fn, args, env):
 def eval_ast(node, value_demand=False, already_invoked=False, env=None):
     if env is None:
         env = _env
+    if node is None:
+        # Ignore empty statements (e.g., from extra semicolons)
+        return None
     if isinstance(node, NumberAtom):
         return node.value
     if isinstance(node, TextAtom):
@@ -56,7 +62,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None):
     if isinstance(node, Binding):
         name = node.name
         if name in env:
-            raise EnzoRuntimeError(f"error: {error_message_already_defined(name)}")
+            raise EnzoRuntimeError(error_message_already_defined(name))
         # Handle empty bind: $x: ;
         if node.value is None:
             env[name] = Empty()
@@ -64,10 +70,10 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None):
         # If value is a FunctionAtom, store as function object, not result
         if isinstance(node.value, FunctionAtom):
             env[name] = EnzoFunction(node.value.params, node.value.body, env)
-            return env[name]
+            return None  # Do not output anything for assignment
         val = eval_ast(node.value, value_demand=False, env=env)  # storage context
         env[name] = val
-        return val
+        return None  # Do not output anything for assignment
     if isinstance(node, VarInvoke):
         name = node.name
         if name not in env:
@@ -113,17 +119,53 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None):
         args = [eval_ast(arg, value_demand=True, env=env) for arg in node.args]
         return invoke_function(fn, args, env)
     if isinstance(node, Program):
-        result = None
+        # For a program (file or REPL), output each top-level statement's value (if not None)
+        results = []
         for stmt in node.statements:
-            result = eval_ast(stmt, value_demand=True, env=env)
-        return result
+            if stmt is not None:
+                val = eval_ast(stmt, value_demand=True, env=env)
+                if val is not None:
+                    results.append(val)
+        # Print each result on its own line (handled by CLI), or return as list for test runner
+        return results
     if isinstance(node, list):
-        return [eval_ast(x, value_demand=True, env=env) for x in node]
+        # For a list of statements (from a single line), only return the last value
+        result = None
+        for x in node:
+            val = eval_ast(x, value_demand=True, env=env)
+            result = val
+        return result
     if isinstance(node, tuple):
-        raise EnzoRuntimeError(error_message_tuple_ast(node))
+        # Raise a clear error for tuple ASTs
+        raise EnzoRuntimeError(error_message_tuple_ast())
     if isinstance(node, BindOrRebind):
-        env[node.target] = eval_ast(node.value, value_demand=True, env=env)
-        return env[node.target]
+        # Allow implicit binding: if variable does not exist, bind it and lock its type
+        name = node.target
+        new_val = eval_ast(node.value, value_demand=True, env=env)
+        def enzo_type(val):
+            if isinstance(val, (int, float)):
+                return "Number"
+            if isinstance(val, str):
+                return "Text"
+            if isinstance(val, list):
+                return "List"
+            if isinstance(val, dict):
+                return "Table"
+            if isinstance(val, EnzoFunction):
+                return "Function"
+            if isinstance(val, Empty):
+                return "Empty"
+            return type(val).__name__
+        if name not in env:
+            # Implicit bind: create variable and lock its type
+            env[name] = new_val
+            return None  # Do not output anything for assignment
+        old_val = env[name]
+        # Allow rebinding from Empty to any type
+        if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(new_val):
+            raise EnzoRuntimeError(error_message_cannot_assign(enzo_type(new_val), enzo_type(old_val)))
+        env[name] = new_val
+        return None  # Do not output anything for assignment
     raise EnzoRuntimeError(error_message_unknown_node(node))
 
 # ── text_atom‐interpolation helper ───────────────────────────────────────────

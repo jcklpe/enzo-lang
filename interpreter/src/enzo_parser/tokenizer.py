@@ -27,6 +27,7 @@ TOKEN_SPEC = [
     ("COLON", r":"),
     ("DOT", r"\."),
     ("PLUS", r"\+"),
+    ("NUMBER_TOKEN",   r"-?\d+(?:\.\d+)?"),  # <-- moved above MINUS
     ("MINUS", r"-"),
     ("STAR", r"\*"),
     ("SLASH", r"/"),
@@ -35,7 +36,6 @@ TOKEN_SPEC = [
     ("EQ_SINGLE", r"="),
     ("BANG", r"!"),
     ("AT", r"@"),
-    ("NUMBER_TOKEN",   r"-?\d+(?:\.\d+)?"),
     ("TEXT_TOKEN", r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\''),
     # Allow dashes in variable names after the first character for both $-prefixed and non-prefixed
     ("KEYNAME",      r"\$[a-zA-Z0-9_-]+|[a-zA-Z_][a-zA-Z0-9_-]*"),

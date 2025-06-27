@@ -6,7 +6,6 @@ $x: ;
 
 //= REDECLARING A VARIABLE (USING “:”) ERRORS ────────────────────────────
 $x: 10;             // error $x has already been declared
-$x: 1;              // error: $a already defined
 
 //= REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
 $x <: 100;
@@ -14,8 +13,10 @@ $x;                 // prints 100
 $x <: "hello";      // error: cannot assign Text to Number
 
 //= FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
-$z: 7;          // returns function object
+$z: 7;       // binds 7
+$z;         // prints 7
 $z <: 8;            // rebind OK, z now 8
+$z;             // prints 8
 $z <: "oops";       // error: cannot assign Text to Number
 $z : "oops";       // error: $z already defined
 
@@ -42,10 +43,10 @@ $apricot :  1 ; $boranges: 2;        // spacing should not break anything
 $boranges;
 
 //= Var naming
-$123abc: 5;      // prints 5
-$_: 9;           // prints 9
-$-foo: 3;        // prints 3
-$123abc;         // prints 5
-$_;              // prints 9
-$-foo;           // prints 3
+$123abc: 5;
+$123abc; // prints 5
+$_: 9;
+$_; // prints 9
+$-foo: 3;
+$-foo;        // prints 3
 $meaning-of-life: 42;;  // error: extra semi-colon

@@ -108,24 +108,42 @@ def run_enzo_file(filename):
         try:
             ast = parse(line)
             result = eval_ast(ast, value_demand=True)
-            if result is not None:
-                if isinstance(result, list) or isinstance(result, (dict, Table)):
-                    print(format_val(result))
-                else:
-                    print(result)
+            # If result is a list (from Program), print each non-None value on its own line
+            if isinstance(result, list):
+                for val in result:
+                    if val is not None:
+                        if isinstance(val, (list, dict, Table)):
+                            print(format_val(val))
+                        else:
+                            print(val)
+            else:
+                if result is not None:
+                    if isinstance(result, (list, dict, Table)):
+                        print(format_val(result))
+                    else:
+                        print(result)
         except InterpolationParseError:
             print(color_error(error_message_unterminated_interpolation()))
             print(color_code("    " + line))
             underline = "    " + " " * line.find("<") + "^"
             print(color_code(underline))
         except (UnexpectedToken, UnexpectedInput, UnexpectedCharacters) as e:
-            fullmsg = format_parse_error(e, src=line)
-            if "\n" in fullmsg:
-                errline, context = fullmsg.split("\n", 1)
-                print(color_error(errline))
-                print(color_code(context))
+            # Use friendly error message for extra semicolon
+            if isinstance(e, UnexpectedToken) and getattr(e, 'token', None):
+                from src.error_messaging import error_message_unexpected_token
+                msg = error_message_unexpected_token(e.token)
+                print(color_error(msg))
+                print(color_code("    " + line))
+                underline = "    " + "^" * len(line)
+                print(color_code(underline))
             else:
-                print(color_error(fullmsg))
+                fullmsg = format_parse_error(e, src=line)
+                if "\n" in fullmsg:
+                    errline, context = fullmsg.split("\n", 1)
+                    print(color_error(errline))
+                    print(color_code(context))
+                else:
+                    print(color_error(fullmsg))
         except ReturnSignal as ret:
             print(ret.value)
         except Exception as e:
@@ -202,24 +220,42 @@ def main():
         try:
             ast = parse(line)
             result = eval_ast(ast, value_demand=True)
-            if result is not None:
-                if isinstance(result, list) or isinstance(result, (dict, Table)):
-                    print(format_val(result))
-                else:
-                    print(result)
+            # If result is a list (from Program), print each non-None value on its own line
+            if isinstance(result, list):
+                for val in result:
+                    if val is not None:
+                        if isinstance(val, (list, dict, Table)):
+                            print(format_val(val))
+                        else:
+                            print(val)
+            else:
+                if result is not None:
+                    if isinstance(result, (list, dict, Table)):
+                        print(format_val(result))
+                    else:
+                        print(result)
         except InterpolationParseError:
             print(color_error(error_message_unterminated_interpolation()))
             print(color_code("    " + line))
             underline = "    " + " " * line.find("<") + "^"
             print(color_code(underline))
         except (UnexpectedToken, UnexpectedInput, UnexpectedCharacters) as e:
-            fullmsg = format_parse_error(e, src=line)
-            if "\n" in fullmsg:
-                errline, context = fullmsg.split("\n", 1)
-                print(color_error(errline))
-                print(color_code(context))
+            # Use friendly error message for extra semicolon
+            if isinstance(e, UnexpectedToken) and getattr(e, 'token', None):
+                from src.error_messaging import error_message_unexpected_token
+                msg = error_message_unexpected_token(e.token)
+                print(color_error(msg))
+                print(color_code("    " + line))
+                underline = "    " + "^" * len(line)
+                print(color_code(underline))
             else:
-                print(color_error(fullmsg))
+                fullmsg = format_parse_error(e, src=line)
+                if "\n" in fullmsg:
+                    errline, context = fullmsg.split("\n", 1)
+                    print(color_error(errline))
+                    print(color_code(context))
+                else:
+                    print(color_error(fullmsg))
         except ReturnSignal as ret:
             print(ret.value)
         except Exception as e:

@@ -4,7 +4,7 @@ def error_message_already_defined(name):
     # Only add $ if not already present
     if not name.startswith("$"):
         name = f"${name}"
-    return f"{name} already defined"
+    return f"error: {name} already defined"
 
 def error_message_unknown_variable(name):
     return f"unknown variable: ${name}"
@@ -31,10 +31,13 @@ def error_message_expected_type(expected, got):
     return f"Expected {expected}, got {got}"
 
 def error_message_unexpected_token(token):
-    # Special case: double semicolon
-    if getattr(token, 'type', None) == 'OPERATOR' and getattr(token, 'value', None) == ';':
+    # Special case: extra semicolon
+    if getattr(token, 'type', None) == 'SEMICOLON' and getattr(token, 'value', None) == ';':
         return "error: extra semicolon"
     return f"Unexpected token: {token}"
+
+def error_message_cannot_assign(new_type, old_type):
+    return f"error: cannot assign {new_type} to {old_type}"
 
 # User-friendly error message for parse errors, with code context.
 def format_parse_error(err, src=None):
