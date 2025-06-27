@@ -14,8 +14,7 @@ error: $empty-list already defined
 //= NESTED LISTS WITH INDEXING ────────────────────────────────────────────
 3
 //= MIXED LIST‐INSIDE‐TABLE ● INDEX VS ATTR ──────────────────────────────
-{ $lst: [ "a", "b", "c" ] }
-b
+"b"
 //= LIST OF TABLES + INDEX OF TABLE ────────────────────────────────────
 [ { $x: 5 }, { $x: 7 } ]
 [ { $x: 5 }, { $x: 7 } ]

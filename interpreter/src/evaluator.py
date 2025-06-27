@@ -226,8 +226,13 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None):
             key = eval_ast(key_val, value_demand=True, env=env)
         if not isinstance(base_val, dict):
             raise EnzoRuntimeError(error_message_table_property_not_found(key))
+        # Try key as-is, then with $ prefix if not found
         if key not in base_val:
-            raise EnzoRuntimeError(error_message_table_property_not_found(key))
+            alt_key = f"${key}" if not key.startswith("$") else key[1:]
+            if alt_key in base_val:
+                key = alt_key
+            else:
+                raise EnzoRuntimeError(error_message_table_property_not_found(key))
         return base_val[key]
     raise EnzoRuntimeError(error_message_unknown_node(node))
 

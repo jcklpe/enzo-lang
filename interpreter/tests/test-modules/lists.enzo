@@ -20,7 +20,7 @@ $nestedList: [[1, 2], [3, 4]];
 $nestedList.2.1;   // prints “3”
 
 //= MIXED LIST‐INSIDE‐TABLE ● INDEX VS ATTR ──────────────────────────────
-$mix: { $lst: ["a", "b", "c"] };
+$mix: { $lst: ["a", "b", "c"] };  //binds table
 $mix.lst.2;                // prints “b”
 
 //= LIST OF TABLES + INDEX OF TABLE ────────────────────────────────────
