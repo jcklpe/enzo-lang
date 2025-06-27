@@ -31,7 +31,7 @@ error: list index out of range
     ^^^^^^^^^
 error: can't use string as index
     $list."foo";
-     ^^^^^^^^^^^
+    ^^^^^^^^^^^^
 error: list index out of range
     $list.1.1;
     ^^^^^^^^^^

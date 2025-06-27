@@ -209,9 +209,13 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None):
         # If index is a string, error
         if isinstance(idx, str):
             raise EnzoRuntimeError(error_message_cant_use_string_as_index())
-        # If base is not a list, error
+        # For chained index: if base is not a list, raise 'list index out of range'
         if not isinstance(base, list):
-            raise EnzoRuntimeError(error_message_index_applies_to_lists())
+            # If the node.base is a VarInvoke or TableIndex, it's a direct non-list base (e.g. $notalist.1)
+            if isinstance(node.base, (VarInvoke, TableIndex)):
+                raise EnzoRuntimeError(error_message_index_applies_to_lists())
+            # Otherwise, it's a chained index (e.g. $list.1.1)
+            raise EnzoRuntimeError(error_message_list_index_out_of_range())
         # Index must be int and in range
         if not isinstance(idx, int) or idx < 1 or idx > len(base):
             raise EnzoRuntimeError(error_message_list_index_out_of_range())
