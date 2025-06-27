@@ -1,5 +1,5 @@
 //= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
-$emptyListTest: [];
+$emptyListTest: []; // binds []
 $emptyListTest;    // prints “[ ]”
 $emptyListTest.1;  // error: list index out of range
 

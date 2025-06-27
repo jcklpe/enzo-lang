@@ -11,6 +11,10 @@ from src.error_messaging import (
     error_message_unknown_node,
     error_message_unterminated_interpolation,
     error_message_cannot_assign,
+    error_message_index_must_be_number,
+    error_message_index_must_be_integer,
+    error_message_list_index_out_of_range,
+    error_message_table_property_not_found,
 )
 
 _env = {}  # single global environment
@@ -115,9 +119,40 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None):
         right = eval_ast(node.right, value_demand=True, env=env)
         return left / right
     if isinstance(node, Invoke):
-        fn = eval_ast(node.func, value_demand=True, env=env)
+        left = eval_ast(node.func, value_demand=True, env=env)
         args = [eval_ast(arg, value_demand=True, env=env) for arg in node.args]
-        return invoke_function(fn, args, env)
+        # List indexing
+        if isinstance(left, list):
+            if len(args) != 1:
+                raise EnzoTypeError(error_message_index_must_be_number())
+            idx = args[0]
+            if not isinstance(idx, (int, float)):
+                raise EnzoTypeError(error_message_index_must_be_number())
+            if isinstance(idx, float):
+                if not idx.is_integer():
+                    raise EnzoTypeError(error_message_index_must_be_integer())
+                idx = int(idx)
+            if not isinstance(idx, int):
+                raise EnzoTypeError(error_message_index_must_be_integer())
+            # 1-based index
+            if idx < 1 or idx > len(left):
+                raise EnzoRuntimeError(error_message_list_index_out_of_range())
+            return left[idx - 1]
+        # Table property access
+        if isinstance(left, dict):
+            if len(args) != 1:
+                raise EnzoTypeError(error_message_table_property_not_found("<missing key>"))
+            key = args[0]
+            if not isinstance(key, str):
+                raise EnzoTypeError(error_message_table_property_not_found(key))
+            if key not in left:
+                raise EnzoRuntimeError(error_message_table_property_not_found(key))
+            return left[key]
+        # Function call
+        if isinstance(left, EnzoFunction):
+            return invoke_function(left, args, env)
+        # Not a list, table, or function
+        raise EnzoTypeError(error_message_index_applies_to_lists())
     if isinstance(node, Program):
         # For a program (file or REPL), output each top-level statement's value (if not None)
         results = []

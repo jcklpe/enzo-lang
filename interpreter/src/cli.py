@@ -16,7 +16,6 @@ def say(val):
 
 # All references to Enzo's 'number' atom are now 'number atom' or 'number_atom' in comments and user-facing messages.
 def print_enzo_error(msg):
-    import sys
     # ANSI codes
     RED = "\033[91m"
     RESET = "\033[0m"
@@ -30,12 +29,11 @@ def print_enzo_error(msg):
         return
 
     # First line: red (the error summary)
-    print(f"{RED}{lines[0]}{RESET}", file=sys.stderr)
+    print(f"{RED}{lines[0]}{RESET}")  # Print to stdout, not stderr
     # Remaining lines: treat as code block (if present)
     for code_line in lines[1:]:
-        # Only print non-empty lines, and add code-like background
         if code_line.strip():
-            print(f"{BLACK_BG}{WHITE}{code_line.rstrip()}{RESET}", file=sys.stderr)
+            print(f"{BLACK_BG}{WHITE}{code_line.rstrip()}{RESET}")
 
 def read_statement(stdin, interactive):
     buffer = []
@@ -94,7 +92,7 @@ def run_enzo_file(filename):
         if not line:
             continue
         # --- PRINT //= TITLES TO STDOUT, EVEN IN FILE MODE ---
-        if line.startswith("//="):
+        if line.startswith("//= "):
             print(line)
             continue
         # Skip full-line comments (but not //= titles)
@@ -106,50 +104,21 @@ def run_enzo_file(filename):
         if not line:
             continue
         try:
-            ast = parse(line)
-            result = eval_ast(ast, value_demand=True)
-            # If result is a list (from Program), print each non-None value on its own line
-            if isinstance(result, list):
-                for val in result:
-                    if val is not None:
-                        if isinstance(val, (list, dict, Table)):
-                            print(format_val(val))
-                        else:
-                            print(val)
-            else:
-                if result is not None:
-                    if isinstance(result, (list, dict, Table)):
-                        print(format_val(result))
-                    else:
-                        print(result)
+            result = eval_ast(parse(line), value_demand=True)
+            # Only print if result is not None (including empty lists/tables)
+            if result is not None:
+                print(format_val(result))
         except InterpolationParseError:
-            print(color_error(error_message_unterminated_interpolation()))
-            print(color_code("    " + line))
-            underline = "    " + " " * line.find("<") + "^"
-            print(color_code(underline))
+            print_enzo_error(error_message_unterminated_interpolation())
         except (UnexpectedToken, UnexpectedInput, UnexpectedCharacters) as e:
-            # Use friendly error message for extra semicolon
-            if isinstance(e, UnexpectedToken) and getattr(e, 'token', None):
-                from src.error_messaging import error_message_unexpected_token
-                msg = error_message_unexpected_token(e.token)
-                print(color_error(msg))
-                print(color_code("    " + line))
-                underline = "    " + "^" * len(line)
-                print(color_code(underline))
-            else:
-                fullmsg = format_parse_error(e, src=line)
-                if "\n" in fullmsg:
-                    errline, context = fullmsg.split("\n", 1)
-                    print(color_error(errline))
-                    print(color_code(context))
-                else:
-                    print(color_error(fullmsg))
+            print_enzo_error(format_parse_error(e, src=line))
         except ReturnSignal as ret:
-            print(ret.value)
+            print(format_val(ret.value))
         except Exception as e:
-            print(color_error(format_parse_error(e, src=line) if hasattr(e, 'line') else error_message_generic(str(e))))
-            print(color_code("    " + line))
-            print(color_code("    " + "^" * len(line)))
+            # Print error message, code line, and caret underline for runtime errors
+            print_enzo_error(error_message_generic(e))
+            print(f"    {line}")
+            print(f"    {'^' * len(line)}")
 
 def process_includes(lines, base_dir=None, already_included=None):
     #Given a list of source lines, yield each line, but expand any `@include filename` directives inline.

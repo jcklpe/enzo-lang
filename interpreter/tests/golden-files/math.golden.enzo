@@ -1,23 +1,17 @@
 //= BINDING MATH OPERATIONS ────────────────────────────────────────────────
 100
-<function () ...>
+5
 105
 //= ARITHMETIC PRECEDENCE CHECK ─────────────────────────────────────────────
-<function () ...>
 14
-<function () ...>
 20
 //= PARENTHESIZED EXPRESSIONS AS STAND‐ALONE ─────────────────────────────
 15
 //= LARGE NUMBERS + NEGATIVE NUMBERS ────────────────────────────────────
 1234567890
-1234567890
--5
 -5
 -10
 0
-0
-Syntax error: Unexpected token ';' at line 1, column 12.
-Expected one of: LPAR
+error: double minus not allowed
     $weird: --5;
-               ^
+    ^^^^^^^^^^^^

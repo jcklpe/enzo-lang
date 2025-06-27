@@ -1,4 +1,5 @@
-unknown variable: $$undefinedVar
+//= INVOKING AN UNDEFINED VARIABLE
+unknown variable: $undefinedVar
     $undefinedVar;
     ^^^^^^^^^^^^^^
 //= EMPTY BIND ────────────────────────────────────────────────────────────
@@ -30,7 +31,7 @@ error: $z already defined
 error: cannot assign Text to Number
     $newImplicit <: "oops";
     ^^^^^^^^^^^^^^^^^^^^^^^
-cool dude
+"cool dude"
 //= MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
 3
 3

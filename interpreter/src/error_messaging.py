@@ -7,7 +7,9 @@ def error_message_already_defined(name):
     return f"error: {name} already defined"
 
 def error_message_unknown_variable(name):
-    return f"unknown variable: ${name}"
+    if not name.startswith("$"):
+        name = f"${name}"
+    return f"unknown variable: {name}"
 
 def error_message_not_a_function(func):
     return f"{func} is not a function"
@@ -38,6 +40,30 @@ def error_message_unexpected_token(token):
 
 def error_message_cannot_assign(new_type, old_type):
     return f"error: cannot assign {new_type} to {old_type}"
+
+def error_message_double_minus(token=None):
+    return "error: double minus not allowed"
+
+def error_message_list_index_out_of_range():
+    return "error: list index out of range"
+
+def error_message_index_applies_to_lists():
+    return "error: index applies to lists"
+
+def error_message_table_property_not_found(prop):
+    return f"error: table property not found: {prop}"
+
+def error_message_index_must_be_number():
+    return "error: index must be a number (text atoms cannot be used as indices)"
+
+def error_message_index_must_be_integer():
+    return "error: index must be an integer"
+
+def error_message_assignment_to_list_index_out_of_range():
+    return "error: list index out of range"
+
+def error_message_assignment_to_table_property_not_found(prop):
+    return f"error: table property not found: {prop}"
 
 # User-friendly error message for parse errors, with code context.
 def format_parse_error(err, src=None):

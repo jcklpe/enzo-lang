@@ -1,4 +1,4 @@
-// INVOKING AN UNDEFINED VARIABLE
+//= INVOKING AN UNDEFINED VARIABLE
 $undefinedVar;      // error: undefined: $undefinedVar
 
 //= EMPTY BIND ────────────────────────────────────────────────────────────

@@ -4,7 +4,7 @@
 from .ast_nodes import *
 from .tokenizer import Tokenizer
 from src.error_handling import EnzoParseError
-from src.error_messaging import error_message_expected_type, error_message_unexpected_token
+from src.error_messaging import error_message_expected_type, error_message_unexpected_token, error_message_double_minus
 
 class Parser:
     def __init__(self, src):
@@ -155,6 +155,23 @@ class Parser:
             return self.parse_list_atom()
         elif t.type == "LBRACE":
             return self.parse_table_atom()
+        elif t.type == "MINUS":
+            self.advance()
+            t2 = self.peek()
+            from src.error_messaging import error_message_double_minus
+            if t2 and t2.type == "MINUS":
+                raise EnzoParseError(error_message_double_minus(t2))
+            if t2 and t2.type == "NUMBER_TOKEN" and t2.value.startswith('-'):
+                raise EnzoParseError(error_message_double_minus(t2))
+            if t2 and t2.type == "NUMBER_TOKEN":
+                self.advance()
+                val = t2.value
+                if '.' in val:
+                    return NumberAtom(float('-' + val.lstrip('-')))
+                else:
+                    return NumberAtom(int('-' + val.lstrip('-')))
+            else:
+                raise EnzoParseError(error_message_unexpected_token(t2))
         else:
             raise EnzoParseError(error_message_unexpected_token(t))
 

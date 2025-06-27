@@ -1,6 +1,5 @@
 //= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
 [ ]
-[ ]
 error: list index out of range
     $emptyListTest.1;
     ^^^^^^^^^^^^^^^^^
