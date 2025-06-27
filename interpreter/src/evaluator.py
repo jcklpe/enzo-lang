@@ -23,8 +23,14 @@ class EnzoFunction:
     def __repr__(self):
         return f"<function ({', '.join(self.params)}) ...>"
 
+# _auto_invoke_if_fn: Helper to auto-invoke function atoms in value-demand contexts.
+# The already_invoked flag prevents infinite recursion by ensuring that a function atom
+# is only auto-invoked once per evaluation chain. This is necessary because auto-invocation
+# is triggered both at the top level and when evaluating variable references or parenthesized
+# expressions, and without this flag, recursive wrapping in Invoke would occur.
 def _auto_invoke_if_fn(val, node=None, value_demand=False, already_invoked=False):
     # Only auto-invoke if val is an EnzoFunction and node is a FunctionAtom or VarInvoke (i.e., an AST node)
+    # already_invoked prevents repeated auto-invocation in nested or chained contexts.
     if value_demand and isinstance(val, EnzoFunction) and not already_invoked:
         if isinstance(node, (FunctionAtom, VarInvoke)):
             # Pass already_invoked=True to prevent infinite recursion
@@ -36,6 +42,7 @@ def _auto_invoke_if_fn(val, node=None, value_demand=False, already_invoked=False
 def eval_ast(node, value_demand=False, already_invoked=False):
     global _env
     # If this is a top-level FunctionAtom, always treat as value-demand
+    # already_invoked=True here ensures that the top-level auto-invocation only happens once.
     if isinstance(node, FunctionAtom) and not value_demand:
         return eval_ast(Invoke(node, []), value_demand=True, already_invoked=True)
 
@@ -88,6 +95,8 @@ def eval_ast(node, value_demand=False, already_invoked=False):
         right = eval_ast(node.right, value_demand=True)
         return left / right
     if isinstance(node, Invoke):
+        # When evaluating the .func of an Invoke node, set already_invoked=True to prevent
+        # repeated auto-invocation. This is crucial for correct demand-driven evaluation semantics.
         func = eval_ast(node.func, value_demand=True, already_invoked=True)
         args = [eval_ast(arg, value_demand=True, already_invoked=already_invoked) for arg in node.args]
         if not isinstance(func, EnzoFunction):
