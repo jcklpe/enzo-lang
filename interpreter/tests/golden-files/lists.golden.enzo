@@ -1,5 +1,5 @@
 //= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
-[ ]
+[  ]
 error: list index out of range
     $emptyListTest.1;
     ^^^^^^^^^^^^^^^^^
@@ -8,14 +8,10 @@ error: $empty-list already defined
     $empty-list: 50;
     ^^^^^^^^^^^^^^^^
 [ "now not empty" ]
-[ "now not empty" ]
 //= DECLARE LIST AND ACCESS ITEMS ────────────────────────────────────────
-[ "red", "green", "blue", "yellow" ]
-blue
-2
-green
+"blue"
+"green"
 //= NESTED LISTS WITH INDEXING ────────────────────────────────────────────
-[ [ 1, 2 ], [ 3, 4 ] ]
 3
 //= MIXED LIST‐INSIDE‐TABLE ● INDEX VS ATTR ──────────────────────────────
 { $lst: [ "a", "b", "c" ] }

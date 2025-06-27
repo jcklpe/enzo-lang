@@ -6,13 +6,13 @@ $emptyListTest.1;  // error: list index out of range
 //= BIND EMPTY AND THEN FILL WITH LIST ────────────────────────────────────
 $empty-list: ;
 $empty-list: 50;    //error: $empty-list already defined
-$empty-list<: ["now not empty"];
+$empty-list<: ["now not empty"];  //bind contents to list
 $empty-list;       // prints “[ "now not empty" ]”
 
 //= DECLARE LIST AND ACCESS ITEMS ────────────────────────────────────────
-$colors: ["red", "green", "blue", "yellow"];
+$colors: ["red", "green", "blue", "yellow"]; // binds list
 $colors.3;         // prints “blue”
-$i: 2;
+$i: 2;             // binds 2
 $colors.$i;        // prints “green”
 
 //= NESTED LISTS WITH INDEXING ────────────────────────────────────────────
