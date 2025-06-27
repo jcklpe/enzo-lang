@@ -64,8 +64,8 @@ class Tokenizer:
                 # Special handling: if we see a dot followed by a number (e.g. .2), treat as DOT then NUMBER_TOKEN
                 if code[pos] == '.' and pos + 1 < len(code) and code[pos+1].isdigit():
                     tokens.append(Token('DOT', '.', pos, pos+1))
-                    # Now match the number after the dot
-                    num_match = re.match(r'\d+(?:\.\d+)?', code[pos+1:])
+                    # Now match the number after the dot, but only up to the next dot (for chained indices)
+                    num_match = re.match(r'(\d+)', code[pos+1:])
                     if num_match:
                         num_val = num_match.group(0)
                         tokens.append(Token('NUMBER_TOKEN', num_val, pos+1, pos+1+len(num_val)))
@@ -74,6 +74,17 @@ class Tokenizer:
                 raise EnzoParseError(f"Unexpected character: {code[pos]!r} at {pos}")
             typ = m.lastgroup
             val = m.group(typ)
+            # Patch: If this is a NUMBER_TOKEN and the previous token was DOT, and the number contains a dot (float), split it into multiple tokens
+            if typ == "NUMBER_TOKEN" and '.' in val and tokens and tokens[-1].type == 'DOT':
+                # Split at each dot for chained indices, e.g. .2.1 -> DOT, NUMBER_TOKEN(2), DOT, NUMBER_TOKEN(1)
+                parts = val.split('.')
+                for i, part in enumerate(parts):
+                    if i > 0:
+                        tokens.append(Token('DOT', '.', pos, pos+1))
+                        pos += 1  # move past the dot
+                    tokens.append(Token('NUMBER_TOKEN', part, pos, pos+len(part)))
+                    pos += len(part)
+                continue
             if typ == "WHITESPACE" or typ == "COMMENT":
                 pass
             elif typ == "NEWLINE":

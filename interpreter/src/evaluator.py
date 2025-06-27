@@ -204,8 +204,12 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None):
     if isinstance(node, ListIndex):
         base_val = eval_ast(node.base, value_demand=True, env=env)
         idx_val = eval_ast(node.index, value_demand=True, env=env)
+        #print(f"[DEBUG eval] ListIndex: base={repr(base_val)}, index={repr(idx_val)} (type={type(idx_val)})")  # DEBUG
         if not isinstance(base_val, list):
             raise EnzoRuntimeError(error_message_index_applies_to_lists())
+        # Accept int, or float that is integer-valued
+        if isinstance(idx_val, float) and idx_val.is_integer():
+            idx_val = int(idx_val)
         if not isinstance(idx_val, int):
             raise EnzoRuntimeError(error_message_index_must_be_integer())
         if idx_val < 1 or idx_val > len(base_val):

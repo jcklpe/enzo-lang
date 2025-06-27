@@ -117,9 +117,10 @@ class Parser:
         return TableAtom(items)
 
     def parse_postfix(self, base):
-        # Use DOT token for property/index access
+        # Correctly handle chained dot-number and dot-variable for nested indexing
+        debug_chain = []  # DEBUG: collect chain for print
         while self.peek() and self.peek().type == "DOT":
-            self.advance()
+            self.advance()  # consume DOT
             t = self.peek()
             if t and t.type == "NUMBER_TOKEN":
                 num_token = self.advance().value
@@ -128,17 +129,22 @@ class Parser:
                     num = float(num_token)
                 else:
                     num = int(num_token)
+                debug_chain.append(f".{{{num}}}")  # DEBUG
                 base = ListIndex(base, NumberAtom(num))
             elif t and t.type == "KEYNAME":
                 key = self.advance().value
                 if key.startswith("$"):
-                    # Variable index: ListIndex(base, VarInvoke(key))
+                    debug_chain.append(f".${{key}}")  # DEBUG
                     base = ListIndex(base, VarInvoke(key))
                 else:
-                    # Property access: TableIndex(base, key)
+                    debug_chain.append(f".{key}")  # DEBUG
                     base = TableIndex(base, key)
             else:
+                # If not a valid index or property, break
                 break
+        # DEBUG: print the final AST for chained dot access
+        #if debug_chain:
+            #print(f"[DEBUG parser] parse_postfix chain: {debug_chain} -> AST: {base}")
         return base
 
     def parse_atom(self):
