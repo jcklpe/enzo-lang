@@ -17,7 +17,6 @@ error: $empty-list already defined
 "b"
 //= LIST OF TABLES + INDEX OF TABLE ────────────────────────────────────
 [ { $x: 5 }, { $x: 7 } ]
-[ { $x: 5 }, { $x: 7 } ]
 7
 //= Out-of-bounds and weird list indices
 [ 1, 2, 3 ]

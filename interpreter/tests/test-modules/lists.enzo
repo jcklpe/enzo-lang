@@ -24,7 +24,7 @@ $mix: { $lst: ["a", "b", "c"] };  //binds table
 $mix.lst.2;                // prints “b”
 
 //= LIST OF TABLES + INDEX OF TABLE ────────────────────────────────────
-$lot: [ { $x: 5 }, { $x: 7 } ];
+$lot: [ { $x: 5 }, { $x: 7 } ];  // binds table
 $lot;                 // prints “[ { $x: 5 }, { $x: 7 } ]”
 $lot.2.x;             // prints “7”
 

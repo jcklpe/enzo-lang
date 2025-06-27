@@ -9,9 +9,19 @@ class Table(dict):
         return "{ " + ", ".join(items) + " }"
 
 def format_val(v):
-    if isinstance(v, Table):
-        items = ", ".join(f"{k}: {format_val(val)}" for k, val in v.items())
-        return f"{{ {items} }}"
+    if isinstance(v, Table) or (isinstance(v, dict) and not isinstance(v, list)):
+        # Use Enzo-style formatting for tables
+        items = []
+        for k, val in v.items():
+            # Print $key: ... if key starts with $, else key: ...
+            if isinstance(k, str) and k.startswith('$'):
+                key_str = k
+            elif isinstance(k, str):
+                key_str = f"${k}" if k.isidentifier() else k
+            else:
+                key_str = str(k)
+            items.append(f"{key_str}: {format_val(val)}")
+        return f"{{ {', '.join(items)} }}"
     elif isinstance(v, list):
         items = ", ".join(format_val(el) for el in v)
         return f"[ {items} ]"
