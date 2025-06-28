@@ -39,6 +39,7 @@ $list.1.1;          // error: list index out of range
 
 //= List/table mutation
 $mutable: [1,2];
+$mutable;
 $mutable.1 <: 5;        // updates first element to 5
 $mutable;               // prints [ 5, 2 ]
 $mutable.3 <: 9;        // error: list index out of range
