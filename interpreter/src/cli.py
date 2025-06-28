@@ -9,6 +9,7 @@ from src.error_messaging import format_parse_error, error_message_unterminated_i
 from lark import UnexpectedToken, UnexpectedInput, UnexpectedCharacters
 from src.color_helpers import color_error, color_code
 
+
 DISABLE_COLOR = not sys.stdout.isatty() or os.environ.get("NO_COLOR") == "1"
 
 def say(val):
@@ -110,12 +111,8 @@ def run_enzo_file(filename):
         except (UnexpectedToken, UnexpectedInput, UnexpectedCharacters) as e:
             # Special-case: extra semicolon error
             if isinstance(e, UnexpectedToken) and getattr(e, 'token', None):
-                from src.error_messaging import error_message_unexpected_token, error_message_with_code_line
-                msg = error_message_unexpected_token(e.token)
-                if msg.strip() == "error: extra semicolon":
-                    print_enzo_error(error_message_with_code_line(msg, line))
-                else:
-                    print_enzo_error(error_message_with_code_line(msg, line))
+                msg = format_parse_error(e, src=line)
+                print_enzo_error(msg)
                 continue
             msg = format_parse_error(e, src=line)
             if "\n" in msg:
