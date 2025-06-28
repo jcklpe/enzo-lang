@@ -37,7 +37,6 @@ error: list index out of range
     ^^^^^^^^^^
 //= List/table mutation
 [ 1, 2 ]
-5
 [ 5, 2 ]
 error: list index out of range
     $mutable.3 <: 9;

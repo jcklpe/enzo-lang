@@ -223,26 +223,23 @@ class Parser:
         return self.parse_term()
 
     def parse_statement(self):
-        t = self.peek()
-        if t and t.type == "KEYNAME":
-            name = t.value
-            # Check for rebinding: $x <: expr
-            if self.pos + 1 < len(self.tokens):
-                next_tok = self.tokens[self.pos + 1]
-                if next_tok.type == "LT_COLON":
-                    self.advance()  # KEYNAME
-                    self.advance()  # LT_COLON
-                    value = self.parse_value_expression()
-                    return BindOrRebind(name, value)
-                elif next_tok.type == "COLON":
-                    self.advance()  # KEYNAME
-                    self.advance()  # COLON
-                    # Support empty bind: $x: ;
-                    if self.peek() and self.peek().type == "SEMICOLON":
-                        return Binding(name, None)
-                    value = self.parse_value_expression()
-                    return Binding(name, value)
+        # Support assignment to variable, list index, or table index
+        # Parse a value expression (could be VarInvoke, ListIndex, TableIndex, etc.)
         expr1 = self.parse_value_expression()
+        # Assignment: <:
+        if self.peek() and self.peek().type == "LT_COLON":
+            self.advance()  # consume LT_COLON
+            value = self.parse_value_expression()
+            return BindOrRebind(expr1, value)
+        # Variable binding: $x: ...
+        if isinstance(expr1, VarInvoke) and self.peek() and self.peek().type == "COLON":
+            self.advance()  # consume COLON
+            # Support empty bind: $x: ;
+            if self.peek() and self.peek().type == "SEMICOLON":
+                return Binding(expr1.name, None)
+            value = self.parse_value_expression()
+            return Binding(expr1.name, value)
+        # Implicit bind-or-rebind: :>
         if self.peek() and self.peek().type == "COLON_GT":
             self.advance()
             expr2 = self.parse_value_expression()

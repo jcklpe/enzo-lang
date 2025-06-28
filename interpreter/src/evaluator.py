@@ -176,9 +176,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None):
         # Raise a clear error for tuple ASTs
         raise EnzoRuntimeError(error_message_tuple_ast())
     if isinstance(node, BindOrRebind):
-        # Allow implicit binding: if variable does not exist, bind it and lock its type
-        name = node.target
-        new_val = eval_ast(node.value, value_demand=True, env=env)
+        target = node.target
+        value = eval_ast(node.value, value_demand=True, env=env)
         def enzo_type(val):
             if isinstance(val, (int, float)):
                 return "Number"
@@ -193,16 +192,59 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None):
             if isinstance(val, Empty):
                 return "Empty"
             return type(val).__name__
-        if name not in env:
-            # Implicit bind: create variable and lock its type
-            env[name] = new_val
-            return None  # Do not output anything for assignment
-        old_val = env[name]
-        # Allow rebinding from Empty to any type
-        if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(new_val):
-            raise EnzoRuntimeError(error_message_cannot_assign(enzo_type(new_val), enzo_type(old_val)))
-        env[name] = new_val
-        return None  # Do not output anything for assignment
+        # Assignment to variable
+        if isinstance(target, str):
+            name = target
+            if name not in env:
+                env[name] = value
+                return None
+            old_val = env[name]
+            if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(value):
+                raise EnzoRuntimeError(error_message_cannot_assign(enzo_type(value), enzo_type(old_val)))
+            env[name] = value
+            return None
+        # Assignment to variable via VarInvoke
+        if isinstance(target, VarInvoke):
+            name = target.name
+            if name not in env:
+                env[name] = value
+                return None
+            old_val = env[name]
+            if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(value):
+                raise EnzoRuntimeError(error_message_cannot_assign(enzo_type(value), enzo_type(old_val)))
+            env[name] = value
+            return None
+        # Assignment to list index
+        if isinstance(target, ListIndex):
+            base = eval_ast(target.base, env=env)
+            idx = eval_ast(target.index, env=env)
+            if not isinstance(base, list):
+                raise EnzoTypeError(error_message_index_applies_to_lists())
+            if isinstance(idx, str):
+                raise EnzoTypeError(error_message_cant_use_string_as_index())
+            if not isinstance(idx, (int, float)):
+                raise EnzoTypeError(error_message_index_must_be_number())
+            if isinstance(idx, float):
+                if not idx.is_integer():
+                    raise EnzoTypeError(error_message_index_must_be_integer())
+                idx = int(idx)
+            if not isinstance(idx, int):
+                raise EnzoTypeError(error_message_index_must_be_integer())
+            if idx < 1 or idx > len(base):
+                raise EnzoRuntimeError(error_message_list_index_out_of_range())
+            base[idx - 1] = value
+            return None
+        # Assignment to table property
+        if isinstance(target, TableIndex):
+            base = eval_ast(target.base, env=env)
+            key = target.key
+            if isinstance(key, VarInvoke):
+                key = eval_ast(key, env=env)
+            if not isinstance(base, dict):
+                raise EnzoTypeError(error_message_table_property_not_found(key))
+            base[key] = value
+            return None
+        raise EnzoRuntimeError("Cannot assign to target: {}".format(target))
     if isinstance(node, ListIndex):
         base = eval_ast(node.base, env=env)
         idx = eval_ast(node.index, env=env)
