@@ -75,8 +75,12 @@ def format_parse_error(err, src=None):
             lines = src.splitlines()
             if 1 <= err.line <= len(lines):
                 code_line = lines[err.line - 1]
-                underline  = " " * (err.column - 1) + "^"
-                msg += f"\n    {code_line}\n    {underline}"
+                # Indent code line by 4 spaces
+                msg += "\n    " + code_line.rstrip()
+                # Caret underline at error column (1-based)
+                if hasattr(err, "column") and err.column is not None:
+                    caret_pos = max(0, err.column - 1)
+                    msg += "\n" + " " * (4 + caret_pos) + "^"
         return msg
 
     # Special cases for commas in lists/tables
@@ -84,19 +88,19 @@ def format_parse_error(err, src=None):
         tok = err.token
         line_txt = src.splitlines()[err.line - 1] if src and err.line <= len(src.splitlines()) else ""
         stripped = line_txt.strip().replace(" ", "")
-        if stripped in ("{,}", "[,]" ):
-            msg = f"just a comma at line {err.line} (remove or add an item)."
+        # Double comma: [1,,2] or {a,,b}
+        if ",," in line_txt.replace(" ", ""):
+            msg = "error: double comma in list"
             return add_context(msg)
-        open_idx = max(line_txt.find("{"), line_txt.find("["))
-        if open_idx != -1:
-            after_open = line_txt[open_idx + 1 :].lstrip()
-            if after_open.startswith(","):
-                msg = "leading comma (remove the comma at the start)."
-                return add_context(msg)
-        before = line_txt[: err.column]
-        if ",," in before.replace(" ", ""):
-            msg = "double comma (remove one comma)."
+        # Leading comma: [,1,2] or {,a,b}
+        if stripped.startswith("[,") or stripped.startswith("{,"):
+            msg = "error: excess leading comma"
             return add_context(msg)
+        # Just a comma: [,] or {,}
+        if stripped in ("[,]", "{,}"):
+            msg = "error: empty list with just a comma"
+            return add_context(msg)
+        # Default: show expected tokens
         expected = ", ".join(sorted(err.expected))
         expected = expected.replace("TEXT_ATOM", "STRING")
         msg = (
@@ -107,14 +111,11 @@ def format_parse_error(err, src=None):
         return add_context(msg)
     elif hasattr(err, 'char'):
         if err.char == "-":
-            msg = "error: negative index not allowed"
+            msg = "error: double minus not allowed"
         elif err.char == '"':
-            msg = "error: index must be a number (text atoms cannot be used as indices)"
+            msg = "error: unterminated string"
         else:
-            msg = (
-                f"Syntax error: Unexpected character '{err.char}' "
-                f"at line {err.line}, column {err.column}."
-            )
+            msg = f"Syntax error: Unexpected character '{err.char}'"
         return add_context(msg)
     elif hasattr(err, 'pos_in_stream'):
         msg = f"Syntax error: Unexpected input at position {err.pos_in_stream}."

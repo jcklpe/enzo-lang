@@ -46,8 +46,8 @@ $mutable.3 <: 9;        // error: list index out of range
 
 //= Trailing commas
 // These are fine
-$goodList: [1, 2, 3, ];
-$goodList;
+$goodList: [1, 2, 3, ]; // binds list
+$goodList;              // prints  [ 1, 2, 3 ]
 // these should error
 $badList1: [1,,2];                        // error: remove one comma
 $badList2: [,1,2];                        // error: leading comma
@@ -55,4 +55,5 @@ $badList3: [,];                           // error: just comma
 
 //= Various type errors
 $notalist: "oops";
+$notalist;
 $notalist.1;                              // index applies to lists

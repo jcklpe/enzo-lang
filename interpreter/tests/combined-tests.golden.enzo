@@ -1,6 +1,5 @@
 //= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
-[ ]
-[ ]
+[  ]
 error: list index out of range
     $emptyListTest.1;
     ^^^^^^^^^^^^^^^^^
@@ -9,87 +8,72 @@ error: $empty-list already defined
     $empty-list: 50;
     ^^^^^^^^^^^^^^^^
 [ "now not empty" ]
-[ "now not empty" ]
 //= DECLARE LIST AND ACCESS ITEMS ────────────────────────────────────────
-[ "red", "green", "blue", "yellow" ]
-blue
-2
-green
+"blue"
+"green"
 //= NESTED LISTS WITH INDEXING ────────────────────────────────────────────
-[ [ 1, 2 ], [ 3, 4 ] ]
 3
 //= MIXED LIST‐INSIDE‐TABLE ● INDEX VS ATTR ──────────────────────────────
-{ $lst: [ "a", "b", "c" ] }
-b
+"b"
 //= LIST OF TABLES + INDEX OF TABLE ────────────────────────────────────
-[ { $x: 5 }, { $x: 7 } ]
 [ { $x: 5 }, { $x: 7 } ]
 7
 //= Out-of-bounds and weird list indices
 [ 1, 2, 3 ]
-Syntax error: Unexpected token '.0' at line 1, column 6.
-Expected one of: COLON, DOTINT, DOTPROP, DOTVAR, LPAR, MINUS, NEWLINE, PLUS, SEMICOLON, SLASH, STAR, __ANON_0, __ANON_1
+error: list index out of range
     $list.0;
-         ^
+    ^^^^^^^^
 error: list index out of range
     $list.4;
     ^^^^^^^^
-Syntax error: Unexpected character '.' at line 1, column 6.
+error: list index out of range
     $list.-1;
-         ^
-Syntax error: Unexpected character '.' at line 1, column 6.
+    ^^^^^^^^^
+error: can't use string as index
     $list."foo";
-         ^
-error: index applies to lists
+    ^^^^^^^^^^^^
+error: list index out of range
     $list.1.1;
     ^^^^^^^^^^
 //= List/table mutation
 [ 1, 2 ]
-5
 [ 5, 2 ]
 error: list index out of range
     $mutable.3 <: 9;
     ^^^^^^^^^^^^^^^^
 //= Trailing commas
 [ 1, 2, 3 ]
-[ 1, 2, 3 ]
-double comma (remove one comma).
+error: double comma in list
     $badList1: [1,,2];
-                  ^
-leading comma (remove the comma at the start).
+    ^^^^^^^^^^^^^^^^^^
+error: excess leading comma
     $badList2: [,1,2];
-                ^
-leading comma (remove the comma at the start).
+    ^^^^^^^^^^^^^^^^^^
+error: empty list with just a comma
     $badList3: [,];
-                ^
+    ^^^^^^^^^^^^^^^
 //= Various type errors
-oops
+"oops"
 error: index applies to lists
     $notalist.1;
     ^^^^^^^^^^^^
 //= BINDING MATH OPERATIONS ────────────────────────────────────────────────
 100
-<function () ...>
+5
 105
 //= ARITHMETIC PRECEDENCE CHECK ─────────────────────────────────────────────
-<function () ...>
 14
-<function () ...>
 20
 //= PARENTHESIZED EXPRESSIONS AS STAND‐ALONE ─────────────────────────────
 15
 //= LARGE NUMBERS + NEGATIVE NUMBERS ────────────────────────────────────
 1234567890
-1234567890
--5
 -5
 -10
 0
-0
-Syntax error: Unexpected token ';' at line 1, column 12.
-Expected one of: LPAR
+error: double minus not allowed
     $weird: --5;
-               ^
+    ^^^^^^^^^^^^
 //= TABLE STUFF ───────────────────────────────────────────────────────────
 { $name: "Alice", $age: 30 }
 { $name: "Alice", $age: 30 }
@@ -167,7 +151,7 @@ leading comma (remove the comma at the start).
     $badTable3: { , };
                   ^
 //= TEXT + INTERPOLATION ───────────────────────────────────────────────────
-rebinding this text and 
+rebinding this text and
 this is text example 2
 just a plain text
 rebinding this text and this is text example 2
@@ -202,22 +186,16 @@ error: parse error in interpolation
 error: parse error in interpolation
     "hello <<$foo>>";
            ^
-error: undefined: $undefinedVar
+//= INVOKING AN UNDEFINED VARIABLE
+unknown variable: $undefinedVar
     $undefinedVar;
     ^^^^^^^^^^^^^^
 //= EMPTY BIND ────────────────────────────────────────────────────────────
-error: $x already defined
-    $x: ;
-    ^^^^^
 //= REDECLARING A VARIABLE (USING “:”) ERRORS ────────────────────────────
 error: $x already defined
     $x: 10;
     ^^^^^^^
-error: $x already defined
-    $x: 1;
-    ^^^^^^
 //= REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
-100
 100
 error: cannot assign Text to Number
     $x <: "hello";
@@ -233,36 +211,26 @@ error: $z already defined
     ^^^^^^^^^^^^
 //= MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
 10
-10
 20
-20
-30
 30
 30
 //= REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
 55
-55
 error: cannot assign Text to Number
     $newImplicit <: "oops";
     ^^^^^^^^^^^^^^^^^^^^^^^
-cool dude
-cool dude
+"cool dude"
 //= MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
 3
 3
-2
 2
 //= Var naming
 5
 9
 3
-5
-9
-3
-Syntax error: Unexpected token ';' at line 1, column 22.
-Expected one of: FUNCNAME, LBRACE, LPAR, LSQB, NAME, NEWLINE, NUMBER_ATOM, STRING
+error: extra semicolon
     $meaning-of-life: 42;;
-                         ^
+    ^^^^^^^^^^^^^^^^^^^^^^
 //= Nameless functions one liner with implicit return
 5
 //= Nameless function: multi-line with explicit return

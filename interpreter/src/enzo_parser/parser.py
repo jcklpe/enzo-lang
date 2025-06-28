@@ -84,17 +84,39 @@ class Parser:
     def parse_list_atom(self):
         self.expect("LBRACK")
         elements = []
-        trailing_comma = False
-        if self.peek() and not (self.peek().type == "RBRACK"):
-            while True:
-                elements.append(self.parse_value_expression())
-                if self.peek() and self.peek().type == "COMMA":
+        saw_item = False
+        while True:
+            t = self.peek()
+            if t and t.type == "RBRACK":
+                self.advance()
+                break
+            if t and t.type == "COMMA":
+                # Check for [ , ] (empty list with just a comma)
+                t2 = self.tokens[self.pos + 1] if self.pos + 1 < len(self.tokens) else None
+                if t2 and t2.type == "RBRACK" and not saw_item:
+                    raise EnzoParseError("error: empty list with just a comma")
+                # Leading comma or double comma
+                if not saw_item:
+                    raise EnzoParseError("error: excess leading comma")
+                raise EnzoParseError("error: double comma in list")
+            elements.append(self.parse_value_expression())
+            saw_item = True
+            t = self.peek()
+            if t and t.type == "COMMA":
+                self.advance()
+                t2 = self.peek()
+                if t2 and t2.type == "RBRACK":
                     self.advance()
-                    trailing_comma = True
-                else:
-                    trailing_comma = False
                     break
-        self.expect("RBRACK")
+                if t2 and t2.type == "COMMA":
+                    raise EnzoParseError("error: double comma in list")
+            elif t and t.type == "RBRACK":
+                self.advance()
+                break
+            elif t:
+                raise EnzoParseError(f"Unexpected token: {t}")
+            else:
+                break
         return ListAtom(elements)
 
     def parse_table_atom(self):
