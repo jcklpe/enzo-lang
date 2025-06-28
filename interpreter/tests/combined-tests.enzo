@@ -167,25 +167,33 @@ $badTable3: { , };
 //= TEXT + INTERPOLATION ───────────────────────────────────────────────────
 $text-example: ;
 $text-example <: "rebinding this text and ";
+$text-example;
 $text-example2: "this is text example 2";
+$text-example2;
 
 "just a plain text";   // prints “just a plain text”
 
 "<$text-example; $text-example2;>";   // prints “rebinding this text and this is text example 2”
 $math1-interp: 100;
+$math1-interp;
 $math2-interp: 5;
-"100 plus 5 is: <($math1-interp + $math2-interp);>";           // prints “100 plus 5 is: 105”
+$math2-interp;
+"<$math1-interp;> plus <$math2-interp;> is: <($math1-interp + $math2-interp);>";           // prints “100 plus 5 is: 105”
 
 //= NOW THAT $colors & $i ARE DEFINED, INTERPOLATE A STRING THAT USES THEM ─
 $index-interp: 2;
+$index-interp;
 $colors-interp: ["red", "purple", "green", "silver"];
-$text-about-colors-list: "color <$index-interp> is <$colors-interp.$index-interp>";
+$colors-interp;
+$text-about-colors-list: "color <$index-interp;> is <$colors-interp.$index-interp;>";
 $text-about-colors-list;   // prints “color 2 is purple
 
 //= COMPLEX MATH INTERPOLATION ● MULTIPLE EXPRESSIONS ───────────────────
 $x <: 7;
+$x;
 $y <: 3;
-"Sum=<($x + $y);> Prod=<($x * $y);>";   // prints “Sum=10Prod=21”
+$y;
+"Sum=<($x + $y);> Prod=<($x * $y);>";   // prints “Sum=10 Prod=21”
 
 //= COMPOUND INTERPOLATION WITH TABLE+LIST ACCESS ────────────────────────
 $myTable: { $greeting: "hi", $nums: [2, 4] };
@@ -256,6 +264,15 @@ $_; // prints 9
 $-foo: 3;
 $-foo;        // prints 3
 $meaning-of-life: 42;;  // error: extra semi-colon
+
+//= Redundant semicolons and whitespace
+;;;;;;    // error: too many semicolons
+;   ;     // error: too many semicolons
+
+//= Invalid parenthesis/brackets/braces
+(1 + 2;                 // error: unmatched parenthesis
+[1, 2, 3;               // error: unmatched bracket
+{ $a: 1, $b: 2;         // error: unmatched brace
 
 // ── FUNCTIONS  -------------------
 //= Nameless functions one liner with implicit return

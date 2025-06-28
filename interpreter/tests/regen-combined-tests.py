@@ -9,6 +9,7 @@ module_files = [
     "tables.enzo",
     "text.enzo",
     "vars.enzo",
+    "misc.enzo",
     "functions.enzo"
 ]
 
