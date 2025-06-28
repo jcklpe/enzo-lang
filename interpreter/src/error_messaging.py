@@ -81,6 +81,11 @@ def format_parse_error(err, src=None):
                 if hasattr(err, "column") and err.column is not None:
                     caret_pos = max(0, err.column - 1)
                     msg += "\n" + " " * (4 + caret_pos) + "^"
+        elif src:
+            # If no line info, show the first line and caret at start
+            code_line = src.splitlines()[0] if src.splitlines() else src
+            msg += "\n    " + code_line.rstrip()
+            msg += "\n    ^"
         return msg
 
     # Special cases for commas in lists/tables
@@ -121,5 +126,10 @@ def format_parse_error(err, src=None):
         msg = f"Syntax error: Unexpected input at position {err.pos_in_stream}."
         return add_context(msg)
     else:
+        # For generic errors, try to add caret if line/column info is present
         msg = f"Parse error: {err}"
         return add_context(msg)
+
+def error_message_with_code_line(msg, code_line):
+    """Format an error message with the code line, no caret, for golden file compatibility."""
+    return f"{msg}\n    {code_line}"

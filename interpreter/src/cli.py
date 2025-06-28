@@ -81,44 +81,67 @@ def run_enzo_file(filename):
         lines = f.readlines()
     # Handle @include directives
     lines = list(process_includes(lines, base_dir=os.path.dirname(os.path.abspath(filename))))
-    from io import StringIO
-    fake_stdin = StringIO(''.join(lines))
-    interactive = False
-    while True:
-        stmt = read_statement(fake_stdin, interactive)
-        if stmt is None:
-            break
-        line = stmt.strip()
-        if not line:
+    for raw_line in lines:
+        line = raw_line.rstrip('\n')
+        if not line.strip():
             continue
-        # --- PRINT //= TITLES TO STDOUT, EVEN IN FILE MODE ---
-        if line.startswith("//= "):
-            print(line)
+        if line.strip().startswith('//='):
+            print(line.rstrip())
             continue
-        # Skip full-line comments (but not //= titles)
-        if line.startswith("//"):
+        if line.strip().startswith('//'):
             continue
         # Strip inline comments (for code lines only)
-        if "//" in line:
-            line = line.split("//", 1)[0].rstrip()
-        if not line:
+        if '//' in line:
+            line = line.split('//', 1)[0].rstrip()
+        if not line.strip():
             continue
         try:
             result = eval_ast(parse(line), value_demand=True)
-            # Only print if result is not None (including empty lists/tables)
             if result is not None:
                 print(format_val(result))
-        except InterpolationParseError:
-            print_enzo_error(error_message_unterminated_interpolation())
+        except InterpolationParseError as e:
+            msg = format_parse_error(e, src=line)
+            if "\n" in msg:
+                errline, context = msg.split("\n", 1)
+                print_enzo_error(errline + "\n" + context)
+            else:
+                print_enzo_error(msg)
+            continue
         except (UnexpectedToken, UnexpectedInput, UnexpectedCharacters) as e:
-            print_enzo_error(format_parse_error(e, src=line))
-        except ReturnSignal as ret:
-            print(format_val(ret.value))
+            # Special-case: extra semicolon error
+            if isinstance(e, UnexpectedToken) and getattr(e, 'token', None):
+                from src.error_messaging import error_message_unexpected_token, error_message_with_code_line
+                msg = error_message_unexpected_token(e.token)
+                if msg.strip() == "error: extra semicolon":
+                    print_enzo_error(error_message_with_code_line(msg, line))
+                else:
+                    print_enzo_error(error_message_with_code_line(msg, line))
+                continue
+            msg = format_parse_error(e, src=line)
+            if "\n" in msg:
+                errline, context = msg.split("\n", 1)
+                print_enzo_error(errline + "\n" + context)
+            else:
+                print_enzo_error(msg)
+            continue
         except Exception as e:
-            # Print error message, code line, and caret underline for runtime errors
-            print_enzo_error(error_message_generic(e))
-            print(f"    {line}")
-            print(f"    {'^' * len(line)}")
+            # Try to use format_parse_error if possible
+            from src.error_messaging import error_message_unexpected_token, error_message_with_code_line
+            # Check for extra semicolon error in generic Exception handler
+            msg = str(e)
+            if msg.strip() == "error: extra semicolon":
+                print_enzo_error(error_message_with_code_line(msg, line))
+                continue
+            if hasattr(e, 'line') or hasattr(e, 'column'):
+                msg = format_parse_error(e, src=line)
+                if "\n" in msg:
+                    errline, context = msg.split("\n", 1)
+                    print_enzo_error(errline + "\n" + context)
+                else:
+                    print_enzo_error(msg)
+            else:
+                print_enzo_error(error_message_generic(e) + f"\n    {line}")
+            continue
 
 def process_includes(lines, base_dir=None, already_included=None):
     #Given a list of source lines, yield each line, but expand any `@include filename` directives inline.
@@ -206,17 +229,12 @@ def main():
         except InterpolationParseError:
             print(color_error(error_message_unterminated_interpolation()))
             print(color_code("    " + line))
-            underline = "    " + " " * line.find("<") + "^"
-            print(color_code(underline))
         except (UnexpectedToken, UnexpectedInput, UnexpectedCharacters) as e:
-            # Use friendly error message for extra semicolon
             if isinstance(e, UnexpectedToken) and getattr(e, 'token', None):
                 from src.error_messaging import error_message_unexpected_token
                 msg = error_message_unexpected_token(e.token)
                 print(color_error(msg))
                 print(color_code("    " + line))
-                underline = "    " + "^" * len(line)
-                print(color_code(underline))
             else:
                 fullmsg = format_parse_error(e, src=line)
                 if "\n" in fullmsg:
@@ -230,7 +248,6 @@ def main():
         except Exception as e:
             print(color_error(format_parse_error(e, src=line) if hasattr(e, 'line') else error_message_generic(str(e))))
             print(color_code("    " + line))
-            print(color_code("    " + "^" * len(line)))
         # — CRITICAL FIX: after error or success, **continue the loop**
         # Don't break; keep processing all input!
 

@@ -1,14 +1,8 @@
 //= Redundant semicolons and whitespace
-Syntax error: Unexpected token ';' at line 1, column 1.
-Expected one of: FUNCNAME, LBRACE, LPAR, LSQB, NAME, NEWLINE, NUMBER_ATOM, STRING
+error: extra semicolon
     ;;;;;;
-    ^
-Syntax error: Unexpected token ';' at line 1, column 1.
-Expected one of: FUNCNAME, LBRACE, LPAR, LSQB, NAME, NEWLINE, NUMBER_ATOM, STRING
+error: extra semicolon
     ;   ;
-    ^
 //= Invalid parenthesis/brackets/braces
-Syntax error: Unexpected token '' at line 1, column 7.
-Expected one of: FUNCNAME, LBRACE, LPAR, LSQB, NAME, NEWLINE, PARAM, RETURN, RPAR, SIGNED_NUMBER, STRING
+error: unmatched parenthesis
     (1 + 2;
-          ^

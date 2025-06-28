@@ -22,7 +22,23 @@ class Parser:
     def expect(self, type_):
         t = self.peek()
         if not t or t.type != type_:
-            raise EnzoParseError(error_message_expected_type(type_, t))
+            # Special case for unmatched parenthesis/bracket/brace
+            prev = self.tokens[self.pos - 1] if self.pos > 0 else None
+            if type_ == "RPAR":
+                err = EnzoParseError("error: unmatched parenthesis")
+            elif type_ == "RBRACK":
+                err = EnzoParseError("error: unmatched bracket")
+            elif type_ == "RBRACE":
+                err = EnzoParseError("error: unmatched brace")
+            else:
+                raise EnzoParseError(error_message_expected_type(type_, t))
+            if prev:
+                err.line = getattr(prev, "line", 1)
+                err.column = getattr(prev, "end", 0) + 1
+            else:
+                err.line = 1
+                err.column = 1
+            raise err
         return self.advance()
 
     def parse_function_atom(self):
@@ -245,6 +261,15 @@ class Parser:
         return self.parse_term()
 
     def parse_statement(self):
+        t = self.peek()
+        if t and t.type == "SEMICOLON":
+            # Raise with correct line/column for error formatter
+            err = EnzoParseError("error: extra semicolon")
+            # Try to get line/column from token, else default to 1
+            err.line = getattr(t, "line", 1)
+            err.column = getattr(t, "column", 1)
+            raise err
+
         # Support assignment to variable, list index, or table index
         # Parse a value expression (could be VarInvoke, ListIndex, TableIndex, etc.)
         expr1 = self.parse_value_expression()

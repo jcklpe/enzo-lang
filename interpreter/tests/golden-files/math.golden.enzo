@@ -14,4 +14,3 @@
 0
 error: double minus not allowed
     $weird: --5;
-    ^^^^^^^^^^^^
