@@ -57,6 +57,7 @@ error: empty list with just a comma
 error: index applies to lists
     $notalist.1;
     ^^^^^^^^^^^^
+
 //= BINDING MATH OPERATIONS ────────────────────────────────────────────────
 100
 5
@@ -74,6 +75,7 @@ error: index applies to lists
 error: double minus not allowed
     $weird: --5;
     ^^^^^^^^^^^^
+
 //= TABLE STUFF ───────────────────────────────────────────────────────────
 { $name: "Alice", $age: 30 }
 { $name: "Alice", $age: 30 }
@@ -150,8 +152,9 @@ leading comma (remove the comma at the start).
 leading comma (remove the comma at the start).
     $badTable3: { , };
                   ^
+
 //= TEXT + INTERPOLATION ───────────────────────────────────────────────────
-rebinding this text and
+rebinding this text and 
 this is text example 2
 just a plain text
 rebinding this text and this is text example 2
@@ -186,6 +189,7 @@ error: parse error in interpolation
 error: parse error in interpolation
     "hello <<$foo>>";
            ^
+
 //= INVOKING AN UNDEFINED VARIABLE
 unknown variable: $undefinedVar
     $undefinedVar;
@@ -231,6 +235,7 @@ error: cannot assign Text to Number
 error: extra semicolon
     $meaning-of-life: 42;;
     ^^^^^^^^^^^^^^^^^^^^^^
+
 //= Nameless functions one liner with implicit return
 5
 //= Nameless function: multi-line with explicit return
@@ -242,3 +247,4 @@ error: extra semicolon
 4
 //= Bare parens
 6
+
