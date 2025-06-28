@@ -10,8 +10,8 @@ class Token(NamedTuple):
     end: int
 
 TOKEN_SPEC = [
-    ("COLON_GT", r":>"),
-    ("LT_COLON", r"<:"),
+    ("REBIND_RIGHTWARD", r":>"),
+    ("REBIND_LEFTWARD", r"<:"),
     ("LE", r"<="),
     ("GE", r">="),
     ("EQ", r"=="),

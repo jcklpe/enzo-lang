@@ -227,8 +227,8 @@ class Parser:
         # Parse a value expression (could be VarInvoke, ListIndex, TableIndex, etc.)
         expr1 = self.parse_value_expression()
         # Assignment: <:
-        if self.peek() and self.peek().type == "LT_COLON":
-            self.advance()  # consume LT_COLON
+        if self.peek() and self.peek().type == "REBIND_LEFTWARD":
+            self.advance()  # consume REBIND_LEFTWARD
             value = self.parse_value_expression()
             return BindOrRebind(expr1, value)
         # Variable binding: $x: ...
@@ -240,7 +240,7 @@ class Parser:
             value = self.parse_value_expression()
             return Binding(expr1.name, value)
         # Implicit bind-or-rebind: :>
-        if self.peek() and self.peek().type == "COLON_GT":
+        if self.peek() and self.peek().type == "REBIND_RIGHTWARD":
             self.advance()
             expr2 = self.parse_value_expression()
             if isinstance(expr1, VarInvoke) and isinstance(expr2, VarInvoke):
