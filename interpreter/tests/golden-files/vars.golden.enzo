@@ -1,26 +1,21 @@
 //= INVOKING AN UNDEFINED VARIABLE
 unknown variable: $undefinedVar
     $undefinedVar;
-    ^^^^^^^^^^^^^^
 //= EMPTY BIND ────────────────────────────────────────────────────────────
 //= REDECLARING A VARIABLE (USING “:”) ERRORS ────────────────────────────
 error: $x already defined
     $x: 10;
-    ^^^^^^^
 //= REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
 100
 error: cannot assign Text to Number
     $x <: "hello";
-    ^^^^^^^^^^^^^^
 //= FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
 7
 8
 error: cannot assign Text to Number
     $z <: "oops";
-    ^^^^^^^^^^^^^
 error: $z already defined
     $z : "oops";
-    ^^^^^^^^^^^^
 //= MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
 10
 20
@@ -30,7 +25,6 @@ error: $z already defined
 55
 error: cannot assign Text to Number
     $newImplicit <: "oops";
-    ^^^^^^^^^^^^^^^^^^^^^^^
 "cool dude"
 //= MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
 3
@@ -42,4 +36,3 @@ error: cannot assign Text to Number
 3
 error: extra semicolon
     $meaning-of-life: 42;;
-    ^^^^^^^^^^^^^^^^^^^^^^
