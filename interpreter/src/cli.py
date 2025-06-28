@@ -122,22 +122,9 @@ def run_enzo_file(filename):
                 print_enzo_error(msg)
             continue
         except Exception as e:
-            # Try to use format_parse_error if possible
-            from src.error_messaging import error_message_unexpected_token, error_message_with_code_line
-            # Check for extra semicolon error in generic Exception handler
-            msg = str(e)
-            if msg.strip() == "error: extra semicolon":
-                print_enzo_error(error_message_with_code_line(msg, line))
-                continue
-            if hasattr(e, 'line') or hasattr(e, 'column'):
-                msg = format_parse_error(e, src=line)
-                if "\n" in msg:
-                    errline, context = msg.split("\n", 1)
-                    print_enzo_error(errline + "\n" + context)
-                else:
-                    print_enzo_error(msg)
-            else:
-                print_enzo_error(error_message_generic(e) + f"\n    {line}")
+            # Use centralized error messaging for all errors (including runtime/type errors)
+            msg = format_parse_error(e, src=line) if hasattr(e, 'code_line') or hasattr(e, 'line') or hasattr(e, 'column') else error_message_generic(str(e))
+            print_enzo_error(msg)
             continue
 
 def process_includes(lines, base_dir=None, already_included=None):
@@ -243,7 +230,9 @@ def main():
         except ReturnSignal as ret:
             print(ret.value)
         except Exception as e:
-            print(color_error(format_parse_error(e, src=line) if hasattr(e, 'line') else error_message_generic(str(e))))
+            # Use centralized error messaging for all errors (including runtime/type errors)
+            msg = format_parse_error(e, src=line) if hasattr(e, 'code_line') or hasattr(e, 'line') or hasattr(e, 'column') else error_message_generic(str(e))
+            print(color_error(msg))
             print(color_code("    " + line))
         # — CRITICAL FIX: after error or success, **continue the loop**
         # Don't break; keep processing all input!

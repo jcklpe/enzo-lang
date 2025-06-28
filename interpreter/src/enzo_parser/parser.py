@@ -4,13 +4,33 @@
 from .ast_nodes import *
 from .tokenizer import Tokenizer
 from src.error_handling import EnzoParseError
-from src.error_messaging import error_message_expected_type, error_message_unexpected_token, error_message_double_minus
+from src.error_messaging import (
+    error_message_expected_type,
+    error_message_unexpected_token,
+    error_message_double_minus,
+    error_message_unmatched_bracket,
+    error_message_unmatched_parenthesis,
+    error_message_unmatched_brace,
+    error_message_double_comma,
+    error_message_empty_list_comma,
+    error_message_excess_leading_comma,
+    # ...other error messages as needed...
+)
 
 class Parser:
     def __init__(self, src):
+        self.src = src
+        self.src_lines = src.splitlines()
         self.tokens = Tokenizer(src).tokenize()
         self.tokens = [t for t in self.tokens if t.type not in ("NEWLINE", "COMMENT", "SKIP")]
         self.pos = 0
+
+    def _get_code_line(self, token):
+        if hasattr(token, 'line') and token.line is not None:
+            line_num = token.line
+            if 1 <= line_num <= len(self.src_lines):
+                return self.src_lines[line_num - 1]
+        return self.src_lines[0] if self.src_lines else self.src
 
     def peek(self):
         return self.tokens[self.pos] if self.pos < len(self.tokens) else None
@@ -22,19 +42,17 @@ class Parser:
     def expect(self, type_):
         t = self.peek()
         if not t or t.type != type_:
-            # Custom error for unmatched delimiters
             prev = self.tokens[self.pos - 1] if self.pos > 0 else None
-            # Try to get the line/column from the previous token, or fallback to 1
             line = getattr(prev, "line", 1) if prev else 1
             column = getattr(prev, "end", 0) + 1 if prev else 1
             if type_ == "RPAR":
-                raise EnzoParseError("error: unmatched parenthesis", line=line, column=column)
+                raise EnzoParseError(error_message_unmatched_parenthesis(), line=line, column=column, code_line=self._get_code_line(prev))
             elif type_ == "RBRACK":
-                raise EnzoParseError("error: unmatched bracket", line=line, column=column)
+                raise EnzoParseError(error_message_unmatched_bracket(), line=line, column=column, code_line=self._get_code_line(prev))
             elif type_ == "RBRACE":
-                raise EnzoParseError("error: unmatched brace", line=line, column=column)
+                raise EnzoParseError(error_message_unmatched_brace(), line=line, column=column, code_line=self._get_code_line(prev))
             else:
-                raise EnzoParseError(error_message_expected_type(type_, t), line=line, column=column)
+                raise EnzoParseError(error_message_expected_type(type_, t), line=line, column=column, code_line=self._get_code_line(prev))
         return self.advance()
 
     def parse_function_atom(self):
@@ -97,26 +115,24 @@ class Parser:
         self.expect("LBRACK")
         elements = []
         saw_item = False
+        t_start = self.peek()
+        code_line = self._get_code_line(t_start) if t_start else None
         while True:
             t = self.peek()
             if t and t.type == "RBRACK":
                 self.advance()
                 break
             if t and t.type == "COMMA":
-                # Check for [ , ] (empty list with just a comma)
                 t2 = self.tokens[self.pos + 1] if self.pos + 1 < len(self.tokens) else None
                 if t2 and t2.type == "RBRACK" and not saw_item:
-                    raise EnzoParseError("error: empty list with just a comma")
-                # Leading comma or double comma
+                    raise EnzoParseError(error_message_empty_list_comma(), code_line=self._get_code_line(t))
                 if not saw_item:
-                    raise EnzoParseError("error: excess leading comma")
-                raise EnzoParseError("error: double comma in list")
+                    raise EnzoParseError(error_message_excess_leading_comma(), code_line=self._get_code_line(t))
+                raise EnzoParseError(error_message_double_comma(), code_line=self._get_code_line(t))
             if t is None:
-                # End of input without closing bracket
-                raise EnzoParseError("error: unmatched bracket")
-            # If we see a semicolon or any other unexpected token, treat as unmatched bracket
+                raise EnzoParseError(error_message_unmatched_bracket(), code_line=None)
             if t.type == "SEMICOLON":
-                raise EnzoParseError("error: unmatched bracket")
+                raise EnzoParseError(error_message_unmatched_bracket(), code_line=self._get_code_line(t))
             elements.append(self.parse_value_expression())
             saw_item = True
             t = self.peek()
@@ -127,32 +143,31 @@ class Parser:
                     self.advance()
                     break
                 if t2 and t2.type == "COMMA":
-                    raise EnzoParseError("error: double comma in list")
+                    raise EnzoParseError(error_message_double_comma(), code_line=self._get_code_line(t2))
             elif t and t.type == "RBRACK":
                 self.advance()
                 break
             elif t:
-                # Any other token (e.g. SEMICOLON) is an unmatched bracket
-                raise EnzoParseError("error: unmatched bracket")
+                raise EnzoParseError(error_message_unmatched_bracket(), code_line=self._get_code_line(t))
             else:
-                # End of input without closing bracket
-                raise EnzoParseError("error: unmatched bracket")
-        return ListAtom(elements)
+                raise EnzoParseError(error_message_unmatched_bracket(), code_line=None)
+        return ListAtom(elements, code_line=code_line)
 
     def parse_table_atom(self):
         self.expect("LBRACE")
         items = []
         trailing_comma = False
+        t_start = self.peek()
+        code_line = self._get_code_line(t_start) if t_start else None
         if self.peek() and not (self.peek().type == "RBRACE"):
             while True:
                 t = self.peek()
                 if t is None:
-                    raise EnzoParseError("error: unmatched brace")
+                    raise EnzoParseError(error_message_unmatched_brace(), code_line=self._get_code_line(t))
                 if t.type == "RBRACE":
                     break
                 if t.type != "KEYNAME":
-                    # Any unexpected token (e.g. SEMICOLON) is an unmatched brace
-                    raise EnzoParseError("error: unmatched brace")
+                    raise EnzoParseError(error_message_unmatched_brace(), code_line=self._get_code_line(t))
                 key = self.expect("KEYNAME").value
                 self.expect("COLON")
                 value = self.parse_value_expression()
@@ -164,12 +179,11 @@ class Parser:
                 else:
                     trailing_comma = False
                     break
-        # If we reach here and next token is not RBRACE, it's unmatched
         t = self.peek()
         if not t or t.type != "RBRACE":
-            raise EnzoParseError("error: unmatched brace")
+            raise EnzoParseError(error_message_unmatched_brace(), code_line=self._get_code_line(t))
         self.advance()
-        return TableAtom(items)
+        return TableAtom(items, code_line=code_line)
 
     def parse_postfix(self, base):
         # Correctly handle chained dot-number and dot-variable for nested indexing
@@ -177,6 +191,7 @@ class Parser:
         while self.peek() and self.peek().type == "DOT":
             self.advance()  # consume DOT
             t = self.peek()
+            code_line = self._get_code_line(t) if t else None
             if t and t.type == "NUMBER_TOKEN":
                 num_token = self.advance().value
                 # Use int if possible, else float
@@ -185,20 +200,20 @@ class Parser:
                 else:
                     num = int(num_token)
                 debug_chain.append(f".{{{num}}}")  # DEBUG
-                base = ListIndex(base, NumberAtom(num))
+                base = ListIndex(base, NumberAtom(num, code_line=code_line), code_line=code_line)
             elif t and t.type == "KEYNAME":
                 key = self.advance().value
                 if key.startswith("$"):
                     debug_chain.append(f".${{key}}")  # DEBUG
-                    base = ListIndex(base, VarInvoke(key))
+                    base = ListIndex(base, VarInvoke(key, code_line=code_line), code_line=code_line)
                 else:
                     debug_chain.append(f".{key}")  # DEBUG
-                    base = TableIndex(base, key)
+                    base = TableIndex(base, key, code_line=code_line)
             elif t and t.type == "TEXT_TOKEN":
                 # Allow string as index: $list."foo"
                 text_val = self.advance().value[1:-1]
                 debug_chain.append(f'."{text_val}"')  # DEBUG
-                base = ListIndex(base, TextAtom(text_val))
+                base = ListIndex(base, TextAtom(text_val, code_line=code_line), code_line=code_line)
             else:
                 # If not a valid index or property, break
                 break
@@ -210,21 +225,23 @@ class Parser:
     def parse_atom(self):
         t = self.peek()
         if not t:
-            raise EnzoParseError("Unexpected end of input")
+            raise EnzoParseError(error_message_unexpected_token(t), code_line=self._get_code_line(t))
+        code_line = self._get_code_line(t)
         if t.type == "NUMBER_TOKEN":
             val = self.advance().value
             if '.' in val:
-                return NumberAtom(float(val))
+                return NumberAtom(float(val), code_line=code_line)
             else:
-                return NumberAtom(int(val))
+                return NumberAtom(int(val), code_line=code_line)
         elif t.type == "TEXT_TOKEN":
-            return TextAtom(self.advance().value[1:-1])
+            return TextAtom(self.advance().value[1:-1], code_line=code_line)
         elif t.type == "KEYNAME":
-            return VarInvoke(self.advance().value)
+            return VarInvoke(self.advance().value, code_line=code_line)
         elif t.type == "AT":
             self.advance()
             t2 = self.expect("KEYNAME")
-            return FunctionRef(t2.value)
+            code_line2 = self._get_code_line(t2)
+            return FunctionRef(t2.value, code_line=code_line2)
         elif t.type == "LPAR":
             return self.parse_function_atom()
         elif t.type == "LBRACK":
@@ -236,20 +253,20 @@ class Parser:
             t2 = self.peek()
             from src.error_messaging import error_message_double_minus
             if t2 and t2.type == "MINUS":
-                raise EnzoParseError(error_message_double_minus(t2))
+                raise EnzoParseError(error_message_double_minus(t2), code_line=self._get_code_line(t2))
             if t2 and t2.type == "NUMBER_TOKEN" and t2.value.startswith('-'):
-                raise EnzoParseError(error_message_double_minus(t2))
+                raise EnzoParseError(error_message_double_minus(t2), code_line=self._get_code_line(t2))
             if t2 and t2.type == "NUMBER_TOKEN":
                 self.advance()
                 val = t2.value
                 if '.' in val:
-                    return NumberAtom(float('-' + val.lstrip('-')))
+                    return NumberAtom(float('-' + val.lstrip('-')), code_line=code_line)
                 else:
-                    return NumberAtom(int('-' + val.lstrip('-')))
+                    return NumberAtom(int('-' + val.lstrip('-')), code_line=code_line)
             else:
-                raise EnzoParseError(error_message_unexpected_token(t2))
+                raise EnzoParseError(error_message_unexpected_token(t2), code_line=self._get_code_line(t2))
         else:
-            raise EnzoParseError(error_message_unexpected_token(t))
+            raise EnzoParseError(error_message_unexpected_token(t), code_line=self._get_code_line(t))
 
     def parse_factor(self):
         node = self.parse_atom()
@@ -279,12 +296,12 @@ class Parser:
 
     def parse_statement(self):
         t = self.peek()
+        code_line = self._get_code_line(t) if t else None
         if t and t.type == "SEMICOLON":
-            # Raise with correct line/column for error formatter
-            err = EnzoParseError("error: extra semicolon")
-            # Try to get line/column from token, else default to 1
+            err = EnzoParseError(error_message_unexpected_token(t))
             err.line = getattr(t, "line", 1)
             err.column = getattr(t, "column", 1)
+            err.code_line = code_line
             raise err
 
         # Support assignment to variable, list index, or table index
@@ -294,27 +311,27 @@ class Parser:
         if self.peek() and self.peek().type == "REBIND_LEFTWARD":
             self.advance()  # consume REBIND_LEFTWARD
             value = self.parse_value_expression()
-            return BindOrRebind(expr1, value)
+            return BindOrRebind(expr1, value, code_line=code_line)
         # Variable binding: $x: ...
         if isinstance(expr1, VarInvoke) and self.peek() and self.peek().type == "COLON":
             self.advance()  # consume COLON
             # Support empty bind: $x: ;
             if self.peek() and self.peek().type == "SEMICOLON":
-                return Binding(expr1.name, None)
+                return Binding(expr1.name, None, code_line=code_line)
             value = self.parse_value_expression()
-            return Binding(expr1.name, value)
+            return Binding(expr1.name, value, code_line=code_line)
         # Implicit bind-or-rebind: :>
         if self.peek() and self.peek().type == "REBIND_RIGHTWARD":
             self.advance()
             expr2 = self.parse_value_expression()
             if isinstance(expr1, VarInvoke) and isinstance(expr2, VarInvoke):
-                raise EnzoParseError("Ambiguous :> binding: both sides are variables")
+                raise EnzoParseError("Ambiguous :> binding: both sides are variables", code_line=code_line)
             elif isinstance(expr1, VarInvoke):
-                return BindOrRebind(expr1.name, expr2)
+                return BindOrRebind(expr1.name, expr2, code_line=code_line)
             elif isinstance(expr2, VarInvoke):
-                return BindOrRebind(expr2.name, expr1)
+                return BindOrRebind(expr2.name, expr1, code_line=code_line)
             else:
-                raise EnzoParseError(":> must have a variable on one side")
+                raise EnzoParseError(":> must have a variable on one side", code_line=code_line)
         return expr1
 
     def parse_statements(self):

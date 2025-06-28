@@ -2,6 +2,7 @@
 import re
 from typing import List, Tuple, Optional, Iterator, NamedTuple
 from src.error_handling import EnzoParseError
+from src.error_messaging import error_message_unexpected_character
 
 class Token(NamedTuple):
     type: str
@@ -71,7 +72,7 @@ class Tokenizer:
                         tokens.append(Token('NUMBER_TOKEN', num_val, pos+1, pos+1+len(num_val)))
                         pos += 1 + len(num_val)
                         continue
-                raise EnzoParseError(f"Unexpected character: {code[pos]!r} at {pos}")
+                raise EnzoParseError(error_message_unexpected_character(code[pos], pos))
             typ = m.lastgroup
             val = m.group(typ)
             # Patch: If this is a NUMBER_TOKEN and the previous token was DOT, and the number contains a dot (float), split it into multiple tokens

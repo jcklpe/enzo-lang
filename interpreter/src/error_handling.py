@@ -5,19 +5,23 @@ class EnzoError(Exception):
     pass
 
 class EnzoParseError(EnzoError):
-    def __init__(self, message, line=None, column=None):
+    def __init__(self, message, line=None, column=None, code_line=None):
         super().__init__(message)
         self.message = message
         self.line = line
         self.column = column
+        self.code_line = code_line
 
 class EnzoRuntimeError(EnzoError):
+    def __init__(self, message, code_line=None):
+        super().__init__(message)
+        self.message = message
+        self.code_line = code_line
+
+class EnzoTypeError(EnzoRuntimeError):
     pass
 
-class EnzoTypeError(EnzoError):
-    pass
-
-class InterpolationParseError(EnzoError):
+class InterpolationParseError(EnzoParseError):
     pass
 
 class ReturnSignal(Exception):
