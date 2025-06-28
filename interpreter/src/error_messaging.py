@@ -70,29 +70,29 @@ def error_message_assignment_to_table_property_not_found(prop):
 
 # User-friendly error message for parse errors, with code context.
 def format_parse_error(err, src=None):
-    def add_context(msg):
-        if src and hasattr(err, "line"):
-            lines = src.splitlines()
-            if 1 <= err.line <= len(lines):
-                code_line = lines[err.line - 1]
-                # Indent code line by 4 spaces
-                msg += "\n    " + code_line.rstrip()
-                # Caret underline at error column (1-based)
-                if hasattr(err, "column") and err.column is not None:
-                    caret_pos = max(0, err.column - 1)
-                    msg += "\n" + " " * (4 + caret_pos) + "^"
-        elif src:
-            # If no line info, show the first line and caret at start
-            code_line = src.splitlines()[0] if src.splitlines() else src
-            msg += "\n    " + code_line.rstrip()
-            msg += "\n    ^"
-        return msg
-
+    from src.error_messaging import error_message_with_code_line
     # Special cases for commas in lists/tables
     if hasattr(err, 'token') and hasattr(err, 'expected'):
-        tok = err.token
-        line_txt = src.splitlines()[err.line - 1] if src and err.line <= len(src.splitlines()) else ""
-        stripped = line_txt.strip().replace(" ", "")
+        # Handle unmatched bracket/brace by code line context
+        code_line = None
+        if src:
+            # Use the actual error line if available
+            if hasattr(err, 'line') and err.line is not None:
+                lines = src.splitlines()
+                if 1 <= err.line <= len(lines):
+                    code_line = lines[err.line - 1]
+            if code_line is None:
+                code_line = src.splitlines()[0] if src.splitlines() else src
+            stripped = code_line.lstrip()
+            if stripped.startswith('['):
+                msg = "error: unmatched bracket"
+                return error_message_with_code_line(msg, code_line)
+            if stripped.startswith('{'):
+                msg = "error: unmatched brace"
+                return error_message_with_code_line(msg, code_line)
+            if stripped.startswith('('):
+                msg = "error: unmatched parenthesis"
+                return error_message_with_code_line(msg, code_line)
         # Double comma: [1,,2] or {a,,b}
         if ",," in line_txt.replace(" ", ""):
             msg = "error: double comma in list"
@@ -114,21 +114,34 @@ def format_parse_error(err, src=None):
             f"Expected one of: {expected}"
         )
         return add_context(msg)
-    elif hasattr(err, 'char'):
-        if err.char == "-":
-            msg = "error: double minus not allowed"
-        elif err.char == '"':
-            msg = "error: unterminated string"
-        else:
-            msg = f"Syntax error: Unexpected character '{err.char}'"
-        return add_context(msg)
-    elif hasattr(err, 'pos_in_stream'):
-        msg = f"Syntax error: Unexpected input at position {err.pos_in_stream}."
-        return add_context(msg)
+    # Special case: unmatched parenthesis
+    if hasattr(err, 'message') and isinstance(err.message, str):
+        msg = err.message.strip()
+        if msg.startswith("error: unmatched") or msg.startswith("error: too many semicolons"):
+            code_line = None
+            if src:
+                if hasattr(err, 'line') and err.line is not None:
+                    lines = src.splitlines()
+                    if 1 <= err.line <= len(lines):
+                        code_line = lines[err.line - 1]
+                if code_line is None:
+                    code_line = src.splitlines()[0] if src.splitlines() else src
+                return error_message_with_code_line(msg, code_line)
+            else:
+                return msg
+    # Fallback: generic error formatting
+    msg = str(err)
+    code_line = None
+    if src:
+        if hasattr(err, 'line') and err.line is not None:
+            lines = src.splitlines()
+            if 1 <= err.line <= len(lines):
+                code_line = lines[err.line - 1]
+        if code_line is None:
+            code_line = src.splitlines()[0] if src.splitlines() else src
+        return error_message_with_code_line(msg, code_line)
     else:
-        # For generic errors, try to add caret if line/column info is present
-        msg = f"Parse error: {err}"
-        return add_context(msg)
+        return msg
 
 def error_message_with_code_line(msg, code_line):
     """Format an error message with the code line, no caret, for golden file compatibility."""

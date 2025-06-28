@@ -5,7 +5,11 @@ class EnzoError(Exception):
     pass
 
 class EnzoParseError(EnzoError):
-    pass
+    def __init__(self, message, line=None, column=None):
+        super().__init__(message)
+        self.message = message
+        self.line = line
+        self.column = column
 
 class EnzoRuntimeError(EnzoError):
     pass

@@ -6,3 +6,7 @@ error: extra semicolon
 //= Invalid parenthesis/brackets/braces
 error: unmatched parenthesis
     (1 + 2;
+error: unmatched bracket
+    [1, 2, 3;
+error: unmatched brace
+    { $a: 1, $b: 2;

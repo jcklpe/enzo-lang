@@ -22,23 +22,19 @@ class Parser:
     def expect(self, type_):
         t = self.peek()
         if not t or t.type != type_:
-            # Special case for unmatched parenthesis/bracket/brace
+            # Custom error for unmatched delimiters
             prev = self.tokens[self.pos - 1] if self.pos > 0 else None
+            # Try to get the line/column from the previous token, or fallback to 1
+            line = getattr(prev, "line", 1) if prev else 1
+            column = getattr(prev, "end", 0) + 1 if prev else 1
             if type_ == "RPAR":
-                err = EnzoParseError("error: unmatched parenthesis")
+                raise EnzoParseError("error: unmatched parenthesis", line=line, column=column)
             elif type_ == "RBRACK":
-                err = EnzoParseError("error: unmatched bracket")
+                raise EnzoParseError("error: unmatched bracket", line=line, column=column)
             elif type_ == "RBRACE":
-                err = EnzoParseError("error: unmatched brace")
+                raise EnzoParseError("error: unmatched brace", line=line, column=column)
             else:
-                raise EnzoParseError(error_message_expected_type(type_, t))
-            if prev:
-                err.line = getattr(prev, "line", 1)
-                err.column = getattr(prev, "end", 0) + 1
-            else:
-                err.line = 1
-                err.column = 1
-            raise err
+                raise EnzoParseError(error_message_expected_type(type_, t), line=line, column=column)
         return self.advance()
 
     def parse_function_atom(self):
@@ -115,6 +111,12 @@ class Parser:
                 if not saw_item:
                     raise EnzoParseError("error: excess leading comma")
                 raise EnzoParseError("error: double comma in list")
+            if t is None:
+                # End of input without closing bracket
+                raise EnzoParseError("error: unmatched bracket")
+            # If we see a semicolon or any other unexpected token, treat as unmatched bracket
+            if t.type == "SEMICOLON":
+                raise EnzoParseError("error: unmatched bracket")
             elements.append(self.parse_value_expression())
             saw_item = True
             t = self.peek()
@@ -130,9 +132,11 @@ class Parser:
                 self.advance()
                 break
             elif t:
-                raise EnzoParseError(f"Unexpected token: {t}")
+                # Any other token (e.g. SEMICOLON) is an unmatched bracket
+                raise EnzoParseError("error: unmatched bracket")
             else:
-                break
+                # End of input without closing bracket
+                raise EnzoParseError("error: unmatched bracket")
         return ListAtom(elements)
 
     def parse_table_atom(self):
@@ -141,17 +145,30 @@ class Parser:
         trailing_comma = False
         if self.peek() and not (self.peek().type == "RBRACE"):
             while True:
+                t = self.peek()
+                if t is None:
+                    raise EnzoParseError("error: unmatched brace")
+                if t.type == "RBRACE":
+                    break
+                if t.type != "KEYNAME":
+                    # Any unexpected token (e.g. SEMICOLON) is an unmatched brace
+                    raise EnzoParseError("error: unmatched brace")
                 key = self.expect("KEYNAME").value
                 self.expect("COLON")
                 value = self.parse_value_expression()
                 items.append((key, value))
-                if self.peek() and self.peek().type == "COMMA":
+                t = self.peek()
+                if t and t.type == "COMMA":
                     self.advance()
                     trailing_comma = True
                 else:
                     trailing_comma = False
                     break
-        self.expect("RBRACE")
+        # If we reach here and next token is not RBRACE, it's unmatched
+        t = self.peek()
+        if not t or t.type != "RBRACE":
+            raise EnzoParseError("error: unmatched brace")
+        self.advance()
         return TableAtom(items)
 
     def parse_postfix(self, base):
