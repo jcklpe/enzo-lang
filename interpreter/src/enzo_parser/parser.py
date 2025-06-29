@@ -1,5 +1,4 @@
-# Recursive-descent parser skeleton for Enzo
-# This is a scaffold for a context-aware parser
+# Main parser entry point for Enzo
 
 from .ast_nodes import *
 from .tokenizer import Tokenizer
@@ -7,18 +6,16 @@ from src.error_handling import EnzoParseError
 from src.error_messaging import (
     error_message_expected_type,
     error_message_unexpected_token,
-    error_message_double_minus,
-    error_message_unmatched_bracket,
     error_message_unmatched_parenthesis,
+    error_message_unmatched_bracket,
     error_message_unmatched_brace,
-    error_message_double_comma,
-    error_message_empty_list_comma,
-    error_message_excess_leading_comma,
-    error_message_double_comma_table,
-    error_message_leading_comma_table,
-    error_message_empty_table_comma,
     # ...other error messages as needed...
 )
+
+# Import parsing helpers from submodules
+from .parser_function import parse_function_atom
+from .parser_table import parse_table_atom
+from .parser_list import parse_list_atom
 
 class Parser:
     def __init__(self, src):
@@ -59,166 +56,16 @@ class Parser:
         return self.advance()
 
     def parse_function_atom(self):
-        self.expect("LPAR")  # '('
-        # --- FIX: Allow empty function atom ---
-        t = self.peek()
-        if t and t.type == "RPAR":
-            self.advance()
-            return FunctionAtom([], [], [], code_line=self._get_code_line(t))
-        # Look ahead: function definition or value expression?
-        t = self.peek()
-        if t and t.type == "KEYNAME":
-            # Look ahead for KEYNAME : (function param or local var)
-            save_pos = self.pos
-            name = t.value
-            self.advance()
-            if self.peek() and self.peek().type == "COLON":
-                # Function definition or local var
-                self.pos = save_pos  # rewind
-                items = []
-                sep_seen = False
-                while self.peek() and not (self.peek().type == "RPAR"):
-                    t = self.peek()
-                    if t.type == "KEYNAME":
-                        name = self.advance().value
-                        if self.peek() and self.peek().type == "COLON":
-                            self.advance()
-                            if self.peek() and not (self.peek().type in ("COMMA", "SEMICOLON", "RPAR")):
-                                value_expression = self.parse_value_expression()
-                                items.append(Binding(name, value_expression))
-                            else:
-                                items.append(Binding(name, None))
-                        else:
-                            items.append(name)
-                    else:
-                        items.append(self.parse_value_expression())
-                    if self.peek() and self.peek().type in ("COMMA", "SEMICOLON"):
-                        sep_seen = True
-                        self.advance()
-                self.expect("RPAR")
-                params = []
-                local_vars = []
-                body = []
-                for item in items:
-                    if isinstance(item, Binding) and item.value is None:
-                        params.append(item.name)
-                    elif isinstance(item, Binding):
-                        local_vars.append(item)
-                    else:
-                        body.append(item)
-                return FunctionAtom(params, local_vars, body)
-            else:
-                # Not a function definition, treat as value expression
-                self.pos = save_pos  # rewind
-        # Not a function definition: parse a single value expression
-        expr = self.parse_value_expression()
-        self.expect("RPAR")
-        return FunctionAtom([], [], [expr])
+        # Delegate to parser_function.py
+        return parse_function_atom(self)
 
     def parse_list_atom(self):
-        self.expect("LBRACK")
-        elements = []
-        saw_item = False
-        t_start = self.peek()
-        code_line = self._get_code_line(t_start) if t_start else None
-        while True:
-            t = self.peek()
-            if t and t.type == "RBRACK":
-                self.advance()
-                break
-            if t and t.type == "COMMA":
-                t2 = self.tokens[self.pos + 1] if self.pos + 1 < len(self.tokens) else None
-                if t2 and t2.type == "RBRACK" and not saw_item:
-                    raise EnzoParseError(error_message_empty_list_comma(), code_line=self._get_code_line(t))
-                if not saw_item:
-                    raise EnzoParseError(error_message_excess_leading_comma(), code_line=self._get_code_line(t))
-                raise EnzoParseError(error_message_double_comma(), code_line=self._get_code_line(t))
-            if t is None:
-                raise EnzoParseError(error_message_unmatched_bracket(), code_line=None)
-            if t.type == "SEMICOLON":
-                raise EnzoParseError(error_message_unmatched_bracket(), code_line=self._get_code_line(t))
-            elements.append(self.parse_value_expression())
-            saw_item = True
-            t = self.peek()
-            if t and t.type == "COMMA":
-                self.advance()
-                t2 = self.peek()
-                if t2 and t2.type == "RBRACK":
-                    self.advance()
-                    break
-                if t2 and t2.type == "COMMA":
-                    raise EnzoParseError(error_message_double_comma(), code_line=self._get_code_line(t2))
-            elif t and t.type == "RBRACK":
-                self.advance()
-                break
-            elif t:
-                raise EnzoParseError(error_message_unmatched_bracket(), code_line=self._get_code_line(t))
-            else:
-                raise EnzoParseError(error_message_unmatched_bracket(), code_line=None)
-        return ListAtom(elements, code_line=code_line)
+        # Delegate to parser_list.py
+        return parse_list_atom(self)
 
     def parse_table_atom(self):
-        self.expect("LBRACE")
-        items = []
-        trailing_comma = False
-        t_start = self.peek()
-        code_line = self._get_code_line(t_start) if t_start else None
-        if self.peek() and not (self.peek().type == "RBRACE"):
-            key_value_pairs = []
-            saw_item = False
-            while True:
-                t = self.peek()
-                if t is None:
-                    raise EnzoParseError(error_message_unmatched_brace(), code_line=self._get_code_line(t))
-                if t.type == "RBRACE":
-                    if not saw_item and trailing_comma:
-                        raise EnzoParseError(error_message_empty_table_comma(), code_line=self._get_code_line(t))
-                    break
-                if t.type == "COMMA":
-                    t2 = self.tokens[self.pos + 1] if self.pos + 1 < len(self.tokens) else None
-                    # --- FIX: distinguish empty table with comma ---
-                    if not saw_item:
-                        if t2 and t2.type == "RBRACE":
-                            raise EnzoParseError(error_message_empty_table_comma(), code_line=self._get_code_line(t))
-                        else:
-                            raise EnzoParseError(error_message_leading_comma_table(), code_line=self._get_code_line(t))
-                    if t2 and t2.type == "COMMA":
-                        raise EnzoParseError(error_message_double_comma_table(), code_line=self._get_code_line(t2))
-                    self.advance()
-                    trailing_comma = True
-                    continue
-                if t.type != "KEYNAME":
-                    raise EnzoParseError(error_message_unmatched_brace(), code_line=self._get_code_line(t))
-                key = self.expect("KEYNAME").value
-                self.expect("COLON")
-                value = self.parse_value_expression()
-                key_value_pairs.append((key, value))
-                saw_item = True
-                t = self.peek()
-                if t and t.type == "COMMA":
-                    self.advance()
-                    trailing_comma = True
-                    # Check for double comma
-                    t2 = self.peek()
-                    if t2 and t2.type == "COMMA":
-                        raise EnzoParseError(error_message_double_comma_table(), code_line=self._get_code_line(t2))
-                else:
-                    trailing_comma = False
-            # Overwrite duplicate keys: last one wins, preserve order of last occurrence
-            seen = {}
-            ordered = []
-            for k, v in key_value_pairs:
-                if k in seen:
-                    # Remove previous occurrence
-                    ordered = [pair for pair in ordered if pair[0] != k]
-                seen[k] = v
-                ordered.append((k, v))
-            items = ordered
-        t = self.peek()
-        if not t or t.type != "RBRACE":
-            raise EnzoParseError(error_message_unmatched_brace(), code_line=self._get_code_line(t))
-        self.advance()
-        return TableAtom(items, code_line=code_line)
+        # Delegate to parser_table.py
+        return parse_table_atom(self)
 
     def parse_postfix(self, base):
         # Correctly handle chained dot-number and dot-variable for nested indexing
@@ -408,12 +255,7 @@ def parse(src):
     parser = Parser(src)
     return parser.parse()
 
-# def parse_program(src):
-#     """Parse a full Enzo source string into a Program AST (multiple statements)."""
-#     parser = Parser(src)
-#     return parser.parse_program()
-
-# # TODO: Implement parse_statement, parse_expr, parse_function_atom, etc.
-# # Each should take a context argument (e.g., 'top-level', 'binding', 'expression')
-# # TODO: Implement parse_statement, parse_expr, parse_function_atom, etc.
-# # Each should take a context argument (e.g., 'top-level', 'binding', 'expression')
+def parse_program(src):
+    """Parse a full Enzo source string into a Program AST (multiple statements)."""
+    parser = Parser(src)
+    return parser.parse_program()
