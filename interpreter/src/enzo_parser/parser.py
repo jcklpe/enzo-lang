@@ -203,15 +203,22 @@ class Parser:
     def parse_statements(self):
         stmts = []
         while self.pos < len(self.tokens):
-            stmts.append(self.parse_statement())
-            if self.peek() and self.peek().type in ("SEMICOLON",):
+            stmt = self.parse_statement()
+            stmts.append(stmt)
+            # Accept and consume all consecutive semicolons or commas after a statement
+            while self.peek() and self.peek().type in ("SEMICOLON", "COMMA"):
                 self.advance()
-            else:
+            # Stop if next token is a closing delimiter or end of input
+            if self.peek() and self.peek().type in ("RPAR", "RBRACK", "RBRACE"):
                 break
+            elif not self.peek():
+                break
+            # Otherwise, continue parsing next statement
         return stmts
 
     def parse_block(self):
         stmts = self.parse_statements()
+        # If only one statement, return it directly
         if len(stmts) == 1:
             return stmts[0]
         else:
@@ -219,6 +226,9 @@ class Parser:
 
     def parse(self):
         ast = self.parse_block()
+        # Consume any trailing semicolons/commas after a block
+        while self.peek() and self.peek().type in ("SEMICOLON", "COMMA"):
+            self.advance()
         if self.pos != len(self.tokens):
             raise EnzoParseError(error_message_unexpected_token(self.tokens[self.pos]))
         return ast
@@ -243,23 +253,5 @@ def parse_program(src):
     #Parse a full Enzo source string into a Program AST (multiple statements).
     parser = Parser(src)
     return parser.parse_program()
-    def parse_program(self):
-        statements = []
-        while self.pos < len(self.tokens):
-            stmt = self.parse_statement()
-            statements.append(stmt)
-            if self.peek() and self.peek().type in ("SEMICOLON", "COMMA"):
-                self.advance()
-        return Program(statements)
-
-# Top-level API for main interpreter and debug module
-
-def parse(src):
-    #Parse a single Enzo source string into an AST (single statement/block).
-    parser = Parser(src)
-    return parser.parse()
-
-def parse_program(src):
-    #Parse a full Enzo source string into a Program AST (multiple statements).
     parser = Parser(src)
     return parser.parse_program()

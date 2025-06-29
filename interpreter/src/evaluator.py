@@ -84,7 +84,6 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         return [eval_ast(el, value_demand=True, env=env) for el in node.elements]
     if isinstance(node, TableAtom):
         tbl = Table((k, eval_ast(v, value_demand=True, env=env)) for k, v in node.items)
-        log_debug(f"[TableAtom eval] keys: {list(tbl.keys())} | value: {tbl!r}")
         return tbl
     if isinstance(node, Binding):
         name = node.name
@@ -352,4 +351,5 @@ def _interp(s: str, src_line: str = None):
 # Sentinel for uninitialized/empty binds
 class Empty:
     def __repr__(self):
+        return "<empty>"
         return "<empty>"

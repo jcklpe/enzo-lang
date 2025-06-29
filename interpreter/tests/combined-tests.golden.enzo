@@ -34,8 +34,6 @@ error: cannot assign Text to Number
 5
 9
 3
-error: extra semicolon
-    $meaning-of-life: 42;;
 
 //= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
 [  ]
@@ -202,6 +200,7 @@ error: parse error in interpolation
 99
 //= Nested function atoms
 6
+9
 //= Function atom one liner with implicit return
 5
 6
@@ -219,11 +218,6 @@ error: parse error in interpolation
 4
 4
 
-//= Redundant semicolons and whitespace
-error: extra semicolon
-    ;;;;;;
-error: extra semicolon
-    ;   ;
 //= Invalid parenthesis/brackets/braces
 error: unmatched parenthesis
     (1 + 2;

@@ -1,12 +1,24 @@
 from .ast_nodes import FunctionAtom, Binding, VarInvoke
 from .parser_utilities import expect
 
+import os
+
+def log_debug(msg):
+    log_path = os.path.join(os.path.dirname(__file__), "../logs/debug.log")
+    with open(log_path, "a") as f:
+        f.write(msg + "\n")
+
 def parse_function_atom(parser):
+    # Log tokens before parsing
+    log_debug(f"[parse_function_atom] tokens before: {parser.tokens[parser.pos:]}")
     expect(parser, "LPAR")
     t = parser.peek()
     if t and t.type == "RPAR":
         parser.advance()
-        return FunctionAtom([], [], [], code_line=parser._get_code_line(t))
+        ast = FunctionAtom([], [], [], code_line=parser._get_code_line(t))
+        log_debug(f"[parse_function_atom] AST: {ast}")
+        log_debug(f"[parse_function_atom] tokens after: {parser.tokens[parser.pos:]}")
+        return ast
     t = parser.peek()
     if t and t.type == "KEYNAME":
         save_pos = parser.pos
@@ -28,7 +40,6 @@ def parse_function_atom(parser):
                         else:
                             items.append(Binding(name, None))
                     else:
-                        # FIX: Use VarInvoke for bare variable names
                         items.append(VarInvoke(name, code_line=parser._get_code_line(t)))
                 else:
                     items.append(parser.parse_value_expression())
@@ -46,9 +57,19 @@ def parse_function_atom(parser):
                     local_vars.append(item)
                 else:
                     body.append(item)
-            return FunctionAtom(params, local_vars, body)
+            ast = FunctionAtom(params, local_vars, body)
+            log_debug(f"[parse_function_atom] AST: {ast}")
+            log_debug(f"[parse_function_atom] tokens after: {parser.tokens[parser.pos:]}")
+            return ast
         else:
             parser.pos = save_pos
-    expr = parser.parse_value_expression()
+    # --- FIX: Parse a block of statements for the function body ---
+    body = parser.parse_block()
     parser.expect("RPAR")
-    return FunctionAtom([], [], [expr])
+    # parse_block may return a single node or a list; always store as a list
+    if not isinstance(body, list):
+        body = [body]
+    ast = FunctionAtom([], [], body)
+    log_debug(f"[parse_function_atom] AST: {ast}")
+    log_debug(f"[parse_function_atom] tokens after: {parser.tokens[parser.pos:]}")
+    return ast

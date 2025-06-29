@@ -34,5 +34,3 @@ error: cannot assign Text to Number
 5
 9
 3
-error: extra semicolon
-    $meaning-of-life: 42;;

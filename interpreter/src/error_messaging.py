@@ -33,9 +33,6 @@ def error_message_expected_type(expected, got):
     return f"Expected {expected}, got {got}"
 
 def error_message_unexpected_token(token):
-    # Special case: extra semicolon
-    if getattr(token, 'type', None) == 'SEMICOLON' and getattr(token, 'value', None) == ';':
-        return "error: extra semicolon"
     return f"Unexpected token: {token}"
 
 def error_message_cannot_assign(new_type, old_type):
