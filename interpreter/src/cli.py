@@ -6,7 +6,7 @@ from src.evaluator    import eval_ast
 from src.runtime_helpers import Table, format_val
 
 # CRITICAL INFO: ALL ERROR HANDLING MUST BE USE THE CENTRALIZED error_handling.py MODULE
-from src.error_handling import InterpolationParseError, ReturnSignal
+from src.error_handling import InterpolationParseError, ReturnSignal, EnzoParseError
 
 # CRITICAL INFO: ALL ERROR MESSAGING MUST BE USE THE CENTRALIZED error_messaging.py MODULE
 from src.error_messaging import format_parse_error, error_message_unterminated_interpolation, error_message_included_file_not_found, error_message_generic
@@ -91,55 +91,105 @@ def read_statement(stdin, interactive):
 
     return '\n'.join(buffer) if buffer else None
 
+def split_statements(lines):
+    # Split a list of lines into complete statements (respecting nesting)
+    stmts = []
+    buffer = []
+    paren_depth = 0
+    brace_depth = 0
+    bracket_depth = 0
+    for line in lines:
+        stripped = line.rstrip('\n')
+        # Skip blank/comment lines unless already in a statement
+        if not stripped and not buffer:
+            continue
+        if stripped.strip().startswith('//=') and not buffer:
+            stmts.append([stripped])
+            continue
+        if stripped.strip().startswith('//') and not buffer:
+            continue
+        # Update depths
+        for char in stripped:
+            if char == '(':
+                paren_depth += 1
+            elif char == ')':
+                paren_depth -= 1
+            elif char == '{':
+                brace_depth += 1
+            elif char == '}':
+                brace_depth -= 1
+            elif char == '[':
+                bracket_depth += 1
+            elif char == ']':
+                bracket_depth -= 1
+        buffer.append(stripped)
+        if paren_depth <= 0 and brace_depth <= 0 and bracket_depth <= 0 and ';' in stripped:
+            stmts.append(buffer)
+            buffer = []
+    if buffer:
+        stmts.append(buffer)
+    return stmts
+
 def run_enzo_file(filename):
     with open(filename) as f:
         lines = f.readlines()
-    # Handle @include directives
     lines = list(process_includes(lines, base_dir=os.path.dirname(os.path.abspath(filename))))
-    # Use read_statement to read multi-line statements
-    idx = 0
-    total_lines = len(lines)
-    while idx < total_lines:
-        # Skip blank/comment lines unless already in a statement
-        if not lines[idx].strip():
-            idx += 1
-            continue
-        if lines[idx].strip().startswith('//='):
-            print(lines[idx].rstrip())
-            idx += 1
-            continue
-        if lines[idx].strip().startswith('//'):
-            idx += 1
-            continue
-        # Gather a statement using read_statement logic
-        buffer = []
-        paren_depth = 0
-        brace_depth = 0
-        bracket_depth = 0
-        while idx < total_lines:
-            line = lines[idx].rstrip('\n')
-            # Update depths
-            for char in line:
-                if char == '(':
-                    paren_depth += 1
-                elif char == ')':
-                    paren_depth -= 1
-                elif char == '{':
-                    brace_depth += 1
-                elif char == '}':
-                    brace_depth -= 1
-                elif char == '[':
-                    bracket_depth += 1
-                elif char == ']':
-                    bracket_depth -= 1
-            buffer.append(line)
-            idx += 1
-            # Only break if all depths are zero and ';' is in the line
-            if paren_depth <= 0 and brace_depth <= 0 and bracket_depth <= 0 and ';' in line:
-                break
-        statement = '\n'.join(buffer).strip()
+    stmts = split_statements(lines)
+    for stmt_lines in stmts:
+        statement = '\n'.join(stmt_lines).strip()
         if not statement:
             continue
+        if statement.strip().startswith('//='):
+            print(statement.rstrip())
+            continue
+        # --- NEW: If this block is a list of single-line statements, process each line independently ---
+        if all(';' in line for line in stmt_lines) and len(stmt_lines) > 1:
+            for line in stmt_lines:
+                line = line.strip()
+                if not line:
+                    continue
+                # Strip inline comments (for code lines only)
+                if '//' in line:
+                    line = line.split('//', 1)[0].rstrip()
+                if not line:
+                    continue
+                try:
+                    result = eval_ast(parse(line), value_demand=True)
+                    if result is not None:
+                        print(format_val(result))
+                except InterpolationParseError as e:
+                    msg = format_parse_error(e, src=line)
+                    if "\n" in msg:
+                        errline, context = msg.split("\n", 1)
+                        print_enzo_error(errline + "\n" + context)
+                    else:
+                        print_enzo_error(msg)
+                    continue
+                except EnzoParseError as e:
+                    msg = format_parse_error(e, src=line)
+                    if "\n" in msg:
+                        errline, context = msg.split("\n", 1)
+                        print_enzo_error(errline + "\n" + context)
+                    else:
+                        print_enzo_error(msg)
+                    continue
+                except (UnexpectedToken, UnexpectedInput, UnexpectedCharacters) as e:
+                    if isinstance(e, UnexpectedToken) and getattr(e, 'token', None):
+                        msg = format_parse_error(e, src=line)
+                        print_enzo_error(msg)
+                        continue
+                    msg = format_parse_error(e, src=line)
+                    if "\n" in msg:
+                        errline, context = msg.split("\n", 1)
+                        print_enzo_error(errline + "\n" + context)
+                    else:
+                        print_enzo_error(msg)
+                    continue
+                except Exception as e:
+                    msg = format_parse_error(e, src=line) if hasattr(e, 'code_line') or hasattr(e, 'line') or hasattr(e, 'column') else error_message_generic(str(e))
+                    print_enzo_error(msg)
+                    continue
+            continue  # move to next block after processing all lines
         # Strip inline comments (for code lines only)
         if '//' in statement:
             statement = statement.split('//', 1)[0].rstrip()
@@ -150,6 +200,14 @@ def run_enzo_file(filename):
             if result is not None:
                 print(format_val(result))
         except InterpolationParseError as e:
+            msg = format_parse_error(e, src=statement)
+            if "\n" in msg:
+                errline, context = msg.split("\n", 1)
+                print_enzo_error(errline + "\n" + context)
+            else:
+                print_enzo_error(msg)
+            continue
+        except EnzoParseError as e:
             msg = format_parse_error(e, src=statement)
             if "\n" in msg:
                 errline, context = msg.split("\n", 1)
@@ -273,6 +331,14 @@ def main():
         except InterpolationParseError:
             print(color_error(error_message_unterminated_interpolation()))
             print(color_code("    " + line))
+        except EnzoParseError as e:
+            msg = format_parse_error(e, src=line)
+            if "\n" in msg:
+                errline, context = msg.split("\n", 1)
+                print(color_error(errline))
+                print(color_code(context))
+            else:
+                print(color_error(msg))
         except (UnexpectedToken, UnexpectedInput, UnexpectedCharacters) as e:
             if isinstance(e, UnexpectedToken) and getattr(e, 'token', None):
                 from src.error_messaging import error_message_unexpected_token
