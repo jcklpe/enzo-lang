@@ -104,12 +104,8 @@ class Parser:
                         params.append(item.name)
                     elif isinstance(item, Binding):
                         local_vars.append(item)
-                    elif isinstance(item, str):
-                        params.append(item)
                     else:
                         body.append(item)
-                if not params and not local_vars and len(body) == 1:
-                    return FunctionAtom([], [], body)
                 return FunctionAtom(params, local_vars, body)
             else:
                 # Not a function definition, treat as value expression
@@ -408,14 +404,16 @@ class Parser:
 # Top-level API for main interpreter and debug module
 
 def parse(src):
+    """Parse a single Enzo source string into an AST (single statement/block)."""
     parser = Parser(src)
     return parser.parse()
 
-def parse_program(src):
-    parser = Parser(src)
-    return parser.parse_program()
+# def parse_program(src):
+#     """Parse a full Enzo source string into a Program AST (multiple statements)."""
+#     parser = Parser(src)
+#     return parser.parse_program()
 
-# TODO: Implement parse_statement, parse_expr, parse_function_atom, etc.
-# Each should take a context argument (e.g., 'top-level', 'binding', 'expression')
-# TODO: Implement parse_statement, parse_expr, parse_function_atom, etc.
-# Each should take a context argument (e.g., 'top-level', 'binding', 'expression')
+# # TODO: Implement parse_statement, parse_expr, parse_function_atom, etc.
+# # Each should take a context argument (e.g., 'top-level', 'binding', 'expression')
+# # TODO: Implement parse_statement, parse_expr, parse_function_atom, etc.
+# # Each should take a context argument (e.g., 'top-level', 'binding', 'expression')

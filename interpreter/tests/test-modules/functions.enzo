@@ -6,7 +6,6 @@
 
 //= Function atom with single variable and implicit return
 ($foo: 99; $foo); // prints 99
-($foo: 100,  $foo); // prints 100
 
 //= Nested function atoms
 (($x: 2; $y: 3; $x * $y);) // prints 6

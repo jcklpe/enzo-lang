@@ -23,3 +23,78 @@
 [Table property rebind] key: x | table after: { $x: 99 }
 [TableAtom eval] keys: ['$foo', '$bar'] | value: { $foo: 1, $bar: 2 }
 [TableAtom eval] keys: ['$greeting', '$nums'] | value: { $greeting: "hi", $nums: [ 2, 4 ] }
+[TableAtom eval] keys: ['$lst'] | value: { $lst: [ "a", "b", "c" ] }
+[TableAtom eval] keys: ['$x'] | value: { $x: 5 }
+[TableAtom eval] keys: ['$x'] | value: { $x: 7 }
+[TableAtom eval] keys: ['$name', '$age'] | value: { $name: "Alice", $age: 30 }
+[Table property rebind] key: name | table after: { $name: "Bob", $age: 30 }
+[TableAtom eval] keys: ['$foo', '$bar'] | value: { $foo: 42, $bar: "hello" }
+[Table property rebind] key: foo | table after: { $foo: 100, $bar: "hello" }
+[TableAtom eval] keys: [] | value: {  }
+[TableAtom eval] keys: ['$val', '$arr'] | value: { $val: 42, $arr: [ 10, 20 ] }
+[TableAtom eval] keys: ['$inner'] | value: { $inner: { $val: 42, $arr: [ 10, 20 ] } }
+[Table property rebind] key: val | table after: { $val: 100, $arr: [ 10, 20 ] }
+[TableAtom eval] keys: ['$a', '$b'] | value: { $a: [ 100, 200 ], $b: "x" }
+[TableAtom eval] keys: ['$foo'] | value: { $foo: 1 }
+[TableAtom eval] keys: ['$foo'] | value: { $foo: 2 }
+[TableAtom eval] keys: ['$tbl', '$lst'] | value: { $tbl: { $a: [ 100, 200 ], $b: "x" }, $lst: [ { $foo: 1 }, { $foo: 2 } ] }
+[TableAtom eval] keys: ['$first', '$second'] | value: { $first: [ 1, 2 ], $second: [ 3, 4 ] }
+[TableAtom eval] keys: ['$z'] | value: { $z: 7 }
+[TableAtom eval] keys: ['$y'] | value: { $y: { $z: 7 } }
+[TableAtom eval] keys: ['$x'] | value: { $x: { $y: { $z: 7 } } }
+[TableAtom eval] keys: ['$foo'] | value: { $foo: 1 }
+[TableAtom eval] keys: ['$a'] | value: { $a: 1 }
+[TableAtom eval] keys: ['$x'] | value: { $x: 1 }
+[Table property rebind] key: x | table after: { $x: 99 }
+[TableAtom eval] keys: ['$foo', '$bar'] | value: { $foo: 1, $bar: 2 }
+[TableAtom eval] keys: ['$greeting', '$nums'] | value: { $greeting: "hi", $nums: [ 2, 4 ] }
+[TableAtom eval] keys: ['$lst'] | value: { $lst: [ "a", "b", "c" ] }
+[TableAtom eval] keys: ['$x'] | value: { $x: 5 }
+[TableAtom eval] keys: ['$x'] | value: { $x: 7 }
+[TableAtom eval] keys: ['$name', '$age'] | value: { $name: "Alice", $age: 30 }
+[Table property rebind] key: name | table after: { $name: "Bob", $age: 30 }
+[TableAtom eval] keys: ['$foo', '$bar'] | value: { $foo: 42, $bar: "hello" }
+[Table property rebind] key: foo | table after: { $foo: 100, $bar: "hello" }
+[TableAtom eval] keys: [] | value: {  }
+[TableAtom eval] keys: ['$val', '$arr'] | value: { $val: 42, $arr: [ 10, 20 ] }
+[TableAtom eval] keys: ['$inner'] | value: { $inner: { $val: 42, $arr: [ 10, 20 ] } }
+[Table property rebind] key: val | table after: { $val: 100, $arr: [ 10, 20 ] }
+[TableAtom eval] keys: ['$a', '$b'] | value: { $a: [ 100, 200 ], $b: "x" }
+[TableAtom eval] keys: ['$foo'] | value: { $foo: 1 }
+[TableAtom eval] keys: ['$foo'] | value: { $foo: 2 }
+[TableAtom eval] keys: ['$tbl', '$lst'] | value: { $tbl: { $a: [ 100, 200 ], $b: "x" }, $lst: [ { $foo: 1 }, { $foo: 2 } ] }
+[TableAtom eval] keys: ['$first', '$second'] | value: { $first: [ 1, 2 ], $second: [ 3, 4 ] }
+[TableAtom eval] keys: ['$z'] | value: { $z: 7 }
+[TableAtom eval] keys: ['$y'] | value: { $y: { $z: 7 } }
+[TableAtom eval] keys: ['$x'] | value: { $x: { $y: { $z: 7 } } }
+[TableAtom eval] keys: ['$foo'] | value: { $foo: 1 }
+[TableAtom eval] keys: ['$a'] | value: { $a: 1 }
+[TableAtom eval] keys: ['$x'] | value: { $x: 1 }
+[Table property rebind] key: x | table after: { $x: 99 }
+[TableAtom eval] keys: ['$foo', '$bar'] | value: { $foo: 1, $bar: 2 }
+[TableAtom eval] keys: ['$greeting', '$nums'] | value: { $greeting: "hi", $nums: [ 2, 4 ] }
+[TableAtom eval] keys: ['$lst'] | value: { $lst: [ "a", "b", "c" ] }
+[TableAtom eval] keys: ['$x'] | value: { $x: 5 }
+[TableAtom eval] keys: ['$x'] | value: { $x: 7 }
+[TableAtom eval] keys: ['$name', '$age'] | value: { $name: "Alice", $age: 30 }
+[Table property rebind] key: name | table after: { $name: "Bob", $age: 30 }
+[TableAtom eval] keys: ['$foo', '$bar'] | value: { $foo: 42, $bar: "hello" }
+[Table property rebind] key: foo | table after: { $foo: 100, $bar: "hello" }
+[TableAtom eval] keys: [] | value: {  }
+[TableAtom eval] keys: ['$val', '$arr'] | value: { $val: 42, $arr: [ 10, 20 ] }
+[TableAtom eval] keys: ['$inner'] | value: { $inner: { $val: 42, $arr: [ 10, 20 ] } }
+[Table property rebind] key: val | table after: { $val: 100, $arr: [ 10, 20 ] }
+[TableAtom eval] keys: ['$a', '$b'] | value: { $a: [ 100, 200 ], $b: "x" }
+[TableAtom eval] keys: ['$foo'] | value: { $foo: 1 }
+[TableAtom eval] keys: ['$foo'] | value: { $foo: 2 }
+[TableAtom eval] keys: ['$tbl', '$lst'] | value: { $tbl: { $a: [ 100, 200 ], $b: "x" }, $lst: [ { $foo: 1 }, { $foo: 2 } ] }
+[TableAtom eval] keys: ['$first', '$second'] | value: { $first: [ 1, 2 ], $second: [ 3, 4 ] }
+[TableAtom eval] keys: ['$z'] | value: { $z: 7 }
+[TableAtom eval] keys: ['$y'] | value: { $y: { $z: 7 } }
+[TableAtom eval] keys: ['$x'] | value: { $x: { $y: { $z: 7 } } }
+[TableAtom eval] keys: ['$foo'] | value: { $foo: 1 }
+[TableAtom eval] keys: ['$a'] | value: { $a: 1 }
+[TableAtom eval] keys: ['$x'] | value: { $x: 1 }
+[Table property rebind] key: x | table after: { $x: 99 }
+[TableAtom eval] keys: ['$foo', '$bar'] | value: { $foo: 1, $bar: 2 }
+[TableAtom eval] keys: ['$greeting', '$nums'] | value: { $greeting: "hi", $nums: [ 2, 4 ] }

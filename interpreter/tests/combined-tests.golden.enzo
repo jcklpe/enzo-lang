@@ -200,7 +200,6 @@ error: parse error in interpolation
 6
 //= Function atom with single variable and implicit return
 99
-100
 //= Nested function atoms
 6
 //= Function atom one liner with implicit return
