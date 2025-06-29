@@ -1,3 +1,56 @@
+//= INVOKING AN UNDEFINED VARIABLE
+$undefinedVar;      // error: undefined: $undefinedVar
+
+//= EMPTY BIND ────────────────────────────────────────────────────────────
+$x: ;
+
+//= REDECLARING A VARIABLE (USING “:”) ERRORS ────────────────────────────
+$x: 10;             // error $x has already been declared
+
+//= REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
+$x <: 100;
+$x;                 // prints 100
+$x <: "hello";      // error: cannot assign Text to Number
+
+//= FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
+$z: 7;       // binds 7
+$z;         // prints 7
+$z <: 8;            // rebind OK, z now 8
+$z;             // prints 8
+$z <: "oops";       // error: cannot assign Text to Number
+$z : "oops";       // error: $z already defined
+
+//= MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
+$Var123: 10;
+$Var123;                  // prints “10”
+$var-xyz: 20;
+$var-xyz;                 // prints “20”
+($Var123 + $var-xyz);       // prints “30”
+$var_xyz: 30;
+$var_xyz;                 // prints “30”
+
+//= REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
+55 :> $newImplicit;
+$newImplicit;               // prints “55”
+$newImplicit <: "oops";     // error: cannot assign Text to Number
+$dougie <: "cool dude";     // should not error.
+$dougie;                    // prints "cool dude".
+
+//= MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
+$u: 1; $v: 2; ($u + $v);    // prints “3”
+$apples:1;$bananas:2; ($apples+$bananas);       // prints 3
+$apricot :  1 ; $boranges: 2;        // spacing should not break anything
+$boranges;
+
+//= Var naming
+$123abc: 5;
+$123abc; // prints 5
+$_: 9;
+$_; // prints 9
+$-foo: 3;
+$-foo;        // prints 3
+$meaning-of-life: 42;;  // error: extra semi-colon
+
 //= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
 $emptyListTest: []; // binds []
 $emptyListTest;    // prints “[ ]”
@@ -87,7 +140,7 @@ $weird: --5;              // error: double minus not allowed
 
 //= TABLE STUFF ───────────────────────────────────────────────────────────
 $table: { $name: "Alice", $age: 30 };
-$table;             // prints “{ $name: "Alice", $age: 30 }”
+$table;             // binds “{ $name: "Alice", $age: 30 }”
 $table.name;        // prints “Alice”
 $table.age;         // prints “30”
 
@@ -98,14 +151,16 @@ $table;             // prints “{ $name: "Bob", $age: 30 }”
 
 //= ANOTHER TABLE + PROPERTY REBIND ───────────────────────────────────────
 $table2: { $foo: 42, $bar: "hello" };
+$table2;
 $table2.bar;        // prints “hello”
 $table2.foo <: 100;
+$table2.foo;
 $table2;            // prints “{ $foo: 100, $bar: "hello" }”
 
 //= EMPTY TABLE LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
 $emptyTable: {};
 $emptyTable;            // prints “{ }”
-$emptyTable.someKey;    // error: 'someKey' does not exist on this table
+$emptyTable.someKey;    // error: Keyname '$someKey' does not exist on this table
 
 //= NESTED TABLE + MIXED INDEX/ATTR ───────────────────────────────────────
 $nestedTable: {
@@ -114,6 +169,7 @@ $nestedTable: {
         $arr: [10, 20]
     }
 };
+$nestedTable;
 $nestedTable.inner.val;     // prints “42”
 $nestedTable.inner.arr.2;   // prints “20”
 
@@ -136,6 +192,7 @@ $tol.second;          // prints “[ 3, 4 ]”
 
 //= MORE TABLE WEIRDNESS
 $deep-table: { $x: { $y: { $z: 7 } } };
+$deep-table;
 $deep-table.x.y.z; // prints 7
 
 //= Table property errors
@@ -214,59 +271,6 @@ $esc2;                  // prints foo"bar"baz
 "hello <$foo + >";      // error: parse error in interpolation
 "hello <<$foo>>";       // error: nested <...> not allowed (for now)
 
-//= INVOKING AN UNDEFINED VARIABLE
-$undefinedVar;      // error: undefined: $undefinedVar
-
-//= EMPTY BIND ────────────────────────────────────────────────────────────
-$x: ;
-
-//= REDECLARING A VARIABLE (USING “:”) ERRORS ────────────────────────────
-$x: 10;             // error $x has already been declared
-
-//= REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
-$x <: 100;
-$x;                 // prints 100
-$x <: "hello";      // error: cannot assign Text to Number
-
-//= FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
-$z: 7;       // binds 7
-$z;         // prints 7
-$z <: 8;            // rebind OK, z now 8
-$z;             // prints 8
-$z <: "oops";       // error: cannot assign Text to Number
-$z : "oops";       // error: $z already defined
-
-//= MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
-$Var123: 10;
-$Var123;                  // prints “10”
-$var-xyz: 20;
-$var-xyz;                 // prints “20”
-($Var123 + $var-xyz);       // prints “30”
-$var_xyz: 30;
-$var_xyz;                 // prints “30”
-
-//= REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
-55 :> $newImplicit;
-$newImplicit;               // prints “55”
-$newImplicit <: "oops";     // error: cannot assign Text to Number
-$dougie <: "cool dude";     // should not error.
-$dougie;                    // prints "cool dude".
-
-//= MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
-$u: 1; $v: 2; ($u + $v);    // prints “3”
-$apples:1;$bananas:2; ($apples+$bananas);       // prints 3
-$apricot :  1 ; $boranges: 2;        // spacing should not break anything
-$boranges;
-
-//= Var naming
-$123abc: 5;
-$123abc; // prints 5
-$_: 9;
-$_; // prints 9
-$-foo: 3;
-$-foo;        // prints 3
-$meaning-of-life: 42;;  // error: extra semi-colon
-
 //= Redundant semicolons and whitespace
 ;;;;;;    // error: too many semicolons
 ;   ;     // error: too many semicolons
@@ -297,4 +301,3 @@ times2();       // prints 4
 
 //= Bare parens
 (6);
-

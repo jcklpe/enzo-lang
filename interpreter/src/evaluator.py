@@ -245,8 +245,10 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             t_code_line = getattr(target, 'code_line', node.code_line)
             if isinstance(key, VarInvoke):
                 key = eval_ast(key, env=env)
+            # Ensure base is a dict or Table (which is a dict subclass)
             if not isinstance(base, dict):
                 raise EnzoTypeError(error_message_table_property_not_found(key), code_line=t_code_line)
+            # Overwrite the property value (dict assignment always overwrites)
             base[key] = value
             return None
         raise EnzoRuntimeError(error_message_cannot_assign_target(target), code_line=getattr(node, 'code_line', None))

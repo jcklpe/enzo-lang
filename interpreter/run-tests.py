@@ -72,7 +72,30 @@ def color_diff_symbol_line(line):
         return f"\033[93;1m{line}\033[0m"
     return line
 
+def normalize_output(text):
+    # Strip trailing whitespace from each line, remove trailing blank lines
+    lines = [line.rstrip() for line in text.splitlines()]
+    # Remove trailing blank lines
+    while lines and lines[-1] == "":
+        lines.pop()
+    # Ensure exactly one trailing newline (POSIX style)
+    return "\n".join(lines) + "\n"
+
+def normalize_block_lines(lines):
+    # Remove trailing whitespace from each line and strip trailing blank lines
+    lines = [line.rstrip() for line in lines]
+    while lines and lines[-1] == "":
+        lines.pop()
+    return lines
+
 def main():
+    # Normalize golden files before running tests
+    try:
+        from tests.normalize_golden_files import normalize_golden_files
+        normalize_golden_files()
+    except Exception as e:
+        print(f"Warning: Could not normalize golden files: {e}")
+
     if len(sys.argv) > 1 and sys.argv[1] in {"-h", "--help"}:
         print("Usage: ./run-tests.py [module_name]")
         sys.exit(1)
@@ -113,9 +136,9 @@ def main():
         text=True
     )
 
-    actual = proc.stdout.rstrip("\n")
+    actual = normalize_output(proc.stdout)
     with open(golden_file) as f:
-        expected = f.read().rstrip("\n")
+        expected = normalize_output(f.read())
 
     if actual == expected:
         print(color_info(f"✅ {test_file} matches golden file."))
@@ -136,14 +159,16 @@ def main():
     for i in range(num_blocks):
         title, exp_lines = expected_blocks[i]
         _, act_lines = actual_blocks[i]
-        # Compare ignoring leading/trailing whitespace
-        if [l.rstrip() for l in exp_lines] != [l.rstrip() for l in act_lines]:
+        # Normalize each block's lines before comparing
+        exp_lines_norm = normalize_block_lines(exp_lines)
+        act_lines_norm = normalize_block_lines(act_lines)
+        if exp_lines_norm != act_lines_norm:
             fail_count += 1
             print()
             print(color_block_title(f"//= {title}"))
             diff = difflib.unified_diff(
-                exp_lines,
-                act_lines,
+                exp_lines_norm,
+                act_lines_norm,
                 fromfile="actual",
                 tofile="expected",
                 lineterm=""

@@ -160,6 +160,7 @@ class Parser:
         t_start = self.peek()
         code_line = self._get_code_line(t_start) if t_start else None
         if self.peek() and not (self.peek().type == "RBRACE"):
+            key_value_pairs = []
             while True:
                 t = self.peek()
                 if t is None:
@@ -171,7 +172,7 @@ class Parser:
                 key = self.expect("KEYNAME").value
                 self.expect("COLON")
                 value = self.parse_value_expression()
-                items.append((key, value))
+                key_value_pairs.append((key, value))
                 t = self.peek()
                 if t and t.type == "COMMA":
                     self.advance()
@@ -179,6 +180,18 @@ class Parser:
                 else:
                     trailing_comma = False
                     break
+            # Overwrite duplicate keys: last one wins
+            seen = {}
+            for k, v in key_value_pairs:
+                seen[k] = v
+            # To preserve order of last occurrence, reverse, dedup, then reverse again
+            ordered = []
+            seen_keys = set()
+            for k, v in reversed(key_value_pairs):
+                if k not in seen_keys:
+                    ordered.append((k, v))
+                    seen_keys.add(k)
+            items = list(reversed(ordered))
         t = self.peek()
         if not t or t.type != "RBRACE":
             raise EnzoParseError(error_message_unmatched_brace(), code_line=self._get_code_line(t))
