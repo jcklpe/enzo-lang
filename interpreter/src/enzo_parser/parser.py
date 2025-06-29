@@ -60,6 +60,11 @@ class Parser:
 
     def parse_function_atom(self):
         self.expect("LPAR")  # '('
+        # --- FIX: Allow empty function atom ---
+        t = self.peek()
+        if t and t.type == "RPAR":
+            self.advance()
+            return FunctionAtom([], [], [], code_line=self._get_code_line(t))
         # Look ahead: function definition or value expression?
         t = self.peek()
         if t and t.type == "KEYNAME":

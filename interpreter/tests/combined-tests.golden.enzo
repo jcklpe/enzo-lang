@@ -195,17 +195,30 @@ error: parse error in interpolation
 error: parse error in interpolation
     "hello <<$foo>>";
 
-//= Nameless functions one liner with implicit return
-5
-//= Nameless function: multi-line with explicit return
-200
-//= Nameless function: multi-line, explicit return, different values
-201
-//= Single line, implicit return
-<function () ...>
-4
-//= Bare parens
+//= Empty function atom
+//= Function atom with just a single value
 6
+//= Function atom with single variable and implicit return
+99
+100
+//= Nested function atoms
+6
+//= Function atom one liner with implicit return
+5
+6
+//= Function with only a return statement (multi-line)
+123
+//= Multiline function atom with explicit return
+200
+//= Multiline function atom with explicit return 2
+201
+//= Multiline nested function atoms
+32
+
+//= Single line, implicit return, named function
+4
+4
+4
 
 //= Redundant semicolons and whitespace
 error: extra semicolon
