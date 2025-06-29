@@ -18,6 +18,7 @@ from src.error_messaging import (
     error_message_cant_use_string_as_index,
     error_message_index_applies_to_lists
 )
+import os
 
 _env = {}  # single global environment
 
@@ -51,6 +52,11 @@ def invoke_function(fn, args, env):
     return res
 
 
+def log_debug(msg):
+    log_path = os.path.join(os.path.dirname(__file__), "logs", "debug.log")
+    with open(log_path, "a") as f:
+        f.write(msg + "\n")
+
 def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None):
     if env is None:
         env = _env
@@ -66,7 +72,9 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
     if isinstance(node, ListAtom):
         return [eval_ast(el, value_demand=True, env=env) for el in node.elements]
     if isinstance(node, TableAtom):
-        return {k: eval_ast(v, value_demand=True, env=env) for k, v in node.items}
+        tbl = Table((k, eval_ast(v, value_demand=True, env=env)) for k, v in node.items)
+        log_debug(f"[TableAtom eval] keys: {list(tbl.keys())} | value: {tbl!r}")
+        return tbl
     if isinstance(node, Binding):
         name = node.name
         if name in env:
@@ -249,7 +257,17 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             if not isinstance(base, dict):
                 raise EnzoTypeError(error_message_table_property_not_found(key), code_line=t_code_line)
             # Overwrite the property value (dict assignment always overwrites)
-            base[key] = value
+            # --- FIX: Use $key if present, else try $key ---
+            found = False
+            if key in base:
+                base[key] = value
+                found = True
+            elif isinstance(key, str) and not key.startswith('$') and ('$' + key) in base:
+                base['$' + key] = value
+                found = True
+            if not found:
+                raise EnzoRuntimeError(error_message_table_property_not_found(key), code_line=t_code_line)
+            log_debug(f"[Table property rebind] key: {key} | table after: {base!r}")
             return None
         raise EnzoRuntimeError(error_message_cannot_assign_target(target), code_line=getattr(node, 'code_line', None))
     if isinstance(node, ListIndex):

@@ -42,7 +42,8 @@ class TableAtom(ASTNode):
         super().__init__(code_line)
         self.items = items
     def __repr__(self):
-        return f"TableAtom(items={self.items!r})"
+        # Warn if this is ever printed directly
+        return f"<TableAtom(items={self.items!r})>"
 
 class NumberAtom(ASTNode):
     def __init__(self, value, code_line=None):

@@ -180,18 +180,16 @@ class Parser:
                 else:
                     trailing_comma = False
                     break
-            # Overwrite duplicate keys: last one wins
+            # Overwrite duplicate keys: last one wins, preserve order of last occurrence
             seen = {}
-            for k, v in key_value_pairs:
-                seen[k] = v
-            # To preserve order of last occurrence, reverse, dedup, then reverse again
             ordered = []
-            seen_keys = set()
-            for k, v in reversed(key_value_pairs):
-                if k not in seen_keys:
-                    ordered.append((k, v))
-                    seen_keys.add(k)
-            items = list(reversed(ordered))
+            for k, v in key_value_pairs:
+                if k in seen:
+                    # Remove previous occurrence
+                    ordered = [pair for pair in ordered if pair[0] != k]
+                seen[k] = v
+                ordered.append((k, v))
+            items = ordered
         t = self.peek()
         if not t or t.type != "RBRACE":
             raise EnzoParseError(error_message_unmatched_brace(), code_line=self._get_code_line(t))
@@ -389,5 +387,7 @@ def parse_program(src):
     parser = Parser(src)
     return parser.parse_program()
 
+# TODO: Implement parse_statement, parse_expr, parse_function_atom, etc.
+# Each should take a context argument (e.g., 'top-level', 'binding', 'expression')
 # TODO: Implement parse_statement, parse_expr, parse_function_atom, etc.
 # Each should take a context argument (e.g., 'top-level', 'binding', 'expression')

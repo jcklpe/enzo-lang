@@ -159,6 +159,11 @@ def process_includes(lines, base_dir=None, already_included=None):
         else:
             yield line
 
+def log_debug(msg):
+    log_path = os.path.join(os.path.dirname(__file__), "logs", "debug.log")
+    with open(log_path, "a") as f:
+        f.write(msg + "\n")
+
 def main():
     # --- FILE RUNNER MODE ---
     if len(sys.argv) > 1:
@@ -205,12 +210,20 @@ def main():
             if isinstance(result, list):
                 for val in result:
                     if val is not None:
+                        # DEBUG: Log if TableAtom is being printed
+                        from src.enzo_parser.ast_nodes import TableAtom
+                        if isinstance(val, TableAtom):
+                            log_debug(f"WARNING: Attempted to print TableAtom AST node: {val!r} (line: {line})")
                         if isinstance(val, (list, dict, Table)):
                             print(format_val(val))
                         else:
                             print(val)
             else:
                 if result is not None:
+                    # DEBUG: Log if TableAtom is being printed
+                    from src.enzo_parser.ast_nodes import TableAtom
+                    if isinstance(result, TableAtom):
+                        log_debug(f"WARNING: Attempted to print TableAtom AST node: {result!r} (line: {line})")
                     if isinstance(result, (list, dict, Table)):
                         print(format_val(result))
                     else:

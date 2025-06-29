@@ -3,6 +3,7 @@
 
 class Table(dict):
     def __repr__(self):
+        # Just use dict's items (no duplicates)
         items = []
         for key, val in self.items():
             items.append(f"{key}: {format_val(val)}")
