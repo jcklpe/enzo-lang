@@ -235,12 +235,12 @@ class Parser:
 # Top-level API for main interpreter and debug module
 
 def parse(src):
-    """Parse a single Enzo source string into an AST (single statement/block)."""
+    #Parse a single Enzo source string into an AST (single statement/block).
     parser = Parser(src)
     return parser.parse()
 
 def parse_program(src):
-    """Parse a full Enzo source string into a Program AST (multiple statements)."""
+    #Parse a full Enzo source string into a Program AST (multiple statements).
     parser = Parser(src)
     return parser.parse_program()
     def parse_program(self):
@@ -255,11 +255,11 @@ def parse_program(src):
 # Top-level API for main interpreter and debug module
 
 def parse(src):
-    """Parse a single Enzo source string into an AST (single statement/block)."""
+    #Parse a single Enzo source string into an AST (single statement/block).
     parser = Parser(src)
     return parser.parse()
 
 def parse_program(src):
-    """Parse a full Enzo source string into a Program AST (multiple statements)."""
+    #Parse a full Enzo source string into a Program AST (multiple statements).
     parser = Parser(src)
     return parser.parse_program()

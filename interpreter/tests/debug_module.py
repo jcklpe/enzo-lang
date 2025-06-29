@@ -7,7 +7,6 @@
 
 
 # def is_effectively_empty(filename):
-#     """Return True if the file is empty or only contains comments/whitespace/imports."""
 #     with open(filename, 'r') as f:
 #         source = f.read()
 #     try:

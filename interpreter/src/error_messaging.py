@@ -110,7 +110,7 @@ def format_parse_error(err, src=None):
     return str(err)
 
 def error_message_with_code_line(msg, code_line):
-    """Format an error message with the code line, no caret, for golden file compatibility."""
+    #Format an error message with the code line, no caret, for golden file compatibility.
     return f"{msg}\n    {code_line}"
 
 def error_message_double_comma_table():
