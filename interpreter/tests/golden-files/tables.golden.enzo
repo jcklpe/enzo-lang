@@ -11,8 +11,8 @@
 100
 { $foo: 100, $bar: "hello" }
 //= EMPTY TABLE LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
-{ }
-table property not found: $someKey
+{  }
+error: table property not found: $someKey
     $emptyTable.someKey;
 //= NESTED TABLE + MIXED INDEX/ATTR ───────────────────────────────────────
 { $inner: { $val: 42, $arr: [ 10, 20 ] } }

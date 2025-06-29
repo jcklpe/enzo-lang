@@ -153,8 +153,13 @@ class Parser:
                 raise EnzoParseError(error_message_unmatched_bracket(), code_line=None)
         return ListAtom(elements, code_line=code_line)
 
+    def skip_newlines(self):
+        while self.peek() and self.peek().type == "NEWLINE":
+            self.advance()
+
     def parse_table_atom(self):
         self.expect("LBRACE")
+        self.skip_newlines()
         items = []
         trailing_comma = False
         t_start = self.peek()
@@ -162,6 +167,7 @@ class Parser:
         if self.peek() and not (self.peek().type == "RBRACE"):
             key_value_pairs = []
             while True:
+                self.skip_newlines()
                 t = self.peek()
                 if t is None:
                     raise EnzoParseError(error_message_unmatched_brace(), code_line=self._get_code_line(t))
@@ -170,13 +176,17 @@ class Parser:
                 if t.type != "KEYNAME":
                     raise EnzoParseError(error_message_unmatched_brace(), code_line=self._get_code_line(t))
                 key = self.expect("KEYNAME").value
+                self.skip_newlines()
                 self.expect("COLON")
+                self.skip_newlines()
                 value = self.parse_value_expression()
                 key_value_pairs.append((key, value))
+                self.skip_newlines()
                 t = self.peek()
                 if t and t.type == "COMMA":
                     self.advance()
                     trailing_comma = True
+                    self.skip_newlines()
                 else:
                     trailing_comma = False
                     break
@@ -190,6 +200,7 @@ class Parser:
                 seen[k] = v
                 ordered.append((k, v))
             items = ordered
+        self.skip_newlines()
         t = self.peek()
         if not t or t.type != "RBRACE":
             raise EnzoParseError(error_message_unmatched_brace(), code_line=self._get_code_line(t))
