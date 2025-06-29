@@ -54,7 +54,7 @@ def error_message_index_applies_to_lists():
     return "error: index applies to lists"
 
 def error_message_table_property_not_found(prop):
-    return f"error: table property not found: {prop}"
+    return f"error: table property not found: ${prop}"
 
 def error_message_index_must_be_number():
     return "error: index must be a number (text atoms cannot be used as indices)"
@@ -64,9 +64,6 @@ def error_message_index_must_be_integer():
 
 def error_message_assignment_to_list_index_out_of_range():
     return "error: list index out of range"
-
-def error_message_assignment_to_table_property_not_found(prop):
-    return f"error: table property not found: {prop}"
 
 def error_message_unmatched_bracket():
     return "error: unmatched bracket"

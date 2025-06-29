@@ -12,7 +12,7 @@
 { $foo: 100, $bar: "hello" }
 //= EMPTY TABLE LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
 { }
-error: Keyname '$someKey' does not exist on this table
+table property not found: $someKey
     $emptyTable.someKey;
 //= NESTED TABLE + MIXED INDEX/ATTR ───────────────────────────────────────
 { $inner: { $val: 42, $arr: [ 10, 20 ] } }
@@ -36,37 +36,31 @@ error: Keyname '$someKey' does not exist on this table
 { $foo: 1 }
 error: '$bar'
     $table9.bar;
-    ^^^^^^^^^^^^
 error: index applies to lists
     $table9.1;
-    ^^^^^^^^^^
 error: property access applies to tables
     $table9.foo.bar;
-    ^^^^^^^^^^^^^^^^
 999
 error: property rebind applies to tables
     $prim.someKey <: 5;
-    ^^^^^^^^^^^^^^^^^^^
 { $a: 1 }
 error: index applies to lists
     $myTbl.1;
-    ^^^^^^^^^
 { $x: 1 }
 99
 { $x: 99 }
 error: '$y' not found for rebinding
     $tbl.y <: 42;
-    ^^^^^^^^^^^^^
 //= Valid trailing commas (should succeed)
 { $foo: 1, $bar: 2 }
 { $foo: 1, $bar: 2 }
 //= invalid trailing commas (should error)
-double comma (remove one comma).
+error: double comma
     $badTable1: { $foo: 1,, $bar: 2 };
                           ^
-leading comma (remove the comma at the start).
+error: leading comma
     $badTable2: { ,$foo: 1, $bar: 2 };
                   ^
-leading comma (remove the comma at the start).
+error: empty table with comma
     $badTable3: { , };
                   ^
