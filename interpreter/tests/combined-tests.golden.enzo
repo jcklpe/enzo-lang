@@ -159,13 +159,10 @@ error: table property not found: $y
 //= invalid trailing commas (should error)
 error: extra comma in table
     $badTable1: { $foo: 1,, $bar: 2 };
-                          ^
 error: leading comma in table
     $badTable2: { ,$foo: 1, $bar: 2 };
-                  ^
 error: empty table with comma
     $badTable3: { , };
-                  ^
 
 //= TEXT + INTERPOLATION ───────────────────────────────────────────────────
 "rebinding this text and "
@@ -198,6 +195,18 @@ error: parse error in interpolation
 error: parse error in interpolation
     "hello <<$foo>>";
 
+//= Nameless functions one liner with implicit return
+5
+//= Nameless function: multi-line with explicit return
+200
+//= Nameless function: multi-line, explicit return, different values
+201
+//= Single line, implicit return
+<function () ...>
+4
+//= Bare parens
+6
+
 //= Redundant semicolons and whitespace
 error: extra semicolon
     ;;;;;;
@@ -210,15 +219,3 @@ error: unmatched bracket
     [1, 2, 3;
 error: unmatched brace
     { $a: 1, $b: 2;
-
-//= Nameless functions one liner with implicit return
-5
-//= Nameless function: multi-line with explicit return
-200
-//= Nameless function: multi-line, explicit return, different values
-201
-//= Single line, implicit return
-<function () ...>
-4
-//= Bare parens
-6

@@ -14,6 +14,9 @@ from src.error_messaging import (
     error_message_double_comma,
     error_message_empty_list_comma,
     error_message_excess_leading_comma,
+    error_message_double_comma_table,
+    error_message_leading_comma_table,
+    error_message_empty_table_comma,
     # ...other error messages as needed...
 )
 
@@ -153,43 +156,53 @@ class Parser:
                 raise EnzoParseError(error_message_unmatched_bracket(), code_line=None)
         return ListAtom(elements, code_line=code_line)
 
-    def skip_newlines(self):
-        while self.peek() and self.peek().type == "NEWLINE":
-            self.advance()
-
     def parse_table_atom(self):
         self.expect("LBRACE")
-        self.skip_newlines()
         items = []
         trailing_comma = False
         t_start = self.peek()
         code_line = self._get_code_line(t_start) if t_start else None
         if self.peek() and not (self.peek().type == "RBRACE"):
             key_value_pairs = []
+            saw_item = False
             while True:
-                self.skip_newlines()
                 t = self.peek()
                 if t is None:
                     raise EnzoParseError(error_message_unmatched_brace(), code_line=self._get_code_line(t))
                 if t.type == "RBRACE":
+                    if not saw_item and trailing_comma:
+                        raise EnzoParseError(error_message_empty_table_comma(), code_line=self._get_code_line(t))
                     break
+                if t.type == "COMMA":
+                    t2 = self.tokens[self.pos + 1] if self.pos + 1 < len(self.tokens) else None
+                    # --- FIX: distinguish empty table with comma ---
+                    if not saw_item:
+                        if t2 and t2.type == "RBRACE":
+                            raise EnzoParseError(error_message_empty_table_comma(), code_line=self._get_code_line(t))
+                        else:
+                            raise EnzoParseError(error_message_leading_comma_table(), code_line=self._get_code_line(t))
+                    if t2 and t2.type == "COMMA":
+                        raise EnzoParseError(error_message_double_comma_table(), code_line=self._get_code_line(t2))
+                    self.advance()
+                    trailing_comma = True
+                    continue
                 if t.type != "KEYNAME":
                     raise EnzoParseError(error_message_unmatched_brace(), code_line=self._get_code_line(t))
                 key = self.expect("KEYNAME").value
-                self.skip_newlines()
                 self.expect("COLON")
-                self.skip_newlines()
                 value = self.parse_value_expression()
                 key_value_pairs.append((key, value))
-                self.skip_newlines()
+                saw_item = True
                 t = self.peek()
                 if t and t.type == "COMMA":
                     self.advance()
                     trailing_comma = True
-                    self.skip_newlines()
+                    # Check for double comma
+                    t2 = self.peek()
+                    if t2 and t2.type == "COMMA":
+                        raise EnzoParseError(error_message_double_comma_table(), code_line=self._get_code_line(t2))
                 else:
                     trailing_comma = False
-                    break
             # Overwrite duplicate keys: last one wins, preserve order of last occurrence
             seen = {}
             ordered = []
@@ -200,7 +213,6 @@ class Parser:
                 seen[k] = v
                 ordered.append((k, v))
             items = ordered
-        self.skip_newlines()
         t = self.peek()
         if not t or t.type != "RBRACE":
             raise EnzoParseError(error_message_unmatched_brace(), code_line=self._get_code_line(t))

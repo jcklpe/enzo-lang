@@ -278,15 +278,6 @@ $esc2;                  // prints foo"bar"baz
 "hello <$foo + >";      // error: parse error in interpolation
 "hello <<$foo>>";       // error: nested <...> not allowed (for now)
 
-//= Redundant semicolons and whitespace
-;;;;;;    // error: too many semicolons
-;   ;     // error: too many semicolons
-
-//= Invalid parenthesis/brackets/braces
-(1 + 2;                 // error: unmatched parenthesis
-[1, 2, 3;               // error: unmatched bracket
-{ $a: 1, $b: 2;         // error: unmatched brace
-
 // ── FUNCTIONS  -------------------
 //= Nameless functions one liner with implicit return
 ($x: 3, $y: 2; $x + $y);   // prints 5
@@ -308,3 +299,12 @@ times2();       // prints 4
 
 //= Bare parens
 (6);
+
+//= Redundant semicolons and whitespace
+;;;;;;    // error: too many semicolons
+;   ;     // error: too many semicolons
+
+//= Invalid parenthesis/brackets/braces
+(1 + 2;                 // error: unmatched parenthesis
+[1, 2, 3;               // error: unmatched bracket
+{ $a: 1, $b: 2;         // error: unmatched brace

@@ -55,10 +55,7 @@ error: table property not found: $y
 //= invalid trailing commas (should error)
 error: extra comma in table
     $badTable1: { $foo: 1,, $bar: 2 };
-                          ^
 error: leading comma in table
     $badTable2: { ,$foo: 1, $bar: 2 };
-                  ^
 error: empty table with comma
     $badTable3: { , };
-                  ^
