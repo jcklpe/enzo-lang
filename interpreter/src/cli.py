@@ -4,10 +4,15 @@ import os
 from src.enzo_parser.parser import parse  # Use new parser
 from src.evaluator    import eval_ast
 from src.runtime_helpers import Table, format_val
+
+# CRITICAL INFO: ALL ERROR HANDLING MUST BE USE THE CENTRALIZED error_handling.py MODULE
 from src.error_handling import InterpolationParseError, ReturnSignal
+
+# CRITICAL INFO: ALL ERROR MESSAGING MUST BE USE THE CENTRALIZED error_messaging.py MODULE
 from src.error_messaging import format_parse_error, error_message_unterminated_interpolation, error_message_included_file_not_found, error_message_generic
 from lark import UnexpectedToken, UnexpectedInput, UnexpectedCharacters
 from src.color_helpers import color_error, color_code
+
 
 
 DISABLE_COLOR = not sys.stdout.isatty() or os.environ.get("NO_COLOR") == "1"

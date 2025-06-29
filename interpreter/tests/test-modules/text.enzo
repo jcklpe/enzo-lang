@@ -38,7 +38,8 @@ $myTable;
 //= Unicode and weird strings
 $str: "π≈3.14";
 $str;                   // prints π≈3.14
-$esc: "foo\nbar";       // prints foo\nbar (unless you support real newlines; for now print literal)
+$esc: "foo\nbar";       // binds foo\nbar
+$esc;
 $esc2: "foo\"bar\"baz";
 $esc2;                  // prints foo"bar"baz
 

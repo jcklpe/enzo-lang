@@ -18,11 +18,9 @@
 { $greeting: "hi", $nums: [ 2, 4 ] }
 "hi! The nums are:2, and 4"
 //= Unicode and weird strings
-π≈3.14
-π≈3.14
-foo\nbar
-foo\"bar\"baz
-foo\"bar\"baz
+"π≈3.14"
+"foo\nbar"
+"foo\"bar\"baz"
 //= Interpolation errors
 error: parse error in interpolation
     "text <bad syntax>";
