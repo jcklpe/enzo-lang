@@ -47,3 +47,6 @@ enzo-vscode/node_modules/
 # Byte-compiled and package-sharing
 *.egg-info/
 .eggs/
+
+# debug log output
+debug.log

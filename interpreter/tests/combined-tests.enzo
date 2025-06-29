@@ -288,7 +288,7 @@ $esc2;                  // prints foo"bar"baz
 ($foo: 99; $foo); // prints 99
 
 //= Nested function atoms
-(($x: 2; $y: 3; $x * $y);) // prints 6
+(($x: 2; $y: 3; $x * $y);); // prints 6
 
 //= Function atom one liner with implicit return
 ($x: 3, $y: 2; $x + $y);   // prints 5
