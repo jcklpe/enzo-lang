@@ -1,23 +1,19 @@
 //= TABLE STUFF ───────────────────────────────────────────────────────────
 { $name: "Alice", $age: 30 }
-{ $name: "Alice", $age: 30 }
-Alice
+"Alice"
 30
 //= REBINDING TABLE PROPERTIES ────────────────────────────────────────────
-Bob
-Bob
+"Bob"
 { $name: "Bob", $age: 30 }
 //= ANOTHER TABLE + PROPERTY REBIND ───────────────────────────────────────
 { $foo: 42, $bar: "hello" }
-hello
+"hello"
 100
 { $foo: 100, $bar: "hello" }
 //= EMPTY TABLE LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
 { }
-{ }
-error: '$someKey'
+error: Keyname '$someKey' does not exist on this table
     $emptyTable.someKey;
-    ^^^^^^^^^^^^^^^^^^^^
 //= NESTED TABLE + MIXED INDEX/ATTR ───────────────────────────────────────
 { $inner: { $val: 42, $arr: [ 10, 20 ] } }
 42

@@ -1,6 +1,6 @@
 //= TABLE STUFF ───────────────────────────────────────────────────────────
 $table: { $name: "Alice", $age: 30 };
-$table;             // prints “{ $name: "Alice", $age: 30 }”
+$table;             // binds “{ $name: "Alice", $age: 30 }”
 $table.name;        // prints “Alice”
 $table.age;         // prints “30”
 
@@ -11,14 +11,16 @@ $table;             // prints “{ $name: "Bob", $age: 30 }”
 
 //= ANOTHER TABLE + PROPERTY REBIND ───────────────────────────────────────
 $table2: { $foo: 42, $bar: "hello" };
+$table2;
 $table2.bar;        // prints “hello”
 $table2.foo <: 100;
+$table2.foo;
 $table2;            // prints “{ $foo: 100, $bar: "hello" }”
 
 //= EMPTY TABLE LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
 $emptyTable: {};
 $emptyTable;            // prints “{ }”
-$emptyTable.someKey;    // error: 'someKey' does not exist on this table
+$emptyTable.someKey;    // error: Keyname '$someKey' does not exist on this table
 
 //= NESTED TABLE + MIXED INDEX/ATTR ───────────────────────────────────────
 $nestedTable: {
@@ -27,6 +29,7 @@ $nestedTable: {
         $arr: [10, 20]
     }
 };
+$nestedTable;
 $nestedTable.inner.val;     // prints “42”
 $nestedTable.inner.arr.2;   // prints “20”
 
@@ -49,6 +52,7 @@ $tol.second;          // prints “[ 3, 4 ]”
 
 //= MORE TABLE WEIRDNESS
 $deep-table: { $x: { $y: { $z: 7 } } };
+$deep-table;
 $deep-table.x.y.z; // prints 7
 
 //= Table property errors
