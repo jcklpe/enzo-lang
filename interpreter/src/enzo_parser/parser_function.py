@@ -1,4 +1,4 @@
-from .ast_nodes import FunctionAtom, Binding
+from .ast_nodes import FunctionAtom, Binding, VarInvoke
 from .parser_utilities import expect
 
 def parse_function_atom(parser):
@@ -28,7 +28,8 @@ def parse_function_atom(parser):
                         else:
                             items.append(Binding(name, None))
                     else:
-                        items.append(name)
+                        # FIX: Use VarInvoke for bare variable names
+                        items.append(VarInvoke(name, code_line=parser._get_code_line(t)))
                 else:
                     items.append(parser.parse_value_expression())
                 if parser.peek() and parser.peek().type in ("COMMA", "SEMICOLON"):

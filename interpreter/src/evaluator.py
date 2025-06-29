@@ -23,8 +23,9 @@ import os
 _env = {}  # single global environment
 
 class EnzoFunction:
-    def __init__(self, params, body, closure_env):
+    def __init__(self, params, local_vars, body, closure_env):
         self.params = params          # list of (name, default)
+        self.local_vars = local_vars  # list of Binding nodes
         self.body = body              # list of AST stmts
         self.closure_env = closure_env.copy()  # captured env for closure
 
@@ -37,12 +38,22 @@ def invoke_function(fn, args, env):
     if not isinstance(fn, EnzoFunction):
         raise EnzoTypeError(error_message_not_a_function(fn), code_line=getattr(fn, 'code_line', None))
     call_env = fn.closure_env.copy()
+    # Bind parameters
     for (param_name, default), arg in zip(fn.params, args):
         call_env[param_name] = arg
     if len(args) < len(fn.params):
         for (param_name, default) in fn.params[len(args):]:
             call_env[param_name] = eval_ast(default, value_demand=True, env=ChainMap(call_env, env))
+    # --- FIX: Evaluate and bind local variables before body ---
     local_env = ChainMap(call_env, env)
+    for local_var in getattr(fn, 'local_vars', []):
+        if isinstance(local_var, Binding):
+            name = local_var.name
+            # Evaluate local var in the current local_env (which includes params and previous locals)
+            value = eval_ast(local_var.value, value_demand=True, env=local_env)
+            call_env[name] = value
+            # Update local_env so subsequent locals can see previous ones
+            local_env = ChainMap(call_env, env)
     try:
         res = None
         for stmt in fn.body:
@@ -85,7 +96,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             return None  # Do not output anything for empty bind
         # If value is a FunctionAtom, store as function object, not result
         if isinstance(node.value, FunctionAtom):
-            env[name] = EnzoFunction(node.value.params, node.value.body, env)
+            env[name] = EnzoFunction(node.value.params, node.value.local_vars, node.value.body, env)
             return None  # Do not output anything for assignment
         val = eval_ast(node.value, value_demand=False, env=env)  # storage context
         env[name] = val
@@ -110,10 +121,10 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
     if isinstance(node, FunctionAtom):
         # Demand-value context: invoke
         if value_demand:
-            fn = EnzoFunction(node.params, node.body, env)
+            fn = EnzoFunction(node.params, node.local_vars, node.body, env)
             return invoke_function(fn, [], env)
         else:
-            return EnzoFunction(node.params, node.body, env)
+            return EnzoFunction(node.params, node.local_vars, node.body, env)
     if isinstance(node, AddNode):
         left = eval_ast(node.left, value_demand=True, env=env)
         right = eval_ast(node.right, value_demand=True, env=env)
