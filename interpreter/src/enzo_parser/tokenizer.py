@@ -25,7 +25,7 @@ TOKEN_SPEC = [
     ("RBRACE", r"\}"),
     ("COMMA", r","),
     ("SEMICOLON", r";"),
-    ("COLON", r":"),
+    ("BIND", r":"),
     ("DOT", r"\."),
     ("PLUS", r"\+"),
     ("NUMBER_TOKEN",   r"-?\d+(?:\.\d+)?"),  # <-- moved above MINUS

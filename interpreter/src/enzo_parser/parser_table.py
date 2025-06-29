@@ -38,7 +38,7 @@ def parse_table_atom(parser):
                 from src.error_messaging import error_message_unmatched_brace
                 raise EnzoParseError(error_message_unmatched_brace(), code_line=parser._get_code_line(t))
             property_name = parser.expect("KEYNAME").value
-            parser.expect("COLON")
+            parser.expect("BIND")
             value = parser.parse_value_expression()
             property_value_pairs.append((property_name, value))
             saw_item = True

@@ -184,8 +184,8 @@ class Parser:
             value = self.parse_value_expression()
             return BindOrRebind(expr1, value, code_line=code_line)
         # Variable binding: $x: ...
-        if isinstance(expr1, VarInvoke) and self.peek() and self.peek().type == "COLON":
-            self.advance()  # consume COLON
+        if isinstance(expr1, VarInvoke) and self.peek() and self.peek().type == "BIND":
+            self.advance()  # consume BIND
             # Support empty bind: $x: ;
             if self.peek() and self.peek().type == "SEMICOLON":
                 return Binding(expr1.name, None, code_line=code_line)

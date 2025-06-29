@@ -28,10 +28,10 @@ def parse_function_atom(parser):
     while True:
         t = parser.peek()
         t2 = parser.tokens[parser.pos + 1] if parser.pos + 1 < len(parser.tokens) else None
-        # Only treat as binding if KEYNAME followed by COLON
-        if t and t.type == "KEYNAME" and t2 and t2.type == "COLON":
+        # Only treat as binding if KEYNAME followed by BIND
+        if t and t.type == "KEYNAME" and t2 and t2.type == "BIND":
             name = parser.advance().value
-            parser.advance()  # consume COLON
+            parser.advance()  # consume BIND
             # Support empty bind: $x: ;
             if parser.peek() and parser.peek().type in ("SEMICOLON", "COMMA", "RPAR"):
                 local_vars.append(Binding(name, None))
