@@ -2,7 +2,7 @@ from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val
 from collections import ChainMap
 from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, TableIndex
-from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError
+from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
 from src.error_messaging import (
     error_message_already_defined,
     error_message_unknown_variable,
@@ -51,7 +51,7 @@ def invoke_function(fn, args, env):
     return res
 
 
-def eval_ast(node, value_demand=False, already_invoked=False, env=None):
+def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None):
     if env is None:
         env = _env
     if node is None:
@@ -61,7 +61,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None):
     if isinstance(node, NumberAtom):
         return node.value
     if isinstance(node, TextAtom):
-        return _interp(node.value)
+        # Pass the original code line to _interp for error reporting
+        return _interp(node.value, src_line=code_line)
     if isinstance(node, ListAtom):
         return [eval_ast(el, value_demand=True, env=env) for el in node.elements]
     if isinstance(node, TableAtom):
@@ -279,7 +280,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None):
     raise EnzoRuntimeError(error_message_unknown_node(node), code_line=getattr(node, 'code_line', None))
 
 # ── text_atom‐interpolation helper ───────────────────────────────────────────
-def _interp(s: str):
+def _interp(s: str, src_line: str = None):
     # Given a Python string `s`, expand each “<expr>” by:
     #   - Allow multiple expressions separated by semicolons inside "<...>"
     #   - Evaluate each sub‐expression (parse+eval)
@@ -310,7 +311,9 @@ def _interp(s: str):
                 val = eval_ast(expr_ast, value_demand=True)
                 concatenated += str(val)
             except Exception:
-                raise InterpolationParseError()
+                from src.error_messaging import error_message_parse_error_in_interpolation
+                # Use the original quoted code line for error reporting
+                raise EnzoParseError(error_message_parse_error_in_interpolation(), code_line=src_line)
         out.append(concatenated)
         i = k + 1
     return "".join(out)

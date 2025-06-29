@@ -92,6 +92,9 @@ def error_message_cannot_assign_target(target):
 def error_message_unexpected_character(char, pos):
     return f"Unexpected character: {char!r} at {pos}"
 
+def error_message_parse_error_in_interpolation():
+    return "error: parse error in interpolation"
+
 # User-friendly error message for parse errors, with code context.
 def format_parse_error(err, src=None):
     from src.error_messaging import error_message_with_code_line

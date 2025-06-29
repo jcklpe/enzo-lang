@@ -24,10 +24,7 @@
 //= Interpolation errors
 error: parse error in interpolation
     "text <bad syntax>";
-          ^
 error: parse error in interpolation
     "hello <$foo + >";
-           ^
 error: parse error in interpolation
     "hello <<$foo>>";
-           ^
