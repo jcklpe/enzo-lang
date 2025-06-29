@@ -24,7 +24,7 @@ error: list index out of range
     $list.4;
 error: list index out of range
     $list.-1;
-error: can't use string as index
+error: can't use text as index
     $list."foo";
 error: list index out of range
     $list.1.1;

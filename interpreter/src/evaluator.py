@@ -15,7 +15,7 @@ from src.error_messaging import (
     error_message_index_must_be_integer,
     error_message_list_index_out_of_range,
     error_message_table_property_not_found,
-    error_message_cant_use_string_as_index,
+    error_message_cant_use_text_as_index,
     error_message_index_applies_to_lists
 )
 import os
@@ -233,7 +233,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             if not isinstance(base, list):
                 raise EnzoTypeError(error_message_index_applies_to_lists(), code_line=t_code_line)
             if isinstance(idx, str):
-                raise EnzoTypeError(error_message_cant_use_string_as_index(), code_line=t_code_line)
+                raise EnzoTypeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
             if not isinstance(idx, (int, float)):
                 raise EnzoTypeError(error_message_index_must_be_number(), code_line=t_code_line)
             if isinstance(idx, float):
@@ -275,7 +275,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         idx = eval_ast(node.index, env=env)
         t_code_line = getattr(node, 'code_line', code_line)
         if isinstance(idx, str):
-            raise EnzoRuntimeError(error_message_cant_use_string_as_index(), code_line=t_code_line)
+            raise EnzoRuntimeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
         if not isinstance(base, list):
             if isinstance(node.base, (VarInvoke, TableIndex)):
                 raise EnzoRuntimeError(error_message_index_applies_to_lists(), code_line=t_code_line)
