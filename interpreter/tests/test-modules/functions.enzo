@@ -1,21 +1,51 @@
 // ── FUNCTIONS  -------------------
-//= Nameless functions one liner with implicit return
-($x: 3, $y: 2; $x + $y);   // prints 5
+//= Empty function atom
+();  // prints nothing
+//= Function atom with just a single value
+(6);  // prints 6
 
-//= Nameless function: multi-line with explicit return
+//= Function atom with single variable and implicit return
+($foo: 99; $foo); // prints 99
+($foo: 100,  $foo); // prints 100
+
+//= Nested function atoms
+(($x: 2; $y: 3; $x * $y);) // prints 6
+
+//= Function atom one liner with implicit return
+($x: 3, $y: 2; $x + $y);   // prints 5
+($x: 3; $y: 3; $x + $y);   // prints 6
+// (both commas and semicolons work for breaking up variables in single line statements)
+
+//= Function with only a return statement (multi-line)
+(
+    return(123);
+); // prints 123
+
+//= Multiline function atom with explicit return
 (
 $x: 100;
 $y: 100;
 return(($x + $y));
+
 ); // prints 200
-//= Nameless function: multi-line, explicit return, different values
+
+//= Multiline function atom with explicit return 2
 ($x: 101;
 $y: 100;
 return(($x + $y));); // prints 201
 
-//= Single line, implicit return
-times2: (2 * 2);
-times2();       // prints 4
+//= Multiline nested function atoms
+(
+    $a: 10;
+    $b: 20;
+    return((
+        $c: 2;
+        return(($a + $b + $c));
+    ));
+); // prints 32
 
-//= Bare parens
-(6);
+//= Single line, implicit return, named function
+times2: (2 * 2); // binds (2 * 2) to the times2 keyname
+times2();       // prints 4
+$times;       // prints 4
+$times();       // prints 4
