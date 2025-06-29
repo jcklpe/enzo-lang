@@ -249,25 +249,25 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # Assignment to table property
         if isinstance(target, TableIndex):
             base = eval_ast(target.base, env=env)
-            key = target.key
+            property_name = target.key
             t_code_line = getattr(target, 'code_line', node.code_line)
-            if isinstance(key, VarInvoke):
-                key = eval_ast(key, env=env)
+            if isinstance(property_name, VarInvoke):
+                property_name = eval_ast(property_name, env=env)
             # Ensure base is a dict or Table (which is a dict subclass)
             if not isinstance(base, dict):
-                raise EnzoTypeError(error_message_table_property_not_found(key), code_line=t_code_line)
+                raise EnzoTypeError(error_message_table_property_not_found(property_name), code_line=t_code_line)
             # Overwrite the property value (dict assignment always overwrites)
-            # --- FIX: Use $key if present, else try $key ---
+            # --- FIX: Use $property if present, else try $property ---
             found = False
-            if key in base:
-                base[key] = value
+            if property_name in base:
+                base[property_name] = value
                 found = True
-            elif isinstance(key, str) and not key.startswith('$') and ('$' + key) in base:
-                base['$' + key] = value
+            elif isinstance(property_name, str) and not property_name.startswith('$') and ('$' + property_name) in base:
+                base['$' + property_name] = value
                 found = True
             if not found:
-                raise EnzoRuntimeError(error_message_table_property_not_found(key), code_line=t_code_line)
-            log_debug(f"[Table property rebind] key: {key} | table after: {base!r}")
+                raise EnzoRuntimeError(error_message_table_property_not_found(property_name), code_line=t_code_line)
+            log_debug(f"[Table property rebind] property: {property_name} | table after: {base!r}")
             return None
         raise EnzoRuntimeError(error_message_cannot_assign_target(target), code_line=getattr(node, 'code_line', None))
     if isinstance(node, ListIndex):
@@ -285,18 +285,18 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         return base[idx - 1]
     if isinstance(node, TableIndex):
         base = eval_ast(node.base, env=env)
-        key = node.key
+        property_name = node.key
         t_code_line = getattr(node, 'code_line', code_line)
-        if isinstance(key, VarInvoke):
-            key = eval_ast(key, env=env)
+        if isinstance(property_name, VarInvoke):
+            property_name = eval_ast(property_name, env=env)
         if isinstance(base, dict):
-            # Try both $key and key
-            if key in base:
-                return base[key]
-            if isinstance(key, str) and not key.startswith('$') and ('$' + key) in base:
-                return base['$' + key]
-            raise EnzoRuntimeError(error_message_table_property_not_found(key), code_line=t_code_line)
-        raise EnzoRuntimeError(error_message_table_property_not_found(key), code_line=t_code_line)
+            # Try both $property and property
+            if property_name in base:
+                return base[property_name]
+            if isinstance(property_name, str) and not property_name.startswith('$') and ('$' + property_name) in base:
+                return base['$' + property_name]
+            raise EnzoRuntimeError(error_message_table_property_not_found(property_name), code_line=t_code_line)
+        raise EnzoRuntimeError(error_message_table_property_not_found(property_name), code_line=t_code_line)
     raise EnzoRuntimeError(error_message_unknown_node(node), code_line=getattr(node, 'code_line', None))
 
 # ── text_atom‐interpolation helper ───────────────────────────────────────────

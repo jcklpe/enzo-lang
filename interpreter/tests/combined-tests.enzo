@@ -87,7 +87,7 @@ $list;
 $list.0;            // error: list index out of range
 $list.4;            // error: list index out of range
 $list.-1;           // error: list index out of range
-$list."foo";        // error: can't use string as index
+$list."foo";        // error: can't use text as index
 $list.1.1;          // error: list index out of range
 
 //= List/table mutation

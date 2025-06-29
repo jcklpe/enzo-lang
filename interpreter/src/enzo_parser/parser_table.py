@@ -9,7 +9,7 @@ def parse_table_atom(parser):
     t_start = parser.peek()
     code_line = parser._get_code_line(t_start) if t_start else None
     if parser.peek() and not (parser.peek().type == "RBRACE"):
-        key_value_pairs = []
+        property_value_pairs = []
         saw_item = False
         while True:
             t = parser.peek()
@@ -37,10 +37,10 @@ def parse_table_atom(parser):
             if t.type != "KEYNAME":
                 from src.error_messaging import error_message_unmatched_brace
                 raise EnzoParseError(error_message_unmatched_brace(), code_line=parser._get_code_line(t))
-            key = parser.expect("KEYNAME").value
+            property_name = parser.expect("KEYNAME").value
             parser.expect("COLON")
             value = parser.parse_value_expression()
-            key_value_pairs.append((key, value))
+            property_value_pairs.append((property_name, value))
             saw_item = True
             t = parser.peek()
             if t and t.type == "COMMA":
@@ -52,14 +52,14 @@ def parse_table_atom(parser):
                     raise EnzoParseError(error_message_double_comma_table(), code_line=parser._get_code_line(t2))
             else:
                 trailing_comma = False
-        # Overwrite duplicate keys: last one wins, preserve order of last occurrence
+        # Overwrite duplicate properties: last one wins, preserve order of last occurrence
         seen = {}
         ordered = []
-        for k, v in key_value_pairs:
-            if k in seen:
-                ordered = [pair for pair in ordered if pair[0] != k]
-            seen[k] = v
-            ordered.append((k, v))
+        for prop, val in property_value_pairs:
+            if prop in seen:
+                ordered = [pair for pair in ordered if pair[0] != prop]
+            seen[prop] = val
+            ordered.append((prop, val))
         items = ordered
     t = parser.peek()
     if not t or t.type != "RBRACE":
