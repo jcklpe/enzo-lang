@@ -1,6 +1,9 @@
+import os
+from src.runtime_helpers import clear_debug_log
+clear_debug_log()  # <-- Clear the debug log at the very start
+
 import sys
 import re
-import os
 from src.enzo_parser.parser import parse  # Use new parser
 from src.evaluator    import eval_ast
 from src.runtime_helpers import Table, format_val

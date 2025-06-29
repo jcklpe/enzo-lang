@@ -1,6 +1,13 @@
 # Runtime helpers for Enzo language
 # Provides Table class and format_val for pretty-printing Enzo runtime values
 
+import os
+
+# Always return the log path, but do NOT truncate the file here.
+def _ensure_debug_log():
+    log_path = os.path.join(os.path.dirname(__file__), "logs", "debug.log")
+    return log_path
+
 class Table(dict):
     def __repr__(self):
         # Just use dict's items (no duplicates)
@@ -32,3 +39,16 @@ def format_val(v):
         return str(v)
     else:
         return str(v)
+
+def clear_debug_log():
+    log_path = os.path.join(os.path.dirname(__file__), "logs", "debug.log")
+    with open(log_path, "w"):
+        pass
+
+def log_debug(msg):
+    log_path = os.path.join(os.path.dirname(__file__), "logs", "debug.log")
+    try:
+        with open(log_path, "a") as f:
+            f.write(msg + "\n")
+    except Exception:
+        pass

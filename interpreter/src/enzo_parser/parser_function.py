@@ -19,57 +19,41 @@ def parse_function_atom(parser):
         log_debug(f"[parse_function_atom] AST: {ast}")
         log_debug(f"[parse_function_atom] tokens after: {parser.tokens[parser.pos:]}")
         return ast
-    t = parser.peek()
-    if t and t.type == "KEYNAME":
-        save_pos = parser.pos
-        name = t.value
-        parser.advance()
-        if parser.peek() and parser.peek().type == "COLON":
-            parser.pos = save_pos
-            items = []
-            sep_seen = False
-            while parser.peek() and not (parser.peek().type == "RPAR"):
-                t = parser.peek()
-                if t.type == "KEYNAME":
-                    name = parser.advance().value
-                    if parser.peek() and parser.peek().type == "COLON":
-                        parser.advance()
-                        if parser.peek() and not (parser.peek().type in ("COMMA", "SEMICOLON", "RPAR")):
-                            value_expression = parser.parse_value_expression()
-                            items.append(Binding(name, value_expression))
-                        else:
-                            items.append(Binding(name, None))
-                    else:
-                        items.append(VarInvoke(name, code_line=parser._get_code_line(t)))
-                else:
-                    items.append(parser.parse_value_expression())
-                if parser.peek() and parser.peek().type in ("COMMA", "SEMICOLON"):
-                    sep_seen = True
-                    parser.advance()
-            parser.expect("RPAR")
-            params = []
-            local_vars = []
-            body = []
-            for item in items:
-                if isinstance(item, Binding) and item.value is None:
-                    params.append(item.name)
-                elif isinstance(item, Binding):
-                    local_vars.append(item)
-                else:
-                    body.append(item)
-            ast = FunctionAtom(params, local_vars, body)
-            log_debug(f"[parse_function_atom] AST: {ast}")
-            log_debug(f"[parse_function_atom] tokens after: {parser.tokens[parser.pos:]}")
-            return ast
-        else:
-            parser.pos = save_pos
-    # --- FIX: Parse a block of statements for the function body ---
-    body = parser.parse_block()
+
+    params = []
+    local_vars = []
+    body = []
+
+    # Parse bindings (KEYNAME: ...) at the start
+    while True:
+        t = parser.peek()
+        t2 = parser.tokens[parser.pos + 1] if parser.pos + 1 < len(parser.tokens) else None
+        # Only treat as binding if KEYNAME followed by COLON
+        if t and t.type == "KEYNAME" and t2 and t2.type == "COLON":
+            name = parser.advance().value
+            parser.advance()  # consume COLON
+            # Support empty bind: $x: ;
+            if parser.peek() and parser.peek().type in ("SEMICOLON", "COMMA", "RPAR"):
+                local_vars.append(Binding(name, None))
+            else:
+                value = parser.parse_value_expression()
+                local_vars.append(Binding(name, value))
+            # Accept and consume all consecutive semicolons or commas after a binding
+            while parser.peek() and parser.peek().type in ("SEMICOLON", "COMMA"):
+                parser.advance()
+            continue
+        break
+
+    # After bindings, parse the body (expressions/statements) until RPAR
+    while parser.peek() and parser.peek().type not in ("RPAR",):
+        expr = parser.parse_value_expression()
+        body.append(expr)
+        # Accept and consume all consecutive semicolons or commas after a statement
+        while parser.peek() and parser.peek().type in ("SEMICOLON", "COMMA"):
+            parser.advance()
+
     parser.expect("RPAR")
-    # parse_block may return a single node or a list; always store as a list
-    if not isinstance(body, list):
-        body = [body]
-    ast = FunctionAtom([], [], body)
+    ast = FunctionAtom([], local_vars, body)
     log_debug(f"[parse_function_atom] AST: {ast}")
     log_debug(f"[parse_function_atom] tokens after: {parser.tokens[parser.pos:]}")
     return ast

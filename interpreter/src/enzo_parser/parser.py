@@ -96,24 +96,27 @@ class Parser:
         if t.type == "NUMBER_TOKEN":
             val = self.advance().value
             if '.' in val:
-                return NumberAtom(float(val), code_line=code_line)
+                node = NumberAtom(float(val), code_line=code_line)
             else:
-                return NumberAtom(int(val), code_line=code_line)
+                node = NumberAtom(int(val), code_line=code_line)
         elif t.type == "TEXT_TOKEN":
-            return TextAtom(self.advance().value[1:-1], code_line=code_line)
+            node = TextAtom(self.advance().value[1:-1], code_line=code_line)
         elif t.type == "KEYNAME":
-            return VarInvoke(self.advance().value, code_line=code_line)
+            node = VarInvoke(self.advance().value, code_line=code_line)
         elif t.type == "AT":
             self.advance()
             t2 = self.expect("KEYNAME")
             code_line2 = self._get_code_line(t2)
-            return FunctionRef(t2.value, code_line=code_line2)
+            node = FunctionRef(t2.value, code_line=code_line2)
         elif t.type == "LPAR":
-            return self.parse_function_atom()
+            node = self.parse_function_atom()
+            # --- FIX: Consume trailing semicolon/comma after function atom ---
+            while self.peek() and self.peek().type in ("SEMICOLON", "COMMA"):
+                self.advance()
         elif t.type == "LBRACK":
-            return self.parse_list_atom()
+            node = self.parse_list_atom()
         elif t.type == "LBRACE":
-            return self.parse_table_atom()
+            node = self.parse_table_atom()
         elif t.type == "MINUS":
             self.advance()
             t2 = self.peek()
@@ -126,13 +129,15 @@ class Parser:
                 self.advance()
                 val = t2.value
                 if '.' in val:
-                    return NumberAtom(float('-' + val.lstrip('-')), code_line=code_line)
+                    node = NumberAtom(float('-' + val.lstrip('-')), code_line=code_line)
                 else:
-                    return NumberAtom(int('-' + val.lstrip('-')), code_line=code_line)
+                    node = NumberAtom(int('-' + val.lstrip('-')), code_line=code_line)
             else:
                 raise EnzoParseError(error_message_unexpected_token(t2), code_line=self._get_code_line(t2))
         else:
             raise EnzoParseError(error_message_unexpected_token(t), code_line=self._get_code_line(t))
+        # Always parse postfix after atom (to allow nested function atoms, chained indices, etc.)
+        return self.parse_postfix(node)
 
     def parse_factor(self):
         node = self.parse_atom()
@@ -218,11 +223,8 @@ class Parser:
 
     def parse_block(self):
         stmts = self.parse_statements()
-        # If only one statement, return it directly
-        if len(stmts) == 1:
-            return stmts[0]
-        else:
-            return stmts
+        # Always return the list of statements, even if length 1
+        return stmts
 
     def parse(self):
         ast = self.parse_block()
@@ -252,6 +254,9 @@ def parse(src):
 def parse_program(src):
     #Parse a full Enzo source string into a Program AST (multiple statements).
     parser = Parser(src)
+    return parser.parse_program()
+    parser = Parser(src)
+    return parser.parse_program()
     return parser.parse_program()
     parser = Parser(src)
     return parser.parse_program()
