@@ -42,35 +42,42 @@ $complex: {
     $tbl: { $a: [100, 200], $b: "x" },
     $lst: [ { $foo: 1 }, { $foo: 2 } ]
 };
+$complex;           // prints { $tbl: { $a: [ 100, 200 ], $b: "x" }, $lst: [ { $foo: 1 }, { $foo: 2 } ] }
 $complex.tbl.a.1;    // prints “100”
 $complex.lst.2.foo;  // prints “2”
 
 //= TABLE OF LISTS + INDEX OF LIST ─────────────────────────────────────
 $tol: { $first: [1, 2], $second: [3, 4] };
+$tol;
 $tol.first.2;         // prints “2”
 $tol.second;          // prints “[ 3, 4 ]”
 
 //= MORE TABLE WEIRDNESS
 $deep-table: { $x: { $y: { $z: 7 } } };
-$deep-table;
+$deep-table;            // prints { $x: { $y: { $z: 7 } } }
 $deep-table.x.y.z; // prints 7
 
 //= Table property errors
 $table9: { $foo: 1 };
-$table9.bar;         // error: '$bar' (not found)
+$table9;                // prints { $foo: 1 }
+$table9.bar;         // error: table property '$bar' not found
 $table9.1;           // error: index applies to lists
-$table9.foo.bar;     // error: '$bar' (not found after foo)
+$table9.foo.bar;     // error: table property '$bar' not found
 
 $prim: 999;
-$prim.someKey <: 5;       // error: can't rebind to non-existent property
+$prim;                      // prints 999;
+$prim.someKey <: 5;       // error: table property '$someKey' not found
 
 $myTbl: { $a: 1 };
+$myTbl;                    // prints { $a: 1 }
 $myTbl.1;                 // error: index applies to lists
 
 $tbl: { $x: 1 };
-$tbl.x <: 99;           // should work if property rebinding is supported
+$tbl;                   // prints { $x: 1 }
+$tbl.x <: 99;           // rebinds 99 to $tbl.x
+$tbl.x;                 // prints 99
 $tbl;                   // prints { $x: 99 }
-$tbl.y <: 42;           // error: '$y' not found for rebinding
+$tbl.y <: 42;           // error: table property '$y' not found <<<do we already have an error message for this?>>>
 
 //= Valid trailing commas (should succeed)
 $goodTable: { $foo: 1, $bar: 2, };

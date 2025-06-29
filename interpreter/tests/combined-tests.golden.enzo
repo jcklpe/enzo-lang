@@ -124,7 +124,6 @@ error: table property not found: $someKey
 20
 //= REBINDING NESTED TABLES ───────────────────────────────────────────────
 100
-100
 //= COMPLEX TABLE + LIST INDEX/PROPERTY ACCESS ─────────────────────────
 { $tbl: { $a: [ 100, 200 ], $b: "x" }, $lst: [ { $foo: 1 }, { $foo: 2 } ] }
 100
@@ -138,14 +137,14 @@ error: table property not found: $someKey
 7
 //= Table property errors
 { $foo: 1 }
-error: '$bar'
+error: table property not found: $bar
     $table9.bar;
 error: index applies to lists
     $table9.1;
-error: property access applies to tables
+error: table property not found: $bar
     $table9.foo.bar;
 999
-error: property rebind applies to tables
+error: table property not found: $someKey
     $prim.someKey <: 5;
 { $a: 1 }
 error: index applies to lists
@@ -153,16 +152,15 @@ error: index applies to lists
 { $x: 1 }
 99
 { $x: 99 }
-error: '$y' not found for rebinding
+error: table property not found: $y
     $tbl.y <: 42;
 //= Valid trailing commas (should succeed)
 { $foo: 1, $bar: 2 }
-{ $foo: 1, $bar: 2 }
 //= invalid trailing commas (should error)
-error: double comma
+error: extra comma in table
     $badTable1: { $foo: 1,, $bar: 2 };
                           ^
-error: leading comma
+error: leading comma in table
     $badTable2: { ,$foo: 1, $bar: 2 };
                   ^
 error: empty table with comma
