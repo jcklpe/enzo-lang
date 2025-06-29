@@ -1,8 +1,9 @@
 from .ast_nodes import TableAtom
 from src.error_handling import EnzoParseError
+from .parser_utilities import expect
 
 def parse_table_atom(parser):
-    parser.expect("LBRACE")
+    expect(parser, "LBRACE")
     items = []
     trailing_comma = False
     t_start = parser.peek()

@@ -11,6 +11,7 @@ from src.error_messaging import (
     error_message_unmatched_brace,
     # ...other error messages as needed...
 )
+from .parser_utilities import get_code_line, peek, advance, expect
 
 # Import parsing helpers from submodules
 from .parser_function import parse_function_atom
@@ -26,34 +27,17 @@ class Parser:
         self.pos = 0
 
     def _get_code_line(self, token):
-        if hasattr(token, 'line') and token.line is not None:
-            line_num = token.line
-            if 1 <= line_num <= len(self.src_lines):
-                return self.src_lines[line_num - 1]
-        return self.src_lines[0] if self.src_lines else self.src
+        return get_code_line(self.src_lines, token, self.src)
 
     def peek(self):
-        return self.tokens[self.pos] if self.pos < len(self.tokens) else None
+        return peek(self.tokens, self.pos)
 
     def advance(self):
-        self.pos += 1
-        return self.tokens[self.pos-1]
+        token, self.pos = advance(self.tokens, self.pos)
+        return token
 
     def expect(self, type_):
-        t = self.peek()
-        if not t or t.type != type_:
-            prev = self.tokens[self.pos - 1] if self.pos > 0 else None
-            line = getattr(prev, "line", 1) if prev else 1
-            column = getattr(prev, "end", 0) + 1 if prev else 1
-            if type_ == "RPAR":
-                raise EnzoParseError(error_message_unmatched_parenthesis(), line=line, column=column, code_line=self._get_code_line(prev))
-            elif type_ == "RBRACK":
-                raise EnzoParseError(error_message_unmatched_bracket(), line=line, column=column, code_line=self._get_code_line(prev))
-            elif type_ == "RBRACE":
-                raise EnzoParseError(error_message_unmatched_brace(), line=line, column=column, code_line=self._get_code_line(prev))
-            else:
-                raise EnzoParseError(error_message_expected_type(type_, t), line=line, column=column, code_line=self._get_code_line(prev))
-        return self.advance()
+        return expect(self, type_)
 
     def parse_function_atom(self):
         # Delegate to parser_function.py
@@ -239,6 +223,26 @@ class Parser:
             raise EnzoParseError(error_message_unexpected_token(self.tokens[self.pos]))
         return ast
 
+    def parse_program(self):
+        statements = []
+        while self.pos < len(self.tokens):
+            stmt = self.parse_statement()
+            statements.append(stmt)
+            if self.peek() and self.peek().type in ("SEMICOLON", "COMMA"):
+                self.advance()
+        return Program(statements)
+
+# Top-level API for main interpreter and debug module
+
+def parse(src):
+    """Parse a single Enzo source string into an AST (single statement/block)."""
+    parser = Parser(src)
+    return parser.parse()
+
+def parse_program(src):
+    """Parse a full Enzo source string into a Program AST (multiple statements)."""
+    parser = Parser(src)
+    return parser.parse_program()
     def parse_program(self):
         statements = []
         while self.pos < len(self.tokens):

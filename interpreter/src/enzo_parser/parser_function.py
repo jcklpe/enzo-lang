@@ -1,7 +1,8 @@
 from .ast_nodes import FunctionAtom, Binding
+from .parser_utilities import expect
 
 def parse_function_atom(parser):
-    parser.expect("LPAR")
+    expect(parser, "LPAR")
     t = parser.peek()
     if t and t.type == "RPAR":
         parser.advance()
