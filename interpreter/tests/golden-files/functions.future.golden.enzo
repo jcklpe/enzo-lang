@@ -4,10 +4,8 @@ error: multi-line anonymous functions require explicit return
  $y: 2;
  $x + $y;
 );
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 //= Multi-line with params and default values
-<function () ...>
 12
 12
 12
