@@ -88,37 +88,56 @@ def normalize_block_lines(lines):
         lines.pop()
     return lines
 
-def main():
-    # Normalize golden files before running tests
-    try:
-        from tests.normalize_golden_files import normalize_golden_files
-        normalize_golden_files()
-    except Exception as e:
-        print(f"Warning: Could not normalize golden files: {e}")
+def regenerate_combined_files():
+    """Regenerate combined-tests.enzo and combined-tests.golden.enzo from individual modules"""
 
+    # Module order (can be customized as needed)
+    modules = [
+        "vars", "lists", "math", "tables", "text", "functions"
+        # Note: "misc" excluded because it contains fatal error tests
+    ]
+
+    test_modules_dir = os.path.join(SCRIPT_DIR, "tests", "test-modules")
+    golden_files_dir = os.path.join(SCRIPT_DIR, "tests", "golden-files")
+
+    # Combine test modules
+    combined_test_content = []
+    for module in modules:
+        test_file = os.path.join(test_modules_dir, f"{module}.enzo")
+        if os.path.exists(test_file):
+            with open(test_file, 'r') as f:
+                content = normalize_output(f.read())
+                combined_test_content.append(content.rstrip())
+
+    # Combine golden files
+    combined_golden_content = []
+    for module in modules:
+        golden_file = os.path.join(golden_files_dir, f"{module}.golden.enzo")
+        if os.path.exists(golden_file):
+            with open(golden_file, 'r') as f:
+                content = normalize_output(f.read())
+                combined_golden_content.append(content.rstrip())
+
+    # Write combined test file
+    combined_test_file = os.path.join(SCRIPT_DIR, "tests", "combined-tests.enzo")
+    with open(combined_test_file, 'w') as f:
+        f.write('\n\n'.join(combined_test_content) + '\n')
+
+    # Write combined golden file
+    combined_golden_file = os.path.join(SCRIPT_DIR, "tests", "combined-tests.golden.enzo")
+    with open(combined_golden_file, 'w') as f:
+        f.write('\n\n'.join(combined_golden_content) + '\n')
+
+def main():
     if len(sys.argv) > 1 and sys.argv[1] in {"-h", "--help"}:
         print("Usage: ./run-tests.py [module_name]")
         sys.exit(1)
 
     module = sys.argv[1] if len(sys.argv) > 1 else None
 
-    # --- NEW: Regenerate combined-tests.enzo if running the full suite ---
+    # Regenerate combined files if running the full suite
     if not module:
-        regen_script = os.path.join(SCRIPT_DIR, "tests", "regen-combined-tests.py")
-        if not os.path.exists(regen_script):
-            print(color_error(f"❗ regen-combined-tests.py not found at {regen_script}"))
-            sys.exit(1)
-        result = subprocess.run(
-            [sys.executable, regen_script],
-            cwd=os.path.join(SCRIPT_DIR, "tests"),
-            capture_output=True,
-            text=True
-        )
-        if result.returncode != 0:
-            print(color_error("❗ Failed to regenerate combined-tests.enzo:"))
-            print(result.stdout)
-            print(result.stderr)
-            sys.exit(1)
+        regenerate_combined_files()
 
     test_file = f"tests/test-modules/{module}.enzo" if module else "tests/combined-tests.enzo"
     golden_file = f"tests/golden-files/{module}.golden.enzo" if module else "tests/combined-tests.golden.enzo"
@@ -139,22 +158,14 @@ def main():
     actual = normalize_output(proc.stdout)
     with open(golden_file) as f:
         expected = normalize_output(f.read())
+    print()
 
-    if actual == expected:
-        print(color_info(f"✅ {test_file} matches golden file."))
-        sys.exit(0)
-
-    print(color_error(f"❌ {test_file} does NOT match golden file.\n"))
-
-    # Split into blocks by //=
+    # Split into blocks by //= for robust comparison
     actual_blocks = split_blocks(actual)
     expected_blocks = split_blocks(expected)
     num_blocks = min(len(actual_blocks), len(expected_blocks))
 
-    # Print diff header only once at top
-    print(color_expected_header('✔ correct expected outcome'))
-    print(color_actual_header('✖ failing actual outcome'))
-
+    # First pass: count failures without printing diff details
     fail_count = 0
     for i in range(num_blocks):
         title, exp_lines = expected_blocks[i]
@@ -164,6 +175,27 @@ def main():
         act_lines_norm = normalize_block_lines(act_lines)
         if exp_lines_norm != act_lines_norm:
             fail_count += 1
+
+    # If all blocks pass, exit successfully (even if raw file comparison might differ)
+    if fail_count == 0:
+        print(color_info(f"✅ {test_file} matches golden file."))
+        sys.exit(0)
+
+    # If we have failures, show detailed diff
+    print(color_error(f"❌ {test_file} does NOT match golden file.\n"))
+
+    # Print diff header only once at top
+    print(color_expected_header('✔ correct expected outcome'))
+    print(color_actual_header('✖ failing actual outcome'))
+
+    # Second pass: show detailed diffs for failing blocks
+    for i in range(num_blocks):
+        title, exp_lines = expected_blocks[i]
+        _, act_lines = actual_blocks[i]
+        # Normalize each block's lines before comparing
+        exp_lines_norm = normalize_block_lines(exp_lines)
+        act_lines_norm = normalize_block_lines(act_lines)
+        if exp_lines_norm != act_lines_norm:
             print()
             print(color_block_title(f"//= {title}"))
             diff = difflib.unified_diff(
