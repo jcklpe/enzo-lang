@@ -1,0 +1,18 @@
+//= anon function and pipes (pipes not yet implemented so they have been commented out)
+// Single-line anonymous function returns 6
+($x: 1, $y: 5; $x + $y); // → 6
+
+// Pipeline with value feeding into function
+//($z: 5; $z); then ($x: 1, $y: 5; $x + $y); // → 10
+
+// Bare paren value
+(6); // → 6
+
+// Pipeline with constant value to function
+//(6) then ($x: 1, $y: 5; $x + $y); // → 11
+
+// Constant function in pipeline
+//(42); then ($x: 100, $y: 1; $x - $y); // → 41
+
+// Use with different pipeline stages (future-proof for more chaining)
+//(2) then ($x: 10; $x + 10) then ($x: 0; $x * 3); // → 36

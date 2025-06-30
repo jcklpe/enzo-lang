@@ -1,255 +1,339 @@
-from src.parser       import parse
-from src.ast_helpers  import Table, format_val
-
-class InterpolationParseError(Exception):
-    pass
-
+from src.enzo_parser.parser import parse
+from src.runtime_helpers import Table, format_val, log_debug
+from collections import ChainMap
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, TableIndex, ReturnNode
+from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
+from src.error_messaging import (
+    error_message_already_defined,
+    error_message_unknown_variable,
+    error_message_not_a_function,
+    error_message_tuple_ast,
+    error_message_unknown_node,
+    error_message_unterminated_interpolation,
+    error_message_cannot_assign,
+    error_message_index_must_be_number,
+    error_message_index_must_be_integer,
+    error_message_list_index_out_of_range,
+    error_message_table_property_not_found,
+    error_message_cant_use_text_as_index,
+    error_message_index_applies_to_lists
+)
+import os
 
 _env = {}  # single global environment
 
 class EnzoFunction:
-    def __init__(self, params, body, closure_env):
+    def __init__(self, params, local_vars, body, closure_env, is_multiline=False):
         self.params = params          # list of (name, default)
+        self.local_vars = local_vars  # list of Binding nodes
         self.body = body              # list of AST stmts
         self.closure_env = closure_env.copy()  # captured env for closure
+        self.is_multiline = is_multiline      # track if function atom is multiline
 
     def __repr__(self):
-        return f"<function ({', '.join(p[0] for p in self.params)}) ...>"
+        # Show only param names for readability
+        param_names = [p[0] if isinstance(p, (list, tuple)) else str(p) for p in self.params]
+        return f"<function ({', '.join(param_names)}) multiline={self.is_multiline}>"
 
-class ReturnSignal(Exception):
-    def __init__(self, value):
-        self.value = value
+def invoke_function(fn, args, env):
+    if not isinstance(fn, EnzoFunction):
+        raise EnzoTypeError(error_message_not_a_function(fn), code_line=getattr(fn, 'code_line', None))
+    call_env = fn.closure_env.copy()
+    # Bind parameters
+    for (param_name, default), arg in zip(fn.params, args):
+        call_env[param_name] = arg
+    if len(args) < len(fn.params):
+        for (param_name, default) in fn.params[len(args):]:
+            call_env[param_name] = eval_ast(default, value_demand=True, env=ChainMap(call_env, env))
+    # --- FIX: Evaluate and bind local variables before body ---
+    local_env = ChainMap(call_env, env)
+    for local_var in getattr(fn, 'local_vars', []):
+        if isinstance(local_var, Binding):
+            name = local_var.name
+            # Evaluate local var in the current local_env (which includes params and previous locals)
+            value = eval_ast(local_var.value, value_demand=True, env=local_env)
+            call_env[name] = value
+            # Update local_env so subsequent locals can see previous ones
+            local_env = ChainMap(call_env, env)
+    try:
+        res = None
+        for stmt in fn.body:
+            res = eval_ast(stmt, value_demand=True, env=local_env)
+    except ReturnSignal as ret:
+        return ret.value
+    return res
 
-# ── handle a block of multiple statements ─────────────────────────────
-def eval_ast(node):
-    typ, *rest = node
 
-    # ── “block” means “evaluate each child in turn, return last” ───────
-    if typ == "block":
-        stmts = rest[0]                # a Python list of AST‐nodes
-        result = None
-        for stmt_node in stmts:
-            result = eval_ast(stmt_node)
-        return result
-
-    # ── literals / lookup ───────────────────────────────────────────────────────
-    if typ == "num":
-        return rest[0]
-
-    if typ == "str":
-        return _interp(rest[0])
-
-    if typ == "list":
-        children = rest[0] if rest else []
-        if children == [None]:
-            children = []
-        return [eval_ast(el) for el in children]
-
-    if typ == "table":
-        d = {}
-        for (k, v_ast) in rest[0].items():
-            d[k] = eval_ast(v_ast)
-        return Table(d)
-
-    if typ == "var":
-        name = rest[0]
-        if name not in _env:
-            raise NameError(f"undefined: {name}")
-        return _env[name]
-
-    # ── function literal ────────────────────────────────────────────────
-    if typ == "function":
-        # node = ("function", ("function_body", params, body))
-        _tag, params, body = rest[0]
-        param_pairs = []
-        for p in params:
-            # ("param", name, default)
-            param_pairs.append((p[1], p[2]))
-        # Disallow 0-param single-line anon fns
-        if len(param_pairs) == 0 and isinstance(body, list) and len(body) == 1 and not isinstance(body[0], tuple):
-            raise TypeError("Anonymous functions must declare at least one parameter.")
-        return EnzoFunction(param_pairs, body, _env.copy())
-
-    # ── function call ──────────────────────────────────────────────────
-    if typ == "call":
-        # node = ("call", func_name, [args...])
-        funcname, args = rest
-        func = _env[funcname]
-        if not isinstance(func, EnzoFunction):
-            raise TypeError(f"{funcname} is not a function")
-        if len(args) > len(func.params):
-            raise TypeError("Too many arguments for function call")
-        call_env = func.closure_env.copy()
-        # Evaluate provided arguments
-        for (param_name, default), arg in zip(func.params, args):
-            call_env[param_name] = eval_ast(arg)
-        # Fill in any missing params using their defaults
-        if len(args) < len(func.params):
-            for (param_name, default) in func.params[len(args):]:
-                call_env[param_name] = eval_ast(default)
-        # Run body in this new env
-        try:
-            res = None
-            for stmt in func.body:
-                res = eval_ast(stmt)
-        except ReturnSignal as ret:
-            return ret.value
-        return res
-
-    # ── return statement ───────────────────────────────────────────────
-    if typ == "return":
-        val = eval_ast(rest[0])
-        raise ReturnSignal(val)
-
-    # ── arithmetic ───────────────────────────────────────────────────────
-    if typ == "add":
-        a, b = rest
-        return eval_ast(a) + eval_ast(b)
-    if typ == "sub":
-        a, b = rest
-        return eval_ast(a) - eval_ast(b)
-    if typ == "mul":
-        a, b = rest
-        return eval_ast(a) * eval_ast(b)
-    if typ == "div":
-        a, b = rest
-        return eval_ast(a) / eval_ast(b)
-
-    # ── list indexing (1-based) ────────────────────────────────────────
-    if typ == "index":
-        base_ast, idx_ast = rest
-        seq = eval_ast(base_ast)
-        idx = eval_ast(idx_ast)
-        if not isinstance(seq, list):
-            raise TypeError("index applies to lists")
-        if not isinstance(idx, int):
-            raise TypeError("index must be a number")
-        i = idx - 1
-        if i < 0 or i >= len(seq):
-            raise IndexError("list index out of range")
-        return seq[i]
-
-    # ── table property access ───────────────────────────────────────────
-    if typ == "attr":
-        base_ast, prop_name = rest
-        tbl = eval_ast(base_ast)
-        if not isinstance(tbl, (dict, Table)):
-            raise TypeError("property access applies to tables")
-        if prop_name not in tbl:
-            raise KeyError(prop_name)
-        return tbl[prop_name]
-
-    # ── single‐property or list‐index rebind (“expr .prop <: expr” or “expr .idx <: expr”) ─
-    if typ == "prop_rebind":
-        base_node, new_expr = rest
-
-        # Support rebinding for both ("attr", ...) (table property) and ("index", ...) (list element)
-        if isinstance(base_node, tuple):
-            # Table property: ("attr", table_node, prop_name)
-            if base_node[0] == "attr":
-                _, table_node, prop_name = base_node
-                tbl = eval_ast(table_node)
-                if not isinstance(tbl, (dict, Table)):
-                    raise TypeError("property rebind applies to tables")
-                if prop_name not in tbl:
-                    raise KeyError(f"'{prop_name}' not found for rebinding")
-                new_val = eval_ast(new_expr)
-                tbl[prop_name] = new_val
-                return new_val
-
-            # List element: ("index", list_node, idx_node)
-            elif base_node[0] == "index":
-                _, list_node, idx_node = base_node
-                seq = eval_ast(list_node)
-                idx = eval_ast(idx_node)
-                if not isinstance(seq, list):
-                    raise TypeError("index applies to lists")
-                if not isinstance(idx, int):
-                    raise TypeError("index must be a number")
-                i = idx - 1
-                if i < 0 or i >= len(seq):
-                    raise IndexError("list index out of range")
-                new_val = eval_ast(new_expr)
-                seq[i] = new_val
-                return new_val
-
-        raise TypeError("property rebind applies to tables or lists")
-
-    # ── bind / rebind ─────────────────────────────────────────────────────
-    if typ == "bind":
-        name, expr_ast = rest
-        # Disallow redeclaration, even if it's still None (empty)
-        if name in _env:
-            raise NameError(f"{name} already defined")
-        # Fresh bind (name not present at all)
-        _env[name] = eval_ast(expr_ast)
-        return _env[name]
-
-    if typ == "bind_empty":
-        name = rest[0]
-        if name in _env:
-            raise NameError(f"{name} already defined")
-        # Represent “empty/untyped” by storing Python None
-        _env[name] = None
+def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None):
+    if env is None:
+        env = _env
+    if node is None:
+        # Ignore empty statements (e.g., from extra semicolons)
         return None
+    code_line = getattr(node, 'code_line', None)
+    if isinstance(node, NumberAtom):
+        return node.value
+    if isinstance(node, TextAtom):
+        # Pass the original code line to _interp for error reporting
+        return _interp(node.value, src_line=code_line)
+    if isinstance(node, ListAtom):
+        return [eval_ast(el, value_demand=True, env=env) for el in node.elements]
+    if isinstance(node, TableAtom):
+        tbl = Table((k, eval_ast(v, value_demand=True, env=env)) for k, v in node.items)
+        return tbl
+    if isinstance(node, Binding):
+        name = node.name
+        if name in env:
+            raise EnzoRuntimeError(error_message_already_defined(name), code_line=node.code_line)
+        # Handle empty bind: $x: ;
+        if node.value is None:
+            env[name] = Empty()
+            return None  # Do not output anything for empty bind
+        # If value is a FunctionAtom, store as function object, not result
+        if isinstance(node.value, FunctionAtom):
+            fn = EnzoFunction(node.value.params, node.value.local_vars, node.value.body, env, getattr(node.value, 'is_multiline', False))
+            env[name] = fn
+            # For bare keyname bindings (without $), also make accessible with $ prefix
+            if not name.startswith('$'):
+                dollar_name = '$' + name
+                if dollar_name not in env:  # Don't overwrite existing $variable
+                    env[dollar_name] = fn
+            return None  # Do not output anything for assignment
+        val = eval_ast(node.value, value_demand=False, env=env)  # storage context
+        env[name] = val
+        # For bare keyname bindings (without $), also make accessible with $ prefix
+        if not name.startswith('$'):
+            dollar_name = '$' + name
+            if dollar_name not in env:  # Don't overwrite existing $variable
+                env[dollar_name] = val
+        return None  # Do not output anything for assignment
+    if isinstance(node, VarInvoke):
+        name = node.name
+        if name not in env:
+            raise EnzoRuntimeError(error_message_unknown_variable(name), code_line=node.code_line)
+        val = env[name]
+        # Demand-value context: invoke if function
+        if value_demand and isinstance(val, EnzoFunction):
+            return invoke_function(val, [], env)
+        return val
+    if isinstance(node, FunctionRef):
+        name = node.name
+        if name not in env:
+            raise EnzoRuntimeError(error_message_unknown_variable(name), code_line=node.code_line)
+        val = env[name]
+        if not isinstance(val, EnzoFunction):
+            raise EnzoTypeError(error_message_not_a_function(val), code_line=code_line)
+        return val
+    if isinstance(node, FunctionAtom):
+        # Demand-value context: invoke
+        if value_demand:
+            fn = EnzoFunction(node.params, node.local_vars, node.body, env, getattr(node, 'is_multiline', False))
+            return invoke_function(fn, [], env)
+        else:
+            return EnzoFunction(node.params, node.local_vars, node.body, env, getattr(node, 'is_multiline', False))
+    if isinstance(node, AddNode):
+        left = eval_ast(node.left, value_demand=True, env=env)
+        right = eval_ast(node.right, value_demand=True, env=env)
+        return left + right
+    if isinstance(node, SubNode):
+        left = eval_ast(node.left, value_demand=True, env=env)
+        right = eval_ast(node.right, value_demand=True, env=env)
+        return left - right
+    if isinstance(node, MulNode):
+        left = eval_ast(node.left, value_demand=True, env=env)
+        right = eval_ast(node.right, value_demand=True, env=env)
+        return left * right
+    if isinstance(node, DivNode):
+        left = eval_ast(node.left, value_demand=True, env=env)
+        right = eval_ast(node.right, value_demand=True, env=env)
+        return left / right
+    if isinstance(node, Invoke):
+        left = eval_ast(node.func, value_demand=False, env=env)  # Get function object, don't invoke it yet
+        args = [eval_ast(arg, value_demand=True, env=env) for arg in node.args]
+        # List indexing
+        if isinstance(left, list):
+            if len(args) != 1:
+                raise EnzoTypeError(error_message_index_must_be_number(), code_line=getattr(node, 'code_line', None))
+            idx = args[0]
+            if not isinstance(idx, (int, float)):
+                raise EnzoTypeError(error_message_index_must_be_number(), code_line=getattr(node, 'code_line', None))
+            if isinstance(idx, float):
+                if not idx.is_integer():
+                    raise EnzoTypeError(error_message_index_must_be_integer(), code_line=getattr(node, 'code_line', None))
+                idx = int(idx)
+            if not isinstance(idx, int):
+                raise EnzoTypeError(error_message_index_must_be_integer(), code_line=getattr(node, 'code_line', None))
+            # 1-based index
+            if idx < 1 or idx > len(left):
+                raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=getattr(node, 'code_line', None))
+            return left[idx - 1]
+        # Table property access
+        if isinstance(left, dict):
+            if len(args) != 1:
+                raise EnzoTypeError(error_message_table_property_not_found("<missing key>"), code_line=getattr(node, 'code_line', None))
+            key = args[0]
+            if not isinstance(key, str):
+                raise EnzoTypeError(error_message_table_property_not_found(key), code_line=getattr(node, 'code_line', None))
+            if key not in left:
+                raise EnzoRuntimeError(error_message_table_property_not_found(key), code_line=getattr(node, 'code_line', None))
+            return left[key]
+        # Function call
+        if isinstance(left, EnzoFunction):
+            return invoke_function(left, args, env)
+        # Not a list, table, or function
+        raise EnzoTypeError(error_message_index_applies_to_lists(), code_line=getattr(node, 'code_line', None))
+    if isinstance(node, Program):
+        # For a program (file or REPL), output each top-level statement's value (if not None)
+        results = []
+        for stmt in node.statements:
+            if stmt is not None:
+                try:
+                    val = eval_ast(stmt, value_demand=True, env=env)
+                    if val is not None:
+                        results.append(val)
+                except Exception as e:
+                    # Format the error as string, as the test runner expects error output
+                    results.append(str(e))
+                    break  # Stop evaluating further statements after the first error
+        # Print each result on its own line (handled by CLI), or return as list for test runner
+        return results
+    if isinstance(node, list):
+        # For a list of statements (from a single line), only return the last value
+        result = None
+        for x in node:
+            val = eval_ast(x, value_demand=True, env=env)
+            result = val
+        return result
+    if isinstance(node, tuple):
+        # Raise a clear error for tuple ASTs
+        raise EnzoRuntimeError(error_message_tuple_ast(), code_line=getattr(node, 'code_line', None))
+    if isinstance(node, ReturnNode):
+        val = eval_ast(node.value, value_demand=True, env=env)
+        raise ReturnSignal(val)
+    if isinstance(node, BindOrRebind):
+        target = node.target
+        value = eval_ast(node.value, value_demand=True, env=env)
+        def enzo_type(val):
+            if isinstance(val, (int, float)):
+                return "Number"
+            if isinstance(val, str):
+                return "Text"
+            if isinstance(val, list):
+                return "List"
+            if isinstance(val, dict):
+                return "Table"
+            if isinstance(val, EnzoFunction):
+                return "Function"
+            if isinstance(val, Empty):
+                return "Empty"
+            return type(val).__name__
+        # Assignment to variable
+        if isinstance(target, str):
+            name = target
+            if name not in env:
+                env[name] = value
+                return None
+            old_val = env[name]
+            if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(value):
+                raise EnzoRuntimeError(error_message_cannot_assign(enzo_type(value), enzo_type(old_val)), code_line=node.code_line)
+            env[name] = value
+            return None
+        # Assignment to variable via VarInvoke
+        if isinstance(target, VarInvoke):
+            name = target.name
+            t_code_line = getattr(target, 'code_line', node.code_line)
+            if name not in env:
+                env[name] = value
+                return None
+            old_val = env[name]
+            if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(value):
+                raise EnzoRuntimeError(error_message_cannot_assign(enzo_type(value), enzo_type(old_val)), code_line=t_code_line)
+            env[name] = value
+            return None
+        # Assignment to list index
+        if isinstance(target, ListIndex):
+            base = eval_ast(target.base, env=env)
+            idx = eval_ast(target.index, env=env)
+            t_code_line = getattr(target, 'code_line', node.code_line)
+            if not isinstance(base, list):
+                raise EnzoTypeError(error_message_index_applies_to_lists(), code_line=t_code_line)
+            if isinstance(idx, str):
+                raise EnzoTypeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
+            if not isinstance(idx, (int, float)):
+                raise EnzoTypeError(error_message_index_must_be_number(), code_line=t_code_line)
+            if isinstance(idx, float):
+                if not idx.is_integer():
+                    raise EnzoTypeError(error_message_index_must_be_integer(), code_line=t_code_line)
+                idx = int(idx)
+            if not isinstance(idx, int):
+                raise EnzoTypeError(error_message_index_must_be_integer(), code_line=t_code_line)
+            if idx < 1 or idx > len(base):
+                raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=t_code_line)
+            base[idx - 1] = value
+            return None
+        # Assignment to table property
+        if isinstance(target, TableIndex):
+            base = eval_ast(target.base, env=env)
+            property_name = target.key
+            t_code_line = getattr(target, 'code_line', node.code_line)
+            if isinstance(property_name, VarInvoke):
+                property_name = eval_ast(property_name, env=env)
+            # Ensure base is a dict or Table (which is a dict subclass)
+            if not isinstance(base, dict):
+                raise EnzoTypeError(error_message_table_property_not_found(property_name), code_line=t_code_line)
+            # Overwrite the property value (dict assignment always overwrites)
+            # --- FIX: Use $property if present, else try $property ---
+            found = False
+            if property_name in base:
+                base[property_name] = value
+                found = True
+            elif isinstance(property_name, str) and not property_name.startswith('$') and ('$' + property_name) in base:
+                base['$' + property_name] = value
+                found = True
+            if not found:
+                raise EnzoRuntimeError(error_message_table_property_not_found(property_name), code_line=t_code_line)
+            log_debug(f"[Table property rebind] property: {property_name} | table after: {base!r}")
+            return None
+        raise EnzoRuntimeError(error_message_cannot_assign_target(target), code_line=getattr(node, 'code_line', None))
+    if isinstance(node, ListIndex):
+        base = eval_ast(node.base, env=env)
+        idx = eval_ast(node.index, env=env)
+        t_code_line = getattr(node, 'code_line', code_line)
+        if isinstance(idx, str):
+            raise EnzoRuntimeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
+        if not isinstance(base, list):
+            if isinstance(node.base, (VarInvoke, TableIndex)):
+                raise EnzoRuntimeError(error_message_index_applies_to_lists(), code_line=t_code_line)
+            raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=t_code_line)
+        if not isinstance(idx, int) or idx < 1 or idx > len(base):
+            raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=t_code_line)
+        return base[idx - 1]
+    if isinstance(node, TableIndex):
+        base = eval_ast(node.base, env=env)
+        property_name = node.key
+        t_code_line = getattr(node, 'code_line', code_line)
+        if isinstance(property_name, VarInvoke):
+            property_name = eval_ast(property_name, env=env)
+        if isinstance(base, dict):
+            # Try both $property and property
+            if property_name in base:
+                return base[property_name]
+            if isinstance(property_name, str) and not property_name.startswith('$') and ('$' + property_name) in base:
+                return base['$' + property_name]
+            raise EnzoRuntimeError(error_message_table_property_not_found(property_name), code_line=t_code_line)
+        raise EnzoRuntimeError(error_message_table_property_not_found(property_name), code_line=t_code_line)
+    raise EnzoRuntimeError(error_message_unknown_node(node), code_line=getattr(node, 'code_line', None))
 
-    if typ == "rebind":
-        name, expr_ast = rest
-        new_val = eval_ast(expr_ast)
+# ── text_atom‐interpolation helper ───────────────────────────────────────────
+def _interp(s: str, src_line: str = None):
+    # Given a Python string `s`, expand each “<expr>” by:
+    #   - Allow multiple expressions separated by semicolons inside "<...>"
+    #   - Evaluate each sub‐expression (parse+eval)
+    #   - Convert each result to str and concatenate in order.
+    # Examples:
+    #   "<$a; $b;>" → str(eval($a)) + str(eval($b))
+    #   "<1 + 2; 3 * 4;>" → "3" + "12" = "312"
 
-        # If never declared, treat `<:` or `:>` as a fresh bind
-        if name not in _env:
-            _env[name] = new_val
-            return new_val
-
-        old_val = _env[name]
-
-        # If old_val is None, this is the first non‐empty assignment → lock in new type
-        if old_val is None:
-            _env[name] = new_val
-            return new_val
-
-        # Otherwise, enforce that types match
-        if type(old_val) is not type(new_val):
-            # Helper to give friendly type names
-            def pretty_type(x):
-                if isinstance(x, str):
-                    return "Text"
-                if isinstance(x, int):
-                    return "Number"
-                if isinstance(x, list):
-                    return "List"
-                if isinstance(x, (dict, Table)):
-                    return "Table"
-                # fallback
-                return type(x).__name__
-
-            msg = f"cannot assign {pretty_type(new_val)} to {pretty_type(old_val)}"
-            raise TypeError(msg)
-
-        # Types match → perform rebind
-        _env[name] = new_val
-        return new_val
-
-    # ── bare expression statement ─────────────────────────────────────────
-    if typ == "expr":
-        return eval_ast(rest[0])
-
-    raise ValueError(f"unknown node: {typ}")
-
-
-# ── string‐interpolation helper ───────────────────────────────────────────
-def _interp(s: str):
-    """
-    Given a Python string `s`, expand each “<expr>” by:
-      - Allow multiple expressions separated by semicolons inside "<...>"
-      - Evaluate each sub‐expression (parse+eval)
-      - Convert each result to str and concatenate in order.
-
-    Examples:
-      "<$a; $b;>" → str(eval($a)) + str(eval($b))
-      "<1 + 2; 3 * 4;>" → "3" + "12" = "312"
-    """
     if "<" not in s:
         return s
 
@@ -259,30 +343,28 @@ def _interp(s: str):
         if j == -1:
             out.append(s[i:])
             break
-        # Append text before "<"
         out.append(s[i:j])
-
-        # Find closing ">"
         k = s.find(">", j + 1)
         if k == -1:
-            raise ValueError("unterminated interpolation in string")
-
-        # Extract inside-of-<...>, including any semicolons
+            raise EnzoRuntimeError(error_message_unterminated_interpolation())
         expr_src = s[j + 1 : k].strip()
-        # Split on semicolons to allow multiple expressions
         parts = [p.strip() for p in expr_src.split(";") if p.strip()]
         concatenated = ""
         for part in parts:
             try:
-                # For each sub‐expression, parse and evaluate it
                 expr_ast = parse(part)
-                val = eval_ast(expr_ast)
+                val = eval_ast(expr_ast, value_demand=True)
                 concatenated += str(val)
             except Exception:
-                # Raise a special error so the outer code can format it
-                raise InterpolationParseError()
+                from src.error_messaging import error_message_parse_error_in_interpolation
+                # Use the original quoted code line for error reporting
+                raise EnzoParseError(error_message_parse_error_in_interpolation(), code_line=src_line)
         out.append(concatenated)
-
         i = k + 1
-
     return "".join(out)
+
+# Sentinel for uninitialized/empty binds
+class Empty:
+    def __repr__(self):
+        return "<empty>"
+        return "<empty>"

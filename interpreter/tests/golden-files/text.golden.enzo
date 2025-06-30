@@ -1,36 +1,30 @@
 //= TEXT + INTERPOLATION ───────────────────────────────────────────────────
-rebinding this text and 
-this is text example 2
-just a plain text
-rebinding this text and this is text example 2
+"rebinding this text and "
+"this is text example 2"
+"just a plain text"
+"rebinding this text and this is text example 2"
 100
 5
-100 plus 5 is: 105
+"100 plus 5 is: 105"
 //= NOW THAT $colors & $i ARE DEFINED, INTERPOLATE A STRING THAT USES THEM ─
 2
 [ "red", "purple", "green", "silver" ]
-color 2 is purple
-color 2 is purple
+"color 2 is purple"
 //= COMPLEX MATH INTERPOLATION ● MULTIPLE EXPRESSIONS ───────────────────
 7
 3
-Sum=10 Prod=21
+"Sum=10 Prod=21"
 //= COMPOUND INTERPOLATION WITH TABLE+LIST ACCESS ────────────────────────
 { $greeting: "hi", $nums: [ 2, 4 ] }
-hi! The nums are:2, and 4
+"hi! The nums are:2, and 4"
 //= Unicode and weird strings
-π≈3.14
-π≈3.14
-foo\nbar
-foo\"bar\"baz
-foo\"bar\"baz
+"π≈3.14"
+"foo\nbar"
+"foo\"bar\"baz"
 //= Interpolation errors
 error: parse error in interpolation
     "text <bad syntax>";
-          ^
 error: parse error in interpolation
     "hello <$foo + >";
-           ^
 error: parse error in interpolation
     "hello <<$foo>>";
-           ^

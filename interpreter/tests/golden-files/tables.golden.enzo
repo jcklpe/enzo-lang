@@ -1,29 +1,24 @@
 //= TABLE STUFF ───────────────────────────────────────────────────────────
 { $name: "Alice", $age: 30 }
-{ $name: "Alice", $age: 30 }
-Alice
+"Alice"
 30
 //= REBINDING TABLE PROPERTIES ────────────────────────────────────────────
-Bob
-Bob
+"Bob"
 { $name: "Bob", $age: 30 }
 //= ANOTHER TABLE + PROPERTY REBIND ───────────────────────────────────────
 { $foo: 42, $bar: "hello" }
-hello
+"hello"
 100
 { $foo: 100, $bar: "hello" }
 //= EMPTY TABLE LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
-{ }
-{ }
-error: '$someKey'
+{  }
+error: table property not found: $someKey
     $emptyTable.someKey;
-    ^^^^^^^^^^^^^^^^^^^^
 //= NESTED TABLE + MIXED INDEX/ATTR ───────────────────────────────────────
 { $inner: { $val: 42, $arr: [ 10, 20 ] } }
 42
 20
 //= REBINDING NESTED TABLES ───────────────────────────────────────────────
-100
 100
 //= COMPLEX TABLE + LIST INDEX/PROPERTY ACCESS ─────────────────────────
 { $tbl: { $a: [ 100, 200 ], $b: "x" }, $lst: [ { $foo: 1 }, { $foo: 2 } ] }
@@ -38,39 +33,29 @@ error: '$someKey'
 7
 //= Table property errors
 { $foo: 1 }
-error: '$bar'
+error: table property not found: $bar
     $table9.bar;
-    ^^^^^^^^^^^^
 error: index applies to lists
     $table9.1;
-    ^^^^^^^^^^
-error: property access applies to tables
+error: table property not found: $bar
     $table9.foo.bar;
-    ^^^^^^^^^^^^^^^^
 999
-error: property rebind applies to tables
+error: table property not found: $someKey
     $prim.someKey <: 5;
-    ^^^^^^^^^^^^^^^^^^^
 { $a: 1 }
 error: index applies to lists
     $myTbl.1;
-    ^^^^^^^^^
 { $x: 1 }
 99
 { $x: 99 }
-error: "'$y' not found for rebinding"
+error: table property not found: $y
     $tbl.y <: 42;
-    ^^^^^^^^^^^^^
 //= Valid trailing commas (should succeed)
 { $foo: 1, $bar: 2 }
-{ $foo: 1, $bar: 2 }
 //= invalid trailing commas (should error)
-double comma (remove one comma).
+error: extra comma in table
     $badTable1: { $foo: 1,, $bar: 2 };
-                          ^
-leading comma (remove the comma at the start).
+error: leading comma in table
     $badTable2: { ,$foo: 1, $bar: 2 };
-                  ^
-leading comma (remove the comma at the start).
+error: empty table with comma
     $badTable3: { , };
-                  ^

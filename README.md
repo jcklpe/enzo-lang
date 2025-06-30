@@ -3,11 +3,13 @@
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jcklpe/enzo-lang/blob/master/interpreter/demo.ipynb)
 
-Code is the ultimate user interface. It is the final user interface on which all other user interfaces are built. So I think it’s interesting to explore this space as a UX designer. 
+
+Code is the ultimate user interface. It is the final user interface on which all other user interfaces are built. So I think it’s interesting to explore this space as a UX designer.
 
 Originally this started as a fantasy sketch of what I thought a nice language syntax would look like. As I was learning programming stuff, I'd get frustrated or find a particular way of doing things ugly or confusing, so I'd creatively vent by writing this document and it helped me understand the programming concepts for the real language I was learning. I had no intention of implementing it, but now I am!
 
-I'm def interested in feedback but also understand that this is basically just a kid drawing pictures of racecars and wishing he was Batman. I'm doing this for my own enjoyment and to help me better understand programming, and I make no pretense that this language is going to ever be used in the real world, or is superior to existing languages in any fashion, aesthetic or otherwise. This is more of an art project. 
+I'm def interested in feedback but also understand that this is basically just a kid drawing pictures of racecars and wishing he was Batman. I'm doing this for my own enjoyment and to help me better understand programming, and I make no pretense that this language is going to ever be used in the real world, or is superior to existing languages in any fashion, aesthetic or otherwise. This is more of an art project.
+
 
 Also want to give a shout out to the ["Quorum Language Project"](https://quorumlanguage.com/) for opening my eyes to the intersection between UX practice and syntax design.
 
@@ -23,21 +25,21 @@ Also want to give a shout out to the ["Quorum Language Project"](https://quoruml
 ```
 
 ```javascript!
-//= Test case title commment. Used for breaking up test cases as part of the automated regression testing and will appear on the frontend to the user.  
+//= Test case title commment. Used for breaking up test cases as part of the automated regression testing and will appear on the frontend to the user.
 ```
 
 ### Atoms
-Atoms are the most basic parts of the enzo language. Atoms are separated by a semi-colon `;` punctuation. 
+Atoms are the most basic parts of the enzo language. Atoms are separated by a semi-colon `;` punctuation.
 
-Atoms can be assigned a keyname using the `:` operator. Keynames are distinguished with the `$` sigil. 
+Atoms can be assigned a keyname using the `:` operator. Keynames are distinguished with the `$` sigil.
 ```javascript!
 $keyname: atomvalue;
 $keyname; // this invokes the atomvalue
 ```
 You use keynames to more easily invoke that atomvalue where you need in code. An atom bound to a keyname is a variable.
 
-There are 5 types of atoms. These types are [static but inferred](https://www.perplexity.ai/search/plain-language-explanation-of-bIpK7TNKTtCK.Ao8RdeIuw). 
-#### Numbers
+There are 5 types of atoms. These types are [static but inferred](https://www.perplexity.ai/search/plain-language-explanation-of-bIpK7TNKTtCK.Ao8RdeIuw).
+#### Number atom
 A number atom is any [real number](https://en.wikipedia.org/wiki/Real_number).
 ```javascript!
 100;
@@ -118,7 +120,7 @@ $pick:     $reversed.2;       // → "blue"
 The numeric indexing of lists starts at 1.
 
 #### Table (object/map)
-A table atom is a collection of keyname-atomvalue pairs, enclosed in braces `{...}`. 
+A table atom is a collection of keyname-atomvalue pairs, enclosed in braces `{...}`.
 ```javascript!
 {$name: "Alice", $age: 30};
 
@@ -199,16 +201,18 @@ return(($x + $y));
 ); // returns 200
 ```
 
-Single line function atoms do not require an explicit return. Multi-line function atoms must always have an explicit return. 
 
-Function atoms can also be assigned to a keyname. 
+Single line function atoms do not require an explicit return. Multi-line function atoms must always have an explicit return.
+
+Function atoms can also be assigned to a keyname.
+
 ```javascript!
 function-example: (
 
     // Parameters are declared inside the function definition.
     // the param keyword distinguishes parameter from private function scoped variables.
     param $argument1: ;
-    //Parameters can be assigned an initial value that it defaults unless otherwise specified when the function is called. If it is declared with an empty (explained below) then that function throws an error. 
+    //Parameters can be assigned an initial value that it defaults unless otherwise specified when the function is called. If it is declared with an empty (explained below) then that function throws an error.
     param $argument2: 12;
     $example-variable: 666;
 
@@ -220,7 +224,7 @@ A named function is simply a nameless function bound to a keyname. We omit the $
 ```javascript!
 $function1: (
     param $a: 4;
-    $x: 5; 
+    $x: 5;
     return(($x + $a));
 );
 $function1;      // returns 9
@@ -234,6 +238,14 @@ function2();     // returns 9
 $function2();    // returns 9
 $function2(5);   // returns 10
 ```
+
+##### Function Atom Evaluation
+In Enzo, parentheses always create a function atom (an anonymous function/code block).
+
+If a function atom appears in a context that requires its value immediately (such as a top-level statement, string interpolation, or as a value in a return statement), it is immediately invoked.
+If a function atom is being bound to a variable, stored in a table or list, or passed as an argument to a function that expects a function, it is stored as a function object and only invoked when called.
+This is called demand-driven function atom evaluation.
+
 
 ##### Empty variables (null, undefined)
 
@@ -348,7 +360,8 @@ Referencing a function however has an `@` sigil:
 
 ```javascript!
 @function-name;   // returns the function object
-@function-name(); // this is an error. You can't do this. 
+@function-name(); // this is an error. You can't do this.
+
 ```
 
 Example of this in action:
@@ -775,8 +788,8 @@ $thirdUppercaseColor:
 
 1. Enzo is expression oriented rather than statement oriented.
 2. Enzo is static (lexical) scoped.
-3. Enzo does not use parentheses for the dual purpose of groupings and code blocks. All parentheses are anon-functions/expression-blocks/code-blocks, however you want to phrase it. In this way Enzo is a lot like LISP. There is no meaningful distinction between `(10 + 2)` and `($x + 4)`. 
-4. 
+3. Enzo does not use parentheses for the dual purpose of groupings and code blocks. All parentheses are anon-functions/expression-blocks/code-blocks, however you want to phrase it. In this way Enzo is a lot like LISP. There is no meaningful distinction between `(10 + 2)` and `($x + 4)`.
+
 
 ---
 
@@ -788,7 +801,7 @@ $thirdUppercaseColor:
 4. addition, subtraction (`+`, `-`)
 5. variable declaration and assignment ( `:` `<:` `:>`)
 6. pipeline operator (`then`)
-7. comparison operators (`is`, `not`, `is not`, `less than`, `greather than`, `at most`, `at least` )
+7. comparison operators (`is`, `not`, `is not`, `less than`, `greater than`, `at most`, `at least` )
 8. logical operators (`and`, `or`)
 
 
@@ -835,5 +848,3 @@ toggle()
 // like saying status = !status
 
 ```
-
----

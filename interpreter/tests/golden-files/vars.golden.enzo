@@ -1,58 +1,36 @@
-error: undefined: $undefinedVar
+//= INVOKING AN UNDEFINED VARIABLE
+unknown variable: $undefinedVar
     $undefinedVar;
-    ^^^^^^^^^^^^^^
 //= EMPTY BIND ────────────────────────────────────────────────────────────
 //= REDECLARING A VARIABLE (USING “:”) ERRORS ────────────────────────────
 error: $x already defined
     $x: 10;
-    ^^^^^^^
-error: $x already defined
-    $x: 1;
-    ^^^^^^
 //= REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
-100
 100
 error: cannot assign Text to Number
     $x <: "hello";
-    ^^^^^^^^^^^^^^
 //= FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
 7
 8
 error: cannot assign Text to Number
     $z <: "oops";
-    ^^^^^^^^^^^^^
 error: $z already defined
     $z : "oops";
-    ^^^^^^^^^^^^
 //= MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
 10
-10
 20
-20
-30
 30
 30
 //= REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
 55
-55
 error: cannot assign Text to Number
     $newImplicit <: "oops";
-    ^^^^^^^^^^^^^^^^^^^^^^^
-cool dude
-cool dude
+"cool dude"
 //= MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
 3
 3
-2
 2
 //= Var naming
 5
 9
 3
-5
-9
-3
-Syntax error: Unexpected token ';' at line 1, column 22.
-Expected one of: LBRACE, LPAR, LSQB, NAME, SIGNED_NUMBER, STRING
-    $meaning-of-life: 42;;
-                         ^

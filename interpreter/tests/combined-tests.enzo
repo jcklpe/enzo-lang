@@ -1,7 +1,332 @@
-@include ./test-modules/functions.enzo
-@include ./test-modules/lists.enzo
-@include ./test-modules/math.enzo
-@include ./test-modules/misc.enzo
-@include ./test-modules/tables.enzo
-@include ./test-modules/text.enzo
-@include ./test-modules/vars.enzo
+//= INVOKING AN UNDEFINED VARIABLE
+$undefinedVar;      // error: undefined: $undefinedVar
+
+//= EMPTY BIND ────────────────────────────────────────────────────────────
+$x: ;
+
+//= REDECLARING A VARIABLE (USING “:”) ERRORS ────────────────────────────
+$x: 10;             // error $x has already been declared
+
+//= REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
+$x <: 100;
+$x;                 // prints 100
+$x <: "hello";      // error: cannot assign Text to Number
+
+//= FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
+$z: 7;       // binds 7
+$z;         // prints 7
+$z <: 8;            // rebind OK, z now 8
+$z;             // prints 8
+$z <: "oops";       // error: cannot assign Text to Number
+$z : "oops";       // error: $z already defined
+
+//= MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
+$Var123: 10;
+$Var123;                  // prints “10”
+$var-xyz: 20;
+$var-xyz;                 // prints “20”
+($Var123 + $var-xyz);       // prints “30”
+$var_xyz: 30;
+$var_xyz;                 // prints “30”
+
+//= REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
+55 :> $newImplicit;
+$newImplicit;               // prints “55”
+$newImplicit <: "oops";     // error: cannot assign Text to Number
+$dougie <: "cool dude";     // should not error.
+$dougie;                    // prints "cool dude".
+
+//= MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
+$u: 1; $v: 2; ($u + $v);    // prints “3”
+$apples:1;$bananas:2; ($apples+$bananas);       // prints 3
+$apricot :  1 ; $boranges: 2;        // spacing should not break anything
+$boranges;
+
+//= Var naming
+$123abc: 5;
+$123abc; // prints 5
+$_: 9;
+$_; // prints 9
+$-foo: 3;
+$-foo;        // prints 3
+
+//= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
+$emptyListTest: []; // binds []
+$emptyListTest;    // prints “[ ]”
+$emptyListTest.1;  // error: list index out of range
+
+//= BIND EMPTY AND THEN FILL WITH LIST ────────────────────────────────────
+$empty-list: ;
+$empty-list: 50;    //error: $empty-list already defined
+$empty-list<: ["now not empty"];  //bind contents to list
+$empty-list;       // prints “[ "now not empty" ]”
+
+//= DECLARE LIST AND ACCESS ITEMS ────────────────────────────────────────
+$colors: ["red", "green", "blue", "yellow"]; // binds list
+$colors.3;         // prints “blue”
+$i: 2;             // binds 2
+$colors.$i;        // prints “green”
+
+//= NESTED LISTS WITH INDEXING ────────────────────────────────────────────
+$nestedList: [[1, 2], [3, 4]];
+$nestedList.2.1;   // prints “3”
+
+//= MIXED LIST‐INSIDE‐TABLE ● INDEX VS ATTR ──────────────────────────────
+$mix: { $lst: ["a", "b", "c"] };  //binds table
+$mix.lst.2;                // prints “b”
+
+//= LIST OF TABLES + INDEX OF TABLE ────────────────────────────────────
+$lot: [ { $x: 5 }, { $x: 7 } ];  // binds table
+$lot;                 // prints “[ { $x: 5 }, { $x: 7 } ]”
+$lot.2.x;             // prints “7”
+
+//= Out-of-bounds and weird list indices
+$list: [1,2,3];     // binds list
+$list;
+$list.0;            // error: list index out of range
+$list.4;            // error: list index out of range
+$list.-1;           // error: list index out of range
+$list."foo";        // error: can't use text as index
+$list.1.1;          // error: list index out of range
+
+//= List/table mutation
+$mutable: [1,2];
+$mutable;
+$mutable.1 <: 5;        // updates first element to 5
+$mutable;               // prints [ 5, 2 ]
+$mutable.3 <: 9;        // error: list index out of range
+
+//= Trailing commas
+// These are fine
+$goodList: [1, 2, 3, ]; // binds list
+$goodList;              // prints  [ 1, 2, 3 ]
+// these should error
+$badList1: [1,,2];                        // error: remove one comma
+$badList2: [,1,2];                        // error: leading comma
+$badList3: [,];                           // error: just comma
+
+//= Various type errors
+$notalist: "oops";
+$notalist;
+$notalist.1;                              // index applies to lists
+
+//= BINDING MATH OPERATIONS ────────────────────────────────────────────────
+$math1: 100;    // binds 100
+$math1;            // prints 100
+$math2: (3 + 2);          // binds a function atom
+$math2; // prints 5
+($math1 + $math2);            // prints 105
+
+//= ARITHMETIC PRECEDENCE CHECK ─────────────────────────────────────────────
+$precedence-check: (2 + 3 * 4);      // binds a function atom
+$precedence-check;                 // prints 14
+
+$precedence-check2: ((2 + 3) * 4);    // binds a function atom
+$precedence-check2;                 // prints 20
+
+//= PARENTHESIZED EXPRESSIONS AS STAND‐ALONE ─────────────────────────────
+(10 + 5);                 // prints “15”
+
+//= LARGE NUMBERS + NEGATIVE NUMBERS ────────────────────────────────────
+$big: 1234567890;         // binds “1234567890”
+$big;                     // prints “1234567890”
+$neg: -5;                 // binds “-5”
+$neg;                     // prints “-5”
+($neg * 2);                 // prints “-10”
+$negzero: -0;             // binds 0 (should not crash)
+$negzero;                 // prints 0 (should not crash)
+$weird: --5;              // error: double minus not allowed
+
+//= TABLE STUFF ───────────────────────────────────────────────────────────
+$table: { $name: "Alice", $age: 30 };
+$table;             // binds “{ $name: "Alice", $age: 30 }”
+$table.name;        // prints “Alice”
+$table.age;         // prints “30”
+
+//= REBINDING TABLE PROPERTIES ────────────────────────────────────────────
+$table.name <: "Bob";
+$table.name;        // prints “Bob”
+$table;             // prints “{ $name: "Bob", $age: 30 }”
+
+//= ANOTHER TABLE + PROPERTY REBIND ───────────────────────────────────────
+$table2: { $foo: 42, $bar: "hello" };
+$table2;
+$table2.bar;        // prints “hello”
+$table2.foo <: 100;
+$table2.foo;
+$table2;            // prints “{ $foo: 100, $bar: "hello" }”
+
+//= EMPTY TABLE LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
+$emptyTable: {};
+$emptyTable;            // prints “{ }”
+$emptyTable.someKey;    // error: Keyname '$someKey' does not exist on this table
+
+//= NESTED TABLE + MIXED INDEX/ATTR ───────────────────────────────────────
+$nestedTable: {
+    $inner: {
+        $val: 42,
+        $arr: [10, 20]
+    }
+};
+$nestedTable;
+$nestedTable.inner.val;     // prints “42”
+$nestedTable.inner.arr.2;   // prints “20”
+
+//= REBINDING NESTED TABLES ───────────────────────────────────────────────
+$nestedTable.inner.val <: 100;
+$nestedTable.inner.val;     // prints “100”
+
+//= COMPLEX TABLE + LIST INDEX/PROPERTY ACCESS ─────────────────────────
+$complex: {
+    $tbl: { $a: [100, 200], $b: "x" },
+    $lst: [ { $foo: 1 }, { $foo: 2 } ]
+};
+$complex;           // prints { $tbl: { $a: [ 100, 200 ], $b: "x" }, $lst: [ { $foo: 1 }, { $foo: 2 } ] }
+$complex.tbl.a.1;    // prints “100”
+$complex.lst.2.foo;  // prints “2”
+
+//= TABLE OF LISTS + INDEX OF LIST ─────────────────────────────────────
+$tol: { $first: [1, 2], $second: [3, 4] };
+$tol;
+$tol.first.2;         // prints “2”
+$tol.second;          // prints “[ 3, 4 ]”
+
+//= MORE TABLE WEIRDNESS
+$deep-table: { $x: { $y: { $z: 7 } } };
+$deep-table;            // prints { $x: { $y: { $z: 7 } } }
+$deep-table.x.y.z; // prints 7
+
+//= Table property errors
+$table9: { $foo: 1 };
+$table9;                // prints { $foo: 1 }
+$table9.bar;         // error: table property '$bar' not found
+$table9.1;           // error: index applies to lists
+$table9.foo.bar;     // error: table property '$bar' not found
+
+$prim: 999;
+$prim;                      // prints 999;
+$prim.someKey <: 5;       // error: table property '$someKey' not found
+
+$myTbl: { $a: 1 };
+$myTbl;                    // prints { $a: 1 }
+$myTbl.1;                 // error: index applies to lists
+
+$tbl: { $x: 1 };
+$tbl;                   // prints { $x: 1 }
+$tbl.x <: 99;           // rebinds 99 to $tbl.x
+$tbl.x;                 // prints 99
+$tbl;                   // prints { $x: 99 }
+$tbl.y <: 42;           // error: table property '$y' not found <<<do we already have an error message for this?>>>
+
+//= Valid trailing commas (should succeed)
+$goodTable: { $foo: 1, $bar: 2, };
+$goodTable;
+
+//= invalid trailing commas (should error)
+$badTable1: { $foo: 1,, $bar: 2 };
+$badTable2: { ,$foo: 1, $bar: 2 };
+$badTable3: { , };
+
+//= TEXT + INTERPOLATION ───────────────────────────────────────────────────
+$text-example: ;
+$text-example <: "rebinding this text and ";
+$text-example;
+$text-example2: "this is text example 2";
+$text-example2;
+
+"just a plain text";   // prints “just a plain text”
+
+"<$text-example; $text-example2;>";   // prints “rebinding this text and this is text example 2”
+$math1-interp: 100;
+$math1-interp;
+$math2-interp: 5;
+$math2-interp;
+"<$math1-interp;> plus <$math2-interp;> is: <($math1-interp + $math2-interp);>";           // prints “100 plus 5 is: 105”
+
+//= NOW THAT $colors & $i ARE DEFINED, INTERPOLATE A STRING THAT USES THEM ─
+$index-interp: 2;
+$index-interp;
+$colors-interp: ["red", "purple", "green", "silver"];
+$colors-interp;
+$text-about-colors-list: "color <$index-interp;> is <$colors-interp.$index-interp;>";
+$text-about-colors-list;   // prints “color 2 is purple
+
+//= COMPLEX MATH INTERPOLATION ● MULTIPLE EXPRESSIONS ───────────────────
+$x <: 7;
+$x;
+$y <: 3;
+$y;
+"Sum=<($x + $y);> Prod=<($x * $y);>";   // prints “Sum=10 Prod=21”
+
+//= COMPOUND INTERPOLATION WITH TABLE+LIST ACCESS ────────────────────────
+$myTable: { $greeting: "hi", $nums: [2, 4] };
+$myTable;
+"<$myTable.greeting;>! The nums are:<$myTable.nums.1;>, and <$myTable.nums.2;>";
+                         // prints “hi! The nums are: 2,4”
+
+//= Unicode and weird strings
+$str: "π≈3.14";
+$str;                   // prints π≈3.14
+$esc: "foo\nbar";       // binds foo\nbar
+$esc;
+$esc2: "foo\"bar\"baz";
+$esc2;                  // prints foo"bar"baz
+
+//= Interpolation errors
+"text <bad syntax>";    // error: undefined variable or parse error in interp
+"hello <$foo + >";      // error: parse error in interpolation
+"hello <<$foo>>";       // error: nested <...> not allowed (for now)
+
+// ── FUNCTIONS  -------------------
+//= Empty function atom
+();  // prints nothing
+//= Function atom with just a single value
+(6);  // prints 6
+
+//= Function atom with single variable and implicit return
+($foo: 99; $foo); // prints 99
+
+//= Nested function atoms
+(($x: 2; $y: 3; $x * $y);); // prints 6
+(($x: 3; $y: 3; $x * $y)); // prints 9
+//= Function atom one liner with implicit return
+($x: 3, $y: 2; $x + $y);   // prints 5
+($x: 3; $y: 3; $x + $y);   // prints 6
+// (both commas and semicolons work for breaking up variables in single line statements)
+
+//= Function with only a return statement (multi-line)
+(
+    return(123);
+); // prints 123
+
+//= Multiline function atom with explicit return
+(
+$x: 100;
+$y: 100;
+return(($x + $y));
+
+); // prints 200
+
+//= Multiline function atom with explicit return 2
+($x: 101;
+$y: 100;
+return(($x + $y));); // prints 201
+
+//= Multiline nested function atoms
+(
+    $a: 10;
+    $b: 20;
+    return((
+        $c: 2;
+        return(($a + $b + $c));
+    ));
+); // prints 32
+
+//= Single line, implicit return, named function
+times2: (2 * 2); // binds (2 * 2) to the times2 keyname
+"this is the normal function call;";
+times2();       // prints 4
+"this is the $times2 style function call;";
+$times2;       // prints 4
+"this is the $times2(); style function call";
+$times2();       // prints 4
