@@ -1,6 +1,6 @@
-from .ast_nodes import TableAtom
+from src.enzo_parser.ast_nodes import TableAtom
 from src.error_handling import EnzoParseError
-from .parser_utilities import expect
+from src.enzo_parser.parser_utilities import expect
 
 def parse_table_atom(parser):
     expect(parser, "LBRACE")

@@ -1,5 +1,5 @@
-from .ast_nodes import FunctionAtom, Binding, VarInvoke
-from .parser_utilities import expect
+from src.enzo_parser.ast_nodes import FunctionAtom, Binding, VarInvoke
+from src.enzo_parser.parser_utilities import expect
 from src.runtime_helpers import log_debug
 from src.error_handling import EnzoParseError
 
@@ -34,7 +34,7 @@ def parse_function_atom(parser):
         log_debug(f"[parse_function_atom] parsing statement at token: {parser.peek()} (parser.pos={parser.pos})")
         try:
             stmt = parser.parse_statement()
-            from .ast_nodes import Binding
+            from src.enzo_parser.ast_nodes import Binding
             if isinstance(stmt, Binding):
                 local_vars.append(stmt)
             else:

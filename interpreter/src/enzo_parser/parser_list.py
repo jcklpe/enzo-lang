@@ -1,6 +1,6 @@
-from .ast_nodes import ListAtom
+from src.enzo_parser.ast_nodes import ListAtom
 from src.error_handling import EnzoParseError
-from .parser_utilities import expect
+from src.enzo_parser.parser_utilities import expect
 
 def parse_list_atom(parser):
     expect(parser, "LBRACK")

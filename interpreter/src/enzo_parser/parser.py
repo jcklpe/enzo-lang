@@ -1,7 +1,7 @@
 # Main parser entry point for Enzo
 
-from .ast_nodes import *
-from .tokenizer import Tokenizer
+from src.enzo_parser.ast_nodes import *
+from src.enzo_parser.tokenizer import Tokenizer
 from src.error_handling import EnzoParseError
 from src.error_messaging import (
     error_message_expected_type,
@@ -11,12 +11,12 @@ from src.error_messaging import (
     error_message_unmatched_brace,
     # ...other error messages as needed...
 )
-from .parser_utilities import get_code_line, peek, advance, expect
+from src.enzo_parser.parser_utilities import get_code_line, peek, advance, expect
 
 # Import parsing helpers from submodules
-from .parser_function import parse_function_atom
-from .parser_table import parse_table_atom
-from .parser_list import parse_list_atom
+from src.enzo_parser.parser_function import parse_function_atom
+from src.enzo_parser.parser_table import parse_table_atom
+from src.enzo_parser.parser_list import parse_list_atom
 
 class Parser:
     def __init__(self, src):
@@ -52,38 +52,65 @@ class Parser:
         return parse_table_atom(self)
 
     def parse_postfix(self, base):
-        # Correctly handle chained dot-number and dot-variable for nested indexing
+        # Handle function calls and chained dot-number and dot-variable for nested indexing
         debug_chain = []  # DEBUG: collect chain for print
-        while self.peek() and self.peek().type == "DOT":
-            self.advance()  # consume DOT
+
+        while True:
             t = self.peek()
-            code_line = self._get_code_line(t) if t else None
-            if t and t.type == "NUMBER_TOKEN":
-                num_token = self.advance().value
-                # Use int if possible, else float
-                if '.' in num_token:
-                    num = float(num_token)
+            if t and t.type == "DOT":
+                self.advance()  # consume DOT
+                t = self.peek()
+                code_line = self._get_code_line(t) if t else None
+                if t and t.type == "NUMBER_TOKEN":
+                    num_token = self.advance().value
+                    # Use int if possible, else float
+                    if '.' in num_token:
+                        num = float(num_token)
+                    else:
+                        num = int(num_token)
+                    debug_chain.append(f".{{{num}}}")  # DEBUG
+                    base = ListIndex(base, NumberAtom(num, code_line=code_line), code_line=code_line)
+                elif t and t.type == "KEYNAME":
+                    key = self.advance().value
+                    if key.startswith("$"):
+                        debug_chain.append(f".${{key}}")  # DEBUG
+                        base = ListIndex(base, VarInvoke(key, code_line=code_line), code_line=code_line)
+                    else:
+                        debug_chain.append(f".{key}")  # DEBUG
+                        base = TableIndex(base, key, code_line=code_line)
+                elif t and t.type == "TEXT_TOKEN":
+                    # Allow string as index: $list."foo"
+                    text_val = self.advance().value[1:-1]
+                    debug_chain.append(f'."{text_val}"')  # DEBUG
+                    base = ListIndex(base, TextAtom(text_val, code_line=code_line), code_line=code_line)
                 else:
-                    num = int(num_token)
-                debug_chain.append(f".{{{num}}}")  # DEBUG
-                base = ListIndex(base, NumberAtom(num, code_line=code_line), code_line=code_line)
-            elif t and t.type == "KEYNAME":
-                key = self.advance().value
-                if key.startswith("$"):
-                    debug_chain.append(f".${{key}}")  # DEBUG
-                    base = ListIndex(base, VarInvoke(key, code_line=code_line), code_line=code_line)
-                else:
-                    debug_chain.append(f".{key}")  # DEBUG
-                    base = TableIndex(base, key, code_line=code_line)
-            elif t and t.type == "TEXT_TOKEN":
-                # Allow string as index: $list."foo"
-                text_val = self.advance().value[1:-1]
-                debug_chain.append(f'."{text_val}"')  # DEBUG
-                base = ListIndex(base, TextAtom(text_val, code_line=code_line), code_line=code_line)
+                    # If not a valid index or property, break
+                    break
+            elif t and t.type == "LPAR":
+                # Function call: parse arguments
+                self.advance()  # consume LPAR
+                args = []
+                code_line = self._get_code_line(t)
+
+                # Parse arguments
+                while self.peek() and self.peek().type != "RPAR":
+                    args.append(self.parse_value_expression())
+                    if self.peek() and self.peek().type == "COMMA":
+                        self.advance()  # consume comma
+                    elif self.peek() and self.peek().type != "RPAR":
+                        raise EnzoParseError("Expected ',' or ')' in function call", code_line=code_line)
+
+                if not self.peek() or self.peek().type != "RPAR":
+                    raise EnzoParseError("Expected ')' to close function call", code_line=code_line)
+                self.advance()  # consume RPAR
+
+                base = Invoke(base, args, code_line=code_line)
+                debug_chain.append(f"(...)")  # DEBUG
             else:
-                # If not a valid index or property, break
+                # No more postfix operations
                 break
-        # DEBUG: print the final AST for chained dot access
+
+        # DEBUG: print the final AST for chained operations
         if debug_chain:
             pass  # print(f"[DEBUG parser] parse_postfix chain: {debug_chain} -> AST: {base}")
         return base

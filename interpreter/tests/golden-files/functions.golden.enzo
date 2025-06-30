@@ -15,10 +15,14 @@
 200
 //= Multiline function atom with explicit return 2
 201
+
 //= Multiline nested function atoms
 32
 
 //= Single line, implicit return, named function
+"this is the normal function call;"
 4
+"this is the $times2 style function call;"
 4
+"this is the $times2(); style function call"
 4

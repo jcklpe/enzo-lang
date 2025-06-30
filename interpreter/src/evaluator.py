@@ -91,10 +91,21 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             return None  # Do not output anything for empty bind
         # If value is a FunctionAtom, store as function object, not result
         if isinstance(node.value, FunctionAtom):
-            env[name] = EnzoFunction(node.value.params, node.value.local_vars, node.value.body, env, getattr(node.value, 'is_multiline', False))
+            fn = EnzoFunction(node.value.params, node.value.local_vars, node.value.body, env, getattr(node.value, 'is_multiline', False))
+            env[name] = fn
+            # For bare keyname bindings (without $), also make accessible with $ prefix
+            if not name.startswith('$'):
+                dollar_name = '$' + name
+                if dollar_name not in env:  # Don't overwrite existing $variable
+                    env[dollar_name] = fn
             return None  # Do not output anything for assignment
         val = eval_ast(node.value, value_demand=False, env=env)  # storage context
         env[name] = val
+        # For bare keyname bindings (without $), also make accessible with $ prefix
+        if not name.startswith('$'):
+            dollar_name = '$' + name
+            if dollar_name not in env:  # Don't overwrite existing $variable
+                env[dollar_name] = val
         return None  # Do not output anything for assignment
     if isinstance(node, VarInvoke):
         name = node.name
@@ -137,7 +148,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         right = eval_ast(node.right, value_demand=True, env=env)
         return left / right
     if isinstance(node, Invoke):
-        left = eval_ast(node.func, value_demand=True, env=env)
+        left = eval_ast(node.func, value_demand=False, env=env)  # Get function object, don't invoke it yet
         args = [eval_ast(arg, value_demand=True, env=env) for arg in node.args]
         # List indexing
         if isinstance(left, list):

@@ -1,0 +1,8 @@
+//= Single line, implicit return, named function
+times2: (2 * 2); // binds (2 * 2) to the times2 keyname
+"this is the normal function call;";
+times2();       // prints 4
+"this is the $times2 style function call;";
+$times2;       // prints 4
+"this is the $times2(); style function call";
+$times2();       // prints 4
