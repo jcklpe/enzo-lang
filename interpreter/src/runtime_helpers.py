@@ -46,9 +46,5 @@ def clear_debug_log():
         pass
 
 def log_debug(msg):
-    log_path = os.path.join(os.path.dirname(__file__), "logs", "debug.log")
-    try:
-        with open(log_path, "a") as f:
-            f.write(msg + "\n")
-    except Exception:
-        pass
+    pass
+    # print(msg)

@@ -175,16 +175,24 @@ class Parser:
             err.code_line = code_line
             raise err
 
-        # --- FIX: Recognize explicit return statement BEFORE parsing value expressions ---
-        if t and t.type == "KEYNAME" and t.value == "return":
-            self.advance()
-            # Support both return(expr) and return expr
-            if self.peek() and self.peek().type == "LPAR":
+        # --- Handle return statement as a complete semantic unit: return(...) ---
+        if t and t.type == "RETURN":
+            self.advance()  # consume 'return'
+            # Expect opening parenthesis
+            if not self.peek() or self.peek().type != "LPAR":
+                raise EnzoParseError("Expected '(' after 'return'", code_line=code_line)
+            self.advance()  # consume '('
+            # Parse the expression inside the parentheses
+            expr = self.parse_value_expression()
+            # Expect closing parenthesis
+            if not self.peek() or self.peek().type != "RPAR":
+                raise EnzoParseError("Expected ')' after return expression", code_line=code_line)
+            self.advance()  # consume ')'
+            # Always consume a trailing semicolon or comma after return
+            if self.peek() and self.peek().type in ("SEMICOLON", "COMMA"):
                 self.advance()
-                expr = self.parse_value_expression()
-                self.expect("RPAR")
-            else:
-                expr = self.parse_value_expression()
+                from src.runtime_helpers import log_debug
+                log_debug(f"[parse_statement] consumed delimiter after return at parser.pos={self.pos}")
             from .ast_nodes import ReturnNode
             return ReturnNode(expr, code_line=code_line)
 
@@ -219,6 +227,7 @@ class Parser:
         return expr1
 
     def parse_statements(self):
+        from src.runtime_helpers import log_debug
         stmts = []
         while self.pos < len(self.tokens):
             stmt = self.parse_statement()
@@ -226,6 +235,7 @@ class Parser:
             # Accept and consume all consecutive semicolons or commas after a statement
             while self.peek() and self.peek().type in ("SEMICOLON", "COMMA"):
                 self.advance()
+                log_debug(f"[main parser] skipped trailing delimiter after statement, now at parser.pos={self.pos}")
             # Stop if next token is a closing delimiter or end of input
             if self.peek() and self.peek().type in ("RPAR", "RBRACK", "RBRACE"):
                 break
@@ -240,10 +250,12 @@ class Parser:
         return stmts
 
     def parse(self):
+        from src.runtime_helpers import log_debug
         ast = self.parse_block()
         # Consume any trailing semicolons/commas after a block
         while self.peek() and self.peek().type in ("SEMICOLON", "COMMA"):
             self.advance()
+            log_debug(f"[main parser] skipped trailing delimiter after block, now at parser.pos={self.pos}")
         if self.pos != len(self.tokens):
             raise EnzoParseError(error_message_unexpected_token(self.tokens[self.pos]))
         return ast

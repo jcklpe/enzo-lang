@@ -1,59 +1,74 @@
 from .ast_nodes import FunctionAtom, Binding, VarInvoke
 from .parser_utilities import expect
+from src.runtime_helpers import log_debug
+from src.error_handling import EnzoParseError
 
 import os
 
-def log_debug(msg):
-    log_path = os.path.join(os.path.dirname(__file__), "../logs/debug.log")
-    with open(log_path, "a") as f:
-        f.write(msg + "\n")
+
+
+def synchronize(parser):
+    # Skip tokens until we reach a likely statement boundary: SEMICOLON, COMMA, RPAR, RBRACK, RBRACE, or EOF
+    while parser.peek() and parser.peek().type not in ("SEMICOLON", "COMMA", "RPAR", "RBRACK", "RBRACE"):
+        parser.advance()
+    # Optionally, advance past the boundary token
+    if parser.peek():
+        parser.advance()
+
 
 def parse_function_atom(parser):
-    # Log tokens before parsing
-    log_debug(f"[parse_function_atom] tokens before: {parser.tokens[parser.pos:]}")
+    from src.error_handling import EnzoParseError
+    from src.runtime_helpers import log_debug
+    lpar_token = parser.peek()
+    log_debug(f"[parse_function_atom] ENTER pos={parser.pos}, token={lpar_token}")
     expect(parser, "LPAR")
-    t = parser.peek()
-    if t and t.type == "RPAR":
-        parser.advance()
-        ast = FunctionAtom([], [], [], code_line=parser._get_code_line(t))
-        log_debug(f"[parse_function_atom] AST: {ast}")
-        log_debug(f"[parse_function_atom] tokens after: {parser.tokens[parser.pos:]}")
-        return ast
+    lpar_line = None
+    if lpar_token:
+        lpar_line = parser.src[:lpar_token.start].count('\n') + 1
 
-    params = []
     local_vars = []
     body = []
 
-    # Parse bindings (KEYNAME: ...) at the start
-    while True:
-        t = parser.peek()
-        t2 = parser.tokens[parser.pos + 1] if parser.pos + 1 < len(parser.tokens) else None
-        # Only treat as binding if KEYNAME followed by BIND
-        if t and t.type == "KEYNAME" and t2 and t2.type == "BIND":
-            name = parser.advance().value
-            parser.advance()  # consume BIND
-            # Support empty bind: $x: ;
-            if parser.peek() and parser.peek().type in ("SEMICOLON", "COMMA", "RPAR"):
-                local_vars.append(Binding(name, None))
+    # Parse the body statements directly with the main parser
+    while parser.peek() and parser.peek().type != "RPAR":
+        log_debug(f"[parse_function_atom] parsing statement at token: {parser.peek()} (parser.pos={parser.pos})")
+        try:
+            stmt = parser.parse_statement()
+            from .ast_nodes import Binding
+            if isinstance(stmt, Binding):
+                local_vars.append(stmt)
             else:
-                value = parser.parse_value_expression()
-                local_vars.append(Binding(name, value))
-            # Accept and consume all consecutive semicolons or commas after a binding
-            while parser.peek() and parser.peek().type in ("SEMICOLON", "COMMA"):
-                parser.advance()
-            continue
-        break
-
-    # After bindings, parse the body (statements) until RPAR
-    while parser.peek() and parser.peek().type not in ("RPAR",):
-        stmt = parser.parse_statement()  # <-- use parse_statement, not parse_value_expression
-        body.append(stmt)
-        # Accept and consume all consecutive semicolons or commas after a statement
+                body.append(stmt)
+        except Exception as e:
+            log_debug(f"[parse_function_atom] ERROR in statement: {e}")
+            synchronize(parser)
+            break
+        # Always consume all delimiters after every statement, including after return
         while parser.peek() and parser.peek().type in ("SEMICOLON", "COMMA"):
             parser.advance()
+            log_debug(f"[parse_function_atom] skipped delimiter, now at parser.pos={parser.pos}")
 
-    parser.expect("RPAR")
-    ast = FunctionAtom([], local_vars, body)
+    # Expect the closing RPAR
+    if parser.peek() and parser.peek().type == "RPAR":
+        rpar_token = parser.peek()
+        parser.advance()  # consume the RPAR
+        log_debug(f"[parse_function_atom] consumed closing RPAR at parser.pos={parser.pos-1}")
+
+        rpar_line = parser.src[:rpar_token.start].count('\n') + 1
+        log_debug(f"[parse_function_atom] lpar_line={lpar_line}, rpar_line={rpar_line}")
+        is_multiline = lpar_line is not None and rpar_line is not None and lpar_line != rpar_line
+        log_debug(f"[parse_function_atom] is_multiline={is_multiline}")
+    else:
+        log_debug(f"[parse_function_atom] ERROR: expected RPAR but found {parser.peek()}")
+        synchronize(parser)
+        raise EnzoParseError("Unmatched parenthesis in function atom (no closing ')')")
+
+    # Defensive: check for unexpected tokens after function atom
+    while parser.peek() and parser.peek().type in ("SEMICOLON", "COMMA"):
+        log_debug(f"[parse_function_atom] main parser skipping trailing delimiter after function atom at parser.pos={parser.pos}")
+        parser.advance()
+
+    ast = FunctionAtom([], local_vars, body, code_line=parser._get_code_line(lpar_token), is_multiline=is_multiline)
     log_debug(f"[parse_function_atom] AST: {ast}")
-    log_debug(f"[parse_function_atom] tokens after: {parser.tokens[parser.pos:]}")
+    log_debug(f"[parse_function_atom] EXIT parser.pos={parser.pos}, next token={parser.peek()}")
     return ast

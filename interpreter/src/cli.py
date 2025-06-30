@@ -1,19 +1,22 @@
 import os
+import sys
+
+# Add the interpreter directory to the path so we can import src modules
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.runtime_helpers import clear_debug_log
 clear_debug_log()  # <-- Clear the debug log at the very start
 
-import sys
 import re
 from src.enzo_parser.parser import parse  # Use new parser
 from src.evaluator    import eval_ast
-from src.runtime_helpers import Table, format_val
+from src.runtime_helpers import Table, format_val, log_debug
 
 # CRITICAL INFO: ALL ERROR HANDLING MUST BE USE THE CENTRALIZED error_handling.py MODULE
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoParseError
 
 # CRITICAL INFO: ALL ERROR MESSAGING MUST BE USE THE CENTRALIZED error_messaging.py MODULE
 from src.error_messaging import format_parse_error, error_message_unterminated_interpolation, error_message_included_file_not_found, error_message_generic
-from lark import UnexpectedToken, UnexpectedInput, UnexpectedCharacters
 from src.color_helpers import color_error, color_code
 
 
@@ -146,7 +149,9 @@ def run_enzo_file(filename):
             print(statement.rstrip())
             continue
         # --- NEW: If this block is a list of single-line statements, process each line independently ---
-        if all(';' in line for line in stmt_lines) and len(stmt_lines) > 1:
+        # BUT: Don't do this if the block starts with '(' (function atom) or other multi-line constructs
+        if (all(';' in line for line in stmt_lines) and len(stmt_lines) > 1 and
+            not any(line.strip().startswith(('(', '[', '{')) for line in stmt_lines)):
             for line in stmt_lines:
                 line = line.strip()
                 if not line:
@@ -176,17 +181,9 @@ def run_enzo_file(filename):
                     else:
                         print_enzo_error(msg)
                     continue
-                except (UnexpectedToken, UnexpectedInput, UnexpectedCharacters) as e:
-                    if isinstance(e, UnexpectedToken) and getattr(e, 'token', None):
-                        msg = format_parse_error(e, src=line)
-                        print_enzo_error(msg)
-                        continue
+                except EnzoParseError as e:
                     msg = format_parse_error(e, src=line)
-                    if "\n" in msg:
-                        errline, context = msg.split("\n", 1)
-                        print_enzo_error(errline + "\n" + context)
-                    else:
-                        print_enzo_error(msg)
+                    print_enzo_error(msg)
                     continue
                 except Exception as e:
                     msg = format_parse_error(e, src=line) if hasattr(e, 'code_line') or hasattr(e, 'line') or hasattr(e, 'column') else error_message_generic(str(e))
@@ -198,6 +195,10 @@ def run_enzo_file(filename):
             statement = statement.split('//', 1)[0].rstrip()
         if not statement:
             continue
+
+        # DEBUG: Log what we're about to parse
+        log_debug(f"[CLI] About to parse statement: {repr(statement)}")
+
         try:
             result = eval_ast(parse(statement), value_demand=True)
             if result is not None:
@@ -218,17 +219,9 @@ def run_enzo_file(filename):
             else:
                 print_enzo_error(msg)
             continue
-        except (UnexpectedToken, UnexpectedInput, UnexpectedCharacters) as e:
-            if isinstance(e, UnexpectedToken) and getattr(e, 'token', None):
-                msg = format_parse_error(e, src=statement)
-                print_enzo_error(msg)
-                continue
+        except EnzoParseError as e:
             msg = format_parse_error(e, src=statement)
-            if "\n" in msg:
-                errline, context = msg.split("\n", 1)
-                print_enzo_error(errline + "\n" + context)
-            else:
-                print_enzo_error(msg)
+            print_enzo_error(msg)
             continue
         except Exception as e:
             msg = format_parse_error(e, src=statement) if hasattr(e, 'code_line') or hasattr(e, 'line') or hasattr(e, 'column') else error_message_generic(str(e))
@@ -261,11 +254,6 @@ def process_includes(lines, base_dir=None, already_included=None):
             yield from process_includes(sub_lines, base_dir=sub_base, already_included=already_included)
         else:
             yield line
-
-def log_debug(msg):
-    log_path = os.path.join(os.path.dirname(__file__), "logs", "debug.log")
-    with open(log_path, "a") as f:
-        f.write(msg + "\n")
 
 def main():
     # --- FILE RUNNER MODE ---
@@ -342,20 +330,14 @@ def main():
                 print(color_code(context))
             else:
                 print(color_error(msg))
-        except (UnexpectedToken, UnexpectedInput, UnexpectedCharacters) as e:
-            if isinstance(e, UnexpectedToken) and getattr(e, 'token', None):
-                from src.error_messaging import error_message_unexpected_token
-                msg = error_message_unexpected_token(e.token)
-                print(color_error(msg))
-                print(color_code("    " + line))
+        except EnzoParseError as e:
+            msg = format_parse_error(e, src=line)
+            if "\n" in msg:
+                errline, context = msg.split("\n", 1)
+                print(color_error(errline))
+                print(color_code(context))
             else:
-                fullmsg = format_parse_error(e, src=line)
-                if "\n" in fullmsg:
-                    errline, context = fullmsg.split("\n", 1)
-                    print(color_error(errline))
-                    print(color_code(context))
-                else:
-                    print(color_error(fullmsg))
+                print(color_error(msg))
         except ReturnSignal as ret:
             print(ret.value)
         except Exception as e:

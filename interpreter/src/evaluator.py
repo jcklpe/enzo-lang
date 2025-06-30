@@ -1,5 +1,5 @@
 from src.enzo_parser.parser import parse
-from src.runtime_helpers import Table, format_val
+from src.runtime_helpers import Table, format_val, log_debug
 from collections import ChainMap
 from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, TableIndex, ReturnNode
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
@@ -23,16 +23,17 @@ import os
 _env = {}  # single global environment
 
 class EnzoFunction:
-    def __init__(self, params, local_vars, body, closure_env):
+    def __init__(self, params, local_vars, body, closure_env, is_multiline=False):
         self.params = params          # list of (name, default)
         self.local_vars = local_vars  # list of Binding nodes
         self.body = body              # list of AST stmts
         self.closure_env = closure_env.copy()  # captured env for closure
+        self.is_multiline = is_multiline      # track if function atom is multiline
 
     def __repr__(self):
         # Show only param names for readability
         param_names = [p[0] if isinstance(p, (list, tuple)) else str(p) for p in self.params]
-        return f"<function ({', '.join(param_names)}) ...>"
+        return f"<function ({', '.join(param_names)}) multiline={self.is_multiline}>"
 
 def invoke_function(fn, args, env):
     if not isinstance(fn, EnzoFunction):
@@ -63,11 +64,6 @@ def invoke_function(fn, args, env):
     return res
 
 
-def log_debug(msg):
-    log_path = os.path.join(os.path.dirname(__file__), "logs", "debug.log")
-    with open(log_path, "a") as f:
-        f.write(msg + "\n")
-
 def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None):
     if env is None:
         env = _env
@@ -95,7 +91,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             return None  # Do not output anything for empty bind
         # If value is a FunctionAtom, store as function object, not result
         if isinstance(node.value, FunctionAtom):
-            env[name] = EnzoFunction(node.value.params, node.value.local_vars, node.value.body, env)
+            env[name] = EnzoFunction(node.value.params, node.value.local_vars, node.value.body, env, getattr(node.value, 'is_multiline', False))
             return None  # Do not output anything for assignment
         val = eval_ast(node.value, value_demand=False, env=env)  # storage context
         env[name] = val
@@ -120,10 +116,10 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
     if isinstance(node, FunctionAtom):
         # Demand-value context: invoke
         if value_demand:
-            fn = EnzoFunction(node.params, node.local_vars, node.body, env)
+            fn = EnzoFunction(node.params, node.local_vars, node.body, env, getattr(node, 'is_multiline', False))
             return invoke_function(fn, [], env)
         else:
-            return EnzoFunction(node.params, node.local_vars, node.body, env)
+            return EnzoFunction(node.params, node.local_vars, node.body, env, getattr(node, 'is_multiline', False))
     if isinstance(node, AddNode):
         left = eval_ast(node.left, value_demand=True, env=env)
         right = eval_ast(node.right, value_demand=True, env=env)
@@ -180,9 +176,14 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         results = []
         for stmt in node.statements:
             if stmt is not None:
-                val = eval_ast(stmt, value_demand=True, env=env)
-                if val is not None:
-                    results.append(val)
+                try:
+                    val = eval_ast(stmt, value_demand=True, env=env)
+                    if val is not None:
+                        results.append(val)
+                except Exception as e:
+                    # Format the error as string, as the test runner expects error output
+                    results.append(str(e))
+                    break  # Stop evaluating further statements after the first error
         # Print each result on its own line (handled by CLI), or return as list for test runner
         return results
     if isinstance(node, list):
