@@ -3,11 +3,13 @@
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jcklpe/enzo-lang/blob/master/interpreter/demo.ipynb)
 
+
 Code is the ultimate user interface. It is the final user interface on which all other user interfaces are built. So I think it’s interesting to explore this space as a UX designer.
 
 Originally this started as a fantasy sketch of what I thought a nice language syntax would look like. As I was learning programming stuff, I'd get frustrated or find a particular way of doing things ugly or confusing, so I'd creatively vent by writing this document and it helped me understand the programming concepts for the real language I was learning. I had no intention of implementing it, but now I am!
 
 I'm def interested in feedback but also understand that this is basically just a kid drawing pictures of racecars and wishing he was Batman. I'm doing this for my own enjoyment and to help me better understand programming, and I make no pretense that this language is going to ever be used in the real world, or is superior to existing languages in any fashion, aesthetic or otherwise. This is more of an art project.
+
 
 Also want to give a shout out to the ["Quorum Language Project"](https://quorumlanguage.com/) for opening my eyes to the intersection between UX practice and syntax design.
 
@@ -199,9 +201,11 @@ return(($x + $y));
 ); // returns 200
 ```
 
+
 Single line function atoms do not require an explicit return. Multi-line function atoms must always have an explicit return.
 
 Function atoms can also be assigned to a keyname.
+
 ```javascript!
 function-example: (
 
@@ -241,6 +245,7 @@ In Enzo, parentheses always create a function atom (an anonymous function/code b
 If a function atom appears in a context that requires its value immediately (such as a top-level statement, string interpolation, or as a value in a return statement), it is immediately invoked.
 If a function atom is being bound to a variable, stored in a table or list, or passed as an argument to a function that expects a function, it is stored as a function object and only invoked when called.
 This is called demand-driven function atom evaluation.
+
 
 ##### Empty variables (null, undefined)
 
@@ -356,6 +361,7 @@ Referencing a function however has an `@` sigil:
 ```javascript!
 @function-name;   // returns the function object
 @function-name(); // this is an error. You can't do this.
+
 ```
 
 Example of this in action:
@@ -783,7 +789,7 @@ $thirdUppercaseColor:
 1. Enzo is expression oriented rather than statement oriented.
 2. Enzo is static (lexical) scoped.
 3. Enzo does not use parentheses for the dual purpose of groupings and code blocks. All parentheses are anon-functions/expression-blocks/code-blocks, however you want to phrase it. In this way Enzo is a lot like LISP. There is no meaningful distinction between `(10 + 2)` and `($x + 4)`.
-4.
+
 
 ---
 
