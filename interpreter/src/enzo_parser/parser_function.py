@@ -61,7 +61,8 @@ def parse_function_atom(parser):
     else:
         log_debug(f"[parse_function_atom] ERROR: expected RPAR but found {parser.peek()}")
         synchronize(parser)
-        raise EnzoParseError("Unmatched parenthesis in function atom (no closing ')')")
+        from src.error_messaging import error_message_unmatched_parenthesis
+        raise EnzoParseError(error_message_unmatched_parenthesis())
 
     # Defensive: check for unexpected tokens after function atom
     while parser.peek() and parser.peek().type in ("SEMICOLON", "COMMA"):

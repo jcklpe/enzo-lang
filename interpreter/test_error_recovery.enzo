@@ -1,0 +1,3 @@
+//= Test error recovery
+(1 + 2                 // error: unmatched parenthesis
+(1 + 2;                 // error: unmatched parenthesis

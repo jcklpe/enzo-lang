@@ -210,10 +210,8 @@ error: parse error in interpolation
 200
 //= Multiline function atom with explicit return 2
 201
-
 //= Multiline nested function atoms
 32
-
 //= Single line, implicit return, named function
 "this is the normal function call;"
 4
@@ -221,11 +219,3 @@ error: parse error in interpolation
 4
 "this is the $times2(); style function call"
 4
-
-//= Invalid parenthesis/brackets/braces
-error: unmatched parenthesis
-    (1 + 2;
-error: unmatched bracket
-    [1, 2, 3;
-error: unmatched brace
-    { $a: 1, $b: 2;

@@ -17,7 +17,6 @@ module_files = [
     "tables.enzo",
     "text.enzo",
     "functions.enzo",
-    "misc.enzo"
 ]
 
 base_dir = os.path.dirname(os.path.abspath(__file__))

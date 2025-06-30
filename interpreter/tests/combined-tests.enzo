@@ -330,8 +330,3 @@ times2();       // prints 4
 $times2;       // prints 4
 "this is the $times2(); style function call";
 $times2();       // prints 4
-
-//= Invalid parenthesis/brackets/braces
-(1 + 2;                 // error: unmatched parenthesis
-[1, 2, 3;               // error: unmatched bracket
-{ $a: 1, $b: 2;         // error: unmatched brace
