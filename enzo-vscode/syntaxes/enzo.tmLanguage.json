@@ -203,15 +203,15 @@
     "operators": {
       "patterns": [
         {
-          "name": "keyword.operator",
+          "name": "keyword.operator.assignment",
           "match": "(<:|:>|:)"
         },
         {
-          "name": "keyword.operator.arithmetic.enzo",
+          "name": "keyword.operator.arithmetic",
           "match": "[+\\-*/]"
         },
         {
-          "name": "keyword.operator.comparison.enzo",
+          "name": "keyword.operator.comparison",
           "match": "="
         }
       ]
