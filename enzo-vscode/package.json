@@ -25,6 +25,26 @@
         "scopeName": "source.enzo",
         "path": "./syntaxes/enzo.tmLanguage.json"
       }
-    ]
+    ],
+    "configurationDefaults": {
+      "editor.tokenColorCustomizations": {
+        "textMateRules": [
+          {
+            "scope": [
+              "keyword.operator.assignment"
+            ],
+            "settings": {
+              "foreground": "#FF8C00"
+            }
+          },
+          {
+            "scope": "constant.numeric",
+            "settings": {
+              "foreground": "#FFD700"
+            }
+          }
+        ]
+      }
+    }
   }
 }

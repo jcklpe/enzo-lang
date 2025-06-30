@@ -11,7 +11,8 @@
   "brackets": [
     ["{", "}"],
     ["[", "]"],
-    ["(", ")"]
+    ["(", ")"],
+    ["<", ">"]
   ],
 
   // ===== Auto-closing pairs =====
@@ -21,7 +22,8 @@
     { "open": "[", "close": "]" },
     { "open": "(", "close": ")" },
     { "open": "\"", "close": "\"", "notIn": ["string"] },
-    { "open": "'",  "close": "'",  "notIn": ["string", "comment"] }
+    { "open": "'",  "close": "'",  "notIn": ["string", "comment"] },
+    { "open": "<", "close": ">", "notIn": ["string"] }
   ],
 
   // ===== Surrounding pairs =====
@@ -30,4 +32,18 @@
     { "open": "{", "close": "}" },
     { "open": "[", "close": "]" },
     { "open": "(", "close": ")" },
-    { "open":
+    { "open": "\"", "close": "\"" },
+    { "open": "'", "close": "'" },
+    { "open": "<", "close": ">" }
+  ],
+
+  // ===== Word pattern =====
+  // defines what constitutes a "word" for word-based operations
+  "wordPattern": "\\$?[a-zA-Z_\\-][a-zA-Z0-9_\\-]*",
+
+  // ===== Indentation rules =====
+  "indentationRules": {
+    "increaseIndentPattern": "^.*(\\{|\\(|\\[)\\s*$",
+    "decreaseIndentPattern": "^\\s*(\\}|\\)|\\])"
+  }
+}

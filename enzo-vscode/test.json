@@ -1,0 +1,28 @@
+{
+  // ...existing code...
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      // ...existing code...
+      {
+        "scope": "keyword.operator.enzo",
+        "settings": {
+          "foreground": "#FF8C00"
+        }
+      },
+      {
+        "scope": "keyword.operator",
+        "settings": {
+          "foreground": "#FF8C00"
+        }
+      },
+      {
+        "scope": "constant.numeric",
+        "settings": {
+          "foreground": "#FFD700"
+        }
+      }
+      // ...existing code...
+    ]
+  },
+  // ...existing code...
+}

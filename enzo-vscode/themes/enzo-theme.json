@@ -1,0 +1,68 @@
+{
+  "name": "Enzo Language Theme",
+  "type": "dark",
+  "colors": {
+    "editor.background": "#1e1e1e",
+    "editor.foreground": "#d4d4d4"
+  },
+  "tokenColors": [
+    {
+      "scope": [
+        "constant.numeric",
+        "constant.numeric.integer.enzo",
+        "constant.numeric.float.enzo",
+        "constant.numeric.decimal.enzo"
+      ],
+      "settings": {
+        "foreground": "#FFD700"
+      }
+    },
+    {
+      "scope": [
+        "keyword.operator.assignment.enzo",
+        "keyword.operator.assignment.bind.enzo",
+        "keyword.operator"
+      ],
+      "settings": {
+        "foreground": "#FF8C00"
+      }
+    },
+    {
+      "scope": [
+        "entity.name.function.enzo",
+        "entity.name.function.definition.enzo",
+        "entity.name.function.call.enzo"
+      ],
+      "settings": {
+        "foreground": "#569CD6"
+      }
+    },
+    {
+      "scope": [
+        "variable.other.enzo",
+        "variable.function.call.enzo"
+      ],
+      "settings": {
+        "foreground": "#9CDCFE"
+      }
+    },
+    {
+      "scope": [
+        "string.quoted.double.enzo"
+      ],
+      "settings": {
+        "foreground": "#CE9178"
+      }
+    },
+    {
+      "scope": [
+        "comment.line.double-slash.enzo",
+        "comment.line.test-case.enzo",
+        "comment.block.enzo"
+      ],
+      "settings": {
+        "foreground": "#6A9955"
+      }
+    }
+  ]
+}
