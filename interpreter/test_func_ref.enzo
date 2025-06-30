@@ -1,7 +1,7 @@
 // Test function reference (@) and function invocation ($)
 
 // Define a simple function
-times2: (x * 2);
+times2: ($x * 2);
 
 // Test function reference - should return the function object, not execute it
 func_ref: @times2;

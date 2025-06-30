@@ -795,7 +795,7 @@ $thirdUppercaseColor:
 4. addition, subtraction (`+`, `-`)
 5. variable declaration and assignment ( `:` `<:` `:>`)
 6. pipeline operator (`then`)
-7. comparison operators (`is`, `not`, `is not`, `less than`, `greather than`, `at most`, `at least` )
+7. comparison operators (`is`, `not`, `is not`, `less than`, `greater than`, `at most`, `at least` )
 8. logical operators (`and`, `or`)
 
 

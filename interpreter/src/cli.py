@@ -141,9 +141,6 @@ def run_enzo_file(filename):
         lines = f.readlines()
     lines = list(process_includes(lines, base_dir=os.path.dirname(os.path.abspath(filename))))
     stmts = split_statements(lines)
-    print(f"[DEBUG] Found {len(stmts)} statement blocks:")
-    for i, stmt_lines in enumerate(stmts):
-        print(f"[DEBUG] Block {i}: {stmt_lines}")
     for stmt_lines in stmts:
         statement = '\n'.join(stmt_lines).strip()
         if not statement:
