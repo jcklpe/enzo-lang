@@ -44,10 +44,10 @@ def parse_function_atom(parser):
             continue
         break
 
-    # After bindings, parse the body (expressions/statements) until RPAR
+    # After bindings, parse the body (statements) until RPAR
     while parser.peek() and parser.peek().type not in ("RPAR",):
-        expr = parser.parse_value_expression()
-        body.append(expr)
+        stmt = parser.parse_statement()  # <-- use parse_statement, not parse_value_expression
+        body.append(stmt)
         # Accept and consume all consecutive semicolons or commas after a statement
         while parser.peek() and parser.peek().type in ("SEMICOLON", "COMMA"):
             parser.advance()

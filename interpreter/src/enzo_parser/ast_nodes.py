@@ -135,4 +135,11 @@ class TableIndex(ASTNode):
         self.key = key    # The key (should be a string or VarInvoke)
     def __repr__(self):
         return f"TableIndex(base={self.base!r}, key={self.key!r})"
+
+class ReturnNode(ASTNode):
+    def __init__(self, value, code_line=None):
+        super().__init__(code_line)
+        self.value = value
+    def __repr__(self):
+        return f"ReturnNode(value={self.value!r})"
 # ...add more as needed

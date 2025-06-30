@@ -175,6 +175,19 @@ class Parser:
             err.code_line = code_line
             raise err
 
+        # --- FIX: Recognize explicit return statement BEFORE parsing value expressions ---
+        if t and t.type == "KEYNAME" and t.value == "return":
+            self.advance()
+            # Support both return(expr) and return expr
+            if self.peek() and self.peek().type == "LPAR":
+                self.advance()
+                expr = self.parse_value_expression()
+                self.expect("RPAR")
+            else:
+                expr = self.parse_value_expression()
+            from .ast_nodes import ReturnNode
+            return ReturnNode(expr, code_line=code_line)
+
         # Support assignment to variable, list index, or table index
         # Parse a value expression (could be VarInvoke, ListIndex, TableIndex, etc.)
         expr1 = self.parse_value_expression()
