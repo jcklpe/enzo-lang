@@ -26,5 +26,9 @@
         "path": "./syntaxes/enzo.tmLanguage.json"
       }
     ]
-  }
+  },
+  "activationEvents": [
+    "onLanguage:enzo"
+  ],
+  "main": "./extension.js"
 }
