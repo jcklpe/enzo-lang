@@ -1,18 +1,108 @@
-//= anon function and pipes (pipes not yet implemented so they have been commented out)
+//= function atoms and pipes
 // Single-line anonymous function returns 6
 ($x: 1, $y: 5; $x + $y); // → 6
 
+// simple addition
+10 then ($this + 1); // returns 11
+
+// single value function atom to function atom
+(6); then ($this + 6); // → 12
+
+// function atom with local var
+6 then ($y: 10; $this + $y); // → 16
+
+// function atom with multiple local var
+6 then ($y: 10; $z: 4; $this + $y + $z); // → 20
+6 then ($y: 4, $z: 5; $this + $y + $z); // → 15
+
+// $this passed to local var
+10 then ($n: $this; $n * 2); // should return 20
+10 then ($this :> $n; $n * 3); // should return 30
+
+// Global variable
+$global-pipe-var: 10;
+$global-pipe-var;
+10 then ($this * $global-pipe-var); // should return 100
+$global-pipe-var<:5;
+$global-pipe-var;
+10 then ($this * $global-pipe-var); // should return 50
+10 then ($this + $global-pipe-var) then ($this + $global-pipe-var); // should return 20
+
 // Pipeline with value feeding into function
-//($z: 5; $z); then ($x: 1, $y: 5; $x + $y); // → 10
+($z: 5; $z); then ($y: 5; $this + $y); // → 10
 
-// Bare paren value
-(6); // → 6
+// pipeline for multiple function atoms
+10 then ($this + 1) then ($this + 1); // returns 12
 
-// Pipeline with constant value to function
-//(6) then ($x: 1, $y: 5; $x + $y); // → 11
+//= Multiline function atom
+10 then (
+    return($this);
+); // returns 10
 
-// Constant function in pipeline
-//(42); then ($x: 100, $y: 1; $x - $y); // → 41
+10 then ($x: 5;
+$x + $this :> $sum;
+return($sum);); // returns 15
 
-// Use with different pipeline stages (future-proof for more chaining)
-//(2) then ($x: 10; $x + 10) then ($x: 0; $x * 3); // → 36
+10 then (
+    $y: 6;
+    $x: 4;
+    return(($this + $x + $y));
+); // returns 20
+
+10 then (
+    $y: 6;
+    $x: 4;
+    return(($this + $x + $y));
+) then (
+    $y: 6;
+    $x: 4;
+    return(($this + $x + $y));
+); // returns 30
+
+then ($y: 6; $x: 4; $this + $x + $y) then (
+    $y: 16;
+    $x: 4;
+    return(($this + $x + $y));
+); // returns 40
+
+//= PIPELINE NEGATIVE NUMBER HANDLING
+-5 then ($this * 2); // returns -10
+-5 then (3 * $this); // returns -15
+
+//= PIPELINE WITH TEXT INTERPOLATION
+"Hello" then ("<$this>, World!"); // returns "Hello, World!"
+
+//= PIPELINE WITH INTERPOLATION AND MATH
+5 then ("double of <$this> is <($this * 2)>"); // "double of 5 is 10"
+
+//= PIPELINE WITH TABLE/LIST MANIPULATION
+[1,2,3] then ($this.2); // returns 2
+
+//= PIPELINE NESTED LIST ACCESS
+[[1,2],[3,4]] then ($this.2.1 * 10); // returns 30
+
+//= PIPELINE TABLE PROPERTY
+{ $val: 10 } then ($this.val + 5); // returns 15
+{ $val: 5, $val2: 10 } then ($this.val + $this.val2); // returns 15
+
+//= PIPELINE ERROR NO FUNCTION ATOM
+5 then 10; // error: pipeline expects function atom after `then`
+
+//= PIPELINE ERROR EMPTY FUNCTION ATOM
+5 then (); // returns empty, no action
+
+//= Complex tests
+// multiline function atom, nested function invocation in return
+10 then (
+  $this + 1 :> $num;
+  $incremented: ($num + 1);
+  return(($incremented * 2));
+); // should return 24
+
+// PIPELINE INDEXED LIST ACCESS USING INTERMEDIATE CALCULATION
+[10,20,30] then ($index: 2; $this.$index + 5); // returns 25
+
+// Recursive transformation
+$recursed-list: [10,20,30];
+$recursed-list then ($index: 2; $this.$index + 5) :> $recursed-list;
+$recursed-list.2;// returns 25

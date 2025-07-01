@@ -15,8 +15,6 @@ adder();                       // prints 12
 $adder();                      // prints 12
 $adder;                      // prints 12
 
----------
-
 //= passing functions as references
 $referenced-function: $adder;  // does not invoke adder function just saves it to another variable as a reference
 $referenced-function();        // prints 12
