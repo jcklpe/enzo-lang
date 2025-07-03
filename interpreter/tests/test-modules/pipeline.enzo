@@ -65,6 +65,12 @@ then ($y: 6; $x: 4; $this + $x + $y) then (
     return(($this + $x + $y));
 ); // returns 40
 
+//= PIPELINE ERROR: SHADOWING $this IS DISALLOWED
+10 then (
+    $this: 7;
+    return($this * 2);
+); // error: cannot declare variable '$this'
+
 //= PIPELINE NEGATIVE NUMBER HANDLING
 -5 then ($this * 2); // returns -10
 -5 then (3 * $this); // returns -15
