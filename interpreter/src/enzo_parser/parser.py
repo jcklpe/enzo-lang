@@ -189,8 +189,19 @@ class Parser:
                 node = SubNode(node, right)
         return node
 
+    def parse_pipeline(self):
+        node = self.parse_term()
+        while self.peek() and self.peek().type == "THEN":
+            self.advance()  # consume THEN
+            t = self.peek()
+            code_line = self._get_code_line(t) if t else None
+            right = self.parse_term()  # Parse the function atom after 'then'
+            from src.enzo_parser.ast_nodes import PipelineNode
+            node = PipelineNode(node, right, code_line=code_line)
+        return node
+
     def parse_value_expression(self):
-        return self.parse_term()
+        return self.parse_pipeline()
 
     def parse_statement(self):
         t = self.peek()
@@ -244,11 +255,12 @@ class Parser:
             self.advance()
             expr2 = self.parse_value_expression()
             if isinstance(expr1, VarInvoke) and isinstance(expr2, VarInvoke):
-                raise EnzoParseError("Ambiguous :> binding: both sides are variables", code_line=code_line)
+                # $var1 :> $var2 means: bind value of $var1 to $var2
+                return BindOrRebind(expr2, expr1, code_line=code_line)
             elif isinstance(expr1, VarInvoke):
-                return BindOrRebind(expr1.name, expr2, code_line=code_line)
+                return BindOrRebind(expr1, expr2, code_line=code_line)
             elif isinstance(expr2, VarInvoke):
-                return BindOrRebind(expr2.name, expr1, code_line=code_line)
+                return BindOrRebind(expr2, expr1, code_line=code_line)
             else:
                 raise EnzoParseError(":> must have a variable on one side", code_line=code_line)
         return expr1
@@ -305,10 +317,5 @@ def parse(src):
 
 def parse_program(src):
     #Parse a full Enzo source string into a Program AST (multiple statements).
-    parser = Parser(src)
-    return parser.parse_program()
-    parser = Parser(src)
-    return parser.parse_program()
-    return parser.parse_program()
     parser = Parser(src)
     return parser.parse_program()

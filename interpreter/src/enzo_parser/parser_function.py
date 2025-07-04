@@ -5,8 +5,6 @@ from src.error_handling import EnzoParseError
 
 import os
 
-
-
 def synchronize(parser):
     # Skip tokens until we reach a likely statement boundary: SEMICOLON, COMMA, RPAR, RBRACK, RBRACE, or EOF
     while parser.peek() and parser.peek().type not in ("SEMICOLON", "COMMA", "RPAR", "RBRACK", "RBRACE"):
@@ -14,7 +12,6 @@ def synchronize(parser):
     # Optionally, advance past the boundary token
     if parser.peek():
         parser.advance()
-
 
 def parse_function_atom(parser):
     from src.error_handling import EnzoParseError
@@ -32,17 +29,12 @@ def parse_function_atom(parser):
     # Parse the body statements directly with the main parser
     while parser.peek() and parser.peek().type != "RPAR":
         log_debug(f"[parse_function_atom] parsing statement at token: {parser.peek()} (parser.pos={parser.pos})")
-        try:
-            stmt = parser.parse_statement()
-            from src.enzo_parser.ast_nodes import Binding
-            if isinstance(stmt, Binding):
-                local_vars.append(stmt)
-            else:
-                body.append(stmt)
-        except Exception as e:
-            log_debug(f"[parse_function_atom] ERROR in statement: {e}")
-            synchronize(parser)
-            break
+        stmt = parser.parse_statement()
+        from src.enzo_parser.ast_nodes import Binding
+        if isinstance(stmt, Binding):
+            local_vars.append(stmt)
+        else:
+            body.append(stmt)
         # Always consume all delimiters after every statement, including after return
         while parser.peek() and parser.peek().type in ("SEMICOLON", "COMMA"):
             parser.advance()
@@ -60,7 +52,6 @@ def parse_function_atom(parser):
         log_debug(f"[parse_function_atom] is_multiline={is_multiline}")
     else:
         log_debug(f"[parse_function_atom] ERROR: expected RPAR but found {parser.peek()}")
-        synchronize(parser)
         from src.error_messaging import error_message_unmatched_parenthesis
         raise EnzoParseError(error_message_unmatched_parenthesis())
 
@@ -68,6 +59,15 @@ def parse_function_atom(parser):
     while parser.peek() and parser.peek().type in ("SEMICOLON", "COMMA"):
         log_debug(f"[parse_function_atom] main parser skipping trailing delimiter after function atom at parser.pos={parser.pos}")
         parser.advance()
+
+    ast = FunctionAtom([], local_vars, body, code_line=parser._get_code_line(lpar_token), is_multiline=is_multiline)
+    log_debug(f"[parse_function_atom] AST: {ast}")
+    log_debug(f"[parse_function_atom] EXIT parser.pos={parser.pos}, next token={parser.peek()}")
+    return ast
+    log_debug(f"[parse_function_atom] AST: {ast}")
+    log_debug(f"[parse_function_atom] EXIT parser.pos={parser.pos}, next token={parser.peek()}")
+    return ast
+    parser.advance()
 
     ast = FunctionAtom([], local_vars, body, code_line=parser._get_code_line(lpar_token), is_multiline=is_multiline)
     log_debug(f"[parse_function_atom] AST: {ast}")

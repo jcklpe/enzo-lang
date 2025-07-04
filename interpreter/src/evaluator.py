@@ -1,7 +1,7 @@
 from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val, log_debug
 from collections import ChainMap
-from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, TableIndex, ReturnNode
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, TableIndex, ReturnNode, PipelineNode
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
 from src.error_messaging import (
     error_message_already_defined,
@@ -16,7 +16,8 @@ from src.error_messaging import (
     error_message_list_index_out_of_range,
     error_message_table_property_not_found,
     error_message_cant_use_text_as_index,
-    error_message_index_applies_to_lists
+    error_message_index_applies_to_lists,
+    error_message_cannot_assign_target
 )
 import os
 
@@ -75,7 +76,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         return node.value
     if isinstance(node, TextAtom):
         # Pass the original code line to _interp for error reporting
-        return _interp(node.value, src_line=code_line)
+        return _interp(node.value, src_line=code_line, env=env)
     if isinstance(node, ListAtom):
         return [eval_ast(el, value_demand=True, env=env) for el in node.elements]
     if isinstance(node, TableAtom):
@@ -83,6 +84,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         return tbl
     if isinstance(node, Binding):
         name = node.name
+        if name == '$this':
+            raise EnzoRuntimeError("error: cannot declare variable '$this'", code_line=node.code_line)
         if name in env:
             raise EnzoRuntimeError(error_message_already_defined(name), code_line=node.code_line)
         # Handle empty bind: $x: ;
@@ -210,6 +213,19 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
     if isinstance(node, ReturnNode):
         val = eval_ast(node.value, value_demand=True, env=env)
         raise ReturnSignal(val)
+    if isinstance(node, PipelineNode):
+        # Evaluate the left side (the value to pipe)
+        left_val = eval_ast(node.left, value_demand=True, env=env)
+        # Evaluate the right side (should be a function atom)
+        right_expr = node.right
+        if not isinstance(right_expr, FunctionAtom):
+            raise EnzoRuntimeError("error: pipeline expects function atom after `then`", code_line=getattr(node, 'code_line', None))
+        # Create a new environment with $this bound to the left value
+        pipeline_env = env.copy()
+        pipeline_env['$this'] = left_val
+        # Invoke the function atom in the pipeline environment
+        fn = EnzoFunction(right_expr.params, right_expr.local_vars, right_expr.body, pipeline_env, getattr(right_expr, 'is_multiline', False))
+        return invoke_function(fn, [], pipeline_env)
     if isinstance(node, BindOrRebind):
         target = node.target
         value = eval_ast(node.value, value_demand=True, env=env)
@@ -325,8 +341,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
     raise EnzoRuntimeError(error_message_unknown_node(node), code_line=getattr(node, 'code_line', None))
 
 # ── text_atom‐interpolation helper ───────────────────────────────────────────
-def _interp(s: str, src_line: str = None):
-    # Given a Python string `s`, expand each “<expr>” by:
+def _interp(s: str, src_line: str = None, env=None):
+    # Given a Python string `s`, expand each "<expr>" by:
     #   - Allow multiple expressions separated by semicolons inside "<...>"
     #   - Evaluate each sub‐expression (parse+eval)
     #   - Convert each result to str and concatenate in order.
@@ -353,7 +369,7 @@ def _interp(s: str, src_line: str = None):
         for part in parts:
             try:
                 expr_ast = parse(part)
-                val = eval_ast(expr_ast, value_demand=True)
+                val = eval_ast(expr_ast, value_demand=True, env=env)
                 concatenated += str(val)
             except Exception:
                 from src.error_messaging import error_message_parse_error_in_interpolation
@@ -365,6 +381,8 @@ def _interp(s: str, src_line: str = None):
 
 # Sentinel for uninitialized/empty binds
 class Empty:
+    def __repr__(self):
+        return "<empty>"
     def __repr__(self):
         return "<empty>"
         return "<empty>"

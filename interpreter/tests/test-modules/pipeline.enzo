@@ -100,7 +100,7 @@ then ($y: 6; $x: 4; $this + $x + $y) then (
 //= Complex tests
 // multiline function atom, nested function invocation in return
 10 then (
-  $this + 1 :> $num;
+  ($this + 1) :> $num;
   $incremented: ($num + 1);
   return(($incremented * 2));
 ); // should return 24

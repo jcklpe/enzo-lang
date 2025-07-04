@@ -39,6 +39,7 @@ TOKEN_SPEC = [
     ("AT", r"@"),
     ("TEXT_TOKEN", r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\''),
     ("RETURN", r"return"),  # Add RETURN keyword before KEYNAME
+    ("THEN", r"then"),      # Add THEN keyword before KEYNAME
     # Allow dashes in variable names after the first character for both $-prefixed and non-prefixed
     ("KEYNAME",      r"\$[a-zA-Z0-9_-]+|[a-zA-Z_][a-zA-Z0-9_-]*"),
     ("NEWLINE",      r"\n"),

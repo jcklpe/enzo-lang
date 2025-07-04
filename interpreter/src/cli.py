@@ -129,6 +129,7 @@ def split_statements(lines):
             elif char == ']':
                 bracket_depth -= 1
         buffer.append(stripped)
+        # Only break on semicolon if all depths are zero
         if paren_depth <= 0 and brace_depth <= 0 and bracket_depth <= 0 and ';' in stripped:
             stmts.append(buffer)
             buffer = []

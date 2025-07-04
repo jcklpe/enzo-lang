@@ -46,5 +46,5 @@ def clear_debug_log():
         pass
 
 def log_debug(msg):
-    pass
-    # print(msg)
+    pass  # Disable debug output
+    # print(msg)  # Enable for debugging

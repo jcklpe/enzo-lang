@@ -244,6 +244,9 @@ error: parse error in interpolation
 30
 40
 
+//= PIPELINE ERROR: SHADOWING $this IS DISALLOWED
+error: cannot declare variable '$this'
+    $this: 7;
 //= PIPELINE NEGATIVE NUMBER HANDLING
 -10
 -15

@@ -89,6 +89,9 @@ def error_message_unexpected_character(char, pos):
 def error_message_parse_error_in_interpolation():
     return "error: parse error in interpolation"
 
+def error_message_pipeline_expects_function():
+    return "error: pipeline expects function atom after `then`"
+
 # User-friendly error message for parse errors, with code context.
 def format_parse_error(err, src=None):
     from src.error_messaging import error_message_with_code_line
