@@ -40,7 +40,7 @@ error: multi-line anonymous functions require explicit return
 9
 error: too many args
     adder(4, 5, 6);
-error: arg is type number not text
+error: expected argument is a number atom, not a text atom
     $adder("", 500);
 305
 //= Named function with local variable

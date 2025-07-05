@@ -20,7 +20,9 @@ from src.error_messaging import (
     error_message_cannot_assign_target,
     error_message_cannot_declare_this,
     error_message_multiline_function_requires_return,
-    error_message_param_outside_function
+    error_message_param_outside_function,
+    error_message_too_many_args,
+    error_message_arg_type_mismatch
 )
 import os
 
@@ -42,6 +44,21 @@ class EnzoFunction:
 def invoke_function(fn, args, env):
     if not isinstance(fn, EnzoFunction):
         raise EnzoTypeError(error_message_not_a_function(fn), code_line=getattr(fn, 'code_line', None))
+
+    # 1. Validate argument count
+    if len(args) > len(fn.params):
+        raise EnzoRuntimeError(error_message_too_many_args())
+
+    # 2. Validate argument types against parameter defaults
+    for i, arg in enumerate(args):
+        param_name, default = fn.params[i]
+        expected_type = _infer_type_from_default(default)
+        actual_type = _get_enzo_type(arg)
+
+        # Only validate if we can infer the expected type and it doesn't match
+        if expected_type and actual_type != expected_type:
+            raise EnzoRuntimeError(error_message_arg_type_mismatch(param_name, expected_type, actual_type))
+
     call_env = fn.closure_env.copy()
     # Bind parameters
     for (param_name, default), arg in zip(fn.params, args):
@@ -83,6 +100,39 @@ def invoke_function(fn, args, env):
     except ReturnSignal as ret:
         return ret.value
     return res
+
+
+def _infer_type_from_default(default_value):
+    """Infer expected parameter type from default value AST node."""
+    from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom
+
+    if isinstance(default_value, NumberAtom):
+        return "number"
+    elif isinstance(default_value, TextAtom):
+        return "text"
+    elif isinstance(default_value, ListAtom):
+        return "list"
+    elif isinstance(default_value, TableAtom):
+        return "table"
+    # For complex expressions or Empty(), don't enforce type validation
+    return None
+
+def _get_enzo_type(value):
+    """Get the Enzo type name for a runtime value."""
+    if isinstance(value, (int, float)):
+        return "number"
+    elif isinstance(value, str):
+        return "text"
+    elif isinstance(value, list):
+        return "list"
+    elif isinstance(value, dict):
+        return "table"
+    elif isinstance(value, EnzoFunction):
+        return "function"
+    elif isinstance(value, Empty):
+        return "empty"
+    else:
+        return type(value).__name__.lower()
 
 
 def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None, is_function_context=False):
