@@ -1,15 +1,3 @@
-//= Subtraction with empty default
-$subtractor: (
-    param $x: ;
-    param $y: ;
-    return($x - $y);
-);
-
-subtractor(3, 2);   // prints 1
-$subtractor(3, 2);   // prints 1
-subtractor();        // prints 0 I think? empty values get coerced to 0?
-
-$subtractor(4);   //
 
 //= List of functions called by index
 $funs: [($x: ; $x + 1;), ($x: ; $x * 2;)];

@@ -46,3 +46,11 @@ error: expected argument is a number atom, not a text atom
 //= Named function with local variable
 11
 5
+
+//= Subtraction with empty default
+1
+-1
+error: missing necessary params
+    subtractor();
+error: missing necessary params
+    $subtractor(4);
