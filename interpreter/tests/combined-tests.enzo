@@ -392,7 +392,7 @@ return($sum);); // returns 15
     return(($this + $x + $y));
 ); // returns 30
 
-then ($y: 6; $x: 4; $this + $x + $y) then (
+10 then ($y: 6; $x: 4; $this + $x + $y) then (
     $y: 16;
     $x: 4;
     return(($this + $x + $y));
