@@ -252,10 +252,15 @@ class Parser:
             if not self.peek() or self.peek().type != "BIND":
                 raise EnzoParseError("Expected ':' after parameter name", code_line=code_line)
             self.advance()  # consume ':'
-            # Parse default value expression
-            default_value = self.parse_value_expression()
-            from src.enzo_parser.ast_nodes import ParameterDeclaration
-            return ParameterDeclaration(var_name, default_value, code_line=code_line)
+            # Parse default value expression - handle empty defaults
+            if self.peek() and self.peek().type in ("SEMICOLON", "COMMA", "RPAR"):
+                # Empty default value - create a special marker
+                from src.enzo_parser.ast_nodes import ParameterDeclaration
+                return ParameterDeclaration(var_name, None, code_line=code_line)
+            else:
+                default_value = self.parse_value_expression()
+                from src.enzo_parser.ast_nodes import ParameterDeclaration
+                return ParameterDeclaration(var_name, default_value, code_line=code_line)
 
         # Support assignment to variable, list index, or table index
         # Parse a value expression (could be VarInvoke, ListIndex, TableIndex, etc.)

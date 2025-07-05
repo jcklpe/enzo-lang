@@ -139,3 +139,6 @@ def error_message_too_many_args():
 
 def error_message_arg_type_mismatch(param_name, expected_type, actual_type):
     return f"error: expected argument is a {expected_type} atom, not a {actual_type} atom"
+
+def error_message_missing_necessary_params():
+    return "error: missing necessary params"

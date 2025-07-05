@@ -22,7 +22,8 @@ from src.error_messaging import (
     error_message_multiline_function_requires_return,
     error_message_param_outside_function,
     error_message_too_many_args,
-    error_message_arg_type_mismatch
+    error_message_arg_type_mismatch,
+    error_message_missing_necessary_params
 )
 import os
 
@@ -49,7 +50,18 @@ def invoke_function(fn, args, env):
     if len(args) > len(fn.params):
         raise EnzoRuntimeError(error_message_too_many_args())
 
-    # 2. Validate argument types against parameter defaults
+    # 2. Check for required parameters (those with empty defaults)
+    required_param_count = 0
+    for param_name, default in fn.params:
+        if default is None:  # Empty default means required parameter
+            required_param_count += 1
+        else:
+            break  # Required params must come first
+
+    if len(args) < required_param_count:
+        raise EnzoRuntimeError(error_message_missing_necessary_params())
+
+    # 3. Validate argument types against parameter defaults
     for i, arg in enumerate(args):
         param_name, default = fn.params[i]
         expected_type = _infer_type_from_default(default)
@@ -65,6 +77,9 @@ def invoke_function(fn, args, env):
         call_env[param_name] = arg
     if len(args) < len(fn.params):
         for (param_name, default) in fn.params[len(args):]:
+            if default is None:
+                # This should never happen since we already checked required params above
+                raise EnzoRuntimeError(error_message_missing_necessary_params())
             call_env[param_name] = eval_ast(default, value_demand=True, env=ChainMap(call_env, env))
     # Create a combined environment that allows both reading from outer env and writing to call_env
     # Make sure we don't pollute the outer environment
@@ -169,16 +184,28 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         if isinstance(node.value, FunctionAtom):
             fn = EnzoFunction(node.value.params, node.value.local_vars, node.value.body, env, getattr(node.value, 'is_multiline', False))
             env[name] = fn
-            # For bare keyname bindings (without $), also make accessible with $ prefix
-            if not name.startswith('$'):
+            # For variable bindings, also make accessible with/without $ prefix
+            if name.startswith('$'):
+                # Make $variable also accessible as bare name
+                bare_name = name[1:]  # Remove the $ prefix
+                if bare_name not in env:  # Don't overwrite existing bare variable
+                    env[bare_name] = fn
+            else:
+                # Make bare variable also accessible with $ prefix
                 dollar_name = '$' + name
                 if dollar_name not in env:  # Don't overwrite existing $variable
                     env[dollar_name] = fn
             return None  # Do not output anything for assignment
         val = eval_ast(node.value, value_demand=False, env=env)  # storage context
         env[name] = val
-        # For bare keyname bindings (without $), also make accessible with $ prefix
-        if not name.startswith('$'):
+        # For variable bindings, also make accessible with/without $ prefix
+        if name.startswith('$'):
+            # Make $variable also accessible as bare name
+            bare_name = name[1:]  # Remove the $ prefix
+            if bare_name not in env:  # Don't overwrite existing bare variable
+                env[bare_name] = val
+        else:
+            # Make bare variable also accessible with $ prefix
             dollar_name = '$' + name
             if dollar_name not in env:  # Don't overwrite existing $variable
                 env[dollar_name] = val
