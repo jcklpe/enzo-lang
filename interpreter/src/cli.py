@@ -151,8 +151,10 @@ def run_enzo_file(filename):
             continue
         # --- NEW: If this block is a list of single-line statements, process each line independently ---
         # BUT: Don't do this if the block starts with '(' (function atom) or other multi-line constructs
+        # ALSO: Don't do this if any line contains 'then (' (pipeline with function atom)
         if (all(';' in line for line in stmt_lines) and len(stmt_lines) > 1 and
-            not any(line.strip().startswith(('(', '[', '{')) for line in stmt_lines)):
+            not any(line.strip().startswith(('(', '[', '{')) for line in stmt_lines) and
+            not any('then (' in line for line in stmt_lines)):
             for line in stmt_lines:
                 line = line.strip()
                 if not line:
