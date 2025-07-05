@@ -18,7 +18,8 @@ from src.error_messaging import (
     error_message_cant_use_text_as_index,
     error_message_index_applies_to_lists,
     error_message_cannot_assign_target,
-    error_message_cannot_declare_this
+    error_message_cannot_declare_this,
+    error_message_multiline_function_requires_return
 )
 import os
 
@@ -56,6 +57,12 @@ def invoke_function(fn, args, env):
 
     # For function execution, we need to allow local variables to shadow global ones
     # So we'll use a special binding context that doesn't check for global conflicts
+
+    # Check if multi-line function atom has explicit return
+    if getattr(fn, 'is_multiline', False):
+        has_return = any(isinstance(stmt, ReturnNode) for stmt in fn.body)
+        if not has_return:
+            raise EnzoRuntimeError(error_message_multiline_function_requires_return())
 
     # Execute all statements in order: local_vars are bindings that appeared in the function body
     # and should be executed in the order they appeared relative to other statements

@@ -124,3 +124,6 @@ def error_message_empty_table_comma():
 
 def error_message_cannot_declare_this():
     return "error: cannot declare variable '$this'"
+
+def error_message_multiline_function_requires_return():
+    return "error: multi-line anonymous functions require explicit return"
