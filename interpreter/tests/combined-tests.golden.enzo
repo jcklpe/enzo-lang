@@ -219,6 +219,12 @@ error: parse error in interpolation
 4
 "this is the $times2(); style function call"
 4
+//= Nameless function: multi-line with no explicit return (should error)
+error: multi-line anonymous functions require explicit return
+    ($x: 1;
+ $y: 2;
+ $x + $y;
+);
 
 //= function atoms and pipes
 6

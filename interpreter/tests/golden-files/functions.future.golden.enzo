@@ -1,10 +1,3 @@
-//= Nameless function: multi-line with no explicit return (should error)
-error: multi-line anonymous functions require explicit return
-    ($x: 1;
- $y: 2;
- $x + $y;
-);
-
 //= Multi-line with params and default values
 12
 12

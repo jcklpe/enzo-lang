@@ -331,6 +331,12 @@ $times2;       // prints 4
 "this is the $times2(); style function call";
 $times2();       // prints 4
 
+//= Nameless function: multi-line with no explicit return (should error)
+($x: 1;
+ $y: 2;
+ $x + $y;
+);         // error: no explicit return in multi-line function
+
 //= function atoms and pipes
 // Single-line anonymous function returns 6
 ($x: 1, $y: 5; $x + $y); // → 6
