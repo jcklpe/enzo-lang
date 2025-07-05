@@ -1,7 +1,3 @@
-
-
-
-
 //= Subtraction with empty default
 $subtractor: (
     param $x: ;

@@ -78,7 +78,7 @@ $adder("", 500);               // error: arg is type number not text
 $referenced-function(300, 5);    // prints 9
 
 //= Named function with local variable
-adder-plus-1(
+adder-plus-1: (
     param $x: 6;
     param $y: 4;
     $z: 1;
