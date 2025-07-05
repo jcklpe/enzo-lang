@@ -1,0 +1,21 @@
+//= Multi-line and params in named functions
+10 then ($this + 2); // Explicit, clear, always works
+// or, for named functions:
+adder: (
+    param $x: ;
+    param $y: ;
+    return($x + $y);
+);
+10 then adder($this, 5); // Clear: pass piped value as first arg
+
+//= NAMED FUNCTION: referencing $this is an error
+adder: (
+    param $x: ;
+    param $y: ;
+    return($x + $y + $this);
+);
+
+adder(2, 3); // error: unknown variable '$this' in named function
+
+//= PIPELINE: using named function, must pass $this as param
+10 then (add($this, 2)); // returns 12

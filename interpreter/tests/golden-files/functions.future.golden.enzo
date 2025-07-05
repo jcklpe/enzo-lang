@@ -9,3 +9,131 @@ error: multi-line anonymous functions require explicit return
 12
 12
 12
+
+//= Multi-line with params and default values
+error: unmatched parenthesis
+    adder: (
+param $x: 6;
+unknown variable: $adder
+    adder();
+unknown variable: $adder
+    $adder();
+unknown variable: $adder
+    $adder;
+
+//= passing functions as references
+unknown variable: $referenced-function
+    $referenced-function();
+unknown variable: $adder
+    adder(4, 5);
+unknown variable: $adder
+    adder(4, 5, 6);
+unknown variable: $adder
+    $adder($nada, 1000)
+unknown variable: $referenced-function
+    $referenced-function(4, 5);
+
+//= Named function with local variable
+Expected ',' or ')' in function call
+    adder-plus-1(
+unknown variable: $adder-plus-1
+    adder-plus-1();
+unknown variable: $adder-plus-1
+    adder-plus-1(2, 2);
+//= Subtraction with empty default
+unknown variable: $subtractor
+    subtractor(3, 2);
+unknown variable: $param
+    $subtractor: (
+unknown variable: $subtractor
+    subtractor();
+unknown variable: $param
+    $subtractor: (
+
+//= List of functions called by index
+Expected ',' or ')' in function call
+    $funs: [($x: ; $x + 1;), ($x: ; $x * 2;)];
+unknown variable: $funs
+    $funs.1(10);
+unknown variable: $funs
+    $funs.2(10);
+
+//= Named function, then function reference and direct invocation
+4
+4
+4
+
+//= Higher-order function: passing function as param and using default param
+unknown variable: $param
+    apply: (
+unknown variable: $param
+    apply: (
+unknown variable: $param
+    apply: (
+
+//= Table with function member and self mutation
+unknown variable: $self
+    $counter: {
+unknown variable: $counter
+    $counter.inc();
+unknown variable: $counter
+    $counter.inc();
+unknown variable: $counter
+    $counter.count;
+unknown variable: $counter
+    $counter.inc;
+
+//= Table of functions: referencing as variables
+unknown variable: $param
+    $table-reference: {
+unknown variable: $table-reference
+    $referencing-function: $table-reference.add-one;
+unknown variable: $referencing-function
+    $referencing-function();
+unknown variable: $referencing-function
+    $referencing-function(5);
+
+//= Nested function: inner function shadows param
+unknown variable: $param
+    outer: (
+unknown variable: $param
+    outer: (
+
+//= Duplicate param name error in function declaration
+error: unmatched parenthesis
+    duplicate-params: (
+    param $x: 1;
+    param $x: 2;
+
+//= Empty function declaration and call
+//= Function with default param referencing previous param
+unknown variable: $param
+    sum-default: (
+unknown variable: $param
+    sum-default: (
+unknown variable: $param
+    sum-default: (
+
+//= Trailing commas and extra semi-colon errors
+error: unmatched parenthesis
+    trailing-comma: (
+    param $x: 1,
+
+//= Table with a list of functions as a property
+Expected ',' or ')' in function call
+    $calc: {
+unknown variable: $calc
+    $calc.ops.2(4);
+
+//= Table function and interpolation with self behavior
+error: unmatched parenthesis
+    $doggie: {
+    $name: "ralph",
+    $age: 50,
+    $speak: ("Hi, my name is <$self.name>."),
+    $roll-over: (
+        param $direction: "left";
+        return ("I'm now spinning <$direction>."
+    )
+};
+$doggie.speak();

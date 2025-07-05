@@ -143,4 +143,12 @@ class ReturnNode(ASTNode):
         self.value = value
     def __repr__(self):
         return f"ReturnNode(value={self.value!r})"
+
+class PipelineNode(ASTNode):
+    def __init__(self, left, right, code_line=None):
+        super().__init__(code_line)
+        self.left = left   # The expression to pipe
+        self.right = right # The function atom to receive the value
+    def __repr__(self):
+        return f"PipelineNode(left={self.left!r}, right={self.right!r})"
 # ...add more as needed

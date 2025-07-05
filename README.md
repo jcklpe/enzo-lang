@@ -726,33 +726,39 @@ say($transformed-list);
 
 ### Dataflow Operators
 
-Enzo provides a pipeline operator,`then`, to thread a value through a sequence of standalone transformations without nesting or method chaining.
+Enzo provides a pair of dataflow operators,`then` and `$this` to thread a value through a sequence of standalone transformations without nesting or method chaining.
 
-By default it passes the output of the last function to the next function as it's first argument.
+Simple example using function atoms:
+```javascript!
+100 then ($this + 1); // returns 101
+10 then ($this + $this); // returns 20
+1 then ($this + 1) then ($this * 3) // returns 6
+```
 
+More complex example using named functions:
 ```javascript!
 // Step-by-step pipeline
-$selected: $users then filter("active") then sortBy("last-name")then select(["id","email"]);
+$selected: $users then filter($this, "active") then sortBy($this, "last-name")then select($this, ["id","email"]);
 
 // Exactly equivalent to:
-$selected: select(sortBy(filter($users, "active", true),"lastName"),["id","email"]);
+$selected: select(sortBy(filter($users, "active"),"lastName"),["id","email"]);
 
 
 // You can even us line breaks to keep things more readable:
 $selected: $users
-then filter("active", true)
-then sortBy("lastName")
-then select(["id","email"]);
+then filter($this, "active")
+then sortBy($this, "lastName")
+then select($this, ["id","email"]);
 
 
 // or use a "left to right" assignment to keep the value going purely from left to right
-$users then filter("active", true) then sortBy("lastName")then select(["id","email"]):> $selected;
+$users then filter($this, "active") then sortBy($this, "lastName")then select($this, ["id","email"]):> $selected;
 
 ```
 
 While `:>` is usualy used to rebind values, it can be used to also declare and bind all in one move, which can be useful with pipeline operations so that you can keep a nice `function() then function() then function() :> $final-variable`
 
-You can also explicitly target any parameter slot with $0, it simply gets replaced by the piped-in value:
+The use of the `$this` operator allows for flexibility in how the output of one function gets piped to the next
 
 ```javascript!
 // move-in($house, $pet)
@@ -760,9 +766,9 @@ You can also explicitly target any parameter slot with $0, it simply gets replac
 // reward($pet,  $treat)
 
 $dog
-then move-in($home, $0)       // dog goes in *second* position
-then teach($0, "sit")        // dog again in 1st position of teach
-then reward($0, "treats")
+then move-in($home, $this)       // dog goes in *second* position
+then teach($this, "sit")        // dog again in 1st position of teach
+then reward($this, "rawhide chew")
 :> $goodDog;
 ```
 
@@ -771,15 +777,13 @@ You can also use pipeline operators on Lists:
 ```javascript!
 $colors: ["red", "green", "blue", "yellow"];
 
-$thirdUppercaseColor:
-  $colors
-  then map( ( $color; toUpper($color); ) )
-  then $0.3;       // index into the result
+$colors
+then $this.3;       // index into the result
 // → "BLUE"
 ```
+**IMPORTANT NOTE:** `$this` is completely unrelated to the `this` keyword found in other languages like javascript. Do not confuse the two. Enzo uses `$self` for that purpose.
 
 ##### Why use `then` pipeline?
-
 - No nesting. Keeps your code flat and readable.
 - No method chaining. Functions remain standalone and there's no overloading of dot notation for table property access and piping stuff together.
 - Clear data-flow. You always read top-to-bottom, left-to-right.
@@ -788,7 +792,7 @@ $thirdUppercaseColor:
 
 1. Enzo is expression oriented rather than statement oriented.
 2. Enzo is static (lexical) scoped.
-3. Enzo does not use parentheses for the dual purpose of groupings and code blocks. All parentheses are anon-functions/expression-blocks/code-blocks, however you want to phrase it. In this way Enzo is a lot like LISP. There is no meaningful distinction between `(10 + 2)` and `($x + 4)`.
+3. Enzo **does not** use parentheses for the dual purpose of groupings and code blocks. All parentheses are anon-functions/expression-blocks/code-blocks, however you want to phrase it (in Enzo we call these function atoms). In this way Enzo is a lot like LISP. There is no meaningful distinction between `(10 + 2)` and `($x + 4)`.
 
 
 ---
@@ -800,7 +804,7 @@ $thirdUppercaseColor:
 3. multiplication and division ( `*`, `/` )
 4. addition, subtraction (`+`, `-`)
 5. variable declaration and assignment ( `:` `<:` `:>`)
-6. pipeline operator (`then`)
+6. dataflow operators (`then`, `$this`)
 7. comparison operators (`is`, `not`, `is not`, `less than`, `greater than`, `at most`, `at least` )
 8. logical operators (`and`, `or`)
 

@@ -1,7 +1,7 @@
 from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val, log_debug
 from collections import ChainMap
-from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, TableIndex, ReturnNode
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, TableIndex, ReturnNode, PipelineNode
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
 from src.error_messaging import (
     error_message_already_defined,
@@ -16,7 +16,9 @@ from src.error_messaging import (
     error_message_list_index_out_of_range,
     error_message_table_property_not_found,
     error_message_cant_use_text_as_index,
-    error_message_index_applies_to_lists
+    error_message_index_applies_to_lists,
+    error_message_cannot_assign_target,
+    error_message_cannot_declare_this
 )
 import os
 
@@ -45,26 +47,37 @@ def invoke_function(fn, args, env):
     if len(args) < len(fn.params):
         for (param_name, default) in fn.params[len(args):]:
             call_env[param_name] = eval_ast(default, value_demand=True, env=ChainMap(call_env, env))
-    # --- FIX: Evaluate and bind local variables before body ---
-    local_env = ChainMap(call_env, env)
-    for local_var in getattr(fn, 'local_vars', []):
-        if isinstance(local_var, Binding):
-            name = local_var.name
-            # Evaluate local var in the current local_env (which includes params and previous locals)
-            value = eval_ast(local_var.value, value_demand=True, env=local_env)
-            call_env[name] = value
-            # Update local_env so subsequent locals can see previous ones
-            local_env = ChainMap(call_env, env)
+    # Create a combined environment that allows both reading from outer env and writing to call_env
+    # Make sure we don't pollute the outer environment
+    # Function-local variables should shadow global variables, not conflict with them
+    combined_env = {}
+    combined_env.update(env)  # Add outer environment variables (read-only)
+    combined_env.update(call_env)  # Add function parameters
+
+    # For function execution, we need to allow local variables to shadow global ones
+    # So we'll use a special binding context that doesn't check for global conflicts
+
+    # Execute all statements in order: local_vars are bindings that appeared in the function body
+    # and should be executed in the order they appeared relative to other statements
+    # For now, we'll execute local_vars first since they're typically at the beginning
+    # but this is a limitation of the current parser separation
+
     try:
         res = None
+
+        # Execute local variables (bindings like $x: 5;)
+        for local_var in getattr(fn, 'local_vars', []):
+            res = eval_ast(local_var, value_demand=True, env=combined_env, is_function_context=True)
+
+        # Execute body statements (rebinds, returns, etc.)
         for stmt in fn.body:
-            res = eval_ast(stmt, value_demand=True, env=local_env)
+            res = eval_ast(stmt, value_demand=True, env=combined_env, is_function_context=True)
     except ReturnSignal as ret:
         return ret.value
     return res
 
 
-def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None):
+def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None, is_function_context=False):
     if env is None:
         env = _env
     if node is None:
@@ -75,7 +88,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         return node.value
     if isinstance(node, TextAtom):
         # Pass the original code line to _interp for error reporting
-        return _interp(node.value, src_line=code_line)
+        return _interp(node.value, src_line=code_line, env=env)
     if isinstance(node, ListAtom):
         return [eval_ast(el, value_demand=True, env=env) for el in node.elements]
     if isinstance(node, TableAtom):
@@ -83,7 +96,12 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         return tbl
     if isinstance(node, Binding):
         name = node.name
-        if name in env:
+        log_debug(f"[BINDING] Attempting to bind {name}, env keys: {list(env.keys())}")
+        if name == '$this':
+            raise EnzoRuntimeError(error_message_cannot_declare_this(), code_line=node.code_line)
+        # In function context, local variables can shadow global ones
+        # In global context, redeclaration is an error
+        if not is_function_context and name in env:
             raise EnzoRuntimeError(error_message_already_defined(name), code_line=node.code_line)
         # Handle empty bind: $x: ;
         if node.value is None:
@@ -210,6 +228,25 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
     if isinstance(node, ReturnNode):
         val = eval_ast(node.value, value_demand=True, env=env)
         raise ReturnSignal(val)
+    if isinstance(node, PipelineNode):
+        # Evaluate the left side (the value to pipe)
+        left_val = eval_ast(node.left, value_demand=True, env=env)
+        # Evaluate the right side
+        right_expr = node.right
+        # Create a new environment with $this bound to the left value
+        pipeline_env = env.copy()
+        pipeline_env['$this'] = left_val
+
+        # If right side is a FunctionAtom, invoke it directly
+        if isinstance(right_expr, FunctionAtom):
+            fn = EnzoFunction(right_expr.params, right_expr.local_vars, right_expr.body, pipeline_env, getattr(right_expr, 'is_multiline', False))
+            return invoke_function(fn, [], pipeline_env)
+        # For expressions that can potentially reference $this, evaluate in pipeline environment
+        elif isinstance(right_expr, (AddNode, SubNode, MulNode, DivNode, VarInvoke, Invoke, TextAtom, ListIndex, TableIndex)):
+            return eval_ast(right_expr, value_demand=True, env=pipeline_env)
+        else:
+            # For literals and other nodes that can't reference $this, this doesn't make sense
+            raise EnzoRuntimeError("error: pipeline expects function atom after `then`", code_line=getattr(node, 'code_line', None))
     if isinstance(node, BindOrRebind):
         target = node.target
         value = eval_ast(node.value, value_demand=True, env=env)
@@ -325,8 +362,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
     raise EnzoRuntimeError(error_message_unknown_node(node), code_line=getattr(node, 'code_line', None))
 
 # ── text_atom‐interpolation helper ───────────────────────────────────────────
-def _interp(s: str, src_line: str = None):
-    # Given a Python string `s`, expand each “<expr>” by:
+def _interp(s: str, src_line: str = None, env=None):
+    # Given a Python string `s`, expand each "<expr>" by:
     #   - Allow multiple expressions separated by semicolons inside "<...>"
     #   - Evaluate each sub‐expression (parse+eval)
     #   - Convert each result to str and concatenate in order.
@@ -353,7 +390,7 @@ def _interp(s: str, src_line: str = None):
         for part in parts:
             try:
                 expr_ast = parse(part)
-                val = eval_ast(expr_ast, value_demand=True)
+                val = eval_ast(expr_ast, value_demand=True, env=env)
                 concatenated += str(val)
             except Exception:
                 from src.error_messaging import error_message_parse_error_in_interpolation
@@ -365,6 +402,8 @@ def _interp(s: str, src_line: str = None):
 
 # Sentinel for uninitialized/empty binds
 class Empty:
+    def __repr__(self):
+        return "<empty>"
     def __repr__(self):
         return "<empty>"
         return "<empty>"

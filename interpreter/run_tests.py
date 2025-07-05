@@ -89,12 +89,17 @@ def normalize_block_lines(lines):
     return lines
 
 def regenerate_combined_files():
-    """Regenerate combined-tests.enzo and combined-tests.golden.enzo from individual modules"""
+    #Regenerate combined-tests.enzo and combined-tests.golden.enzo from individual modules
 
     # Module order (can be customized as needed)
     modules = [
-        "vars", "lists", "math", "tables", "text", "functions"
-        # Note: "misc" excluded because it contains fatal error tests
+            "vars",
+            "lists",
+            "math",
+            "tables",
+            "text",
+            "functions",
+            "pipeline"
     ]
 
     test_modules_dir = os.path.join(SCRIPT_DIR, "tests", "test-modules")
@@ -229,31 +234,6 @@ def main():
         print(color_info("All test blocks passed!"))
     else:
         print(color_error(f"{fail_count} test blocks failed."))
-
-    # --- RUN DEBUG MODULE AT THE END OF TEST OUTPUT ---
-    debug_module_path = os.path.join("tests", "debug_module.py")
-    # Only run debug_module.py if it is not empty or only comments/whitespace/imports
-    def is_effectively_empty(filename):
-        with open(filename, 'r') as f:
-            source = f.read()
-        try:
-            tree = ast.parse(source, filename=filename)
-        except Exception:
-            return False  # If it can't parse, treat as not empty
-        for node in tree.body:
-            if not isinstance(node, (ast.Import, ast.ImportFrom, ast.Expr)):
-                return False
-            if isinstance(node, ast.Expr):
-                # Only allow docstrings (string expressions)
-                if not isinstance(node.value, ast.Str):
-                    return False
-        return True
-    if not is_effectively_empty(debug_module_path):
-        print("\n" + "=" * 60)
-        print("🟡  [debug-module.py] Running optional debug diagnostics...\n")
-        subprocess.run([sys.executable, debug_module_path], check=False)
-        print("=" * 60)
-        print("🟡  [debug-module.py] Debug diagnostics complete.\n")
 
 if __name__ == "__main__":
     main()

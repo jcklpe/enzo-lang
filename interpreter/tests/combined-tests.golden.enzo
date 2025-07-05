@@ -219,3 +219,60 @@ error: parse error in interpolation
 4
 "this is the $times2(); style function call"
 4
+
+//= function atoms and pipes
+6
+11
+12
+16
+20
+15
+20
+30
+10
+100
+5
+50
+20
+10
+12
+
+//= Multiline function atom
+10
+15
+20
+30
+40
+
+//= PIPELINE ERROR: SHADOWING $this IS DISALLOWED
+error: cannot declare variable '$this'
+    $this: 7;
+//= PIPELINE NEGATIVE NUMBER HANDLING
+-10
+-15
+
+//= PIPELINE WITH TEXT INTERPOLATION
+"Hello, World!"
+
+//= PIPELINE WITH INTERPOLATION AND MATH
+"double of 5 is 10"
+
+//= PIPELINE WITH TABLE/LIST MANIPULATION
+2
+
+//= PIPELINE NESTED LIST ACCESS
+30
+
+//= PIPELINE TABLE PROPERTY
+15
+15
+
+//= PIPELINE ERROR NO FUNCTION ATOM
+error: pipeline expects function atom after `then`
+    5 then 10;
+
+//= PIPELINE ERROR EMPTY FUNCTION ATOM
+//= Complex tests
+24
+25
+25
