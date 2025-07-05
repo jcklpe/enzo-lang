@@ -1,15 +1,5 @@
 
 
-//= passing functions as references
-$referenced-function: $adder;  // does not invoke adder function just saves it to another variable as a reference
-$referenced-function();        // prints 12
-adder(4, 5);                   // prints 9
-adder(4, 5, 6);                // error: too many args
-$nada: ;
-$adder($nada, 1000)            // prints 1006
-$adder("", 500);               // error: arg is type number not text
-$referenced-function(4, 5);    // prints 9
-
 //= Named function with local variable
 adder-plus-1(
     param $x: 6;

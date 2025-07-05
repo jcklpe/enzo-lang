@@ -230,6 +230,15 @@ error: multi-line anonymous functions require explicit return
 12
 12
 
+//= passing functions as references
+12
+9
+error: too many args
+    adder(4, 5, 6);
+error: arg is type number not text
+    $adder("", 500);
+305
+
 //= function atoms and pipes
 6
 11
