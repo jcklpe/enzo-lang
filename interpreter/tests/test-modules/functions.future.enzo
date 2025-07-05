@@ -1,13 +1,4 @@
-//= Multi-line with params and default values
-adder: (
-param $x: 6; // these are default values
-param $y: 6;
-return(($y + $x));
-);
 
-adder();                       // prints 12
-$adder();                      // prints 12
-$adder;                      // prints 12
 
 //= passing functions as references
 $referenced-function: $adder;  // does not invoke adder function just saves it to another variable as a reference

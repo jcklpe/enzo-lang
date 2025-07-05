@@ -238,12 +238,24 @@ class Parser:
                 raise EnzoParseError("Expected ')' after return expression", code_line=code_line)
             self.advance()  # consume ')'
             # Always consume a trailing semicolon or comma after return
-            if self.peek() and self.peek().type in ("SEMICOLON", "COMMA"):
-                self.advance()
-                from src.runtime_helpers import log_debug
-                log_debug(f"[parse_statement] consumed delimiter after return at parser.pos={self.pos}")
-            from .ast_nodes import ReturnNode
             return ReturnNode(expr, code_line=code_line)
+
+        # --- Handle param statement: param $name: default_value; ---
+        if t and t.type == "PARAM":
+            self.advance()  # consume 'param'
+            # Expect variable name
+            if not self.peek() or self.peek().type not in ("KEYNAME", "THIS"):
+                raise EnzoParseError("Expected variable name after 'param'", code_line=code_line)
+            var_token = self.advance()
+            var_name = var_token.value
+            # Expect colon
+            if not self.peek() or self.peek().type != "BIND":
+                raise EnzoParseError("Expected ':' after parameter name", code_line=code_line)
+            self.advance()  # consume ':'
+            # Parse default value expression
+            default_value = self.parse_value_expression()
+            from src.enzo_parser.ast_nodes import ParameterDeclaration
+            return ParameterDeclaration(var_name, default_value, code_line=code_line)
 
         # Support assignment to variable, list index, or table index
         # Parse a value expression (could be VarInvoke, ListIndex, TableIndex, etc.)

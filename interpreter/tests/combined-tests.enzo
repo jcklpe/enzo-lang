@@ -337,6 +337,17 @@ $times2();       // prints 4
  $x + $y;
 );         // error: no explicit return in multi-line function
 
+//= Multi-line with params and default values
+adder: (
+param $x: 6; // these are default values
+param $y: 6;
+return(($y + $x));
+);
+
+adder();                       // prints 12
+$adder();                      // prints 12
+$adder;                      // prints 12
+
 //= function atoms and pipes
 // Single-line anonymous function returns 6
 ($x: 1, $y: 5; $x + $y); // → 6

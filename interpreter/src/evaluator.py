@@ -1,7 +1,7 @@
 from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val, log_debug
 from collections import ChainMap
-from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, TableIndex, ReturnNode, PipelineNode
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, TableIndex, ReturnNode, PipelineNode, ParameterDeclaration
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
 from src.error_messaging import (
     error_message_already_defined,
@@ -19,7 +19,8 @@ from src.error_messaging import (
     error_message_index_applies_to_lists,
     error_message_cannot_assign_target,
     error_message_cannot_declare_this,
-    error_message_multiline_function_requires_return
+    error_message_multiline_function_requires_return,
+    error_message_param_outside_function
 )
 import os
 
@@ -366,6 +367,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 return base['$' + property_name]
             raise EnzoRuntimeError(error_message_table_property_not_found(property_name), code_line=t_code_line)
         raise EnzoRuntimeError(error_message_table_property_not_found(property_name), code_line=t_code_line)
+    if isinstance(node, ParameterDeclaration):
+        raise EnzoRuntimeError(error_message_param_outside_function(), code_line=getattr(node, 'code_line', None))
     raise EnzoRuntimeError(error_message_unknown_node(node), code_line=getattr(node, 'code_line', None))
 
 # ── text_atom‐interpolation helper ───────────────────────────────────────────

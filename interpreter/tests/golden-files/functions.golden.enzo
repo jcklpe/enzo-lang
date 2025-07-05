@@ -30,3 +30,7 @@ error: multi-line anonymous functions require explicit return
  $y: 2;
  $x + $y;
 );
+//= Multi-line with params and default values
+12
+12
+12

@@ -1,0 +1,7 @@
+adder: (
+param $x: 6;
+param $y: 6;
+return(($y + $x));
+);
+
+adder();
