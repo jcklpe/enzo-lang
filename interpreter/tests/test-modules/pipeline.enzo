@@ -100,9 +100,9 @@ return($sum);); // returns 15
 //= Complex tests
 // multiline function atom, nested function invocation in return
 10 then (
-  ($this + 1) :> $num;
-  $incremented: ($num + 1);
-  return(($incremented * 2));
+ $this + 1 :> $num;
+ $incremented: ($num + 1);
+ return(($incremented * 2));
 ); // should return 24
 
 // PIPELINE INDEXED LIST ACCESS USING INTERMEDIATE CALCULATION
@@ -110,5 +110,5 @@ return($sum);); // returns 15
 
 // Recursive transformation
 $recursed-list: [10,20,30];
-$recursed-list then ($index: 2; $this.$index + 5) :> $recursed-list;
+$recursed-list then ($index: 2; $this.$index + 5 :> $recursed-list.$index);
 $recursed-list.2;// returns 25

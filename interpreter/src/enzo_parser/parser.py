@@ -146,6 +146,7 @@ class Parser:
             code_line2 = self._get_code_line(t2)
             node = FunctionRef(t2.value, code_line=code_line2)
         elif t.type == "LPAR":
+            # ALL parentheses create function atoms according to the language spec
             node = self.parse_function_atom()
             # --- FIX: Consume trailing semicolon/comma after function atom ---
             while self.peek() and self.peek().type in ("SEMICOLON", "COMMA"):
@@ -269,8 +270,10 @@ class Parser:
                 # $var1 :> $var2 means: bind value of $var1 to $var2
                 return BindOrRebind(expr2, expr1, code_line=code_line)
             elif isinstance(expr1, VarInvoke):
-                return BindOrRebind(expr1, expr2, code_line=code_line)
-            elif isinstance(expr2, VarInvoke):
+                # expr1 :> target (where target can be VarInvoke, ListIndex, TableIndex)
+                return BindOrRebind(expr2, expr1, code_line=code_line)
+            elif isinstance(expr2, (VarInvoke, ListIndex, TableIndex)):
+                # expr :> target (where target can be VarInvoke, ListIndex, TableIndex)
                 return BindOrRebind(expr2, expr1, code_line=code_line)
             else:
                 raise EnzoParseError(":> must have a variable on one side", code_line=code_line)

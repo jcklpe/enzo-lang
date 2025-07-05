@@ -47,26 +47,37 @@ def invoke_function(fn, args, env):
     if len(args) < len(fn.params):
         for (param_name, default) in fn.params[len(args):]:
             call_env[param_name] = eval_ast(default, value_demand=True, env=ChainMap(call_env, env))
-    # --- FIX: Evaluate and bind local variables before body ---
-    local_env = ChainMap(call_env, env)
-    for local_var in getattr(fn, 'local_vars', []):
-        if isinstance(local_var, Binding):
-            name = local_var.name
-            # Evaluate local var in the current local_env (which includes params and previous locals)
-            value = eval_ast(local_var.value, value_demand=True, env=local_env)
-            call_env[name] = value
-            # Update local_env so subsequent locals can see previous ones
-            local_env = ChainMap(call_env, env)
+    # Create a combined environment that allows both reading from outer env and writing to call_env
+    # Make sure we don't pollute the outer environment
+    # Function-local variables should shadow global variables, not conflict with them
+    combined_env = {}
+    combined_env.update(env)  # Add outer environment variables (read-only)
+    combined_env.update(call_env)  # Add function parameters
+
+    # For function execution, we need to allow local variables to shadow global ones
+    # So we'll use a special binding context that doesn't check for global conflicts
+
+    # Execute all statements in order: local_vars are bindings that appeared in the function body
+    # and should be executed in the order they appeared relative to other statements
+    # For now, we'll execute local_vars first since they're typically at the beginning
+    # but this is a limitation of the current parser separation
+
     try:
         res = None
+
+        # Execute local variables (bindings like $x: 5;)
+        for local_var in getattr(fn, 'local_vars', []):
+            res = eval_ast(local_var, value_demand=True, env=combined_env, is_function_context=True)
+
+        # Execute body statements (rebinds, returns, etc.)
         for stmt in fn.body:
-            res = eval_ast(stmt, value_demand=True, env=local_env)
+            res = eval_ast(stmt, value_demand=True, env=combined_env, is_function_context=True)
     except ReturnSignal as ret:
         return ret.value
     return res
 
 
-def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None):
+def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None, is_function_context=False):
     if env is None:
         env = _env
     if node is None:
@@ -88,7 +99,9 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         log_debug(f"[BINDING] Attempting to bind {name}, env keys: {list(env.keys())}")
         if name == '$this':
             raise EnzoRuntimeError(error_message_cannot_declare_this(), code_line=node.code_line)
-        if name in env:
+        # In function context, local variables can shadow global ones
+        # In global context, redeclaration is an error
+        if not is_function_context and name in env:
             raise EnzoRuntimeError(error_message_already_defined(name), code_line=node.code_line)
         # Handle empty bind: $x: ;
         if node.value is None:
@@ -218,16 +231,22 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
     if isinstance(node, PipelineNode):
         # Evaluate the left side (the value to pipe)
         left_val = eval_ast(node.left, value_demand=True, env=env)
-        # Evaluate the right side (should be a function atom)
+        # Evaluate the right side
         right_expr = node.right
-        if not isinstance(right_expr, FunctionAtom):
-            raise EnzoRuntimeError("error: pipeline expects function atom after `then`", code_line=getattr(node, 'code_line', None))
         # Create a new environment with $this bound to the left value
         pipeline_env = env.copy()
         pipeline_env['$this'] = left_val
-        # Invoke the function atom in the pipeline environment
-        fn = EnzoFunction(right_expr.params, right_expr.local_vars, right_expr.body, pipeline_env, getattr(right_expr, 'is_multiline', False))
-        return invoke_function(fn, [], pipeline_env)
+
+        # If right side is a FunctionAtom, invoke it directly
+        if isinstance(right_expr, FunctionAtom):
+            fn = EnzoFunction(right_expr.params, right_expr.local_vars, right_expr.body, pipeline_env, getattr(right_expr, 'is_multiline', False))
+            return invoke_function(fn, [], pipeline_env)
+        # For expressions that can potentially reference $this, evaluate in pipeline environment
+        elif isinstance(right_expr, (AddNode, SubNode, MulNode, DivNode, VarInvoke, Invoke, TextAtom, ListIndex, TableIndex)):
+            return eval_ast(right_expr, value_demand=True, env=pipeline_env)
+        else:
+            # For literals and other nodes that can't reference $this, this doesn't make sense
+            raise EnzoRuntimeError("error: pipeline expects function atom after `then`", code_line=getattr(node, 'code_line', None))
     if isinstance(node, BindOrRebind):
         target = node.target
         value = eval_ast(node.value, value_demand=True, env=env)
