@@ -43,3 +43,6 @@ error: too many args
 error: arg is type number not text
     $adder("", 500);
 305
+//= Named function with local variable
+11
+5

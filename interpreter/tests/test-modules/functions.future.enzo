@@ -1,15 +1,6 @@
 
 
-//= Named function with local variable
-adder-plus-1(
-    param $x: 6;
-    param $y: 4;
-    $z: 1;
-    return($x + $y + $z);
-);
 
-adder-plus-1();    // prints 11
-adder-plus-1(2, 2);   // prints 5
 
 //= Subtraction with empty default
 $subtractor: (

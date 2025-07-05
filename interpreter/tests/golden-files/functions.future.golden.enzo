@@ -2,13 +2,7 @@
 
 
 
-//= Named function with local variable
-Expected ',' or ')' in function call
-    adder-plus-1(
-unknown variable: $adder-plus-1
-    adder-plus-1();
-unknown variable: $adder-plus-1
-    adder-plus-1(2, 2);
+
 //= Subtraction with empty default
 unknown variable: $subtractor
     subtractor(3, 2);
