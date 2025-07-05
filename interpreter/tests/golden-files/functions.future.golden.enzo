@@ -2,30 +2,6 @@
 
 
 
-
-//= Subtraction with empty default
-unknown variable: $subtractor
-    subtractor(3, 2);
-unknown variable: $param
-    $subtractor: (
-unknown variable: $subtractor
-    subtractor();
-unknown variable: $param
-    $subtractor: (
-
-//= List of functions called by index
-Expected ',' or ')' in function call
-    $funs: [($x: ; $x + 1;), ($x: ; $x * 2;)];
-unknown variable: $funs
-    $funs.1(10);
-unknown variable: $funs
-    $funs.2(10);
-
-//= Named function, then function reference and direct invocation
-4
-4
-4
-
 //= Higher-order function: passing function as param and using default param
 unknown variable: $param
     apply: (
