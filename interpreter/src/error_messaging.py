@@ -121,3 +121,6 @@ def error_message_leading_comma_table():
 
 def error_message_empty_table_comma():
     return "error: empty table with comma"
+
+def error_message_cannot_declare_this():
+    return "error: cannot declare variable '$this'"

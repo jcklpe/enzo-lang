@@ -17,7 +17,8 @@ from src.error_messaging import (
     error_message_table_property_not_found,
     error_message_cant_use_text_as_index,
     error_message_index_applies_to_lists,
-    error_message_cannot_assign_target
+    error_message_cannot_assign_target,
+    error_message_cannot_declare_this
 )
 import os
 
@@ -84,8 +85,9 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         return tbl
     if isinstance(node, Binding):
         name = node.name
+        log_debug(f"[BINDING] Attempting to bind {name}, env keys: {list(env.keys())}")
         if name == '$this':
-            raise EnzoRuntimeError("error: cannot declare variable '$this'", code_line=node.code_line)
+            raise EnzoRuntimeError(error_message_cannot_declare_this(), code_line=node.code_line)
         if name in env:
             raise EnzoRuntimeError(error_message_already_defined(name), code_line=node.code_line)
         # Handle empty bind: $x: ;
