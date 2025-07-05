@@ -367,6 +367,19 @@ adder-plus-1: (
 adder-plus-1();    // prints 11
 adder-plus-1(2, 2);   // prints 5
 
+//= Subtraction with empty default
+$subtractor: (
+    param $x: ;
+    param $y: ;
+    return($x - $y);
+);
+
+subtractor(3, 2);   // prints 1
+$subtractor(3, 4);   // prints 1
+subtractor();        // error: missing necessary params
+
+$subtractor(4);   //error: missing necessary params
+
 //= function atoms and pipes
 // Single-line anonymous function returns 6
 ($x: 1, $y: 5; $x + $y); // → 6
