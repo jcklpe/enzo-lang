@@ -5,7 +5,8 @@ import os
 
 # Always return the log path, but do NOT truncate the file here.
 def _ensure_debug_log():
-    log_path = os.path.join(os.path.dirname(__file__), "logs", "debug.log")
+    # Updated path: interpreter/debugging/debug.log
+    log_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "debugging", "debug.log")
     return log_path
 
 class Table(dict):
@@ -41,7 +42,7 @@ def format_val(v):
         return str(v)
 
 def clear_debug_log():
-    log_path = os.path.join(os.path.dirname(__file__), "logs", "debug.log")
+    log_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "debugging", "debug.log")
     with open(log_path, "w"):
         pass
 
