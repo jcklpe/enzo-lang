@@ -23,6 +23,7 @@ def parse_function_atom(parser):
     if lpar_token:
         lpar_line = parser.src[:lpar_token.start].count('\n') + 1
 
+    params = []  # Store (name, default_value) tuples
     local_vars = []
     body = []
 
@@ -30,9 +31,12 @@ def parse_function_atom(parser):
     while parser.peek() and parser.peek().type != "RPAR":
         log_debug(f"[parse_function_atom] parsing statement at token: {parser.peek()} (parser.pos={parser.pos})")
         stmt = parser.parse_statement()
-        from src.enzo_parser.ast_nodes import Binding
+        from src.enzo_parser.ast_nodes import Binding, ParameterDeclaration
         if isinstance(stmt, Binding):
             local_vars.append(stmt)
+        elif isinstance(stmt, ParameterDeclaration):
+            # Convert parameter declaration to the format expected by FunctionAtom
+            params.append((stmt.name, stmt.default_value))
         else:
             body.append(stmt)
         # Always consume all delimiters after every statement, including after return
@@ -55,21 +59,12 @@ def parse_function_atom(parser):
         from src.error_messaging import error_message_unmatched_parenthesis
         raise EnzoParseError(error_message_unmatched_parenthesis())
 
-    # Defensive: check for unexpected tokens after function atom
-    while parser.peek() and parser.peek().type in ("SEMICOLON", "COMMA"):
-        log_debug(f"[parse_function_atom] main parser skipping trailing delimiter after function atom at parser.pos={parser.pos}")
+    # Only consume trailing semicolons, NOT commas (commas belong to parent context like lists)
+    while parser.peek() and parser.peek().type == "SEMICOLON":
+        log_debug(f"[parse_function_atom] skipping trailing semicolon after function atom at parser.pos={parser.pos}")
         parser.advance()
 
-    ast = FunctionAtom([], local_vars, body, code_line=parser._get_code_line(lpar_token), is_multiline=is_multiline)
-    log_debug(f"[parse_function_atom] AST: {ast}")
-    log_debug(f"[parse_function_atom] EXIT parser.pos={parser.pos}, next token={parser.peek()}")
-    return ast
-    log_debug(f"[parse_function_atom] AST: {ast}")
-    log_debug(f"[parse_function_atom] EXIT parser.pos={parser.pos}, next token={parser.peek()}")
-    return ast
-    parser.advance()
-
-    ast = FunctionAtom([], local_vars, body, code_line=parser._get_code_line(lpar_token), is_multiline=is_multiline)
+    ast = FunctionAtom(params, local_vars, body, code_line=parser._get_code_line(lpar_token), is_multiline=is_multiline)
     log_debug(f"[parse_function_atom] AST: {ast}")
     log_debug(f"[parse_function_atom] EXIT parser.pos={parser.pos}, next token={parser.peek()}")
     return ast

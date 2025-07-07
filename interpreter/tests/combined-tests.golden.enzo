@@ -219,6 +219,52 @@ error: parse error in interpolation
 4
 "this is the $times2(); style function call"
 4
+//= Nameless function: multi-line with no explicit return (should error)
+error: multi-line anonymous functions require explicit return
+    ($x: 1;
+ $y: 2;
+ $x + $y;
+);
+//= Multi-line with params and default values
+12
+12
+12
+
+//= passing functions as references
+12
+9
+error: too many args
+    adder(4, 5, 6);
+error: expected argument is a number atom, not a text atom
+    $adder("", 500);
+305
+//= Named function with local variable
+11
+5
+
+//= Subtraction with empty default
+1
+-1
+error: missing necessary params
+    subtractor();
+error: missing necessary params
+    $subtractor(4);
+
+//= List of functions called by index
+11
+20
+
+//= Named function, then function reference and direct invocation
+10
+6
+error: expected function reference (@) or function invocation ($)
+    double;
+
+//= Higher-order function: passing function as argument and using default argument
+8
+14
+error: expected function reference (@) or function invocation ($)
+    apply(double, 4);
 
 //= function atoms and pipes
 6

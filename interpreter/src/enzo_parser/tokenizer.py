@@ -31,6 +31,7 @@ TOKEN_SPEC = [
     ("NUMBER_TOKEN",   r"-?\d+(?:\.\d+)?"),  # <-- moved above MINUS
     ("MINUS", r"-"),
     ("STAR", r"\*"),
+    ("COMMENT", r"//.*"),  # Move COMMENT before SLASH to match "//" properly
     ("SLASH", r"/"),
     ("LT", r"<"),
     ("GT", r">"),
@@ -40,12 +41,12 @@ TOKEN_SPEC = [
     ("TEXT_TOKEN", r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\''),
     ("RETURN", r"return"),  # Add RETURN keyword before KEYNAME
     ("THEN", r"then"),      # Add THEN keyword before KEYNAME
+    ("PARAM", r"param"),    # Add PARAM keyword before KEYNAME
     ("THIS", r"\$this"),    # Add $this as dedicated reserved token
     # Allow dashes in variable names after the first character for both $-prefixed and non-prefixed
     ("KEYNAME",      r"\$[a-zA-Z0-9_-]+|[a-zA-Z_][a-zA-Z0-9_-]*"),
     ("NEWLINE",      r"\n"),
     ("WHITESPACE",   r"[ \t]+"),
-    ("COMMENT",      r"//.*"),
 ]
 
 TOKEN_REGEX = re.compile(

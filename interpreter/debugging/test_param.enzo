@@ -1,0 +1,5 @@
+adder: (
+param $x: 6; // these are default values
+param $y: 6;
+return(($y + $x));
+);

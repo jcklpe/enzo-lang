@@ -114,8 +114,10 @@ def split_statements(lines):
             continue
         if stripped.strip().startswith('//') and not buffer:
             continue
-        # Update depths
-        for char in stripped:
+        # Update depths (but ignore characters in comments)
+        comment_start = stripped.find('//')
+        line_to_parse = stripped if comment_start == -1 else stripped[:comment_start]
+        for char in line_to_parse:
             if char == '(':
                 paren_depth += 1
             elif char == ')':
@@ -129,8 +131,9 @@ def split_statements(lines):
             elif char == ']':
                 bracket_depth -= 1
         buffer.append(stripped)
-        # Only break on semicolon if all depths are zero
-        if paren_depth <= 0 and brace_depth <= 0 and bracket_depth <= 0 and ';' in stripped:
+        # Only break on semicolon if all depths are zero and semicolon is not in a comment
+        has_semicolon = ';' in line_to_parse  # Only check semicolons outside of comments
+        if paren_depth <= 0 and brace_depth <= 0 and bracket_depth <= 0 and has_semicolon:
             stmts.append(buffer)
             buffer = []
     if buffer:
@@ -193,8 +196,11 @@ def run_enzo_file(filename):
                     print_enzo_error(msg)
                     continue
             continue  # move to next block after processing all lines
-        # Strip inline comments (for code lines only)
-        if '//' in statement:
+        # Strip inline comments only for single-line statements
+        # Multi-line statements (like function atoms) should not have comments stripped
+        # since the tokenizer handles them properly
+        is_multiline = '\n' in statement
+        if not is_multiline and '//' in statement:
             statement = statement.split('//', 1)[0].rstrip()
         if not statement:
             continue

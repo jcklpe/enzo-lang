@@ -105,7 +105,10 @@ def format_parse_error(err, src=None):
         pass
     # For all other errors, if src is provided, always add the code line
     if src:
+        # Strip comments from source code for error context
         code_line = src.strip()
+        if '//' in code_line:
+            code_line = code_line.split('//', 1)[0].rstrip()
         return error_message_with_code_line(str(err), code_line)
     return str(err)
 
@@ -124,3 +127,18 @@ def error_message_empty_table_comma():
 
 def error_message_cannot_declare_this():
     return "error: cannot declare variable '$this'"
+
+def error_message_multiline_function_requires_return():
+    return "error: multi-line anonymous functions require explicit return"
+
+def error_message_param_outside_function():
+    return "error: param declarations can only be used inside function definitions"
+
+def error_message_too_many_args():
+    return "error: too many args"
+
+def error_message_arg_type_mismatch(param_name, expected_type, actual_type):
+    return f"error: expected argument is a {expected_type} atom, not a {actual_type} atom"
+
+def error_message_missing_necessary_params():
+    return "error: missing necessary params"

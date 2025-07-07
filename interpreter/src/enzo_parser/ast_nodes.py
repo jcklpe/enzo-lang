@@ -151,4 +151,12 @@ class PipelineNode(ASTNode):
         self.right = right # The function atom to receive the value
     def __repr__(self):
         return f"PipelineNode(left={self.left!r}, right={self.right!r})"
+
+class ParameterDeclaration(ASTNode):
+    def __init__(self, name, default_value, code_line=None):
+        super().__init__(code_line)
+        self.name = name
+        self.default_value = default_value
+    def __repr__(self):
+        return f"ParameterDeclaration(name={self.name!r}, default_value={self.default_value!r})"
 # ...add more as needed

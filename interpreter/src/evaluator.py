@@ -1,7 +1,7 @@
 from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val, log_debug
 from collections import ChainMap
-from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, TableIndex, ReturnNode, PipelineNode
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, TableIndex, ReturnNode, PipelineNode, ParameterDeclaration
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
 from src.error_messaging import (
     error_message_already_defined,
@@ -18,7 +18,12 @@ from src.error_messaging import (
     error_message_cant_use_text_as_index,
     error_message_index_applies_to_lists,
     error_message_cannot_assign_target,
-    error_message_cannot_declare_this
+    error_message_cannot_declare_this,
+    error_message_multiline_function_requires_return,
+    error_message_param_outside_function,
+    error_message_too_many_args,
+    error_message_arg_type_mismatch,
+    error_message_missing_necessary_params
 )
 import os
 
@@ -40,12 +45,41 @@ class EnzoFunction:
 def invoke_function(fn, args, env):
     if not isinstance(fn, EnzoFunction):
         raise EnzoTypeError(error_message_not_a_function(fn), code_line=getattr(fn, 'code_line', None))
+
+    # 1. Validate argument count
+    if len(args) > len(fn.params):
+        raise EnzoRuntimeError(error_message_too_many_args())
+
+    # 2. Check for required parameters (those with empty defaults)
+    required_param_count = 0
+    for param_name, default in fn.params:
+        if default is None:  # Empty default means required parameter
+            required_param_count += 1
+        else:
+            break  # Required params must come first
+
+    if len(args) < required_param_count:
+        raise EnzoRuntimeError(error_message_missing_necessary_params())
+
+    # 3. Validate argument types against parameter defaults
+    for i, arg in enumerate(args):
+        param_name, default = fn.params[i]
+        expected_type = _infer_type_from_default(default)
+        actual_type = _get_enzo_type(arg)
+
+        # Only validate if we can infer the expected type and it doesn't match
+        if expected_type and actual_type != expected_type:
+            raise EnzoRuntimeError(error_message_arg_type_mismatch(param_name, expected_type, actual_type))
+
     call_env = fn.closure_env.copy()
     # Bind parameters
     for (param_name, default), arg in zip(fn.params, args):
         call_env[param_name] = arg
     if len(args) < len(fn.params):
         for (param_name, default) in fn.params[len(args):]:
+            if default is None:
+                # This should never happen since we already checked required params above
+                raise EnzoRuntimeError(error_message_missing_necessary_params())
             call_env[param_name] = eval_ast(default, value_demand=True, env=ChainMap(call_env, env))
     # Create a combined environment that allows both reading from outer env and writing to call_env
     # Make sure we don't pollute the outer environment
@@ -56,6 +90,12 @@ def invoke_function(fn, args, env):
 
     # For function execution, we need to allow local variables to shadow global ones
     # So we'll use a special binding context that doesn't check for global conflicts
+
+    # Check if multi-line function atom has explicit return
+    if getattr(fn, 'is_multiline', False):
+        has_return = any(isinstance(stmt, ReturnNode) for stmt in fn.body)
+        if not has_return:
+            raise EnzoRuntimeError(error_message_multiline_function_requires_return())
 
     # Execute all statements in order: local_vars are bindings that appeared in the function body
     # and should be executed in the order they appeared relative to other statements
@@ -77,6 +117,39 @@ def invoke_function(fn, args, env):
     return res
 
 
+def _infer_type_from_default(default_value):
+    """Infer expected parameter type from default value AST node."""
+    from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom
+
+    if isinstance(default_value, NumberAtom):
+        return "number"
+    elif isinstance(default_value, TextAtom):
+        return "text"
+    elif isinstance(default_value, ListAtom):
+        return "list"
+    elif isinstance(default_value, TableAtom):
+        return "table"
+    # For complex expressions or Empty(), don't enforce type validation
+    return None
+
+def _get_enzo_type(value):
+    """Get the Enzo type name for a runtime value."""
+    if isinstance(value, (int, float)):
+        return "number"
+    elif isinstance(value, str):
+        return "text"
+    elif isinstance(value, list):
+        return "list"
+    elif isinstance(value, dict):
+        return "table"
+    elif isinstance(value, EnzoFunction):
+        return "function"
+    elif isinstance(value, Empty):
+        return "empty"
+    else:
+        return type(value).__name__.lower()
+
+
 def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None, is_function_context=False):
     if env is None:
         env = _env
@@ -90,7 +163,14 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # Pass the original code line to _interp for error reporting
         return _interp(node.value, src_line=code_line, env=env)
     if isinstance(node, ListAtom):
-        return [eval_ast(el, value_demand=True, env=env) for el in node.elements]
+        elements = []
+        for el in node.elements:
+            # Function atoms in lists should be stored as function objects, not invoked
+            if isinstance(el, FunctionAtom):
+                elements.append(eval_ast(el, value_demand=False, env=env))
+            else:
+                elements.append(eval_ast(el, value_demand=True, env=env))
+        return elements
     if isinstance(node, TableAtom):
         tbl = Table((k, eval_ast(v, value_demand=True, env=env)) for k, v in node.items)
         return tbl
@@ -111,16 +191,28 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         if isinstance(node.value, FunctionAtom):
             fn = EnzoFunction(node.value.params, node.value.local_vars, node.value.body, env, getattr(node.value, 'is_multiline', False))
             env[name] = fn
-            # For bare keyname bindings (without $), also make accessible with $ prefix
-            if not name.startswith('$'):
+            # For variable bindings, also make accessible with/without $ prefix
+            if name.startswith('$'):
+                # Make $variable also accessible as bare name
+                bare_name = name[1:]  # Remove the $ prefix
+                if bare_name not in env:  # Don't overwrite existing bare variable
+                    env[bare_name] = fn
+            else:
+                # Make bare variable also accessible with $ prefix
                 dollar_name = '$' + name
                 if dollar_name not in env:  # Don't overwrite existing $variable
                     env[dollar_name] = fn
             return None  # Do not output anything for assignment
         val = eval_ast(node.value, value_demand=False, env=env)  # storage context
         env[name] = val
-        # For bare keyname bindings (without $), also make accessible with $ prefix
-        if not name.startswith('$'):
+        # For variable bindings, also make accessible with/without $ prefix
+        if name.startswith('$'):
+            # Make $variable also accessible as bare name
+            bare_name = name[1:]  # Remove the $ prefix
+            if bare_name not in env:  # Don't overwrite existing bare variable
+                env[bare_name] = val
+        else:
+            # Make bare variable also accessible with $ prefix
             dollar_name = '$' + name
             if dollar_name not in env:  # Don't overwrite existing $variable
                 env[dollar_name] = val
@@ -130,9 +222,14 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         if name not in env:
             raise EnzoRuntimeError(error_message_unknown_variable(name), code_line=node.code_line)
         val = env[name]
-        # Demand-value context: invoke if function
-        if value_demand and isinstance(val, EnzoFunction):
-            return invoke_function(val, [], env)
+        # Check if this is a function
+        if isinstance(val, EnzoFunction):
+            # Auto-invoke functions when referenced with $ sigil in value_demand context
+            if value_demand:
+                # Bare function names (without $ sigil) cannot be auto-invoked
+                if not name.startswith('$'):
+                    raise EnzoRuntimeError("error: expected function reference (@) or function invocation ($)", code_line=node.code_line)
+                return invoke_function(val, [], env)
         return val
     if isinstance(node, FunctionRef):
         name = node.name
@@ -359,6 +456,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 return base['$' + property_name]
             raise EnzoRuntimeError(error_message_table_property_not_found(property_name), code_line=t_code_line)
         raise EnzoRuntimeError(error_message_table_property_not_found(property_name), code_line=t_code_line)
+    if isinstance(node, ParameterDeclaration):
+        raise EnzoRuntimeError(error_message_param_outside_function(), code_line=getattr(node, 'code_line', None))
     raise EnzoRuntimeError(error_message_unknown_node(node), code_line=getattr(node, 'code_line', None))
 
 # ── text_atom‐interpolation helper ───────────────────────────────────────────

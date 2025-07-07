@@ -51,3 +51,78 @@ times2();       // prints 4
 $times2;       // prints 4
 "this is the $times2(); style function call";
 $times2();       // prints 4
+
+//= Nameless function: multi-line with no explicit return (should error)
+($x: 1;
+ $y: 2;
+ $x + $y;
+);         // error: no explicit return in multi-line function
+
+//= Multi-line with params and default values
+adder: (
+param $x: 6; // these are default values
+param $y: 6;
+return(($y + $x));
+);
+
+adder();                       // prints 12
+$adder();                      // prints 12
+$adder;                      // prints 12
+
+//= passing functions as references
+$referenced-function: @adder;  // does not invoke adder function just saves it to another variable as a reference
+$referenced-function();        // prints 12
+adder(4, 5);                   // prints 9
+adder(4, 5, 6);                // error: too many args
+$adder("", 500);               // error: expected argument is a number atom, not a text atom
+$referenced-function(300, 5);    // prints 305
+
+//= Named function with local variable
+adder-plus-1: (
+    param $x: 6;
+    param $y: 4;
+    $z: 1;
+    return($x + $y + $z);
+);
+
+adder-plus-1();    // prints 11
+adder-plus-1(2, 2);   // prints 5
+
+//= Subtraction with empty default
+$subtractor: (
+    param $x: ;
+    param $y: ;
+    return($x - $y);
+);
+
+subtractor(3, 2);   // prints 1
+$subtractor(3, 4);   // prints 1
+subtractor();        // error: missing necessary params
+
+$subtractor(4);   //error: missing necessary params
+//= List of functions called by index
+$funs: [(param $x: ; $x + 1;), (param $x: ; $x * 2;)];
+$funs.1(10);              // → 11
+$funs.2(10);              // → 20
+
+//= Named function, then function reference and direct invocation
+double: (param $x: 2; $x * 2);
+$ref: @double;       // should NOT invoke — should just bind the function object
+$ref(5);             // → 10
+
+// Direct invocation should work too:
+double(3);           // → 6
+
+// Function reference must use $, no parens:
+double;              // error: expected function reference (@) or function invocation ($)
+//= Higher-order function: passing function as argument and using default argument
+apply: (
+    param $function-arg:;
+    param $value: 7;
+    return($function-arg($value));
+);
+
+apply(@double, 4);   // → 8
+apply(@double);      // → 14 (default $val: 7)
+
+apply(double, 4);    // error: expected function reference (@) or function invocation ($)
