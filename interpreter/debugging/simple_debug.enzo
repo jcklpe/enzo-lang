@@ -1,2 +1,0 @@
-$simple: (param $x: ; $x);
-$simple(5);

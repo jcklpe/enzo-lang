@@ -1,1 +1,0 @@
-$funs: [(param $x: ; $x + 1;), (param $x: ; $x * 2;)];
