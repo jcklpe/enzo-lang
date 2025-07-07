@@ -163,7 +163,14 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # Pass the original code line to _interp for error reporting
         return _interp(node.value, src_line=code_line, env=env)
     if isinstance(node, ListAtom):
-        return [eval_ast(el, value_demand=True, env=env) for el in node.elements]
+        elements = []
+        for el in node.elements:
+            # Function atoms in lists should be stored as function objects, not invoked
+            if isinstance(el, FunctionAtom):
+                elements.append(eval_ast(el, value_demand=False, env=env))
+            else:
+                elements.append(eval_ast(el, value_demand=True, env=env))
+        return elements
     if isinstance(node, TableAtom):
         tbl = Table((k, eval_ast(v, value_demand=True, env=env)) for k, v in node.items)
         return tbl
@@ -215,9 +222,14 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         if name not in env:
             raise EnzoRuntimeError(error_message_unknown_variable(name), code_line=node.code_line)
         val = env[name]
-        # Demand-value context: invoke if function
-        if value_demand and isinstance(val, EnzoFunction):
-            return invoke_function(val, [], env)
+        # Check if this is a function
+        if isinstance(val, EnzoFunction):
+            # Auto-invoke functions when referenced with $ sigil in value_demand context
+            if value_demand:
+                # Bare function names (without $ sigil) cannot be auto-invoked
+                if not name.startswith('$'):
+                    raise EnzoRuntimeError("error: function invocation must use $ sigil", code_line=node.code_line)
+                return invoke_function(val, [], env)
         return val
     if isinstance(node, FunctionRef):
         name = node.name

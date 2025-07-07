@@ -257,7 +257,7 @@ error: missing necessary params
 //= Named function, then function reference and direct invocation
 10
 6
-error: function reference must use $ sigil
+error: function invocation must use $ sigil
     double;
 
 //= function atoms and pipes

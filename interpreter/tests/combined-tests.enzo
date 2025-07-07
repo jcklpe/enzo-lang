@@ -380,12 +380,12 @@ subtractor();        // error: missing necessary params
 
 $subtractor(4);   //error: missing necessary params
 //= List of functions called by index
-$funs: [($x: ; $x + 1;), ($x: ; $x * 2;)];
+$funs: [(param $x: ; $x + 1;), (param $x: ; $x * 2;)];
 $funs.1(10);              // → 11
 $funs.2(10);              // → 20
 
 //= Named function, then function reference and direct invocation
-double: ($x: 2; $x * 2);
+double: (param $x: 2; $x * 2);
 $ref: @double;       // should NOT invoke — should just bind the function object
 $ref(5);             // → 10
 
@@ -393,7 +393,7 @@ $ref(5);             // → 10
 double(3);           // → 6
 
 // Function reference must use $, no parens:
-double;              // error: function reference must use $ sigil
+double;              // error: function invocation must use $ sigil
 
 //= function atoms and pipes
 // Single-line anonymous function returns 6

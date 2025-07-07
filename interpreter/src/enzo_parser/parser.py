@@ -148,8 +148,8 @@ class Parser:
         elif t.type == "LPAR":
             # ALL parentheses create function atoms according to the language spec
             node = self.parse_function_atom()
-            # --- FIX: Consume trailing semicolon/comma after function atom ---
-            while self.peek() and self.peek().type in ("SEMICOLON", "COMMA"):
+            # Only consume trailing semicolons, NOT commas (commas belong to parent context)
+            while self.peek() and self.peek().type == "SEMICOLON":
                 self.advance()
         elif t.type == "LBRACK":
             node = self.parse_list_atom()
