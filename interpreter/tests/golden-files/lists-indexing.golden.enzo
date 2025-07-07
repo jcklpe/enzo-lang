@@ -11,10 +11,10 @@ error: $empty-list already defined
 "green"
 //= NESTED LISTS WITH INDEXING ────────────────────────────────────────────
 3
-//= MIXED LIST‐INSIDE‐TABLE ● INDEX VS ATTR ──────────────────────────────
+//= MIXED LIST‐INSIDE‐LIST ● INDEX VS ATTR ──────────────────────────────
 "b"
-//= LIST OF TABLES + INDEX OF TABLE ────────────────────────────────────
-[ { $x: 5 }, { $x: 7 } ]
+//= LIST OF LISTS + INDEX OF LIST ────────────────────────────────────
+[ [ $x: 5 ], [ $x: 7 ] ]
 7
 //= Out-of-bounds and weird list indices
 [ 1, 2, 3 ]
@@ -28,7 +28,7 @@ error: can't use text as index
     $list."foo";
 error: list index out of range
     $list.1.1;
-//= List/table mutation
+//= List mutation
 [ 1, 2 ]
 [ 5, 2 ]
 error: list index out of range
@@ -36,11 +36,11 @@ error: list index out of range
 //= Trailing commas
 [ 1, 2, 3 ]
 error: double comma in list
-    $badList1: [1,,2];
+    $badList1-index: [1,,2];
 error: excess leading comma
-    $badList2: [,1,2];
+    $badList2-index: [,1,2];
 error: empty list with just a comma
-    $badList3: [,];
+    $badList3-index: [,];
 //= Various type errors
 "oops"
 error: index applies to lists

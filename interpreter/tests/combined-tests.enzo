@@ -71,14 +71,14 @@ $colors.$i;        // prints “green”
 $nestedList: [[1, 2], [3, 4]];
 $nestedList.2.1;   // prints “3”
 
-//= MIXED LIST‐INSIDE‐TABLE ● INDEX VS ATTR ──────────────────────────────
-$mix: { $lst: ["a", "b", "c"] };  //binds table
+//= MIXED LIST‐INSIDE‐LIST ● INDEX VS ATTR ──────────────────────────────
+$mix: [ $lst: ["a", "b", "c"] ];  //binds list
 $mix.lst.2;                // prints “b”
 
-//= LIST OF TABLES + INDEX OF TABLE ────────────────────────────────────
-$lot: [ { $x: 5 }, { $x: 7 } ];  // binds table
-$lot;                 // prints “[ { $x: 5 }, { $x: 7 } ]”
-$lot.2.x;             // prints “7”
+//= LIST OF LISTS + INDEX OF LIST ────────────────────────────────────
+$lol-index: [ [ $x: 5 ], [ $x: 7 ] ];  // binds list
+$lol-index;                 // prints “[ [ $x: 5 ], [ $x: 7 ] ]”
+$lol-index.2.x;             // prints “7”
 
 //= Out-of-bounds and weird list indices
 $list: [1,2,3];     // binds list
@@ -86,10 +86,10 @@ $list;
 $list.0;            // error: list index out of range
 $list.4;            // error: list index out of range
 $list.-1;           // error: list index out of range
-$list."foo";        // error: can't use text as index
+$list."foo";        // error: can't use text as index or keyname
 $list.1.1;          // error: list index out of range
 
-//= List/table mutation
+//= List mutation
 $mutable: [1,2];
 $mutable;
 $mutable.1 <: 5;        // updates first element to 5
@@ -98,12 +98,12 @@ $mutable.3 <: 9;        // error: list index out of range
 
 //= Trailing commas
 // These are fine
-$goodList: [1, 2, 3, ]; // binds list
-$goodList;              // prints  [ 1, 2, 3 ]
+$goodList-index: [1, 2, 3, ]; // binds list
+$goodList-index;              // prints  [ 1, 2, 3 ]
 // these should error
-$badList1: [1,,2];                        // error: remove one comma
-$badList2: [,1,2];                        // error: leading comma
-$badList3: [,];                           // error: just comma
+$badList1-index: [1,,2];                        // error: remove one comma
+$badList2-index: [,1,2];                        // error: leading comma
+$badList3-index: [,];                           // error: just comma
 
 //= Various type errors
 $notalist: "oops";
@@ -137,95 +137,95 @@ $negzero: -0;             // binds 0 (should not crash)
 $negzero;                 // prints 0 (should not crash)
 $weird: --5;              // error: double minus not allowed
 
-//= TABLE STUFF ───────────────────────────────────────────────────────────
-$table: { $name: "Alice", $age: 30 };
-$table;             // binds “{ $name: "Alice", $age: 30 }”
-$table.name;        // prints “Alice”
-$table.age;         // prints “30”
+//= LIST MAPPING STUFF ───────────────────────────────────────────────────────────
+$list-map: [ $name: "Alice", $age: 30 ];
+$list-map;             // binds “[ $name: "Alice", $age: 30 ]”
+$list-map.name;        // prints “Alice”
+$list-map.age;         // prints “30”
 
-//= REBINDING TABLE PROPERTIES ────────────────────────────────────────────
-$table.name <: "Bob";
-$table.name;        // prints “Bob”
-$table;             // prints “{ $name: "Bob", $age: 30 }”
+//= REBINDING LIST PROPERTIES ────────────────────────────────────────────
+$list-map.name <: "Bob";
+$list-map.name;        // prints “Bob”
+$list-map;             // prints “[ $name: "Bob", $age: 30 ]”
 
-//= ANOTHER TABLE + PROPERTY REBIND ───────────────────────────────────────
-$table2: { $foo: 42, $bar: "hello" };
-$table2;
-$table2.bar;        // prints “hello”
-$table2.foo <: 100;
-$table2.foo;
-$table2;            // prints “{ $foo: 100, $bar: "hello" }”
+//= ANOTHER LIST + PROPERTY REBIND ───────────────────────────────────────
+$$list-map2: [ $foo: 42, $bar: "hello" ];
+$$list-map2;
+$$list-map2.bar;        // prints “hello”
+$$list-map2.foo <: 100;
+$$list-map2.foo;
+$$list-map2;            // prints “[ $foo: 100, $bar: "hello" ]”
 
-//= EMPTY TABLE LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
-$emptyTable: {};
-$emptyTable;            // prints “{ }”
-$emptyTable.someKey;    // error: Keyname '$someKey' does not exist on this table
+//= EMPTY LIST LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
+$emptyListMap: [];
+$emptyListMap;            // prints “[ ]”
+$emptyListMap.someKey;    // error: Keyname '$someKey' does not exist on this list
 
-//= NESTED TABLE + MIXED INDEX/ATTR ───────────────────────────────────────
-$nestedTable: {
-    $inner: {
+//= NESTED LIST + MIXED INDEX/PROPERTY ───────────────────────────────────────
+$nestedListMap: [
+    $inner: [
         $val: 42,
         $arr: [10, 20]
-    }
-};
-$nestedTable;
-$nestedTable.inner.val;     // prints “42”
-$nestedTable.inner.arr.2;   // prints “20”
+    ]
+];
+$nestedListMap;
+$nestedListMap.inner.val;     // prints “42”
+$nestedListMap.inner.arr.2;   // prints “20”
 
-//= REBINDING NESTED TABLES ───────────────────────────────────────────────
-$nestedTable.inner.val <: 100;
-$nestedTable.inner.val;     // prints “100”
+//= REBINDING NESTED LISTS ───────────────────────────────────────────────
+$nestedListMap.inner.val <: 100;
+$nestedListMap.inner.val;     // prints “100”
 
-//= COMPLEX TABLE + LIST INDEX/PROPERTY ACCESS ─────────────────────────
-$complex: {
-    $tbl: { $a: [100, 200], $b: "x" },
-    $lst: [ { $foo: 1 }, { $foo: 2 } ]
-};
-$complex;           // prints { $tbl: { $a: [ 100, 200 ], $b: "x" }, $lst: [ { $foo: 1 }, { $foo: 2 } ] }
-$complex.tbl.a.1;    // prints “100”
-$complex.lst.2.foo;  // prints “2”
+//= COMPLEX LIST INDEX/PROPERTY ACCESS ─────────────────────────
+$complex: [
+    $list-map: [ $a: [100, 200], $b: "x" ],
+    $list-index: [ [ $foo: 1 ], [ $foo: 2 ] ]
+];
+$complex;           // prints [ $list-map: [ $a: [ 100, 200 ], $b: "x" ], $list-index: [ [ $foo: 1 ], [ $foo: 2 ] ] ]
+$complex.list-map.a.1;    // prints “100”
+$complex.list-index.2.foo;  // prints “2”
 
-//= TABLE OF LISTS + INDEX OF LIST ─────────────────────────────────────
-$tol: { $first: [1, 2], $second: [3, 4] };
-$tol;
-$tol.first.2;         // prints “2”
-$tol.second;          // prints “[ 3, 4 ]”
+//= LIST OF LISTS + INDEX OF LIST ─────────────────────────────────────
+$lol: [ $first: [1, 2], $second: [3, 4] ];
+$lol;
+$lol.first.2;         // prints “2”
+$lol.second;          // prints “[ 3, 4 ]”
 
-//= MORE TABLE WEIRDNESS
-$deep-table: { $x: { $y: { $z: 7 } } };
-$deep-table;            // prints { $x: { $y: { $z: 7 } } }
-$deep-table.x.y.z; // prints 7
+//= MORE LIST WEIRDNESS
+$deep-list: [ $x: [ $y: [ $z: 7 ] ] ];
+$deep-list;            // prints [ $x: [ $y: [ $z: 7 ] ] ]
+$deep-list.x.y.z; // prints 7
 
-//= Table property errors
-$table9: { $foo: 1 };
-$table9;                // prints { $foo: 1 }
-$table9.bar;         // error: table property '$bar' not found
-$table9.1;           // error: index applies to lists
-$table9.foo.bar;     // error: table property '$bar' not found
+//= List property errors
+$list9: [ $foo: 1 ];
+$list9;                // prints [ $foo: 1 ]
+$list9.bar;         // error: list property '$bar' not found
+$list9.1;           // prints 1
+$list9.foo.bar;     // error: list property '$bar' not found
 
 $prim: 999;
 $prim;                      // prints 999;
-$prim.someKey <: 5;       // error: table property '$someKey' not found
+$prim.someKey <: 5;       // error: list property '$someKey' not found
 
-$myTbl: { $a: 1 };
-$myTbl;                    // prints { $a: 1 }
-$myTbl.1;                 // error: index applies to lists
+$myList: [ $a: 1 ];
+$myList;                    // prints [ $a: 1 ]
+$myList.1;                 // prints 1
 
-$tbl: { $x: 1 };
-$tbl;                   // prints { $x: 1 }
-$tbl.x <: 99;           // rebinds 99 to $tbl.x
-$tbl.x;                 // prints 99
-$tbl;                   // prints { $x: 99 }
-$tbl.y <: 42;           // error: table property '$y' not found <<<do we already have an error message for this?>>>
+$table-error: [ $x: 1 ];
+$table-error;                   // prints [ $x: 1 ]
+$table-error.x <: 99;           // rebinds 99 to $table-error.x
+$table-error.x;                 // prints 99
+$table-error;                   // prints [ $x: 99 ]
+$table-error.y <: 42;           // error: list property '$y' not found
 
 //= Valid trailing commas (should succeed)
-$goodTable: { $foo: 1, $bar: 2, };
-$goodTable;
+$goodList: [ $foo: 1, $bar: 2, ];
+$goodList;
 
 //= invalid trailing commas (should error)
-$badTable1: { $foo: 1,, $bar: 2 };
-$badTable2: { ,$foo: 1, $bar: 2 };
-$badTable3: { , };
+$badList1: [ $foo: 1,, $bar: 2 ];
+$badList2: [ ,$foo: 1, $bar: 2 ];
+$badList3: [ , ];
 
 //= TEXT + INTERPOLATION ───────────────────────────────────────────────────
 $text-example: ;
@@ -258,10 +258,10 @@ $y <: 3;
 $y;
 "Sum=<($x + $y);> Prod=<($x * $y);>";   // prints “Sum=10 Prod=21”
 
-//= COMPOUND INTERPOLATION WITH TABLE+LIST ACCESS ────────────────────────
-$myTable: { $greeting: "hi", $nums: [2, 4] };
-$myTable;
-"<$myTable.greeting;>! The nums are:<$myTable.nums.1;>, and <$myTable.nums.2;>";
+//= COMPOUND INTERPOLATION WITH LIST ACCESS ────────────────────────
+$myList: [ $greeting: "hi", $nums: [2, 4] ];
+$myList;
+"<$myList.greeting;>! The nums are:<$myList.nums.1;>, and <$myList.nums.2;>";
                          // prints “hi! The nums are: 2,4”
 
 //= Unicode and weird strings
@@ -489,15 +489,15 @@ return($sum);); // returns 15
 //= PIPELINE WITH INTERPOLATION AND MATH
 5 then ("double of <$this> is <($this * 2)>"); // "double of 5 is 10"
 
-//= PIPELINE WITH TABLE/LIST MANIPULATION
+//= PIPELINE WITH LIST MANIPULATION
 [1,2,3] then ($this.2); // returns 2
 
 //= PIPELINE NESTED LIST ACCESS
 [[1,2],[3,4]] then ($this.2.1 * 10); // returns 30
 
-//= PIPELINE TABLE PROPERTY
-{ $val: 10 } then ($this.val + 5); // returns 15
-{ $val: 5, $val2: 10 } then ($this.val + $this.val2); // returns 15
+//= PIPELINE LIST PROPERTY
+[ $val: 10 ] then ($this.val + 5); // returns 15
+[ $val: 5, $val2: 10 ] then ($this.val + $this.val2); // returns 15
 
 //= PIPELINE ERROR NO FUNCTION ATOM
 5 then 10; // error: pipeline expects function atom after `then`

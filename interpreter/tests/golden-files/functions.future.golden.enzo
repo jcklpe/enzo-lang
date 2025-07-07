@@ -1,55 +1,21 @@
 
 //= Table of functions: referencing as variables
-unknown variable: $param
-    $table-reference: {
-unknown variable: $table-reference
-    $referencing-function: $table-reference.add-one;
-unknown variable: $referencing-function
-    $referencing-function();
-unknown variable: $referencing-function
-    $referencing-function(5);
+
 
 //= Nested function: inner function shadows param
-unknown variable: $param
-    outer: (
-unknown variable: $param
-    outer: (
+
 
 //= Duplicate param name error in function declaration
-error: unmatched parenthesis
-    duplicate-params: (
-    param $x: 1;
-    param $x: 2;
+
 
 //= Empty function declaration and call
 //= Function with default param referencing previous param
-unknown variable: $param
-    sum-default: (
-unknown variable: $param
-    sum-default: (
-unknown variable: $param
-    sum-default: (
+
 
 //= Trailing commas and extra semi-colon errors
-error: unmatched parenthesis
-    trailing-comma: (
-    param $x: 1,
+
 
 //= Table with a list of functions as a property
-Expected ',' or ')' in function call
-    $calc: {
-unknown variable: $calc
-    $calc.ops.2(4);
+
 
 //= Table function and interpolation with self behavior
-error: unmatched parenthesis
-    $doggie: {
-    $name: "ralph",
-    $age: 50,
-    $speak: ("Hi, my name is <$self.name>."),
-    $roll-over: (
-        param $direction: "left";
-        return ("I'm now spinning <$direction>."
-    )
-};
-$doggie.speak();

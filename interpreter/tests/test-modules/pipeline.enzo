@@ -81,15 +81,15 @@ return($sum);); // returns 15
 //= PIPELINE WITH INTERPOLATION AND MATH
 5 then ("double of <$this> is <($this * 2)>"); // "double of 5 is 10"
 
-//= PIPELINE WITH TABLE/LIST MANIPULATION
+//= PIPELINE WITH LIST MANIPULATION
 [1,2,3] then ($this.2); // returns 2
 
 //= PIPELINE NESTED LIST ACCESS
 [[1,2],[3,4]] then ($this.2.1 * 10); // returns 30
 
-//= PIPELINE TABLE PROPERTY
-{ $val: 10 } then ($this.val + 5); // returns 15
-{ $val: 5, $val2: 10 } then ($this.val + $this.val2); // returns 15
+//= PIPELINE LIST PROPERTY
+[ $val: 10 ] then ($this.val + 5); // returns 15
+[ $val: 5, $val2: 10 ] then ($this.val + $this.val2); // returns 15
 
 //= PIPELINE ERROR NO FUNCTION ATOM
 5 then 10; // error: pipeline expects function atom after `then`

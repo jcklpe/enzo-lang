@@ -19,14 +19,14 @@ $colors.$i;        // prints “green”
 $nestedList: [[1, 2], [3, 4]];
 $nestedList.2.1;   // prints “3”
 
-//= MIXED LIST‐INSIDE‐TABLE ● INDEX VS ATTR ──────────────────────────────
-$mix: { $lst: ["a", "b", "c"] };  //binds table
+//= MIXED LIST‐INSIDE‐LIST ● INDEX VS ATTR ──────────────────────────────
+$mix: [ $lst: ["a", "b", "c"] ];  //binds list
 $mix.lst.2;                // prints “b”
 
-//= LIST OF TABLES + INDEX OF TABLE ────────────────────────────────────
-$lot: [ { $x: 5 }, { $x: 7 } ];  // binds table
-$lot;                 // prints “[ { $x: 5 }, { $x: 7 } ]”
-$lot.2.x;             // prints “7”
+//= LIST OF LISTS + INDEX OF LIST ────────────────────────────────────
+$lol-index: [ [ $x: 5 ], [ $x: 7 ] ];  // binds list
+$lol-index;                 // prints “[ [ $x: 5 ], [ $x: 7 ] ]”
+$lol-index.2.x;             // prints “7”
 
 //= Out-of-bounds and weird list indices
 $list: [1,2,3];     // binds list
@@ -34,10 +34,10 @@ $list;
 $list.0;            // error: list index out of range
 $list.4;            // error: list index out of range
 $list.-1;           // error: list index out of range
-$list."foo";        // error: can't use text as index
+$list."foo";        // error: can't use text as index or keyname
 $list.1.1;          // error: list index out of range
 
-//= List/table mutation
+//= List mutation
 $mutable: [1,2];
 $mutable;
 $mutable.1 <: 5;        // updates first element to 5
@@ -46,12 +46,12 @@ $mutable.3 <: 9;        // error: list index out of range
 
 //= Trailing commas
 // These are fine
-$goodList: [1, 2, 3, ]; // binds list
-$goodList;              // prints  [ 1, 2, 3 ]
+$goodList-index: [1, 2, 3, ]; // binds list
+$goodList-index;              // prints  [ 1, 2, 3 ]
 // these should error
-$badList1: [1,,2];                        // error: remove one comma
-$badList2: [,1,2];                        // error: leading comma
-$badList3: [,];                           // error: just comma
+$badList1-index: [1,,2];                        // error: remove one comma
+$badList2-index: [,1,2];                        // error: leading comma
+$badList3-index: [,];                           // error: just comma
 
 //= Various type errors
 $notalist: "oops";

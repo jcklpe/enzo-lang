@@ -29,10 +29,10 @@ $y <: 3;
 $y;
 "Sum=<($x + $y);> Prod=<($x * $y);>";   // prints “Sum=10 Prod=21”
 
-//= COMPOUND INTERPOLATION WITH TABLE+LIST ACCESS ────────────────────────
-$myTable: { $greeting: "hi", $nums: [2, 4] };
-$myTable;
-"<$myTable.greeting;>! The nums are:<$myTable.nums.1;>, and <$myTable.nums.2;>";
+//= COMPOUND INTERPOLATION WITH LIST ACCESS ────────────────────────
+$myList: [ $greeting: "hi", $nums: [2, 4] ];
+$myList;
+"<$myList.greeting;>! The nums are:<$myList.nums.1;>, and <$myList.nums.2;>";
                          // prints “hi! The nums are: 2,4”
 
 //= Unicode and weird strings
