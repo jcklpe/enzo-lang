@@ -1,27 +1,4 @@
 
-
-
-
-//= Higher-order function: passing function as param and using default param
-unknown variable: $param
-    apply: (
-unknown variable: $param
-    apply: (
-unknown variable: $param
-    apply: (
-
-//= Table with function member and self mutation
-unknown variable: $self
-    $counter: {
-unknown variable: $counter
-    $counter.inc();
-unknown variable: $counter
-    $counter.inc();
-unknown variable: $counter
-    $counter.count;
-unknown variable: $counter
-    $counter.inc;
-
 //= Table of functions: referencing as variables
 unknown variable: $param
     $table-reference: {

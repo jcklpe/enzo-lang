@@ -1,17 +1,5 @@
 
 
-//= Higher-order function: passing function as param and using default param
-apply: (
-    param $function-arg:;
-    param $value: 7;
-    return($function-arg($value));
-);
-
-apply($double, 4);   // → 8
-apply($double);      // → 14 (default $val: 7)
-
-apply(double, 4);    // error: must pass function reference with $ sigil
-
 //= Table with function member and self mutation
 $counter: {
     $count: 10,
