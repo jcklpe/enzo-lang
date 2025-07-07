@@ -228,7 +228,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             if value_demand:
                 # Bare function names (without $ sigil) cannot be auto-invoked
                 if not name.startswith('$'):
-                    raise EnzoRuntimeError("error: function invocation must use $ sigil", code_line=node.code_line)
+                    raise EnzoRuntimeError("error: expected function reference (@) or function invocation ($)", code_line=node.code_line)
                 return invoke_function(val, [], env)
         return val
     if isinstance(node, FunctionRef):

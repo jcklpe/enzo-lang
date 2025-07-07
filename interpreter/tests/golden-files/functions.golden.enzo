@@ -68,4 +68,5 @@ error: expected function reference (@) or function invocation ($)
 //= Higher-order function: passing function as argument and using default argument
 8
 14
-error: expected function reference (@) or function result ($)
+error: expected function reference (@) or function invocation ($)
+    apply(double, 4);
