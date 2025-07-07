@@ -94,9 +94,9 @@ def regenerate_combined_files():
     # Module order (can be customized as needed)
     modules = [
             "vars",
-            "lists",
+            "lists-indices",
             "math",
-            "tables",
+            "lists-maps",
             "text",
             "functions",
             "pipeline"
