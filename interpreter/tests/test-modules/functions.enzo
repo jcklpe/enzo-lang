@@ -114,4 +114,15 @@ $ref(5);             // → 10
 double(3);           // → 6
 
 // Function reference must use $, no parens:
-double;              // error: function invocation must use $ sigil
+double;              // error: expected function reference (@) or function invocation ($)
+//= Higher-order function: passing function as argument and using default argument
+apply: (
+    param $function-arg:;
+    param $value: 7;
+    return($function-arg($value));
+);
+
+apply(@double, 4);   // → 8
+apply(@double);      // → 14 (default $val: 7)
+
+apply(double, 4);    // error: expected function reference (@) or function invocation ($)

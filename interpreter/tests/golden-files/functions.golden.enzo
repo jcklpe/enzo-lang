@@ -62,5 +62,10 @@ error: missing necessary params
 //= Named function, then function reference and direct invocation
 10
 6
-error: function invocation must use $ sigil
+error: expected function reference (@) or function invocation ($)
     double;
+
+//= Higher-order function: passing function as argument and using default argument
+8
+14
+error: expected function reference (@) or function result ($)

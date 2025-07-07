@@ -353,8 +353,8 @@ $referenced-function: @adder;  // does not invoke adder function just saves it t
 $referenced-function();        // prints 12
 adder(4, 5);                   // prints 9
 adder(4, 5, 6);                // error: too many args
-$adder("", 500);               // error: arg is type number not text
-$referenced-function(300, 5);    // prints 9
+$adder("", 500);               // error: expected argument is a number atom, not a text atom
+$referenced-function(300, 5);    // prints 305
 
 //= Named function with local variable
 adder-plus-1: (
@@ -393,7 +393,18 @@ $ref(5);             // → 10
 double(3);           // → 6
 
 // Function reference must use $, no parens:
-double;              // error: function invocation must use $ sigil
+double;              // error: expected function reference (@) or function invocation ($)
+//= Higher-order function: passing function as argument and using default argument
+apply: (
+    param $function-arg:;
+    param $value: 7;
+    return($function-arg($value));
+);
+
+apply(@double, 4);   // → 8
+apply(@double);      // → 14 (default $val: 7)
+
+apply(double, 4);    // error: expected function reference (@) or function invocation ($)
 
 //= function atoms and pipes
 // Single-line anonymous function returns 6
