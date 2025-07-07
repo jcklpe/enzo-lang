@@ -30,9 +30,9 @@ $y;
 "Sum=<($x + $y);> Prod=<($x * $y);>";   // prints “Sum=10 Prod=21”
 
 //= COMPOUND INTERPOLATION WITH LIST ACCESS ────────────────────────
-$myList: [ $greeting: "hi", $nums: [2, 4] ];
-$myList;
-"<$myList.greeting;>! The nums are:<$myList.nums.1;>, and <$myList.nums.2;>";
+$myList-text: [ $greeting: "hi", $nums: [2, 4] ];
+$myList-text;
+"<$myList-text.greeting;>! The nums are:<$myList-text.nums.1;>, and <$myList-text.nums.2;>";
                          // prints “hi! The nums are: 2,4”
 
 //= Unicode and weird strings

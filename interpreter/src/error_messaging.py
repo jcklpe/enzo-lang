@@ -1,5 +1,8 @@
 # Centralized error message formatting for Enzo
 
+def error_message_list_property_not_found(prop):
+    return f"error: list property not found: ${prop}"
+
 def error_message_already_defined(name):
     # Only add $ if not already present
     if not name.startswith("$"):
@@ -50,11 +53,14 @@ def error_message_cant_use_text_as_index():
 def error_message_index_applies_to_lists():
     return "error: index applies to lists"
 
-def error_message_table_property_not_found(prop):
-    return f"error: table property not found: ${prop}"
+def error_message_list_property_not_found(prop):
+    return f"error: list property not found: ${prop}"
+
+def error_message_list_property_not_found(prop):
+    return f"error: list property not found: ${prop}"
 
 def error_message_index_must_be_number():
-    return "error: index must be a number (text atoms cannot be used as indices)"
+    return "error: can't use text as index"
 
 def error_message_index_must_be_integer():
     return "error: index must be an integer"
@@ -117,13 +123,13 @@ def error_message_with_code_line(msg, code_line):
     return f"{msg}\n    {code_line}"
 
 def error_message_double_comma_table():
-    return "error: extra comma in table"
+    return "error: extra comma in list"
 
 def error_message_leading_comma_table():
-    return "error: leading comma in table"
+    return "error: leading comma in list"
 
 def error_message_empty_table_comma():
-    return "error: empty table with comma"
+    return "error: empty list with comma"
 
 def error_message_cannot_declare_this():
     return "error: cannot declare variable '$this'"

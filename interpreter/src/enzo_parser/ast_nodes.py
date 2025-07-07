@@ -67,6 +67,14 @@ class ListAtom(ASTNode):
     def __repr__(self):
         return f"ListAtom(elements={self.elements!r})"
 
+class ListKeyValue(ASTNode):
+    def __init__(self, keyname, value, code_line=None):
+        super().__init__(code_line)
+        self.keyname = keyname
+        self.value = value
+    def __repr__(self):
+        return f"ListKeyValue(keyname={self.keyname!r}, value={self.value!r})"
+
 class VarInvoke(ASTNode):
     def __init__(self, name, code_line=None):
         super().__init__(code_line)
