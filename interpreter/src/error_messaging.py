@@ -148,3 +148,9 @@ def error_message_arg_type_mismatch(param_name, expected_type, actual_type):
 
 def error_message_missing_necessary_params():
     return "error: missing necessary params"
+
+def error_message_duplicate_param(param_name, code_line=None):
+    # Don't include the code line in the message - let format_parse_error handle it
+    # Ensure param_name has $ prefix for display
+    display_name = param_name if param_name.startswith('$') else f'${param_name}'
+    return f"error: duplicate parameter name '{display_name}' in function definition"
