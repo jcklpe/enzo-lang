@@ -42,7 +42,7 @@ class EnzoFunction:
         param_names = [p[0] if isinstance(p, (list, tuple)) else str(p) for p in self.params]
         return f"<function ({', '.join(param_names)}) multiline={self.is_multiline}>"
 
-def invoke_function(fn, args, env):
+def invoke_function(fn, args, env, self_obj=None):
     if not isinstance(fn, EnzoFunction):
         raise EnzoTypeError(error_message_not_a_function(fn), code_line=getattr(fn, 'code_line', None))
 
@@ -81,6 +81,11 @@ def invoke_function(fn, args, env):
                 # This should never happen since we already checked required params above
                 raise EnzoRuntimeError(error_message_missing_necessary_params())
             call_env[param_name] = eval_ast(default, value_demand=True, env=ChainMap(call_env, env))
+
+    # Inject $self if provided
+    if self_obj is not None:
+        call_env['$self'] = self_obj
+
     # Create a combined environment that allows both reading from outer env and writing to call_env
     # Make sure we don't pollute the outer environment
     # Function-local variables should shadow global variables, not conflict with them
@@ -242,21 +247,19 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 # Bare function names (without $ sigil) cannot be auto-invoked
                 if not name.startswith('$'):
                     raise EnzoRuntimeError("error: expected function reference (@) or function invocation ($)", code_line=node.code_line)
-                return invoke_function(val, [], env)
+                return invoke_function(val, [], env, self_obj=None)
         return val
     if isinstance(node, FunctionRef):
-        name = node.name
-        if name not in env:
-            raise EnzoRuntimeError(error_message_unknown_variable(name), code_line=node.code_line)
-        val = env[name]
+        # Evaluate the expression to get the function object
+        val = eval_ast(node.expr, value_demand=False, env=env)
         if not isinstance(val, EnzoFunction):
-            raise EnzoTypeError(error_message_not_a_function(val), code_line=code_line)
+            raise EnzoTypeError(error_message_not_a_function(val), code_line=node.code_line)
         return val
     if isinstance(node, FunctionAtom):
         # Demand-value context: invoke
         if value_demand:
             fn = EnzoFunction(node.params, node.local_vars, node.body, env, getattr(node, 'is_multiline', False))
-            return invoke_function(fn, [], env)
+            return invoke_function(fn, [], env, self_obj=None)
         else:
             return EnzoFunction(node.params, node.local_vars, node.body, env, getattr(node, 'is_multiline', False))
     if isinstance(node, AddNode):
@@ -332,7 +335,12 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             return left[key]
         # Function call
         if isinstance(left, EnzoFunction):
-            return invoke_function(left, args, env)
+            # Check if this function call is from property access (e.g., $obj.method())
+            self_obj = None
+            if isinstance(node.func, TableIndex):
+                # Get the base object for $self
+                self_obj = eval_ast(node.func.base, env=env)
+            return invoke_function(left, args, env, self_obj=self_obj)
         # Not a list, table, or function
         raise EnzoTypeError(error_message_index_applies_to_lists(), code_line=getattr(node, 'code_line', None))
     if isinstance(node, Program):
@@ -375,7 +383,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # If right side is a FunctionAtom, invoke it directly
         if isinstance(right_expr, FunctionAtom):
             fn = EnzoFunction(right_expr.params, right_expr.local_vars, right_expr.body, pipeline_env, getattr(right_expr, 'is_multiline', False))
-            return invoke_function(fn, [], pipeline_env)
+            return invoke_function(fn, [], pipeline_env, self_obj=None)
         # For expressions that can potentially reference $this, evaluate in pipeline environment
         elif isinstance(right_expr, (AddNode, SubNode, MulNode, DivNode, VarInvoke, Invoke, TextAtom, ListIndex, TableIndex)):
             return eval_ast(right_expr, value_demand=True, env=pipeline_env)

@@ -264,6 +264,22 @@ error: expected function reference (@) or function invocation ($)
 error: expected function reference (@) or function invocation ($)
     apply(double, 4);
 
+//= List with function member and self mutation
+10
+11
+12
+12
+<function () multiline=True>
+//= List of functions: referencing as variables
+11
+6
+//= Nested function: inner function shadows param
+17
+27
+//= Duplicate param name error in function declaration
+error: duplicate parameter name '$x' in function definition
+    param $x: 2;
+
 //= function atoms and pipes
 6
 11

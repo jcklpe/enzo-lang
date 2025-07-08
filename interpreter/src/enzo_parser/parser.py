@@ -142,9 +142,9 @@ class Parser:
             node = VarInvoke(self.advance().value, code_line=code_line)
         elif t.type == "AT":
             self.advance()
-            t2 = self.expect("KEYNAME")
-            code_line2 = self._get_code_line(t2)
-            node = FunctionRef(t2.value, code_line=code_line2)
+            # Parse the expression after @, which could be a simple variable or property access
+            expr = self.parse_value_expression()
+            node = FunctionRef(expr, code_line=code_line)
         elif t.type == "LPAR":
             # ALL parentheses create function atoms according to the language spec
             node = self.parse_function_atom()

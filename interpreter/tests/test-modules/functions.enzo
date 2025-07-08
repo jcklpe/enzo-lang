@@ -126,3 +126,47 @@ apply(@double, 4);   // → 8
 apply(@double);      // → 14 (default $val: 7)
 
 apply(double, 4);    // error: expected function reference (@) or function invocation ($)
+
+//= List with function member and self mutation
+$counter: [
+    $count: 10,
+    increment: (
+        $self.count + 1 :> $self.count;
+        return($self.count);
+    )
+];
+$counter.count;      // → 10
+$counter.increment();      // → 11
+$counter.increment();      // → 12
+$counter.count;      // → 12
+@counter.increment;        // function doesn't invoke, just returns the counter.increment function as a reference.
+
+//= List of functions: referencing as variables
+$list-reference: [
+    $add-one: (
+        param $x: 10;
+        return($x + 1);
+    )
+];
+$referencing-function: @list-reference.add-one;      // should be a function reference, not invoked
+$referencing-function();              // → 11
+$referencing-function(5);             // → 6
+
+//= Nested function: inner function shadows param
+outer: (
+    param $x: 10;
+    inner: (
+        param $y: 5;
+        return(($x + $y));
+    );
+    return($inner(7));
+);
+outer();             // → 17
+outer(20);           // → 27
+
+//= Duplicate param name error in function declaration
+duplicate-params: (
+    param $x: 1;
+    param $x: 2; // error: duplicate parameter name '$x' in function definition
+    return($x);
+);

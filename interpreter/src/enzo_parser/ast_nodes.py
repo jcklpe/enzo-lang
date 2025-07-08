@@ -123,11 +123,11 @@ class BindOrRebind(ASTNode):
         return f"BindOrRebind(target={self.target!r}, value={self.value!r})"
 
 class FunctionRef(ASTNode):
-    def __init__(self, name, code_line=None):
+    def __init__(self, expr, code_line=None):
         super().__init__(code_line)
-        self.name = name
+        self.expr = expr  # Can be a VarInvoke, TableIndex, or other expression
     def __repr__(self):
-        return f"FunctionRef(name={self.name!r})"
+        return f"FunctionRef(expr={self.expr!r})"
 
 class ListIndex(ASTNode):
     def __init__(self, base, index, code_line=None):
