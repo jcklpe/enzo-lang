@@ -170,3 +170,25 @@ duplicate-params: (
     param $x: 2; // error: duplicate parameter name '$x' in function definition
     return($x);
 );
+
+//= Empty function declaration and call
+empty-fn: ();
+empty-fn();     // returns empty.
+
+//= Function with default param referencing previous param
+sum-default: (
+    param $a: 5;
+    param $b: $a;
+    return(($a + $b));
+);
+sum-default();            // → 10
+sum-default(2);           // → 4
+sum-default(2, 10);       // → 12
+
+//= Trailing commas and extra semi-colon errors
+trailing-comma: (
+    param $x: 1, // this should not error. Blocks of variables can be declared with commas
+    param $y: 2  // error: missing semicolon
+    return($x + $y);
+);
+trailing-comma();

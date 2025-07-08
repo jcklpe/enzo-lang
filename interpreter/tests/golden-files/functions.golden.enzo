@@ -86,3 +86,12 @@ error: expected function reference (@) or function invocation ($)
 //= Duplicate param name error in function declaration
 error: duplicate parameter name '$x' in function definition
     param $x: 2;
+
+//= Empty function declaration and call
+//= Function with default param referencing previous param
+10
+4
+12
+//= Trailing commas and extra semi-colon errors
+error: missing semicolon
+    param $y: 2
