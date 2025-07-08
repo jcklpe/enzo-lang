@@ -48,6 +48,13 @@ $y: 2;
 return(($x + $y));
 );
 
+/// trying to figure out ambiguous stuff?
+//= Multiline semi-colon checks
+($x: 2;
+$y: 2;
+$z: $x + $y; 4 + 4;
+return($z)); // returns 4
+
 //= Trailing commas and extra semi-colon errors
 trailing-comma: (
     param $x: 1, // this should not error. Blocks of variables can be declared with commas
