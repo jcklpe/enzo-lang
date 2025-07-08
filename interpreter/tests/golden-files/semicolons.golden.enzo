@@ -1,6 +1,8 @@
 //= SEMICOLON STUFF!
 6
-11
+error: missing semicolon
+    (6)
+12
 11
 11
 error: missing semicolon

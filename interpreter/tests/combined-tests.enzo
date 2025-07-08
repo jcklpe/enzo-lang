@@ -464,14 +464,6 @@ sum-default();            // → 10
 sum-default(2);           // → 4
 sum-default(2, 10);       // → 12
 
-//= Trailing commas and extra semi-colon errors
-trailing-comma: (
-    param $x: 1, // this should not error. Blocks of variables can be declared with commas
-    param $y: 2  // error: missing semicolon
-    return($x + $y);
-);
-trailing-comma();
-
 //= function atoms and pipes
 // Single-line anonymous function returns 6
 ($x: 1, $y: 5; $x + $y); // → 6
