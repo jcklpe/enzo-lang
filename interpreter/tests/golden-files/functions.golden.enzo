@@ -92,6 +92,3 @@ error: duplicate parameter name '$x' in function definition
 10
 4
 12
-//= Trailing commas and extra semi-colon errors
-error: missing semicolon
-    param $y: 2

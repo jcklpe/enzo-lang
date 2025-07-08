@@ -1,0 +1,56 @@
+//= SEMICOLON STUFF!
+$semi: 5;
+$colon: 6;
+(6);
+($semi + $colon);    // returns 11
+($semi + $colon;);   // returns 11
+($semi; + $colon;);  // returns 11
+($semi + $colon)     // this should error because there is no valid connecting parts to the statement on the next line
+$semi;
+($semi + $colon)
+then ($this + 1); // returns 12. This should not error because there is a valid thing on the next line that connects to the previous statement
+($x: 1; $y: 2; $x + $y;); // returns 3
+($x: 1, $y: 2; $x + $y;); // returns 3
+($x: 1, $y: 2; $x + $y);  // returns 3
+($x: 1; $y: 2; $x + $y);  // returns 3
+($x: 1; $y: 2 $x + $y;);  // error: missing semicolon
+($x: 1; $y: 2 $x + $y);   // error: missing semicolon
+($x: 1; $y: 2; $x + $y;)  // error: missing semicolon
+($x: 1 $y: 2; $x + $y;);  // error: missing semicolon
+
+($x: 2;
+$y: 2;
+//= Multiline semi-colon checks
+return(($x + $y;))); // returns 4
+($x: 2;
+$y: 2;
+return(($x + $y;););); // returns 4
+($x: 2;
+$y: 2;
+return(($x + $y););); // returns 4
+($x: 2;
+$y: 2;
+return(($x + $y));); // returns 4
+($x: 2;
+$y: 2;
+return(($x + $y))); // returns 4
+($x: 2,
+$y: 2;
+return(($x + $y)); // returns 4
+);
+($x: 2;
+$y: 2;
+return(($x + $y)) //error: missing semicolon
+);
+($x: 2 //error: missing semicolon
+$y: 2;
+return(($x + $y));
+);
+
+//= Trailing commas and extra semi-colon errors
+trailing-comma: (
+    param $x: 1, // this should not error. Blocks of variables can be declared with commas
+    param $y: 2  // error: missing semicolon
+    return($x + $y);
+);
+trailing-comma();
