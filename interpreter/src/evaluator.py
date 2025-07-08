@@ -1,5 +1,5 @@
 from src.enzo_parser.parser import parse
-from src.runtime_helpers import Table, format_val, log_debug
+from src.runtime_helpers import Table, format_val, log_debug, EnzoList
 from collections import ChainMap
 from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, TableIndex, ReturnNode, PipelineNode, ParameterDeclaration
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
@@ -14,7 +14,7 @@ from src.error_messaging import (
     error_message_index_must_be_number,
     error_message_index_must_be_integer,
     error_message_list_index_out_of_range,
-    error_message_table_property_not_found,
+    error_message_list_property_not_found,
     error_message_cant_use_text_as_index,
     error_message_index_applies_to_lists,
     error_message_cannot_assign_target,
@@ -163,14 +163,27 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # Pass the original code line to _interp for error reporting
         return _interp(node.value, src_line=code_line, env=env)
     if isinstance(node, ListAtom):
-        elements = []
+        from src.enzo_parser.ast_nodes import ListKeyValue
+        from src.runtime_helpers import EnzoList
+
+        enzo_list = EnzoList()
         for el in node.elements:
-            # Function atoms in lists should be stored as function objects, not invoked
-            if isinstance(el, FunctionAtom):
-                elements.append(eval_ast(el, value_demand=False, env=env))
+            if isinstance(el, ListKeyValue):
+                # Key-value pair
+                key = el.keyname
+                if isinstance(el.value, FunctionAtom):
+                    value = eval_ast(el.value, value_demand=False, env=env)
+                else:
+                    value = eval_ast(el.value, value_demand=True, env=env)
+                enzo_list.set_key(key, value)
             else:
-                elements.append(eval_ast(el, value_demand=True, env=env))
-        return elements
+                # Regular element - gets auto-indexed
+                if isinstance(el, FunctionAtom):
+                    value = eval_ast(el, value_demand=False, env=env)
+                else:
+                    value = eval_ast(el, value_demand=True, env=env)
+                enzo_list.append(value)
+        return enzo_list
     if isinstance(node, TableAtom):
         tbl = Table((k, eval_ast(v, value_demand=True, env=env)) for k, v in node.items)
         return tbl
@@ -265,7 +278,31 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
     if isinstance(node, Invoke):
         left = eval_ast(node.func, value_demand=False, env=env)  # Get function object, don't invoke it yet
         args = [eval_ast(arg, value_demand=True, env=env) for arg in node.args]
-        # List indexing
+
+        # EnzoList indexing and keyed access
+        from src.runtime_helpers import EnzoList
+        if isinstance(left, EnzoList):
+            if len(args) != 1:
+                raise EnzoTypeError(error_message_index_must_be_number(), code_line=getattr(node, 'code_line', None))
+            key = args[0]
+            try:
+                # Try index access first (if it's a number)
+                if isinstance(key, (int, float)):
+                    if isinstance(key, float) and not key.is_integer():
+                        raise EnzoTypeError(error_message_index_must_be_integer(), code_line=getattr(node, 'code_line', None))
+                    idx = int(key)
+                    return left.get_by_index(idx)
+                # Try key access (if it's a string)
+                elif isinstance(key, str):
+                    return left.get_by_key(key)
+                else:
+                    raise EnzoTypeError(error_message_index_must_be_number(), code_line=getattr(node, 'code_line', None))
+            except IndexError:
+                raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=getattr(node, 'code_line', None))
+            except KeyError:
+                raise EnzoRuntimeError(error_message_list_property_not_found(key), code_line=getattr(node, 'code_line', None))
+
+        # Legacy list indexing (for backward compatibility)
         if isinstance(left, list):
             if len(args) != 1:
                 raise EnzoTypeError(error_message_index_must_be_number(), code_line=getattr(node, 'code_line', None))
@@ -282,15 +319,16 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             if idx < 1 or idx > len(left):
                 raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=getattr(node, 'code_line', None))
             return left[idx - 1]
+
         # Table property access
         if isinstance(left, dict):
             if len(args) != 1:
-                raise EnzoTypeError(error_message_table_property_not_found("<missing key>"), code_line=getattr(node, 'code_line', None))
+                raise EnzoTypeError(error_message_list_property_not_found("<missing key>"), code_line=getattr(node, 'code_line', None))
             key = args[0]
             if not isinstance(key, str):
-                raise EnzoTypeError(error_message_table_property_not_found(key), code_line=getattr(node, 'code_line', None))
+                raise EnzoTypeError(error_message_list_property_not_found(key), code_line=getattr(node, 'code_line', None))
             if key not in left:
-                raise EnzoRuntimeError(error_message_table_property_not_found(key), code_line=getattr(node, 'code_line', None))
+                raise EnzoRuntimeError(error_message_list_property_not_found(key), code_line=getattr(node, 'code_line', None))
             return left[key]
         # Function call
         if isinstance(left, EnzoFunction):
@@ -389,6 +427,23 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             base = eval_ast(target.base, env=env)
             idx = eval_ast(target.index, env=env)
             t_code_line = getattr(target, 'code_line', node.code_line)
+
+            # Handle EnzoList assignment
+            from src.runtime_helpers import EnzoList
+            if isinstance(base, EnzoList):
+                if isinstance(idx, (int, float)):
+                    if isinstance(idx, float) and not idx.is_integer():
+                        raise EnzoTypeError(error_message_index_must_be_integer(), code_line=t_code_line)
+                    try:
+                        # For EnzoList, use 0-based indexing internally but convert from 1-based
+                        base[int(idx) - 1] = value
+                        return None
+                    except IndexError:
+                        raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=t_code_line)
+                else:
+                    raise EnzoTypeError(error_message_index_must_be_number(), code_line=t_code_line)
+
+            # Legacy list handling
             if not isinstance(base, list):
                 raise EnzoTypeError(error_message_index_applies_to_lists(), code_line=t_code_line)
             if isinstance(idx, str):
@@ -412,9 +467,20 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             t_code_line = getattr(target, 'code_line', node.code_line)
             if isinstance(property_name, VarInvoke):
                 property_name = eval_ast(property_name, env=env)
+
+            # Handle EnzoList property assignment
+            from src.runtime_helpers import EnzoList
+            if isinstance(base, EnzoList):
+                try:
+                    base.set_by_key(property_name, value)
+                    return None
+                except KeyError:
+                    raise EnzoRuntimeError(error_message_list_property_not_found(property_name), code_line=t_code_line)
+
+            # Legacy table handling
             # Ensure base is a dict or Table (which is a dict subclass)
             if not isinstance(base, dict):
-                raise EnzoTypeError(error_message_table_property_not_found(property_name), code_line=t_code_line)
+                raise EnzoTypeError(error_message_list_property_not_found(property_name), code_line=t_code_line)
             # Overwrite the property value (dict assignment always overwrites)
             # --- FIX: Use $property if present, else try $property ---
             found = False
@@ -425,7 +491,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 base['$' + property_name] = value
                 found = True
             if not found:
-                raise EnzoRuntimeError(error_message_table_property_not_found(property_name), code_line=t_code_line)
+                raise EnzoRuntimeError(error_message_list_property_not_found(property_name), code_line=t_code_line)
             log_debug(f"[Table property rebind] property: {property_name} | table after: {base!r}")
             return None
         raise EnzoRuntimeError(error_message_cannot_assign_target(target), code_line=getattr(node, 'code_line', None))
@@ -433,6 +499,21 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         base = eval_ast(node.base, env=env)
         idx = eval_ast(node.index, env=env)
         t_code_line = getattr(node, 'code_line', code_line)
+
+        # Handle EnzoList indexing
+        from src.runtime_helpers import EnzoList
+        if isinstance(base, EnzoList):
+            try:
+                if isinstance(idx, (int, float)):
+                    if isinstance(idx, float) and not idx.is_integer():
+                        raise EnzoTypeError(error_message_index_must_be_integer(), code_line=t_code_line)
+                    return base.get_by_index(int(idx))
+                else:
+                    raise EnzoTypeError(error_message_index_must_be_number(), code_line=t_code_line)
+            except IndexError:
+                raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=t_code_line)
+
+        # Legacy list handling
         if isinstance(idx, str):
             raise EnzoRuntimeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
         if not isinstance(base, list):
@@ -446,16 +527,27 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         base = eval_ast(node.base, env=env)
         property_name = node.key
         t_code_line = getattr(node, 'code_line', code_line)
+
         if isinstance(property_name, VarInvoke):
             property_name = eval_ast(property_name, env=env)
+
+        # Handle EnzoList property access
+        from src.runtime_helpers import EnzoList
+        if isinstance(base, EnzoList):
+            try:
+                return base.get_by_key(property_name)
+            except KeyError:
+                raise EnzoRuntimeError(error_message_list_property_not_found(property_name), code_line=t_code_line)
+
+        # Legacy table handling
         if isinstance(base, dict):
             # Try both $property and property
             if property_name in base:
                 return base[property_name]
             if isinstance(property_name, str) and not property_name.startswith('$') and ('$' + property_name) in base:
                 return base['$' + property_name]
-            raise EnzoRuntimeError(error_message_table_property_not_found(property_name), code_line=t_code_line)
-        raise EnzoRuntimeError(error_message_table_property_not_found(property_name), code_line=t_code_line)
+            raise EnzoRuntimeError(error_message_list_property_not_found(property_name), code_line=t_code_line)
+        raise EnzoRuntimeError(error_message_list_property_not_found(property_name), code_line=t_code_line)
     if isinstance(node, ParameterDeclaration):
         raise EnzoRuntimeError(error_message_param_outside_function(), code_line=getattr(node, 'code_line', None))
     raise EnzoRuntimeError(error_message_unknown_node(node), code_line=getattr(node, 'code_line', None))

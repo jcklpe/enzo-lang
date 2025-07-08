@@ -14,8 +14,8 @@
 7
 3
 "Sum=10 Prod=21"
-//= COMPOUND INTERPOLATION WITH TABLE+LIST ACCESS ────────────────────────
-{ $greeting: "hi", $nums: [ 2, 4 ] }
+//= COMPOUND INTERPOLATION WITH LIST ACCESS ────────────────────────
+[ $greeting: "hi", $nums: [ 2, 4 ] ]
 "hi! The nums are:2, and 4"
 //= Unicode and weird strings
 "π≈3.14"

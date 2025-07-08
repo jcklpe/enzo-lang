@@ -1,8 +1,8 @@
 # enzo-lang
+
 ![image](https://hackmd.io/_uploads/BJTFqAWVex.png)
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jcklpe/enzo-lang/blob/master/interpreter/demo.ipynb)
-
 
 Code is the ultimate user interface. It is the final user interface on which all other user interfaces are built. So I think it’s interesting to explore this space as a UX designer.
 
@@ -10,10 +10,10 @@ Originally this started as a fantasy sketch of what I thought a nice language sy
 
 I'm def interested in feedback but also understand that this is basically just a kid drawing pictures of racecars and wishing he was Batman. I'm doing this for my own enjoyment and to help me better understand programming, and I make no pretense that this language is going to ever be used in the real world, or is superior to existing languages in any fashion, aesthetic or otherwise. This is more of an art project.
 
-
 Also want to give a shout out to the ["Quorum Language Project"](https://quorumlanguage.com/) for opening my eyes to the intersection between UX practice and syntax design.
 
 ## Syntax Reference
+
 ### Comments
 
 ```javascript!
@@ -29,18 +29,24 @@ Also want to give a shout out to the ["Quorum Language Project"](https://quoruml
 ```
 
 ### Atoms
+
 Atoms are the most basic parts of the enzo language. Atoms are separated by a semi-colon `;` punctuation.
 
 Atoms can be assigned a keyname using the `:` operator. Keynames are distinguished with the `$` sigil.
+
 ```javascript!
 $keyname: atomvalue;
 $keyname; // this invokes the atomvalue
 ```
+
 You use keynames to more easily invoke that atomvalue where you need in code. An atom bound to a keyname is a variable.
 
 There are 5 types of atoms. These types are [static but inferred](https://www.perplexity.ai/search/plain-language-explanation-of-bIpK7TNKTtCK.Ao8RdeIuw).
+
 #### Number atom
+
 A number atom is any [real number](https://en.wikipedia.org/wiki/Real_number).
+
 ```javascript!
 100;
 0;
@@ -50,13 +56,16 @@ A number atom is any [real number](https://en.wikipedia.org/wiki/Real_number).
 ```
 
 Example of a number atom assigned a keyname:
+
 ```javascript!
 $number-example: 888;
 ```
 
 #### Text (string)
+
 A text atom is any sequence of characters enclosed in double quotes `"..."`.
 This includes letters, numbers, punctuation, spaces, emoji, or [any valid Unicode symbol](https://en.wikipedia.org/wiki/Unicode).
+
 ```javascript!
 "hello world";
 "100";     // note: this is *text*, not a number
@@ -67,11 +76,13 @@ This includes letters, numbers, punctuation, spaces, emoji, or [any valid Unicod
 ```
 
 Example of text atom assigned a keyname:
+
 ```javascript!
 $text-example: "here is some text";
 ```
 
 ##### Text interpolation
+
 ```javascript!
 $name: "Bob";
 $favorite-color: "blue";
@@ -87,12 +98,22 @@ $text-example;
 //returns the text "the result of the two variables added together is 8"
 ```
 
-#### List (array)
-A list atom is an ordered sequence of atoms (or keynames referencing those atomvalues), enclosed in brackets `[...]`.
+#### List (array/list/map/object/dict)
+
+A list atom is an ordered sequence of values, either atoms, keynames referencing those atoms, or keyname-atomvalue pairs, enclosed in brackets `[...]`.
+
 ```javascript!
 [1, 2, 3];
 ["a", "b", "c"];
-[1, "two", [3], $four, {$5-table: "value"}];
+[1, "two", [3], $four, [$5-list: "value"]];
+[$name: "Alice", $age: 30];
+[
+    $one: 1,
+    $two-and-three: [2, 3],
+    $can-nest: [
+        $nested: "yes"
+    ]
+];
 ```
 
 Example of list atom assigned to a keyname:
@@ -100,7 +121,28 @@ Example of list atom assigned to a keyname:
 $list-example: ["here is some text", 666, $keyname-example];
 ```
 
-You can access a specific item in the list as follows:
+Example of a list making heavy use of keyname-atomvalue pairs:
+```javascript!
+$list-example: [
+	$property: "this is a value which is paired to the property",
+	$property2: 2,
+	$property3: [$variable, 3, "three"],
+        $property4: [
+            $property: "second layer of a nested list",
+            $property2: "lists are basically the same as maps or objects in other languages"],
+            exampleFunction: (
+            return("this is what a list function (method) looks like");
+            ),
+            $property3: [
+                $property: "third layer of a nested list",
+                $property2: "you can nest lists as deeply as you want",
+                $property3:"this property value could be invoked using '$list-example.property4.property3'"]
+];
+```
+
+
+You can access a specific item in the list via a numbered index like so:
+
 ```javascript!
 $colors: ["red", "green", "blue", "yellow"];
 
@@ -117,68 +159,34 @@ $reversed: reverse($colors);  // ["yellow","blue","green","red"]
 $pick:     $reversed.2;       // → "blue"
 
 ```
+
 The numeric indexing of lists starts at 1.
 
-#### Table (object/map)
-A table atom is a collection of keyname-atomvalue pairs, enclosed in braces `{...}`.
-```javascript!
-{$name: "Alice", $age: 30};
+##### Dot-Numeric vs. Property Access
 
-{
-    $one: 1,
-    $two-and-three: [2, 3],
-    $can-nest: {
-        $nested: "yes"
-    }
-};
-```
-
-Example of table atom assigned to a keyname:
-```javascript!
-$table-example: {
-	$property: "this is a value which is paired to the property",
-	$property2: 2,
-	$property3: [$variable, 3, "three"],
-        $property4: {
-            $property: "second layer of a nested table",
-            $property2: "tables are basically the same as maps or objects in other languages"},
-            exampleFunction: (
-            return("this is what a table function (method) looks like");
-            ),
-            $property3: {
-                $property: "third layer of a nested table",
-                $property2: "you can nest tables as deeply as you want",
-                $property3:"this property value could be invoked using '$table-example.property4.property3'"}
-};
-```
-##### Dot-Numeric vs. Table Property Access
-
-- **Table property access** uses a “dot + identifier” (e.g. `$user.name`).
+- **List property access** uses a “dot + identifier” (e.g. `$user.name`).
 - **List indexing** uses a “dot + integer literal” (e.g. `$user.friends.2`)—the parser sees the digit immediately after the dot and interprets it as list indexing rather than property lookup.
 
 ```javascript!
-// Table with a numeric property versus a list:
-$user: {
+// List with a numeric property versus a list:
+$user: [
   name: "Alice",
   logs: ["login","logout","login"]
-};
+];
 
 // To get "logout":
 $secondLog: $user.logs.2;    // → "logout"
 
-// If someone wrote $user.42:
-//   ▸ It would look for a numeric index on the table $user.
-//   ▸ Because $user is not a List, this is a type error at compile time.
 ```
 
-Always ensure that the expression to the **left of the dot** is known to be a List at compile time, or you’ll get a type mismatch error.
-
 #### Function (anonymous function/expression block)
+
 A function atom is a piece of code that does something and gives an atomvalue back.
 
 Examples:
 
 Basic arithmetic
+
 ```javascript!
 (2 + 2);    // returns 4
 (2 - 3);    // returns -1
@@ -187,12 +195,14 @@ Basic arithmetic
 ```
 
 Function atoms can also have keynames declared inside of them like so:
+
 ```javascript!
 ($x: 4; $y: 6; $x + $y); // returns 10
 ($x: 5, $y: 5; $x * $y); // commas can also be used to separate keyname assignment declarations
 ```
 
 Function atoms can also be multi-line:
+
 ```javascript!
 (
 $x: 100;
@@ -200,7 +210,6 @@ $y: 100;
 return(($x + $y));
 ); // returns 200
 ```
-
 
 Single line function atoms do not require an explicit return. Multi-line function atoms must always have an explicit return.
 
@@ -221,6 +230,7 @@ function-example: (
 ```
 
 A named function is simply a nameless function bound to a keyname. We omit the $ on named functions to keep things more readable. All  of the following are valid:
+
 ```javascript!
 $function1: (
     param $a: 4;
@@ -240,12 +250,12 @@ $function2(5);   // returns 10
 ```
 
 ##### Function Atom Evaluation
+
 In Enzo, parentheses always create a function atom (an anonymous function/code block).
 
 If a function atom appears in a context that requires its value immediately (such as a top-level statement, string interpolation, or as a value in a return statement), it is immediately invoked.
-If a function atom is being bound to a variable, stored in a table or list, or passed as an argument to a function that expects a function, it is stored as a function object and only invoked when called.
+If a function atom is being bound to a variable, stored in a list or list, or passed as an argument to a function that expects a function, it is stored as a function object and only invoked when called.
 This is called demand-driven function atom evaluation.
-
 
 ##### Empty variables (null, undefined)
 
@@ -352,6 +362,7 @@ $function-name;
 ```
 
 A function name with no sigil or parens is always an error:
+
 ```javascript!
 function-name; // this is always an error!
 ```
@@ -422,10 +433,10 @@ announcer(get-campfire-status());
 // Expected output: "campfire: lit"
 ```
 
-#### Invoking a function from a table property
+#### Invoking a function from a list property
 
 ```javascript!
-$dog: {
+$dog: [
     $name: "Ralph",
     speak: (
         return("yo, my name is <$self.name>");
@@ -434,7 +445,7 @@ $dog: {
         param $assailant: "";
         return("ah! I was murdered by <$assailant>!");
     ),
-};
+];
 
 $dog.name;
 //returns "Ralph"
@@ -453,11 +464,11 @@ toLowerCase($dog.play-dead("Jerry"));
 // returns "ah! i was murdered by jerry!"
 ```
 
-Example of calling a table function and also passing an additional function as a parameter
+Example of calling a list function and also passing an additional function as a parameter
 
 ```javascript!
-$animal: {
-    $dog: {
+$animal: [
+    $dog: [
         $bark: (
             param $status: ;
             param $message: ;
@@ -467,8 +478,8 @@ $animal: {
                 return( toLower($message) );
             end;
         );
-    }
-};
+    ]
+];
 
 getCurrentStatus: (
     return("loud");
@@ -482,16 +493,16 @@ $animal.dog.bark(getCurrentStatus(), "Bark Bark");
 
 #### Destructuring
 
-##### Table destructuring
+##### List destructuring
 
 ```javscript!
-$person : {
+$person : [
   $name: "Todd",
   $age: 27,
   $favorite-color: "blue"
-}
+]
 
-$name, $age, $shirt-color <- $favorite-color: $person{};
+$name, $age, $shirt-color <- $favorite-color: $person[];
 ```
 
 ##### List destructuring
@@ -504,37 +515,7 @@ $x, $y, $z: $example-list[];
 
 ```
 
-### Blueprints (custom types)
 
-##### Options Blueprint (enum)
-
-```javascript!
-Size: <[small, medium, large]>;
-
-$shirt-size: Size.medium;
-```
-
-#### Table Blueprint (class/interface/struct)
-
-```javascript!
-Person: <{
-    name: Text,
-    age: Number,
-    t-shirt-size: Size,
-    greet: (
-        return("Hi, my name is <$self.name> and I'm <$self.age> years old.");
-    );
-}>;
-
-$alice: Person{
-    $name: "Alice",
-    $age: 30,
-    $t-shirt-size: Size.large
-};
-
-say($alice.greet);
-// Expected output: "Hi, my name is Alice and I'm 30 years old."
-```
 
 ### Control Flow Statements
 
@@ -550,7 +531,7 @@ Examples of “true” conditions:
 $favNumber: 7;
 $username: "Alice";
 $items:     [1,2,3];
-$config:    { mode:"dark" };
+$config:    [ mode:"dark" ];
 $log: ( say("hi"); );
 ```
 
@@ -561,8 +542,8 @@ $zero:      0;
 $emptyText: "";
 $emptyList: [];
 $emptyList: [0,0,0];
-$emptyTbl:  {};
-$emptyTbl2:  {key: ;};
+$emptyTbl:  [];
+$emptyTbl2:  [key: ;];
 $no-operation: ( );
 $no-operation2: ( param: ;);
 $unset:     ;
@@ -690,7 +671,7 @@ There are no ternaries. I personally find them very difficult to read, but I thi
 ##### For
 
 ```javascript!
-for $parameter in $list-or-table-name,
+for $parameter in $list-or-list-name,
 		say("this iteration has returned <$parameter> of <$list-name>");
 end;
 ```
@@ -729,6 +710,7 @@ say($transformed-list);
 Enzo provides a pair of dataflow operators,`then` and `$this` to thread a value through a sequence of standalone transformations without nesting or method chaining.
 
 Simple example using function atoms:
+
 ```javascript!
 100 then ($this + 1); // returns 101
 10 then ($this + $this); // returns 20
@@ -736,6 +718,7 @@ Simple example using function atoms:
 ```
 
 More complex example using named functions:
+
 ```javascript!
 // Step-by-step pipeline
 $selected: $users then filter($this, "active") then sortBy($this, "last-name")then select($this, ["id","email"]);
@@ -781,11 +764,13 @@ $colors
 then $this.3;       // index into the result
 // → "BLUE"
 ```
+
 **IMPORTANT NOTE:** `$this` is completely unrelated to the `this` keyword found in other languages like javascript. Do not confuse the two. Enzo uses `$self` for that purpose.
 
 ##### Why use `then` pipeline?
+
 - No nesting. Keeps your code flat and readable.
-- No method chaining. Functions remain standalone and there's no overloading of dot notation for table property access and piping stuff together.
+- No method chaining. Functions remain standalone and there's no overloading of dot notation for list property access and piping stuff together.
 - Clear data-flow. You always read top-to-bottom, left-to-right.
 
 # Misc implementation details
@@ -794,12 +779,13 @@ then $this.3;       // index into the result
 2. Enzo is static (lexical) scoped.
 3. Enzo **does not** use parentheses for the dual purpose of groupings and code blocks. All parentheses are anon-functions/expression-blocks/code-blocks, however you want to phrase it (in Enzo we call these function atoms). In this way Enzo is a lot like LISP. There is no meaningful distinction between `(10 + 2)` and `($x + 4)`.
 
-
 ---
 
 ## Operator Precedence
+
 (the following might be out of date and is subject to change)
-1. table property invocation (`.`)
+
+1. list property invocation (`.`)
 2. function invocation
 3. multiplication and division ( `*`, `/` )
 4. addition, subtraction (`+`, `-`)
@@ -808,16 +794,17 @@ then $this.3;       // index into the result
 7. comparison operators (`is`, `not`, `is not`, `less than`, `greater than`, `at most`, `at least` )
 8. logical operators (`and`, `or`)
 
-
 ## Desugaring catalogue
+
+
 | Sugar syntax                                    | Core form after parse-rewrite               |
 | ------------------------------------------------- | --------------------------------------------- |
 | **Pipeline** `$v then foo($0,1)`                | `foo($v,1)`                                 |
 | **Inline if** `if cond, a, else b`              | `if cond then a else b end`                 |
 | **List destructure** `$x,$y : [1,2]`            | `$tmp : [1,2]; $x : $tmp[0]; $y : $tmp[1];` |
-| **Table destructure** `$name,$age <- $person{}` | `$name : $person.name; $age : $person.age;` |
 
 ## To-do and Questions:
+
 - casting solutions etc
 - OOP stuff?
 

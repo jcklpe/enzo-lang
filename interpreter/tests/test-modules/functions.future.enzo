@@ -1,26 +1,26 @@
 
 
-//= Table with function member and self mutation
-$counter: {
+//= List with function member and self mutation
+$counter: [
     $count: 10,
     inc: (
         $self.count <: $self.count + 1;
         return($self.count);
     )
-};
+];
 $counter.inc();      // → 11
 $counter.inc();      // → 12
 $counter.count;      // → 12
-$counter.inc;        // function doesn't invoke, just returns the counter.inc function as a reference.
+@counter.inc;        // function doesn't invoke, just returns the counter.inc function as a reference.
 
-//= Table of functions: referencing as variables
-$table-reference: {
+//= List of functions: referencing as variables
+$list-reference: [
     $add-one: (
         param $x: 10;
         return($x + 1);
     )
-};
-$referencing-function: $table-reference.add-one;      // should be a function reference, not invoked
+];
+$referencing-function: @list-reference.add-one;      // should be a function reference, not invoked
 $referencing-function();              // → 11
 $referencing-function(5);             // → 6
 
@@ -29,7 +29,7 @@ outer: (
     param $x: 10;
     inner: (
         param $y: 5;
-        return($x + $y);
+        return(($x + $y));
     );
     return($inner(7));
 );
@@ -51,7 +51,7 @@ empty-fn();     // returns empty.
 sum-default: (
     param $a: 5;
     param $b: $a;
-    return($a + $b);
+    return(($a + $b));
 );
 sum-default();            // → 10
 sum-default(2);           // → 4
@@ -59,19 +59,19 @@ sum-default(2, 10);       // → 12
 
 //= Trailing commas and extra semi-colon errors
 trailing-comma: (
-    param $x: 1, // error: trailing comma
+    param $x: 1, // this should not error. Blocks of variables can be declared with commas
     param $y: 2  // error: missing semicolon
     return($x + $y);
 );
 
-//= Table with a list of functions as a property
-$calc: {
+//= List with a list of functions as a property
+$calc: [
     $ops: [($x: ; $x + 1;), ($x: ; $x * 2;)]
-};
+];
 $calc.ops.2(4);           // → 8
 
-//= Table function and interpolation with self behavior
-$doggie: {
+//= List function and interpolation with self behavior
+$doggie: [
     $name: "ralph",
     $age: 50,
     $speak: ("Hi, my name is <$self.name>."),
@@ -79,7 +79,7 @@ $doggie: {
         param $direction: "left";
         return ("I'm now spinning <$direction>."
     )
-};
+];
 $doggie.speak();              // prints "Hi, my name is ralph."
 $doggie.roll-over("right");   // prints "I'm now spinning right."
 
