@@ -23,7 +23,8 @@ from src.error_messaging import (
     error_message_param_outside_function,
     error_message_too_many_args,
     error_message_arg_type_mismatch,
-    error_message_missing_necessary_params
+    error_message_missing_necessary_params,
+    error_message_cannot_reference_this_in_named_function
 )
 import os
 
@@ -202,7 +203,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             return None  # Do not output anything for empty bind
         # If value is a FunctionAtom, store as function object, not result
         if isinstance(node.value, FunctionAtom):
-            fn = EnzoFunction(node.value.params, node.value.local_vars, node.value.body, env, getattr(node.value, 'is_multiline', False))
+            # Evaluate the FunctionAtom to trigger validation (e.g., $this checks)
+            fn = eval_ast(node.value, value_demand=False, env=env, is_function_context=is_function_context)
             env[name] = fn
             # For variable bindings, also make accessible with/without $ prefix
             if name.startswith('$'):
@@ -251,6 +253,13 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             raise EnzoTypeError(error_message_not_a_function(val), code_line=node.code_line)
         return val
     if isinstance(node, FunctionAtom):
+        # Check if this is a named function that references $this
+        if getattr(node, 'is_named', False):
+            # Check all statements in the function body for $this references
+            for stmt in node.body:
+                if _check_for_this_reference(stmt):
+                    raise EnzoRuntimeError(error_message_cannot_reference_this_in_named_function(), code_line=node.code_line)
+
         # Demand-value context: invoke
         if value_demand:
             fn = EnzoFunction(node.params, node.local_vars, node.body, env, getattr(node, 'is_multiline', False))
@@ -587,3 +596,28 @@ class Empty:
     def __repr__(self):
         return "<empty>"
         return "<empty>"
+
+def _check_for_this_reference(node):
+    """Recursively check if any VarInvoke node references $this"""
+    if isinstance(node, VarInvoke) and node.name == '$this':
+        return True
+
+    # Check all attributes that might contain AST nodes
+    for attr_name in dir(node):
+        if attr_name.startswith('_'):
+            continue
+        attr_value = getattr(node, attr_name)
+
+        # Check lists of nodes
+        if isinstance(attr_value, list):
+            for item in attr_value:
+                if hasattr(item, '__class__') and hasattr(item, 'code_line'):  # Likely an AST node
+                    if _check_for_this_reference(item):
+                        return True
+
+        # Check single nodes
+        elif hasattr(attr_value, '__class__') and hasattr(attr_value, 'code_line'):  # Likely an AST node
+            if _check_for_this_reference(attr_value):
+                return True
+
+    return False

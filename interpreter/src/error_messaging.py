@@ -134,6 +134,9 @@ def error_message_empty_table_comma():
 def error_message_cannot_declare_this():
     return "error: cannot declare variable '$this'"
 
+def error_message_cannot_reference_this_in_named_function():
+    return "error: can't use reserved $this keyname in named function declaration"
+
 def error_message_multiline_function_requires_return():
     return "error: multi-line anonymous functions require explicit return"
 
