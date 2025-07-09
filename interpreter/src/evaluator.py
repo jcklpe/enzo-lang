@@ -515,7 +515,11 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 if isinstance(idx, (int, float)):
                     if isinstance(idx, float) and not idx.is_integer():
                         raise EnzoTypeError(error_message_index_must_be_integer(), code_line=t_code_line)
-                    return base.get_by_index(int(idx))
+                    val = base.get_by_index(int(idx))
+                    # Auto-invoke functions in value demand context
+                    if value_demand and isinstance(val, EnzoFunction):
+                        return invoke_function(val, [], env, self_obj=None)
+                    return val
                 else:
                     raise EnzoTypeError(error_message_index_must_be_number(), code_line=t_code_line)
             except IndexError:
@@ -530,7 +534,11 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=t_code_line)
         if not isinstance(idx, int) or idx < 1 or idx > len(base):
             raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=t_code_line)
-        return base[idx - 1]
+        val = base[idx - 1]
+        # Auto-invoke functions in value demand context
+        if value_demand and isinstance(val, EnzoFunction):
+            return invoke_function(val, [], env, self_obj=None)
+        return val
     if isinstance(node, TableIndex):
         base = eval_ast(node.base, env=env)
         property_name = node.key
@@ -543,18 +551,29 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         from src.runtime_helpers import EnzoList
         if isinstance(base, EnzoList):
             try:
-                return base.get_by_key(property_name)
+                val = base.get_by_key(property_name)
+                # Auto-invoke functions in value demand context
+                if value_demand and isinstance(val, EnzoFunction):
+                    return invoke_function(val, [], env, self_obj=base)
+                return val
             except KeyError:
                 raise EnzoRuntimeError(error_message_list_property_not_found(property_name), code_line=t_code_line)
 
         # Legacy table handling
         if isinstance(base, dict):
             # Try both $property and property
+            val = None
             if property_name in base:
-                return base[property_name]
-            if isinstance(property_name, str) and not property_name.startswith('$') and ('$' + property_name) in base:
-                return base['$' + property_name]
-            raise EnzoRuntimeError(error_message_list_property_not_found(property_name), code_line=t_code_line)
+                val = base[property_name]
+            elif isinstance(property_name, str) and not property_name.startswith('$') and ('$' + property_name) in base:
+                val = base['$' + property_name]
+            else:
+                raise EnzoRuntimeError(error_message_list_property_not_found(property_name), code_line=t_code_line)
+            
+            # Auto-invoke functions in value demand context
+            if value_demand and isinstance(val, EnzoFunction):
+                return invoke_function(val, [], env, self_obj=base)
+            return val
         raise EnzoRuntimeError(error_message_list_property_not_found(property_name), code_line=t_code_line)
     if isinstance(node, ParameterDeclaration):
         raise EnzoRuntimeError(error_message_param_outside_function(), code_line=getattr(node, 'code_line', None))

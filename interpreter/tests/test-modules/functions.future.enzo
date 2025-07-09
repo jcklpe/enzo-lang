@@ -1,21 +1,6 @@
-//= List with a list of functions as a property
-$calc: [
-    $ops: [($x: ; $x + 1;), ($x: ; $x * 2;)]
-];
-$calc.ops.2(4);           // → 8
 
-//= List function and interpolation with self behavior
-$doggie: [
-    $name: "ralph",
-    $age: 50,
-    $speak: ("Hi, my name is <$self.name>."),
-    $roll-over: (
-        param $direction: "left";
-        return ("I'm now spinning <$direction>."
-    )
-];
-$doggie.speak();              // prints "Hi, my name is ralph."
-$doggie.roll-over("right");   // prints "I'm now spinning right."
+
+
 
 //= Functions as members of lists
 $weird-member: 20;

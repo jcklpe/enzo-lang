@@ -184,3 +184,51 @@ sum-default: (
 sum-default();            // → 10
 sum-default(2);           // → 4
 sum-default(2, 10);       // → 12
+
+//= List with a list of functions as a property
+$calc: [
+    $ops: [(param $x: ; $x + 1;), (param $x: ; $x * 2;)]
+];
+$calc.ops.2(4);           // → 8
+
+//= List function and interpolation with self behavior
+$doggie: [
+    $name: "ralph",
+    $age: 50,
+    $speak: ("Hi, my name is <$self.name>."),
+    $roll-over: (
+        param $direction: "left";
+        return ("I'm now spinning <$direction>.");
+    )
+];
+$doggie.speak();              // prints "Hi, my name is ralph."
+$doggie.roll-over("right");   // prints "I'm now spinning right."
+
+//= Functions as members of lists
+$weird-member: 20;
+$weird-list: [1, 2, ($x: 9; $x + 1;), ($weird-member + 1)];
+$weird-list.3; // prints 10
+$weird-list.4; // prints 21
+
+//= Function with numeric param name
+number-name-param: (
+    param $123: 4;
+    return($123);
+);
+number-name-param();    // prints 4
+
+//= Early exit
+early-exit: (
+    $a: 99;
+    return($a);
+    $a<: 1; // should not execute
+);
+early-exit(); // should return 99
+
+//= Function param name shadows outer variable
+$whatever: 42;
+shadow: (
+    param $whatever: 1;
+    return($whatever);
+);
+shadow();    // prints 1 not 42

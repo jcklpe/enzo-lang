@@ -92,3 +92,21 @@ error: duplicate parameter name '$x' in function definition
 10
 4
 12
+//= List with a list of functions as a property
+8
+//= List function and interpolation with self behavior
+"Hi, my name is ralph."
+"I'm now spinning right."
+
+//= Functions as members of lists
+10
+21
+
+//= Function with numeric param name
+4
+
+//= Early exit
+99
+
+//= Function param name shadows outer variable
+1
