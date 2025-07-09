@@ -1,7 +1,7 @@
 from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val, log_debug, EnzoList
 from collections import ChainMap
-from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, TableIndex, ReturnNode, PipelineNode, ParameterDeclaration
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
 from src.error_messaging import (
     error_message_already_defined,
@@ -42,7 +42,7 @@ class EnzoFunction:
         param_names = [p[0] if isinstance(p, (list, tuple)) else str(p) for p in self.params]
         return f"<function ({', '.join(param_names)}) multiline={self.is_multiline}>"
 
-def invoke_function(fn, args, env):
+def invoke_function(fn, args, env, self_obj=None):
     if not isinstance(fn, EnzoFunction):
         raise EnzoTypeError(error_message_not_a_function(fn), code_line=getattr(fn, 'code_line', None))
 
@@ -81,6 +81,11 @@ def invoke_function(fn, args, env):
                 # This should never happen since we already checked required params above
                 raise EnzoRuntimeError(error_message_missing_necessary_params())
             call_env[param_name] = eval_ast(default, value_demand=True, env=ChainMap(call_env, env))
+
+    # Inject $self if provided
+    if self_obj is not None:
+        call_env['$self'] = self_obj
+
     # Create a combined environment that allows both reading from outer env and writing to call_env
     # Make sure we don't pollute the outer environment
     # Function-local variables should shadow global variables, not conflict with them
@@ -119,7 +124,7 @@ def invoke_function(fn, args, env):
 
 def _infer_type_from_default(default_value):
     """Infer expected parameter type from default value AST node."""
-    from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, TableAtom
+    from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom
 
     if isinstance(default_value, NumberAtom):
         return "number"
@@ -127,8 +132,6 @@ def _infer_type_from_default(default_value):
         return "text"
     elif isinstance(default_value, ListAtom):
         return "list"
-    elif isinstance(default_value, TableAtom):
-        return "table"
     # For complex expressions or Empty(), don't enforce type validation
     return None
 
@@ -184,9 +187,6 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     value = eval_ast(el, value_demand=True, env=env)
                 enzo_list.append(value)
         return enzo_list
-    if isinstance(node, TableAtom):
-        tbl = Table((k, eval_ast(v, value_demand=True, env=env)) for k, v in node.items)
-        return tbl
     if isinstance(node, Binding):
         name = node.name
         log_debug(f"[BINDING] Attempting to bind {name}, env keys: {list(env.keys())}")
@@ -242,21 +242,19 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 # Bare function names (without $ sigil) cannot be auto-invoked
                 if not name.startswith('$'):
                     raise EnzoRuntimeError("error: expected function reference (@) or function invocation ($)", code_line=node.code_line)
-                return invoke_function(val, [], env)
+                return invoke_function(val, [], env, self_obj=None)
         return val
     if isinstance(node, FunctionRef):
-        name = node.name
-        if name not in env:
-            raise EnzoRuntimeError(error_message_unknown_variable(name), code_line=node.code_line)
-        val = env[name]
+        # Evaluate the expression to get the function object
+        val = eval_ast(node.expr, value_demand=False, env=env)
         if not isinstance(val, EnzoFunction):
-            raise EnzoTypeError(error_message_not_a_function(val), code_line=code_line)
+            raise EnzoTypeError(error_message_not_a_function(val), code_line=node.code_line)
         return val
     if isinstance(node, FunctionAtom):
         # Demand-value context: invoke
         if value_demand:
             fn = EnzoFunction(node.params, node.local_vars, node.body, env, getattr(node, 'is_multiline', False))
-            return invoke_function(fn, [], env)
+            return invoke_function(fn, [], env, self_obj=None)
         else:
             return EnzoFunction(node.params, node.local_vars, node.body, env, getattr(node, 'is_multiline', False))
     if isinstance(node, AddNode):
@@ -332,8 +330,13 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             return left[key]
         # Function call
         if isinstance(left, EnzoFunction):
-            return invoke_function(left, args, env)
-        # Not a list, table, or function
+            # Check if this function call is from property access (e.g., $obj.method())
+            self_obj = None
+            if isinstance(node.func, ListIndex) and getattr(node.func, 'is_property_access', False):
+                # This is a method call - get the base object for $self
+                self_obj = eval_ast(node.func.base, env=env)
+            return invoke_function(left, args, env, self_obj=self_obj)
+        # Not a list or function
         raise EnzoTypeError(error_message_index_applies_to_lists(), code_line=getattr(node, 'code_line', None))
     if isinstance(node, Program):
         # For a program (file or REPL), output each top-level statement's value (if not None)
@@ -375,9 +378,9 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # If right side is a FunctionAtom, invoke it directly
         if isinstance(right_expr, FunctionAtom):
             fn = EnzoFunction(right_expr.params, right_expr.local_vars, right_expr.body, pipeline_env, getattr(right_expr, 'is_multiline', False))
-            return invoke_function(fn, [], pipeline_env)
+            return invoke_function(fn, [], pipeline_env, self_obj=None)
         # For expressions that can potentially reference $this, evaluate in pipeline environment
-        elif isinstance(right_expr, (AddNode, SubNode, MulNode, DivNode, VarInvoke, Invoke, TextAtom, ListIndex, TableIndex)):
+        elif isinstance(right_expr, (AddNode, SubNode, MulNode, DivNode, VarInvoke, Invoke, TextAtom, ListIndex)):
             return eval_ast(right_expr, value_demand=True, env=pipeline_env)
         else:
             # For literals and other nodes that can't reference $this, this doesn't make sense
@@ -440,14 +443,31 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         return None
                     except IndexError:
                         raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=t_code_line)
+                elif isinstance(idx, str):
+                    # Check if this is property access or string indexing
+                    if getattr(target, 'is_property_access', False):
+                        # Property assignment (e.g., $list.name := value)
+                        try:
+                            base.set_by_key(idx, value)
+                            return None
+                        except KeyError:
+                            raise EnzoRuntimeError(error_message_list_property_not_found(idx), code_line=t_code_line)
+                    else:
+                        # String indexing assignment should error
+                        raise EnzoTypeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
                 else:
                     raise EnzoTypeError(error_message_index_must_be_number(), code_line=t_code_line)
 
-            # Legacy list handling
+            # Legacy list handling and property assignment on non-EnzoList objects
+            if isinstance(idx, str):
+                if getattr(target, 'is_property_access', False):
+                    # Property assignment on non-list objects should give "list property not found"
+                    raise EnzoRuntimeError(error_message_list_property_not_found(idx), code_line=t_code_line)
+                else:
+                    # String indexing assignment should error
+                    raise EnzoTypeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
             if not isinstance(base, list):
                 raise EnzoTypeError(error_message_index_applies_to_lists(), code_line=t_code_line)
-            if isinstance(idx, str):
-                raise EnzoTypeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
             if not isinstance(idx, (int, float)):
                 raise EnzoTypeError(error_message_index_must_be_number(), code_line=t_code_line)
             if isinstance(idx, float):
@@ -459,40 +479,6 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             if idx < 1 or idx > len(base):
                 raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=t_code_line)
             base[idx - 1] = value
-            return None
-        # Assignment to table property
-        if isinstance(target, TableIndex):
-            base = eval_ast(target.base, env=env)
-            property_name = target.key
-            t_code_line = getattr(target, 'code_line', node.code_line)
-            if isinstance(property_name, VarInvoke):
-                property_name = eval_ast(property_name, env=env)
-
-            # Handle EnzoList property assignment
-            from src.runtime_helpers import EnzoList
-            if isinstance(base, EnzoList):
-                try:
-                    base.set_by_key(property_name, value)
-                    return None
-                except KeyError:
-                    raise EnzoRuntimeError(error_message_list_property_not_found(property_name), code_line=t_code_line)
-
-            # Legacy table handling
-            # Ensure base is a dict or Table (which is a dict subclass)
-            if not isinstance(base, dict):
-                raise EnzoTypeError(error_message_list_property_not_found(property_name), code_line=t_code_line)
-            # Overwrite the property value (dict assignment always overwrites)
-            # --- FIX: Use $property if present, else try $property ---
-            found = False
-            if property_name in base:
-                base[property_name] = value
-                found = True
-            elif isinstance(property_name, str) and not property_name.startswith('$') and ('$' + property_name) in base:
-                base['$' + property_name] = value
-                found = True
-            if not found:
-                raise EnzoRuntimeError(error_message_list_property_not_found(property_name), code_line=t_code_line)
-            log_debug(f"[Table property rebind] property: {property_name} | table after: {base!r}")
             return None
         raise EnzoRuntimeError(error_message_cannot_assign_target(target), code_line=getattr(node, 'code_line', None))
     if isinstance(node, ListIndex):
@@ -507,47 +493,50 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 if isinstance(idx, (int, float)):
                     if isinstance(idx, float) and not idx.is_integer():
                         raise EnzoTypeError(error_message_index_must_be_integer(), code_line=t_code_line)
-                    return base.get_by_index(int(idx))
+                    val = base.get_by_index(int(idx))
+                    # Auto-invoke functions in value demand context
+                    if value_demand and isinstance(val, EnzoFunction):
+                        return invoke_function(val, [], env, self_obj=None)
+                    return val
+                elif isinstance(idx, str):
+                    # Check if this is property access (.foo) or string indexing (."foo")
+                    if getattr(node, 'is_property_access', False):
+                        # Property access (e.g., $list.name)
+                        val = base.get_by_key(idx)
+                        # Auto-invoke functions in value demand context
+                        if value_demand and isinstance(val, EnzoFunction):
+                            return invoke_function(val, [], env, self_obj=base)
+                        return val
+                    else:
+                        # String indexing like ."foo" should error
+                        raise EnzoTypeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
                 else:
                     raise EnzoTypeError(error_message_index_must_be_number(), code_line=t_code_line)
-            except IndexError:
-                raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=t_code_line)
+            except (IndexError, KeyError):
+                if isinstance(idx, str) and getattr(node, 'is_property_access', False):
+                    raise EnzoRuntimeError(error_message_list_property_not_found(idx), code_line=t_code_line)
+                else:
+                    raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=t_code_line)
 
-        # Legacy list handling
+        # Legacy list handling and property access on non-EnzoList objects
         if isinstance(idx, str):
-            raise EnzoRuntimeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
+            if getattr(node, 'is_property_access', False):
+                # Property access on non-list objects should give "list property not found"
+                raise EnzoRuntimeError(error_message_list_property_not_found(idx), code_line=t_code_line)
+            else:
+                # String indexing should give "can't use text as index"
+                raise EnzoRuntimeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
         if not isinstance(base, list):
-            if isinstance(node.base, (VarInvoke, TableIndex)):
+            if isinstance(node.base, VarInvoke):
                 raise EnzoRuntimeError(error_message_index_applies_to_lists(), code_line=t_code_line)
             raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=t_code_line)
         if not isinstance(idx, int) or idx < 1 or idx > len(base):
             raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=t_code_line)
-        return base[idx - 1]
-    if isinstance(node, TableIndex):
-        base = eval_ast(node.base, env=env)
-        property_name = node.key
-        t_code_line = getattr(node, 'code_line', code_line)
-
-        if isinstance(property_name, VarInvoke):
-            property_name = eval_ast(property_name, env=env)
-
-        # Handle EnzoList property access
-        from src.runtime_helpers import EnzoList
-        if isinstance(base, EnzoList):
-            try:
-                return base.get_by_key(property_name)
-            except KeyError:
-                raise EnzoRuntimeError(error_message_list_property_not_found(property_name), code_line=t_code_line)
-
-        # Legacy table handling
-        if isinstance(base, dict):
-            # Try both $property and property
-            if property_name in base:
-                return base[property_name]
-            if isinstance(property_name, str) and not property_name.startswith('$') and ('$' + property_name) in base:
-                return base['$' + property_name]
-            raise EnzoRuntimeError(error_message_list_property_not_found(property_name), code_line=t_code_line)
-        raise EnzoRuntimeError(error_message_list_property_not_found(property_name), code_line=t_code_line)
+        val = base[idx - 1]
+        # Auto-invoke functions in value demand context
+        if value_demand and isinstance(val, EnzoFunction):
+            return invoke_function(val, [], env, self_obj=None)
+        return val
     if isinstance(node, ParameterDeclaration):
         raise EnzoRuntimeError(error_message_param_outside_function(), code_line=getattr(node, 'code_line', None))
     raise EnzoRuntimeError(error_message_unknown_node(node), code_line=getattr(node, 'code_line', None))

@@ -15,7 +15,6 @@ from src.enzo_parser.parser_utilities import get_code_line, peek, advance, expec
 
 # Import parsing helpers from submodules
 from src.enzo_parser.parser_function import parse_function_atom
-from src.enzo_parser.parser_table import parse_table_atom
 from src.enzo_parser.parser_list import parse_list_atom
 
 class Parser:
@@ -49,10 +48,6 @@ class Parser:
         # Delegate to parser_list.py
         return parse_list_atom(self)
 
-    def parse_table_atom(self):
-        # Delegate to parser_table.py
-        return parse_table_atom(self)
-
     def parse_postfix(self, base):
         # Handle function calls and chained dot-number and dot-variable for nested indexing
         debug_chain = []  # DEBUG: collect chain for print
@@ -79,12 +74,13 @@ class Parser:
                         base = ListIndex(base, VarInvoke(key, code_line=code_line), code_line=code_line)
                     else:
                         debug_chain.append(f".{key}")  # DEBUG
-                        base = TableIndex(base, key, code_line=code_line)
+                        # Property access: .foo
+                        base = ListIndex(base, TextAtom(key, code_line=code_line), code_line=code_line, is_property_access=True)
                 elif t and t.type == "TEXT_TOKEN":
-                    # Allow string as index: $list."foo"
+                    # String index: $list."foo" (should error for non-numeric strings)
                     text_val = self.advance().value[1:-1]
                     debug_chain.append(f'."{text_val}"')  # DEBUG
-                    base = ListIndex(base, TextAtom(text_val, code_line=code_line), code_line=code_line)
+                    base = ListIndex(base, TextAtom(text_val, code_line=code_line), code_line=code_line, is_property_access=False)
                 else:
                     # If not a valid index or property, break
                     break
@@ -142,9 +138,9 @@ class Parser:
             node = VarInvoke(self.advance().value, code_line=code_line)
         elif t.type == "AT":
             self.advance()
-            t2 = self.expect("KEYNAME")
-            code_line2 = self._get_code_line(t2)
-            node = FunctionRef(t2.value, code_line=code_line2)
+            # Parse the expression after @, which could be a simple variable or property access
+            expr = self.parse_value_expression()
+            node = FunctionRef(expr, code_line=code_line)
         elif t.type == "LPAR":
             # ALL parentheses create function atoms according to the language spec
             node = self.parse_function_atom()
@@ -153,8 +149,6 @@ class Parser:
                 self.advance()
         elif t.type == "LBRACK":
             node = self.parse_list_atom()
-        elif t.type == "LBRACE":
-            node = self.parse_table_atom()
         elif t.type == "MINUS":
             self.advance()
             t2 = self.peek()
@@ -263,7 +257,7 @@ class Parser:
                 return ParameterDeclaration(var_name, default_value, code_line=code_line)
 
         # Support assignment to variable, list index, or table index
-        # Parse a value expression (could be VarInvoke, ListIndex, TableIndex, etc.)
+        # Parse a value expression (could be VarInvoke, ListIndex, etc.)
         expr1 = self.parse_value_expression()
         # Assignment: <:
         if self.peek() and self.peek().type == "REBIND_LEFTWARD":
@@ -287,10 +281,10 @@ class Parser:
                 # $var1 :> $var2 means: bind value of $var1 to $var2
                 return BindOrRebind(expr2, expr1, code_line=code_line)
             elif isinstance(expr1, VarInvoke):
-                # expr1 :> target (where target can be VarInvoke, ListIndex, TableIndex)
+                # expr1 :> target (where target can be VarInvoke, ListIndex)
                 return BindOrRebind(expr2, expr1, code_line=code_line)
-            elif isinstance(expr2, (VarInvoke, ListIndex, TableIndex)):
-                # expr :> target (where target can be VarInvoke, ListIndex, TableIndex)
+            elif isinstance(expr2, (VarInvoke, ListIndex)):
+                # expr :> target (where target can be VarInvoke, ListIndex)
                 return BindOrRebind(expr2, expr1, code_line=code_line)
             else:
                 raise EnzoParseError(":> must have a variable on one side", code_line=code_line)

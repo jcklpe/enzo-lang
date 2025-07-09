@@ -38,14 +38,6 @@ class Invoke(ASTNode):
     def __repr__(self):
         return f"Invoke(func={self.func!r}, args={self.args!r})"
 
-class TableAtom(ASTNode):
-    def __init__(self, items, code_line=None):
-        super().__init__(code_line)
-        self.items = items
-    def __repr__(self):
-        # Warn if this is ever printed directly
-        return f"<TableAtom(items={self.items!r})>"
-
 class NumberAtom(ASTNode):
     def __init__(self, value, code_line=None):
         super().__init__(code_line)
@@ -123,27 +115,20 @@ class BindOrRebind(ASTNode):
         return f"BindOrRebind(target={self.target!r}, value={self.value!r})"
 
 class FunctionRef(ASTNode):
-    def __init__(self, name, code_line=None):
+    def __init__(self, expr, code_line=None):
         super().__init__(code_line)
-        self.name = name
+        self.expr = expr  # Can be a VarInvoke, TableIndex, or other expression
     def __repr__(self):
-        return f"FunctionRef(name={self.name!r})"
+        return f"FunctionRef(expr={self.expr!r})"
 
 class ListIndex(ASTNode):
-    def __init__(self, base, index, code_line=None):
+    def __init__(self, base, index, code_line=None, is_property_access=False):
         super().__init__(code_line)
         self.base = base  # The list expression
         self.index = index  # The index expression (should be NumberAtom or VarInvoke)
+        self.is_property_access = is_property_access  # True for .foo, False for ."foo"
     def __repr__(self):
-        return f"ListIndex(base={self.base!r}, index={self.index!r})"
-
-class TableIndex(ASTNode):
-    def __init__(self, base, key, code_line=None):
-        super().__init__(code_line)
-        self.base = base  # The table expression
-        self.key = key    # The key (should be a string or VarInvoke)
-    def __repr__(self):
-        return f"TableIndex(base={self.base!r}, key={self.key!r})"
+        return f"ListIndex(base={self.base!r}, index={self.index!r}, is_property_access={self.is_property_access!r})"
 
 class ReturnNode(ASTNode):
     def __init__(self, value, code_line=None):

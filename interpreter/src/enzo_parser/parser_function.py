@@ -2,6 +2,7 @@ from src.enzo_parser.ast_nodes import FunctionAtom, Binding, VarInvoke
 from src.enzo_parser.parser_utilities import expect
 from src.runtime_helpers import log_debug
 from src.error_handling import EnzoParseError
+from src.error_messaging import error_message_duplicate_param
 
 import os
 
@@ -26,23 +27,56 @@ def parse_function_atom(parser):
     params = []  # Store (name, default_value) tuples
     local_vars = []
     body = []
+    param_names = set()  # Track parameter names for duplicates
 
-    # Parse the body statements directly with the main parser
-    while parser.peek() and parser.peek().type != "RPAR":
-        log_debug(f"[parse_function_atom] parsing statement at token: {parser.peek()} (parser.pos={parser.pos})")
-        stmt = parser.parse_statement()
-        from src.enzo_parser.ast_nodes import Binding, ParameterDeclaration
-        if isinstance(stmt, Binding):
-            local_vars.append(stmt)
-        elif isinstance(stmt, ParameterDeclaration):
-            # Convert parameter declaration to the format expected by FunctionAtom
-            params.append((stmt.name, stmt.default_value))
-        else:
-            body.append(stmt)
-        # Always consume all delimiters after every statement, including after return
-        while parser.peek() and parser.peek().type in ("SEMICOLON", "COMMA"):
-            parser.advance()
-            log_debug(f"[parse_function_atom] skipped delimiter, now at parser.pos={parser.pos}")
+    try:
+        # Parse the body statements directly with the main parser
+        while parser.peek() and parser.peek().type != "RPAR":
+            log_debug(f"[parse_function_atom] parsing statement at token: {parser.peek()} (parser.pos={parser.pos})")
+            stmt = parser.parse_statement()
+            from src.enzo_parser.ast_nodes import Binding, ParameterDeclaration
+            if isinstance(stmt, Binding):
+                local_vars.append(stmt)
+            elif isinstance(stmt, ParameterDeclaration):
+                # Duplicate parameter name detection (raise error before any output or AST modification)
+                if stmt.name in param_names:
+                    # Find the actual line containing the duplicate parameter
+                    # Look for the line that contains "param <name>:" where name matches stmt.name
+                    # We want the SECOND occurrence since that's the duplicate
+                    src_lines = parser.src.splitlines()
+                    code_line = None
+                    # stmt.name should already include the $ prefix
+                    target_pattern = f"param {stmt.name}:"
+                    occurrences = []
+                    for line in src_lines:
+                        if target_pattern in line:
+                            # Strip comments from the line
+                            line_without_comment = line.split('//')[0].strip()
+                            occurrences.append(line_without_comment)
+                    # Use the second occurrence if available, otherwise first
+                    if len(occurrences) >= 2:
+                        code_line = occurrences[1]  # Second occurrence (the duplicate)
+                    elif len(occurrences) >= 1:
+                        code_line = occurrences[0]  # Fallback to first occurrence
+                    else:
+                        code_line = f"param {stmt.name};"  # fallback
+                    msg = error_message_duplicate_param(stmt.name, code_line)
+                    raise EnzoParseError(msg, code_line=code_line)
+                    # Ensure no further code is executed after the error
+                    return  # (unreachable, for clarity)
+                # Only add to param_names and params if not duplicate
+                param_names.add(stmt.name)
+                params.append((stmt.name, stmt.default_value))
+            else:
+                body.append(stmt)
+            # Always consume all delimiters after every statement, including after return
+            while parser.peek() and parser.peek().type in ("SEMICOLON", "COMMA"):
+                parser.advance()
+                log_debug(f"[parse_function_atom] skipped delimiter, now at parser.pos={parser.pos}")
+    except EnzoParseError as e:
+        # Abort parsing the rest of the function atom after the first error
+        synchronize(parser)  # Skip to the end of the function atom
+        raise
 
     # Expect the closing RPAR
     if parser.peek() and parser.peek().type == "RPAR":

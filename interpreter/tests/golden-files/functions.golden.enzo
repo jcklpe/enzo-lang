@@ -70,3 +70,43 @@ error: expected function reference (@) or function invocation ($)
 14
 error: expected function reference (@) or function invocation ($)
     apply(double, 4);
+
+//= List with function member and self mutation
+10
+11
+12
+12
+<function () multiline=True>
+//= List of functions: referencing as variables
+11
+6
+//= Nested function: inner function shadows param
+17
+27
+//= Duplicate param name error in function declaration
+error: duplicate parameter name '$x' in function definition
+    param $x: 2;
+
+//= Empty function declaration and call
+//= Function with default param referencing previous param
+10
+4
+12
+//= List with a list of functions as a property
+8
+//= List function and interpolation with self behavior
+"Hi, my name is ralph."
+"I'm now spinning right."
+
+//= Functions as members of lists
+10
+21
+
+//= Function with numeric param name
+4
+
+//= Early exit
+99
+
+//= Function param name shadows outer variable
+1
