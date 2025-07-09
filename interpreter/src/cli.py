@@ -310,20 +310,12 @@ def main():
             if isinstance(result, list):
                 for val in result:
                     if val is not None:
-                        # DEBUG: Log if TableAtom is being printed
-                        from src.enzo_parser.ast_nodes import TableAtom
-                        if isinstance(val, TableAtom):
-                            log_debug(f"WARNING: Attempted to print TableAtom AST node: {val!r} (line: {line})")
                         if isinstance(val, (list, dict, Table)):
                             print(format_val(val))
                         else:
                             print(val)
             else:
                 if result is not None:
-                    # DEBUG: Log if TableAtom is being printed
-                    from src.enzo_parser.ast_nodes import TableAtom
-                    if isinstance(result, TableAtom):
-                        log_debug(f"WARNING: Attempted to print TableAtom AST node: {result!r} (line: {line})")
                     if isinstance(result, (list, dict, Table)):
                         print(format_val(result))
                     else:
