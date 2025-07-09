@@ -54,3 +54,11 @@ error: pipeline expects function atom after `then`
 24
 25
 25
+
+//= Multi-line and params in named functions
+12
+15
+
+//= NAMED FUNCTION: referencing $this is an error
+error: can't use reserved $this keyname in named function declaration
+    breaking2: (

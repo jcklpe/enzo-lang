@@ -626,3 +626,20 @@ return($sum);); // returns 15
 $recursed-list: [10,20,30];
 $recursed-list then ($index: 2; $this.$index + 5 :> $recursed-list.$index);
 $recursed-list.2;// returns 25
+
+//= Multi-line and params in named functions
+10 then ($this + 2); // Explicit, clear, always works
+// or, for named functions:
+adder-pipes: (
+    param $x: ;
+    param $y: ;
+    return($x + $y);
+);
+10 then adder-pipes($this, 5); // Clear: pass piped value as first arg
+
+//= NAMED FUNCTION: referencing $this is an error
+breaking2: (
+    param $x: ;
+    param $y: ;
+    return($x + $y + $this); // error: can't use reserved $this keyname in named function declaration
+);

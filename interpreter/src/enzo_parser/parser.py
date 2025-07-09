@@ -272,6 +272,9 @@ class Parser:
             if self.peek() and self.peek().type == "SEMICOLON":
                 return Binding(expr1.name, None, code_line=code_line)
             value = self.parse_value_expression()
+            # If the value is a FunctionAtom, mark it as named
+            if isinstance(value, FunctionAtom):
+                value.is_named = True
             return Binding(expr1.name, value, code_line=code_line)
         # Implicit bind-or-rebind: :>
         if self.peek() and self.peek().type == "REBIND_RIGHTWARD":
