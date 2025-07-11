@@ -1,38 +1,38 @@
 //= LIST MAPPING STUFF ───────────────────────────────────────────────────────────
-[ $name: "Alice", $age: 30 ]
+[$name: "Alice", $age: 30]
 "Alice"
 30
 //= REBINDING LIST PROPERTIES ────────────────────────────────────────────
 "Bob"
-[ $name: "Bob", $age: 30 ]
+[$name: "Bob", $age: 30]
 //= ANOTHER LIST + PROPERTY REBIND ───────────────────────────────────────
-[ $foo: 42, $bar: "hello" ]
+[$foo: 42, $bar: "hello"]
 "hello"
 100
-[ $foo: 100, $bar: "hello" ]
+[$foo: 100, $bar: "hello"]
 //= EMPTY LIST LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
-[  ]
+[]
 error: list property not found: $someKey
     $emptyListMap.someKey;
 //= NESTED LIST + MIXED INDEX/PROPERTY ───────────────────────────────────────
-[ $inner: [ $val: 42, $arr: [ 10, 20 ] ] ]
+[$inner: [$val: 42, $arr: [10, 20]]]
 42
 20
 //= REBINDING NESTED LISTS ───────────────────────────────────────────────
 100
 //= COMPLEX LIST + LIST INDEX/PROPERTY ACCESS ─────────────────────────
-[ $list-map: [ $a: [ 100, 200 ], $b: "x" ], $list-index: [ [ $foo: 1 ], [ $foo: 2 ] ] ]
+[$list-map: [$a: [100, 200], $b: "x"], $list-index: [[$foo: 1], [$foo: 2]]]
 100
 2
 //= LIST OF LISTS + INDEX OF LIST ─────────────────────────────────────
-[ $first: [ 1, 2 ], $second: [ 3, 4 ] ]
+[$first: [1, 2], $second: [3, 4]]
 2
-[ 3, 4 ]
+[3, 4]
 //= MORE LIST WEIRDNESS
-[ $x: [ $y: [ $z: 7 ] ] ]
+[$x: [$y: [$z: 7]]]
 7
 //= List property errors
-[ $foo: 1 ]
+[$foo: 1]
 error: list property not found: $bar
     $list9.bar;
 1
@@ -41,19 +41,19 @@ error: list property not found: $bar
 999
 error: list property not found: $someKey
     $prim.someKey <: 5;
-[ $a: 1 ]
+[$a: 1]
 1
-[ $x: 1 ]
+[$x: 1]
 99
-[ $x: 99 ]
+[$x: 99]
 error: list property not found: $y
     $table-error.y <: 42;
 //= Valid trailing commas (should succeed)
-[ $foo: 1, $bar: 2 ]
+[$foo: 1, $bar: 2]
 //= invalid trailing commas (should error)
 error: extra comma in list
-    $badList1: [ $foo: 1,, $bar: 2 ];
+    $badList1: [$foo: 1,, $bar: 2];
 error: excess leading comma
-    $badList2: [ ,$foo: 1, $bar: 2 ];
+    $badList2: [ ,$foo: 1, $bar: 2];
 error: empty list with just a comma
-    $badList3: [ , ];
+    $badList3: [ ,];

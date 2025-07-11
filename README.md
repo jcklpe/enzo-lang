@@ -508,7 +508,7 @@ $name, $age, $shirt-color <- $favorite-color: $person[];
 ##### List destructuring
 
 ```javscript!
-$example-list: [ 1, 2, 3];
+$example-list: [1, 2, 3];
 
 $x, $y, $z: $example-list[];
 // $x = 1, $y = 2, $z = 3

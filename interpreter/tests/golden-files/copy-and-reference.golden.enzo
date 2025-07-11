@@ -1,4 +1,5 @@
 //= COPY BY DEFAULT: LISTS ───────────────────────────────────────────────────────────
+[1, 2, 3]
 [99, 2, 3]
 [1, 2, 3]
 
@@ -17,16 +18,16 @@
 300
 
 //= FUNCTION ARGUMENT REFERENCE VS COPY ──────────────────────────────────────────────
-[99,2,3]
-[1,2,3]
-[99,2,3]
-[99,2,3]
+[99, 2, 3]
+[1, 2, 3]
+[99, 2, 3]
+[99, 2, 3]
 
 //= REFERENCE VS COPY IN LIST OF LISTS ──────────────────────────────────────────────
-[$first: [99,2], $second: [3,4]]
-[$first: [1,2], $second: [3,4]]
-[$first: [1,2], $second: [3,88]]
-[$first: [1,2], $second: [3,88]]
+[$first: [99, 2], $second: [3, 4]]
+[$first: [1, 2], $second: [3, 4]]
+[$first: [1, 2], $second: [3, 88]]
+[$first: [1, 2], $second: [3, 88]]
 
 //= REFERENCE VS COPY IN FUNCTIONS ──────────────────────────────────────────────────
 11
@@ -35,13 +36,13 @@
 11
 
 //= COPY-BY-DEFAULT WITH FUNCTIONS ────────────────────────────────────────────
-[ $bar: 1 ]
-[ $bar: 99 ]
+[$bar: 1]
+[$bar: 99]
 1
 
 //= REFERENCE PASSING WITH @ ───────────────────────────────────────────────────
-[ $bar: 1 ];
-[ $bar: 42 ]
+[$bar: 1]
+[$bar: 42]
 42
 
 //= REFERENCE CAPTURE WITHIN A FUNCTION ────────────────────────────────────────
@@ -56,14 +57,14 @@
 20
 
 //= USING $this IN A PIPELINE ───────────────────────────────────────────────────
-[ $health: 100 ]
-[ $health: 85 ]
+[$health: 100, take-damage: <function ($amount) multiline=True>]
+[$health: 85, take-damage: <function ($amount) multiline=True>]
 85
 
 //= USING EXTERNAL FUNCTION + PIPELINE + @this ────────────────────────────────
-[ $health: 100 ]
+[$health: 100]
 100
 
 //= COPY-BY-DEFAULT FAILS TO MUTATE ─────────────────────────────────────────────
-[ $health: 125 ]
+[$health: 125]
 150

@@ -99,7 +99,8 @@ def regenerate_combined_files():
             "lists-mapping",
             "text",
             "functions",
-            "pipeline"
+            "pipeline",
+            "copy-and-reference"
     ]
 
     test_modules_dir = os.path.join(SCRIPT_DIR, "tests", "test-modules")

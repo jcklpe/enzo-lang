@@ -140,7 +140,7 @@ class Parser:
             self.advance()
             # Parse the expression after @, which could be a simple variable or property access
             expr = self.parse_value_expression()
-            node = FunctionRef(expr, code_line=code_line)
+            node = ReferenceAtom(expr, code_line=code_line)
         elif t.type == "LPAR":
             # ALL parentheses create function atoms according to the language spec
             node = self.parse_function_atom()

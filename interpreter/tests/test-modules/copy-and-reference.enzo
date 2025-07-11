@@ -21,16 +21,16 @@ $reference-list;        // prints [4, 99, 6]
 $original-list;         // prints [4, 99, 6] original affected due to reference
 
 //= REFERENCE TO VARIABLE (COPY VS EXPLICIT REFERENCE) ──────────────────────────────
-$x: 100;
-$y: $x;                 // copy by default
-$y <: 200;
-$x;                     // prints 100 (original unaffected)
-$y;                     // prints 200
+$x-ref: 100;
+$y-ref: $x-ref;                 // copy by default
+$y-ref <: 200;
+$x-ref;                     // prints 100 (original unaffected)
+$y-ref;                     // prints 200
 
-$ref-x: @x;            // explicit reference
+$ref-x: @x-ref;            // explicit reference
 $ref-x <: 300;
 $ref-x;                 // prints 300
-$x;                     // prints 300 (original affected due to reference)
+$x-ref;                     // prints 300 (original affected due to reference)
 
 //= FUNCTION ARGUMENT REFERENCE VS COPY ──────────────────────────────────────────────
 modify-list: (
@@ -90,8 +90,8 @@ ref-increment(@number); // returns 11
 $number;                 // prints 11 original affected
 
 //= COPY-BY-DEFAULT WITH FUNCTIONS ────────────────────────────────────────────
-$foo: [ $bar: 1 ];
-$foo;
+$foo-ref1: [$bar: 1];
+$foo-ref1;
 
 mutate-bar: (
     param $target: ;
@@ -100,21 +100,21 @@ mutate-bar: (
 );
 
 // No @ — $foo is copied into the function
-$foo then mutate-bar($this);   // prints [ $bar: 99 ]
-$foo.bar;                      // still prints 1 — original not mutated
+$foo-ref1 then mutate-bar($this);   // prints [$bar: 99]
+$foo-ref1.bar;                      // still prints 1 — original not mutated
 
 //= REFERENCE PASSING WITH @ ───────────────────────────────────────────────────
-$foo: [ $bar: 1 ];
-$foo;
+$foo-ref2: [$bar: 1];
+$foo-ref2;
 
-mutate-bar: (
+mutate-bar2: (
     param $target: ;
     $target.bar <: 42;
     return($target);
 );
 
-$foo then mutate-bar(@this);  // prints [ $bar: 42 ]
-$foo.bar;                      // prints 42 — original WAS mutated
+$foo-ref2 then mutate-bar2(@this);  // prints [$bar: 42]
+$foo-ref2.bar;                      // prints 42 — original WAS mutated
 
 //= REFERENCE CAPTURE WITHIN A FUNCTION ────────────────────────────────────────
 $counter-ref: [
@@ -151,8 +151,8 @@ $goblin-ref: [
         return($self);
     )
 ];
-$goblin-ref;                   // → [ $health: 100 ]
-$goblin-ref.take-damage(15);   // → [ $health: 85 ]
+$goblin-ref;                   // → [$health: 100]
+$goblin-ref.take-damage(15);   // → [$health: 85]
 $goblin-ref.health;            // → 85
 
 //= USING EXTERNAL FUNCTION + PIPELINE + @this ────────────────────────────────
@@ -163,11 +163,11 @@ take-damage: (
     return($target);
 );
 
-$orc-ref: [ $health: 120 ];
-$orc-ref then take-damage(@this, 20);  // → [ $health: 100 ]
+$orc-ref: [$health: 120];
+$orc-ref then take-damage(@this, 20);  // → [$health: 100]
 $orc-ref.health;                        // → 100
 
 //= COPY-BY-DEFAULT FAILS TO MUTATE ─────────────────────────────────────────────
-$orc-ref2: [ $health: 150 ];
-$orc-ref2 then take-damage($this, 25);  // → [ $health: 125 ]
+$orc-ref2: [$health: 150];
+$orc-ref2 then take-damage($this, 25);  // → [$health: 125]
 $orc-ref2.health;                       // → 150 — original not mutated

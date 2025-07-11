@@ -1,7 +1,7 @@
 from src.enzo_parser.parser import parse
-from src.runtime_helpers import Table, format_val, log_debug, EnzoList
+from src.runtime_helpers import Table, format_val, log_debug, EnzoList, deep_copy_enzo_value
 from collections import ChainMap
-from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
 from src.error_messaging import (
     error_message_already_defined,
@@ -43,6 +43,53 @@ class EnzoFunction:
         param_names = [p[0] if isinstance(p, (list, tuple)) else str(p) for p in self.params]
         return f"<function ({', '.join(param_names)}) multiline={self.is_multiline}>"
 
+class ReferenceWrapper:
+    """Wrapper for explicit references created with @ operator."""
+    def __init__(self, expr, env):
+        self.expr = expr  # The AST expression to evaluate for the reference
+        self.env = env    # The environment where the reference was created
+
+    def get_value(self):
+        """Get the current value of the referenced expression."""
+        return eval_ast(self.expr, value_demand=True, env=self.env)
+
+    def get_target_info(self):
+        """Get information about the reference target for assignment."""
+        return self.expr, self.env
+
+    def set_value(self, value):
+        """Set the value of the referenced target."""
+        if isinstance(self.expr, VarInvoke):
+            var_name = self.expr.name
+            if var_name in self.env:
+                self.env[var_name] = value
+                # Handle variable mirroring
+                if var_name.startswith('$'):
+                    bare_name = var_name[1:]
+                    if bare_name in self.env:
+                        self.env[bare_name] = value
+                else:
+                    dollar_name = '$' + var_name
+                    if dollar_name in self.env:
+                        self.env[dollar_name] = value
+        elif isinstance(self.expr, ListIndex):
+            # Handle list property assignment through reference
+            base_val = eval_ast(self.expr.base, value_demand=True, env=self.env)
+            if self.expr.is_property_access:
+                if isinstance(base_val, EnzoList):
+                    base_val.set_by_key(self.expr.index.value, value)
+                elif isinstance(base_val, dict):
+                    base_val[self.expr.index.value] = value
+            else:
+                index = eval_ast(self.expr.index, value_demand=True, env=self.env)
+                if isinstance(base_val, EnzoList):
+                    base_val[int(index) - 1] = value  # 1-based indexing
+                else:
+                    base_val[int(index) - 1] = value
+
+    def __repr__(self):
+        return f"<reference to {self.expr}>"
+
 def invoke_function(fn, args, env, self_obj=None):
     if not isinstance(fn, EnzoFunction):
         raise EnzoTypeError(error_message_not_a_function(fn), code_line=getattr(fn, 'code_line', None))
@@ -73,15 +120,23 @@ def invoke_function(fn, args, env, self_obj=None):
             raise EnzoRuntimeError(error_message_arg_type_mismatch(param_name, expected_type, actual_type))
 
     call_env = fn.closure_env.copy()
-    # Bind parameters
+    # Bind parameters with copy-by-default semantics
     for (param_name, default), arg in zip(fn.params, args):
-        call_env[param_name] = arg
+        # Handle reference vs copy semantics for function arguments
+        if isinstance(arg, ReferenceWrapper):
+            # This is an explicit reference (@variable), store the reference wrapper
+            call_env[param_name] = arg
+        else:
+            # Copy-by-default: make a deep copy of the argument
+            call_env[param_name] = deep_copy_enzo_value(arg)
     if len(args) < len(fn.params):
         for (param_name, default) in fn.params[len(args):]:
             if default is None:
                 # This should never happen since we already checked required params above
                 raise EnzoRuntimeError(error_message_missing_necessary_params())
-            call_env[param_name] = eval_ast(default, value_demand=True, env=ChainMap(call_env, env))
+            default_val = eval_ast(default, value_demand=True, env=ChainMap(call_env, env))
+            # Default values are also copied
+            call_env[param_name] = deep_copy_enzo_value(default_val)
 
     # Inject $self if provided
     if self_obj is not None:
@@ -219,24 +274,46 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     env[dollar_name] = fn
             return None  # Do not output anything for binding
         val = eval_ast(node.value, value_demand=False, env=env)  # storage context
-        env[name] = val
+
+        # Handle reference vs copy semantics for bindings
+        if isinstance(val, ReferenceWrapper):
+            # This is an explicit reference (@variable), store the reference wrapper
+            actual_val = val
+        else:
+            # Copy-by-default: make a deep copy of the value
+            actual_val = deep_copy_enzo_value(val)
+
+        env[name] = actual_val
         # For variable bindings, also make accessible with/without $ prefix
         if name.startswith('$'):
             # Make $variable also accessible as bare name
             bare_name = name[1:]  # Remove the $ prefix
             if bare_name not in env:  # Don't overwrite existing bare variable
-                env[bare_name] = val
+                env[bare_name] = actual_val
         else:
             # Make bare variable also accessible with $ prefix
             dollar_name = '$' + name
             if dollar_name not in env:  # Don't overwrite existing $variable
-                env[dollar_name] = val
+                env[dollar_name] = actual_val
         return None  # Do not output anything for binding
     if isinstance(node, VarInvoke):
         name = node.name
         if name not in env:
             raise EnzoRuntimeError(error_message_unknown_variable(name), code_line=node.code_line)
         val = env[name]
+
+        # Handle reference wrapper: return the current value of the reference
+        if isinstance(val, ReferenceWrapper):
+            referenced_val = val.get_value()
+            # Check if the referenced value is a function
+            if isinstance(referenced_val, EnzoFunction):
+                # Auto-invoke functions when referenced with $ sigil in value_demand context
+                if value_demand:
+                    if not name.startswith('$'):
+                        raise EnzoRuntimeError("error: expected function reference (@) or function invocation ($)", code_line=node.code_line)
+                    return invoke_function(referenced_val, [], env, self_obj=None)
+            return referenced_val
+
         # Check if this is a function
         if isinstance(val, EnzoFunction):
             # Auto-invoke functions when referenced with $ sigil in value_demand context
@@ -252,6 +329,38 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         if not isinstance(val, EnzoFunction):
             raise EnzoTypeError(error_message_not_a_function(val), code_line=node.code_line)
         return val
+    if isinstance(node, ReferenceAtom):
+        target = node.target
+
+        # Special handling for function references (backwards compatibility)
+        if isinstance(target, VarInvoke):
+            # Check if the target is a function
+            var_name = target.name
+            if var_name in env:
+                var_value = env[var_name]
+                if isinstance(var_value, EnzoFunction):
+                    return var_value  # Return function directly for @function
+        elif isinstance(target, ListIndex) and target.is_property_access:
+            # Handle @object.method
+            try:
+                from src.runtime_helpers import EnzoList
+                base_val = eval_ast(target.base, value_demand=True, env=env)
+                if isinstance(base_val, EnzoList):
+                    prop_name = target.index.value
+                    prop_val = base_val.get_by_key(prop_name)
+                    if isinstance(prop_val, EnzoFunction):
+                        return prop_val  # Return function directly for @object.method
+                elif isinstance(base_val, dict):
+                    prop_name = target.index.value
+                    prop_val = base_val.get(prop_name)
+                    if isinstance(prop_val, EnzoFunction):
+                        return prop_val
+            except Exception as e:
+                # If we can't access the property, fall through to ReferenceWrapper
+                pass
+
+        # For non-function references, create ReferenceWrapper
+        return ReferenceWrapper(target, env)
     if isinstance(node, FunctionAtom):
         # Check if this is a named function that references $this
         if getattr(node, 'is_named', False):
@@ -284,7 +393,21 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         return left / right
     if isinstance(node, Invoke):
         left = eval_ast(node.func, value_demand=False, env=env)  # Get function object, don't invoke it yet
-        args = [eval_ast(arg, value_demand=True, env=env) for arg in node.args]
+
+        # If left is a ReferenceWrapper that refers to a function, dereference it
+        if isinstance(left, ReferenceWrapper):
+            left = left.get_value()
+
+        # Evaluate arguments, but preserve ReferenceWrapper objects for function calls
+        args = []
+        for arg in node.args:
+            arg_result = eval_ast(arg, value_demand=False, env=env)  # Don't dereference yet
+            if isinstance(arg_result, ReferenceWrapper):
+                # Keep the ReferenceWrapper for the function call
+                args.append(arg_result)
+            else:
+                # For non-references, evaluate normally
+                args.append(eval_ast(arg, value_demand=True, env=env))
 
         # EnzoList indexing and keyed access
         from src.runtime_helpers import EnzoList
@@ -383,13 +506,14 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # Create a new environment with $this bound to the left value
         pipeline_env = env.copy()
         pipeline_env['$this'] = left_val
+        pipeline_env['this'] = left_val  # Also make available without $ prefix for @this
 
         # If right side is a FunctionAtom, invoke it directly
         if isinstance(right_expr, FunctionAtom):
             fn = EnzoFunction(right_expr.params, right_expr.local_vars, right_expr.body, pipeline_env, getattr(right_expr, 'is_multiline', False))
             return invoke_function(fn, [], pipeline_env, self_obj=None)
         # For expressions that can potentially reference $this, evaluate in pipeline environment
-        elif isinstance(right_expr, (AddNode, SubNode, MulNode, DivNode, VarInvoke, Invoke, TextAtom, ListIndex)):
+        elif isinstance(right_expr, (AddNode, SubNode, MulNode, DivNode, VarInvoke, Invoke, TextAtom, ListIndex, ReferenceAtom)):
             return eval_ast(right_expr, value_demand=True, env=pipeline_env)
         else:
             # For literals and other nodes that can't reference $this, this doesn't make sense
@@ -397,7 +521,20 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
     if isinstance(node, BindOrRebind):
         target = node.target
         value = eval_ast(node.value, value_demand=True, env=env)
+
+        # Handle reference vs copy semantics
+        if isinstance(value, ReferenceWrapper):
+            # This is an explicit reference (@variable), store the reference wrapper
+            actual_value = value
+        else:
+            # Copy-by-default: make a deep copy of the value
+            actual_value = deep_copy_enzo_value(value)
+
         def enzo_type(val):
+            if isinstance(val, ReferenceWrapper):
+                # For type checking, look at the referenced value
+                referenced_val = val.get_value()
+                return enzo_type(referenced_val)
             if isinstance(val, (int, float)):
                 return "Number"
             if isinstance(val, str):
@@ -415,30 +552,81 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         if isinstance(target, str):
             name = target
             if name not in env:
-                env[name] = value
+                env[name] = actual_value
                 return None
             old_val = env[name]
-            if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(value):
-                raise EnzoRuntimeError(error_message_cannot_bind(enzo_type(value), enzo_type(old_val)), code_line=node.code_line)
-            env[name] = value
+            if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(actual_value):
+                raise EnzoRuntimeError(error_message_cannot_bind(enzo_type(actual_value), enzo_type(old_val)), code_line=node.code_line)
+            env[name] = actual_value
             return None
         # Assignment to variable via VarInvoke
         if isinstance(target, VarInvoke):
             name = target.name
             t_code_line = getattr(target, 'code_line', node.code_line)
             if name not in env:
-                env[name] = value
+                env[name] = actual_value
                 return None
             old_val = env[name]
-            if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(value):
-                raise EnzoRuntimeError(error_message_cannot_bind(enzo_type(value), enzo_type(old_val)), code_line=t_code_line)
-            env[name] = value
+
+            # Special case: if the target variable contains a ReferenceWrapper,
+            # we need to update the original referenced variable
+            if isinstance(old_val, ReferenceWrapper):
+                # Get the target expression and environment from the reference
+                ref_expr, ref_env = old_val.get_target_info()
+
+                # Handle assignment to the referenced variable
+                if isinstance(ref_expr, VarInvoke):
+                    # Simple variable reference: update the original variable
+                    ref_name = ref_expr.name
+                    if ref_name in ref_env:
+                        ref_old_val = ref_env[ref_name]
+                        if not isinstance(ref_old_val, Empty) and enzo_type(ref_old_val) != enzo_type(actual_value):
+                            raise EnzoRuntimeError(error_message_cannot_bind(enzo_type(actual_value), enzo_type(ref_old_val)), code_line=t_code_line)
+                        ref_env[ref_name] = actual_value
+
+                        # Also update the mirrored variable name (with/without $ prefix)
+                        if ref_name.startswith('$'):
+                            bare_name = ref_name[1:]
+                            if bare_name in ref_env:
+                                ref_env[bare_name] = actual_value
+                        else:
+                            dollar_name = '$' + ref_name
+                            if dollar_name in ref_env:
+                                ref_env[dollar_name] = actual_value
+
+                        return None
+                    else:
+                        raise EnzoRuntimeError(error_message_unknown_variable(ref_name), code_line=t_code_line)
+                else:
+                    # Complex reference (e.g., to list index) - not implemented yet
+                    raise EnzoRuntimeError("Cannot assign to complex reference", code_line=t_code_line)
+
+            # Normal variable assignment
+            if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(actual_value):
+                raise EnzoRuntimeError(error_message_cannot_bind(enzo_type(actual_value), enzo_type(old_val)), code_line=t_code_line)
+            env[name] = actual_value
             return None
         # Binding to list index
         if isinstance(target, ListIndex):
-            base = eval_ast(target.base, env=env)
+            # Evaluate the base, but don't dereference ReferenceWrappers yet
+            base_result = eval_ast(target.base, env=env, value_demand=False)
+
+            # If the base is a ReferenceWrapper, we need to operate on the referenced object
+            if isinstance(base_result, ReferenceWrapper):
+                base = base_result.get_value()
+                is_reference = True
+            else:
+                base = base_result
+                is_reference = False
+
             idx = eval_ast(target.index, env=env)
             t_code_line = getattr(target, 'code_line', node.code_line)
+
+            # Determine the value to assign: copy vs reference
+            if isinstance(value, ReferenceWrapper):
+                assign_value = value.get_value()  # Dereference for assignment
+            else:
+                assign_value = value  # Use the copied value (from above)
 
             # Handle EnzoList binding
             from src.runtime_helpers import EnzoList
@@ -448,7 +636,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         raise EnzoTypeError(error_message_index_must_be_integer(), code_line=t_code_line)
                     try:
                         # For EnzoList, use 0-based indexing internally but convert from 1-based
-                        base[int(idx) - 1] = value
+                        base[int(idx) - 1] = assign_value
                         return None
                     except IndexError:
                         raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=t_code_line)
@@ -457,7 +645,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     if getattr(target, 'is_property_access', False):
                         # Property binding (e.g., $list.name := value)
                         try:
-                            base.set_by_key(idx, value)
+                            base.set_by_key(idx, assign_value)
                             return None
                         except KeyError:
                             raise EnzoRuntimeError(error_message_list_property_not_found(idx), code_line=t_code_line)

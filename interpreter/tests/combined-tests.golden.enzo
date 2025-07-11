@@ -36,13 +36,13 @@ error: cannot bind Text to Number
 3
 
 //= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
-[  ]
+[]
 error: list index out of range
     $emptyListTest.1;
 //= BIND EMPTY AND THEN FILL WITH LIST ────────────────────────────────────
 error: $empty-list already defined
     $empty-list: 50;
-[ "now not empty" ]
+["now not empty"]
 //= DECLARE LIST AND ACCESS ITEMS ────────────────────────────────────────
 "blue"
 "green"
@@ -51,10 +51,10 @@ error: $empty-list already defined
 //= MIXED LIST‐INSIDE‐LIST ● INDEX VS ATTR ──────────────────────────────
 "b"
 //= LIST OF LISTS + INDEX OF LIST ────────────────────────────────────
-[ [ $x: 5 ], [ $x: 7 ] ]
+[[$x: 5], [$x: 7]]
 7
 //= Out-of-bounds and weird list indices
-[ 1, 2, 3 ]
+[1, 2, 3]
 error: list index out of range
     $list.0;
 error: list index out of range
@@ -66,12 +66,12 @@ error: can't use text as index
 error: list index out of range
     $list.1.1;
 //= List mutation
-[ 1, 2 ]
-[ 5, 2 ]
+[1, 2]
+[5, 2]
 error: list index out of range
     $mutable.3 <: 9;
 //= Trailing commas
-[ 1, 2, 3 ]
+[1, 2, 3]
 error: double comma in list
     $badList1-index: [1,,2];
 error: excess leading comma
@@ -101,40 +101,40 @@ error: double minus not allowed
     $weird: --5;
 
 //= LIST MAPPING STUFF ───────────────────────────────────────────────────────────
-[ $name: "Alice", $age: 30 ]
+[$name: "Alice", $age: 30]
 "Alice"
 30
 //= REBINDING LIST PROPERTIES ────────────────────────────────────────────
 "Bob"
-[ $name: "Bob", $age: 30 ]
+[$name: "Bob", $age: 30]
 //= ANOTHER LIST + PROPERTY REBIND ───────────────────────────────────────
-[ $foo: 42, $bar: "hello" ]
+[$foo: 42, $bar: "hello"]
 "hello"
 100
-[ $foo: 100, $bar: "hello" ]
+[$foo: 100, $bar: "hello"]
 //= EMPTY LIST LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
-[  ]
+[]
 error: list property not found: $someKey
     $emptyListMap.someKey;
 //= NESTED LIST + MIXED INDEX/PROPERTY ───────────────────────────────────────
-[ $inner: [ $val: 42, $arr: [ 10, 20 ] ] ]
+[$inner: [$val: 42, $arr: [10, 20]]]
 42
 20
 //= REBINDING NESTED LISTS ───────────────────────────────────────────────
 100
 //= COMPLEX LIST + LIST INDEX/PROPERTY ACCESS ─────────────────────────
-[ $list-map: [ $a: [ 100, 200 ], $b: "x" ], $list-index: [ [ $foo: 1 ], [ $foo: 2 ] ] ]
+[$list-map: [$a: [100, 200], $b: "x"], $list-index: [[$foo: 1], [$foo: 2]]]
 100
 2
 //= LIST OF LISTS + INDEX OF LIST ─────────────────────────────────────
-[ $first: [ 1, 2 ], $second: [ 3, 4 ] ]
+[$first: [1, 2], $second: [3, 4]]
 2
-[ 3, 4 ]
+[3, 4]
 //= MORE LIST WEIRDNESS
-[ $x: [ $y: [ $z: 7 ] ] ]
+[$x: [$y: [$z: 7]]]
 7
 //= List property errors
-[ $foo: 1 ]
+[$foo: 1]
 error: list property not found: $bar
     $list9.bar;
 1
@@ -143,22 +143,22 @@ error: list property not found: $bar
 999
 error: list property not found: $someKey
     $prim.someKey <: 5;
-[ $a: 1 ]
+[$a: 1]
 1
-[ $x: 1 ]
+[$x: 1]
 99
-[ $x: 99 ]
+[$x: 99]
 error: list property not found: $y
     $table-error.y <: 42;
 //= Valid trailing commas (should succeed)
-[ $foo: 1, $bar: 2 ]
+[$foo: 1, $bar: 2]
 //= invalid trailing commas (should error)
 error: extra comma in list
-    $badList1: [ $foo: 1,, $bar: 2 ];
+    $badList1: [$foo: 1,, $bar: 2];
 error: excess leading comma
-    $badList2: [ ,$foo: 1, $bar: 2 ];
+    $badList2: [ ,$foo: 1, $bar: 2];
 error: empty list with just a comma
-    $badList3: [ , ];
+    $badList3: [ ,];
 
 //= TEXT + INTERPOLATION ───────────────────────────────────────────────────
 "rebinding this text and "
@@ -170,14 +170,14 @@ error: empty list with just a comma
 "100 plus 5 is: 105"
 //= NOW THAT $colors & $i ARE DEFINED, INTERPOLATE A STRING THAT USES THEM ─
 2
-[ "red", "purple", "green", "silver" ]
+["red", "purple", "green", "silver"]
 "color 2 is purple"
 //= COMPLEX MATH INTERPOLATION ● MULTIPLE EXPRESSIONS ───────────────────
 7
 3
 "Sum=10 Prod=21"
 //= COMPOUND INTERPOLATION WITH LIST ACCESS ────────────────────────
-[ $greeting: "hi", $nums: [ 2, 4 ] ]
+[$greeting: "hi", $nums: [2, 4]]
 "hi! The nums are:2, and 4"
 //= Unicode and weird strings
 "π≈3.14"
@@ -368,3 +368,74 @@ error: pipeline expects function atom after `then`
 //= NAMED FUNCTION: referencing $this is an error
 error: can't use reserved $this keyname in named function declaration
     breaking2: (
+
+//= COPY BY DEFAULT: LISTS ───────────────────────────────────────────────────────────
+[1, 2, 3]
+[99, 2, 3]
+[1, 2, 3]
+
+//= COPY BY DEFAULT: NESTED LISTS ───────────────────────────────────────────────────
+[$inner: [99, 20]]
+[$inner: [10, 20]]
+
+//= VARIABLE REFERENCE WITH @ ───────────────────────────────────────────────────────
+[4, 99, 6]
+[4, 99, 6]
+
+//= REFERENCE TO VARIABLE (COPY VS EXPLICIT REFERENCE) ──────────────────────────────
+100
+200
+300
+300
+
+//= FUNCTION ARGUMENT REFERENCE VS COPY ──────────────────────────────────────────────
+[99, 2, 3]
+[1, 2, 3]
+[99, 2, 3]
+[99, 2, 3]
+
+//= REFERENCE VS COPY IN LIST OF LISTS ──────────────────────────────────────────────
+[$first: [99, 2], $second: [3, 4]]
+[$first: [1, 2], $second: [3, 4]]
+[$first: [1, 2], $second: [3, 88]]
+[$first: [1, 2], $second: [3, 88]]
+
+//= REFERENCE VS COPY IN FUNCTIONS ──────────────────────────────────────────────────
+11
+10
+11
+11
+
+//= COPY-BY-DEFAULT WITH FUNCTIONS ────────────────────────────────────────────
+[$bar: 1]
+[$bar: 99]
+1
+
+//= REFERENCE PASSING WITH @ ───────────────────────────────────────────────────
+[$bar: 1]
+[$bar: 42]
+42
+
+//= REFERENCE CAPTURE WITHIN A FUNCTION ────────────────────────────────────────
+10
+11
+12
+12
+
+//= COPY-BY-DEFAULT INSIDE A METHOD ─────────────────────────────────────────────
+20
+21
+20
+
+//= USING $this IN A PIPELINE ───────────────────────────────────────────────────
+[$health: 100, take-damage: <function ($amount) multiline=True>]
+[$health: 85, take-damage: <function ($amount) multiline=True>]
+85
+
+//= USING EXTERNAL FUNCTION + PIPELINE + @this ────────────────────────────────
+[$health: 100]
+100
+
+//= COPY-BY-DEFAULT FAILS TO MUTATE ─────────────────────────────────────────────
+[$health: 125]
+150
