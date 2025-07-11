@@ -32,7 +32,7 @@ Also want to give a shout out to the ["Quorum Language Project"](https://quoruml
 
 Atoms are the most basic parts of the enzo language. Atoms are separated by a semi-colon `;` punctuation.
 
-Atoms can be assigned a keyname using the `:` operator. Keynames are distinguished with the `$` sigil.
+Atoms can be bound to a keyname using the `:` operator. Keynames are distinguished with the `$` sigil.
 
 ```javascript!
 $keyname: atomvalue;
@@ -55,7 +55,7 @@ A number atom is any [real number](https://en.wikipedia.org/wiki/Real_number).
 -300;
 ```
 
-Example of a number atom assigned a keyname:
+Example of a number atom bound a keyname:
 
 ```javascript!
 $number-example: 888;
@@ -75,7 +75,7 @@ This includes letters, numbers, punctuation, spaces, emoji, or [any valid Unicod
 "line\nbreak"; // newlines and escape sequences allowed
 ```
 
-Example of text atom assigned a keyname:
+Example of text atom bound a keyname:
 
 ```javascript!
 $text-example: "here is some text";
@@ -116,7 +116,7 @@ A list atom is an ordered sequence of values, either atoms, keynames referencing
 ];
 ```
 
-Example of list atom assigned to a keyname:
+Example of list atom bound to to a keyname:
 ```javascript!
 $list-example: ["here is some text", 666, $keyname-example];
 ```
@@ -198,7 +198,7 @@ Function atoms can also have keynames declared inside of them like so:
 
 ```javascript!
 ($x: 4; $y: 6; $x + $y); // returns 10
-($x: 5, $y: 5; $x * $y); // commas can also be used to separate keyname assignment declarations
+($x: 5, $y: 5; $x * $y); // commas can also be used to separate keyname binding declarations
 ```
 
 Function atoms can also be multi-line:
@@ -213,7 +213,7 @@ return(($x + $y));
 
 Single line function atoms do not require an explicit return. Multi-line function atoms must always have an explicit return.
 
-Function atoms can also be assigned to a keyname.
+Function atoms can also be bound to a keyname.
 
 ```javascript!
 function-example: (
@@ -221,7 +221,7 @@ function-example: (
     // Parameters are declared inside the function definition.
     // the param keyword distinguishes parameter from private function scoped variables.
     param $argument1: ;
-    //Parameters can be assigned an initial value that it defaults unless otherwise specified when the function is called. If it is declared with an empty (explained below) then that function throws an error.
+    //Parameters can be bound to an initial argument value that it defaults unless otherwise specified when the function is invoked. If it is declared with an empty (explained below) then that function throws an error.
     param $argument2: 12;
     $example-variable: 666;
 
@@ -267,7 +267,7 @@ A variable can be created that is empty.
 
 It has no type.
 
-### Variable Reassignment
+### Variable Rebinding
 
 When a variable has already been declared, but it's value is reasigned it can be done like so:
 
@@ -279,7 +279,7 @@ $dog-name <: "Fluffy";
 
 #### Filling empty values
 
-When an empty variable is initially created, it has no type. The first non-empty value assigned to it locks it into that type.
+When an empty variable is initially created, it has no type. The first non-empty value bound to it locks it into that type.
 
 ```javascript!
 $x: ;
@@ -288,9 +288,9 @@ $x: ;
 $x <: 5;
 // $x now has a value of 5 and a type of number.
 
-$x <: 6 // totally fine to reassign this variable with a new number value.
+$x <: 6 // totally fine to rebind this variable with a new number value.
 $x <: "five"
-// ❌ error: cannot assign Text to a Number
+// ❌ error: cannot bind Text to a Number type variable
 ```
 
 ### Variable Invocation/Use
@@ -303,7 +303,7 @@ $text-example;
 //returns "here is some text"
 ```
 
-All variables are call by value
+All variables are invoked by value
 
 ```javascript!
 $text-example: "here is some text";
@@ -336,11 +336,11 @@ function-example2: (
     return(($first-number * $second-number / $third-number));
 )
 
-// arguments can be assigned to parameters either by order
+// arguments can be bound to parameters either by order
 function-example2(1, 2);
 // returns 2.5
 
-// or by named assignment
+// or by named binding
 function-example2($third-number<: 2, $second-number<: 3);
 // returns 7.5
 
@@ -386,7 +386,7 @@ increment: (
 
 // 2) Call it directly:
 $total: increment(5);
-// 6 is now assigned to $total
+// 6 is now bound to $total
 
 // 3) Reference it as data (must use $):
 $op: @increment;
@@ -394,7 +394,7 @@ $op: @increment;
 
 // 4) Call via your $-bound alias:
 $result: $op(10);
-// 11 assigned to $result
+// 11 bound to $result
 
 // 5) Higher-order usage:
 applyTwice: (
@@ -405,7 +405,7 @@ applyTwice: (
 
 // Pass the function **reference** with `$` and without `()`:
 $twice: applyTwice(@increment, 7);
-// 9 assigned to $twice
+// 9 bound to $twice
 ```
 
 #### Passing a function as a parameter
@@ -464,7 +464,7 @@ toLowerCase($dog.play-dead("Jerry"));
 // returns "ah! i was murdered by jerry!"
 ```
 
-Example of calling a list function and also passing an additional function as a parameter
+Example of invoking a list function and also passing an additional function as a parameter
 
 ```javascript!
 $animal: [
@@ -485,7 +485,7 @@ getCurrentStatus: (
     return("loud");
 );
 
-// Invocation: property access via dot notation and function call via prefix (nested) style.
+// Invocation: property access via dot notation and function invocation via prefix (nested) style.
 $animal.dog.bark(getCurrentStatus(), "Bark Bark");
 // returns BARK BARK
 
@@ -515,7 +515,268 @@ $x, $y, $z: $example-list[];
 
 ```
 
+### Custom Types
+Custom types let you define your own data structures in Enzo, providing clarity, consistency, and type safety throughout your code. They help ensure data matches the expected shape or structure, reducing bugs and improving readability.
 
+#### Blueprint (class/interface/struct/product type)
+Blueprints are reusable templates in Enzo used to instantiate multiple similar objects or data structures. They clearly define the shape, properties, and default values for these structures, enabling organized, type-safe, and repeatable object creation.
+
+Simple example of creating two goblins with different positions on the board:
+```javascript!
+Goblin: <[
+    health-points: Number,
+    position: [Number, Number],
+]>;
+
+$goblin-1: Goblin[
+    $health-points: 100,
+    $position: [10, 10],
+]>;
+
+$goblin-2: Goblin[
+    $health-points: 100,
+    $position: [10, 15],
+]>;
+```
+
+A blueprint can also be defined with default values:
+```javascript!
+Goblin: <[
+    health-points: 100,
+    position: [0, 0],
+]>;
+
+$goblin1: Goblin[]; // defaults: health = 100, position = [0, 0]
+
+$goblin2: Goblin[
+    $health-points: 105,
+    $position: [11, 15],
+]>;
+
+$goblin3: Goblin[
+    // Users can omit any fields they don't want to change from the defaults.
+    $position: [10, 10],
+]>;
+```
+
+```javascript!
+Goblin: <[
+    health-points: number,
+    position: [number, number],
+    attacks: [
+        $bite: number,
+        $torch: number,
+    ],
+    status-effect: text,
+]>;
+
+take-damage: (
+    param $target: ;              // expects a target of the damage
+    param $damage: 0;
+    $target.health-points - $damage :> $target.health-points;
+    return($target);              // returns target so it can be used in further pipelines
+);
+
+$goblin-1: Goblin[
+    $health-points: 100,
+    $position: [10, 10],
+    $attacks: [
+        $bite: 50,
+        $torch: 40,
+    ],
+    status-effect: "poisoned"
+];
+
+$goblin-2: Goblin[
+    $health-points: 110,
+    $position: [15, 10],
+    $attacks: [
+        $bite: 55,
+        $torch: 35,
+    ],
+    status-effect: "none"
+];
+
+$goblin-1 then take-damage($this, 10) :> $goblin-1; // $goblin-1 takes damage and is returned by the function with it's health points decreased by 10. $goblin-2 still has 110 health. Two things coming from the same blueprint.
+```
+
+##### Composing blueprints together
+You can combine blueprints to reuse common parts, like sharing properties or abilities.
+```javascript!
+Animal: <[
+    position: [Number, Number, Number]
+]>;
+
+Flying-Animal: <[
+    $wings: "true",
+    fly: (
+        param $z-position-movement: Number;
+        $self.position.3 + $z-position-movement :> $self.position.3;
+        return($self);
+    )
+]>;
+
+Swimming-Animal: <[
+    $lives-near-water: Text,
+    swim: (
+        param $x-position-movement: Number;
+        param $y-position-movement: Number;
+        $self.position.1 + $x-position-movement :> $self.position.1;
+        $self.position.2 + $y-position-movement :> $self.position.2;
+        return($self);
+    )
+]>;
+
+// Combining two blueprints
+Duck: Animal and Flying-Animal and Swimming-Animal;
+
+$donald:  Duck[
+    $position: [10, 5, 0]
+];
+
+// you can add additional blueprint features on by including them at the end
+Pelican: Animal and Flying-Animal and Swimming-Animal and  <[large-mouth: "true"]>;
+
+
+```
+
+Note: If multiple blueprints are composed together and they have conflicting property names (such as both having a "position" property) this is an error. Notice how the "Animal" blueprint above is used to compose in a property that might otherwise be shared between the Flying-Animal and Swimming-Animal blueprints.
+
+
+##### Blueprint Variants (enum/sum type)
+Sometimes, you want a value to be one of several specific options. For example, a monster could be a Goblin, an Orc, or a Troll. This is where blueprint variants come in—they group options together and ensure you only use one at a time.
+
+###### (A) Simple Choices
+If you just want to specify a valid list of options:
+```javascript!
+Magic-Type variants: Fire,
+                    or Ice,
+                    or Wind,
+                    or Earth,
+                    or Neutral;
+
+$wizard-attacks: [
+    $attack-spell-1: Magic-Type.Fire,
+    $attack-spell-2: Magic-Type.Ice,
+    $flying-spell: Magic-Type.Wind,
+    $magic-shield: Magic-Type.Earth,
+    $sword: Magic-Type.Neutral
+];
+```
+
+###### (B) Variants with Blueprints (sum-of-products)
+You can also define variants where each choice has its own structure:
+```javascript!
+Goblin: <[
+    health: Number,
+    position: [Number, Number],
+    cackle: (
+        return("heeheehee");
+    )
+]>;
+
+Orc: <[
+    health: Number,
+    position: [Number, Number],
+    shout: (
+        return("Manmeat for dinner!");
+    )
+]>;
+
+Troll: <[
+    health: Number,
+    position: [Number, Number],
+    bellow: (
+        return("RARGH!!!");
+    )
+]>;
+
+//And then these Blueprints can be grouped together as a variant grouping:
+Monster variants: Goblin,
+                or Orc,
+                or Troll;
+
+$enemy: Monster.Orc[ $health: 100, $position: [5,5], $rage: 20 ];
+
+// Blueprints can be included in multiple variant groupings:
+Boss-Monster variants: Troll,
+                    or Nazgul,
+                    or Mind-Flayer;
+
+```
+
+You could also define the Blueprint variant grouping and the Blueprints all in one go too:
+```javascript!
+Monster variants:
+    Goblin: <[
+        health: Number,
+        position: [Number, Number],
+        cackle: (
+            return("heeheehee");
+        )
+    ]>,
+    or Orc: <[
+        health: Number,
+        position: [Number, Number],
+        shout: (
+            return("Manmeat for dinner!");
+        )
+    ]>,
+    or Troll: <[
+        health: Number,
+        position: [Number, Number],
+        bellow: (
+            return("RARGH!!!");
+        )
+    ]>;
+
+```
+
+You can even compose shared blueprints across a blueprint variant grouping and the variants all in one go:
+```
+Monster variants:
+    Monster: <[
+        health: Number,
+        position: [Number, Number]
+    ]>,
+    and Goblin: <[
+        cackle: (
+            return("heeheehee");
+        )
+    ]>,
+    or Orc: <[
+        shout: (
+            return("Manmeat for dinner!");
+        )
+    ]>,
+    or Troll: <[
+        bellow: (
+            return("RARGH!!!");
+        )
+    ]>;
+// Goblin, Orc, and Troll all share the Monster qualities defined in the Monster Blueprint
+
+```
+
+You can use those variant grouping values (as in case A) as values in other blueprints too (such as in case B):
+```javascript!
+Goblin variants:
+    Goblin: <[
+        health: Number,
+        position: [Number, Number],
+        elemental-type: Magic-Type
+    ]>,
+    and Ice-Goblin: <[
+        elemental-type: Magic-Type.Ice
+    ]>,
+    or Earth-Goblin: <[
+        elemental-type: Magic-Type.Earth
+    ]>,
+    or Normal-Goblin: <[
+        elemental-type: Magic-Type.Neutral
+    ]>;
+
+```
 
 ### Control Flow Statements
 
@@ -734,7 +995,7 @@ then sortBy($this, "lastName")
 then select($this, ["id","email"]);
 
 
-// or use a "left to right" assignment to keep the value going purely from left to right
+// or use a "left to right" binding to keep the value going purely from left to right
 $users then filter($this, "active") then sortBy($this, "lastName")then select($this, ["id","email"]):> $selected;
 
 ```
@@ -789,7 +1050,7 @@ then $this.3;       // index into the result
 2. function invocation
 3. multiplication and division ( `*`, `/` )
 4. addition, subtraction (`+`, `-`)
-5. variable declaration and assignment ( `:` `<:` `:>`)
+5. variable declaration and binding ( `:` `<:` `:>`)
 6. dataflow operators (`then`, `$this`)
 7. comparison operators (`is`, `not`, `is not`, `less than`, `greater than`, `at most`, `at least` )
 8. logical operators (`and`, `or`)

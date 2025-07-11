@@ -10,14 +10,14 @@ $x: 10;             // error $x has already been declared
 //= REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
 $x <: 100;
 $x;                 // prints 100
-$x <: "hello";      // error: cannot assign Text to Number
+$x <: "hello";      // error: cannot bind Text to Number
 
 //= FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
 $z: 7;       // binds 7
 $z;         // prints 7
 $z <: 8;            // rebind OK, z now 8
 $z;             // prints 8
-$z <: "oops";       // error: cannot assign Text to Number
+$z <: "oops";       // error: cannot bind Text to Number
 $z : "oops";       // error: $z already defined
 
 //= MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
@@ -32,7 +32,7 @@ $var_xyz;                 // prints “30”
 //= REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
 55 :> $newImplicit;
 $newImplicit;               // prints “55”
-$newImplicit <: "oops";     // error: cannot assign Text to Number
+$newImplicit <: "oops";     // error: cannot bind Text to Number
 $dougie <: "cool dude";     // should not error.
 $dougie;                    // prints "cool dude".
 
@@ -324,11 +324,11 @@ return(($x + $y));); // prints 201
 
 //= Single line, implicit return, named function
 times2: (2 * 2); // binds (2 * 2) to the times2 keyname
-"this is the normal function call;";
+"this is the normal function invocation;";
 times2();       // prints 4
-"this is the $times2 style function call;";
+"this is the $times2 style function invocation;";
 $times2;       // prints 4
-"this is the $times2(); style function call";
+"this is the $times2(); style function invocation";
 $times2();       // prints 4
 
 //= Nameless function: multi-line with no explicit return (should error)
@@ -379,7 +379,7 @@ $subtractor(3, 4);   // prints 1
 subtractor();        // error: missing necessary params
 
 $subtractor(4);   //error: missing necessary params
-//= List of functions called by index
+//= List of functions invoked by index
 $funs: [(param $x: ; $x + 1;), (param $x: ; $x * 2;)];
 $funs.1(10);              // → 11
 $funs.2(10);              // → 20
@@ -450,7 +450,7 @@ duplicate-params: (
     return($x);
 );
 
-//= Empty function declaration and call
+//= Empty function declaration and invocation
 empty-fn: ();
 empty-fn();     // returns empty.
 

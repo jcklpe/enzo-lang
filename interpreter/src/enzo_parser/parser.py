@@ -49,7 +49,7 @@ class Parser:
         return parse_list_atom(self)
 
     def parse_postfix(self, base):
-        # Handle function calls and chained dot-number and dot-variable for nested indexing
+        # Handle function invocations and chained dot-number and dot-variable for nested indexing
         debug_chain = []  # DEBUG: collect chain for print
 
         while True:
@@ -85,7 +85,7 @@ class Parser:
                     # If not a valid index or property, break
                     break
             elif t and t.type == "LPAR":
-                # Function call: parse arguments
+                # Function invoke: parse arguments
                 self.advance()  # consume LPAR
                 args = []
                 code_line = self._get_code_line(t)
@@ -96,10 +96,10 @@ class Parser:
                     if self.peek() and self.peek().type == "COMMA":
                         self.advance()  # consume comma
                     elif self.peek() and self.peek().type != "RPAR":
-                        raise EnzoParseError("Expected ',' or ')' in function call", code_line=code_line)
+                        raise EnzoParseError("Expected ',' or ')' in function invocation", code_line=code_line)
 
                 if not self.peek() or self.peek().type != "RPAR":
-                    raise EnzoParseError("Expected ')' to close function call", code_line=code_line)
+                    raise EnzoParseError("Expected ')' to close function invocation", code_line=code_line)
                 self.advance()  # consume RPAR
 
                 base = Invoke(base, args, code_line=code_line)
@@ -256,7 +256,7 @@ class Parser:
                 from src.enzo_parser.ast_nodes import ParameterDeclaration
                 return ParameterDeclaration(var_name, default_value, code_line=code_line)
 
-        # Support assignment to variable, list index, or table index
+        # Support binding to variable, list index, or table index
         # Parse a value expression (could be VarInvoke, ListIndex, etc.)
         expr1 = self.parse_value_expression()
         # Assignment: <:

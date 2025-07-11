@@ -38,8 +38,8 @@ def error_message_expected_type(expected, got):
 def error_message_unexpected_token(token):
     return f"Unexpected token: {token}"
 
-def error_message_cannot_assign(new_type, old_type):
-    return f"error: cannot assign {new_type} to {old_type}"
+def error_message_cannot_bind(new_type, old_type):
+    return f"error: cannot bind {new_type} to {old_type}"
 
 def error_message_double_minus(token=None):
     return "error: double minus not allowed"
@@ -65,7 +65,7 @@ def error_message_index_must_be_number():
 def error_message_index_must_be_integer():
     return "error: index must be an integer"
 
-def error_message_assignment_to_list_index_out_of_range():
+def error_message_binding_to_list_index_out_of_range():
     return "error: list index out of range"
 
 def error_message_unmatched_bracket():
@@ -86,8 +86,8 @@ def error_message_empty_list_comma():
 def error_message_excess_leading_comma():
     return "error: excess leading comma"
 
-def error_message_cannot_assign_target(target):
-    return f"Cannot assign to target: {target}"
+def error_message_cannot_bind_target(target):
+    return f"Cannot bind to target: {target}"
 
 def error_message_unexpected_character(char, pos):
     return f"Unexpected character: {char!r} at {pos}"

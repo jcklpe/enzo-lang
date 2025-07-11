@@ -10,14 +10,14 @@ from src.error_messaging import (
     error_message_tuple_ast,
     error_message_unknown_node,
     error_message_unterminated_interpolation,
-    error_message_cannot_assign,
+    error_message_cannot_bind,
     error_message_index_must_be_number,
     error_message_index_must_be_integer,
     error_message_list_index_out_of_range,
     error_message_list_property_not_found,
     error_message_cant_use_text_as_index,
     error_message_index_applies_to_lists,
-    error_message_cannot_assign_target,
+    error_message_cannot_bind_target,
     error_message_cannot_declare_this,
     error_message_multiline_function_requires_return,
     error_message_param_outside_function,
@@ -217,7 +217,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 dollar_name = '$' + name
                 if dollar_name not in env:  # Don't overwrite existing $variable
                     env[dollar_name] = fn
-            return None  # Do not output anything for assignment
+            return None  # Do not output anything for binding
         val = eval_ast(node.value, value_demand=False, env=env)  # storage context
         env[name] = val
         # For variable bindings, also make accessible with/without $ prefix
@@ -231,7 +231,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             dollar_name = '$' + name
             if dollar_name not in env:  # Don't overwrite existing $variable
                 env[dollar_name] = val
-        return None  # Do not output anything for assignment
+        return None  # Do not output anything for binding
     if isinstance(node, VarInvoke):
         name = node.name
         if name not in env:
@@ -337,12 +337,12 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             if key not in left:
                 raise EnzoRuntimeError(error_message_list_property_not_found(key), code_line=getattr(node, 'code_line', None))
             return left[key]
-        # Function call
+        # Function invocation
         if isinstance(left, EnzoFunction):
-            # Check if this function call is from property access (e.g., $obj.method())
+            # Check if this function invocation is from property access (e.g., $obj.method())
             self_obj = None
             if isinstance(node.func, ListIndex) and getattr(node.func, 'is_property_access', False):
-                # This is a method call - get the base object for $self
+                # This is a method invocation - get the base object for $self
                 self_obj = eval_ast(node.func.base, env=env)
             return invoke_function(left, args, env, self_obj=self_obj)
         # Not a list or function
@@ -419,7 +419,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 return None
             old_val = env[name]
             if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(value):
-                raise EnzoRuntimeError(error_message_cannot_assign(enzo_type(value), enzo_type(old_val)), code_line=node.code_line)
+                raise EnzoRuntimeError(error_message_cannot_bind(enzo_type(value), enzo_type(old_val)), code_line=node.code_line)
             env[name] = value
             return None
         # Assignment to variable via VarInvoke
@@ -431,16 +431,16 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 return None
             old_val = env[name]
             if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(value):
-                raise EnzoRuntimeError(error_message_cannot_assign(enzo_type(value), enzo_type(old_val)), code_line=t_code_line)
+                raise EnzoRuntimeError(error_message_cannot_bind(enzo_type(value), enzo_type(old_val)), code_line=t_code_line)
             env[name] = value
             return None
-        # Assignment to list index
+        # Binding to list index
         if isinstance(target, ListIndex):
             base = eval_ast(target.base, env=env)
             idx = eval_ast(target.index, env=env)
             t_code_line = getattr(target, 'code_line', node.code_line)
 
-            # Handle EnzoList assignment
+            # Handle EnzoList binding
             from src.runtime_helpers import EnzoList
             if isinstance(base, EnzoList):
                 if isinstance(idx, (int, float)):
@@ -455,25 +455,25 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 elif isinstance(idx, str):
                     # Check if this is property access or string indexing
                     if getattr(target, 'is_property_access', False):
-                        # Property assignment (e.g., $list.name := value)
+                        # Property binding (e.g., $list.name := value)
                         try:
                             base.set_by_key(idx, value)
                             return None
                         except KeyError:
                             raise EnzoRuntimeError(error_message_list_property_not_found(idx), code_line=t_code_line)
                     else:
-                        # String indexing assignment should error
+                        # String indexing binding should error
                         raise EnzoTypeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
                 else:
                     raise EnzoTypeError(error_message_index_must_be_number(), code_line=t_code_line)
 
-            # Legacy list handling and property assignment on non-EnzoList objects
+            # Legacy list handling and property binding on non-EnzoList objects
             if isinstance(idx, str):
                 if getattr(target, 'is_property_access', False):
-                    # Property assignment on non-list objects should give "list property not found"
+                    # Property binding on non-list objects should give "list property not found"
                     raise EnzoRuntimeError(error_message_list_property_not_found(idx), code_line=t_code_line)
                 else:
-                    # String indexing assignment should error
+                    # String indexing binding should error
                     raise EnzoTypeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
             if not isinstance(base, list):
                 raise EnzoTypeError(error_message_index_applies_to_lists(), code_line=t_code_line)
@@ -489,7 +489,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=t_code_line)
             base[idx - 1] = value
             return None
-        raise EnzoRuntimeError(error_message_cannot_assign_target(target), code_line=getattr(node, 'code_line', None))
+        raise EnzoRuntimeError(error_message_cannot_bind_target(target), code_line=getattr(node, 'code_line', None))
     if isinstance(node, ListIndex):
         base = eval_ast(node.base, env=env)
         idx = eval_ast(node.index, env=env)
