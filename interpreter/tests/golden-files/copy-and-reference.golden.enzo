@@ -1,0 +1,69 @@
+//= COPY BY DEFAULT: LISTS ───────────────────────────────────────────────────────────
+[99, 2, 3]
+[1, 2, 3]
+
+//= COPY BY DEFAULT: NESTED LISTS ───────────────────────────────────────────────────
+[$inner: [99, 20]]
+[$inner: [10, 20]]
+
+//= VARIABLE REFERENCE WITH @ ───────────────────────────────────────────────────────
+[4, 99, 6]
+[4, 99, 6]
+
+//= REFERENCE TO VARIABLE (COPY VS EXPLICIT REFERENCE) ──────────────────────────────
+100
+200
+300
+300
+
+//= FUNCTION ARGUMENT REFERENCE VS COPY ──────────────────────────────────────────────
+[99,2,3]
+[1,2,3]
+[99,2,3]
+[99,2,3]
+
+//= REFERENCE VS COPY IN LIST OF LISTS ──────────────────────────────────────────────
+[$first: [99,2], $second: [3,4]]
+[$first: [1,2], $second: [3,4]]
+[$first: [1,2], $second: [3,88]]
+[$first: [1,2], $second: [3,88]]
+
+//= REFERENCE VS COPY IN FUNCTIONS ──────────────────────────────────────────────────
+11
+10
+11
+11
+
+//= COPY-BY-DEFAULT WITH FUNCTIONS ────────────────────────────────────────────
+[ $bar: 1 ]
+[ $bar: 99 ]
+1
+
+//= REFERENCE PASSING WITH @ ───────────────────────────────────────────────────
+[ $bar: 1 ];
+[ $bar: 42 ]
+42
+
+//= REFERENCE CAPTURE WITHIN A FUNCTION ────────────────────────────────────────
+10
+11
+12
+12
+
+//= COPY-BY-DEFAULT INSIDE A METHOD ─────────────────────────────────────────────
+20
+21
+20
+
+//= USING $this IN A PIPELINE ───────────────────────────────────────────────────
+[ $health: 100 ]
+[ $health: 85 ]
+85
+
+//= USING EXTERNAL FUNCTION + PIPELINE + @this ────────────────────────────────
+[ $health: 100 ]
+100
+
+//= COPY-BY-DEFAULT FAILS TO MUTATE ─────────────────────────────────────────────
+[ $health: 125 ]
+150
