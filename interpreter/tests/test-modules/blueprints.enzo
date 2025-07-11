@@ -1,0 +1,264 @@
+//= SIMPLE BLUEPRINT INSTANTIATION ───────────────────────────────────────────
+SimpleGoblin: <[
+    health-points: Number,
+    position: [Number, Number],
+]>;
+
+$simple-goblin-1: SimpleGoblin[
+    $health-points: 100,
+    $position: [10, 10],
+];
+$simple-goblin-1;      // prints [ $health-points: 100, $position: [10, 10] ]
+
+$simple-goblin-2: SimpleGoblin[
+    $health-points: 100,
+    $position: [10, 15],
+];
+$simple-goblin-2;      // prints [ $health-points: 100, $position: [10, 15] ]
+
+
+//= BLUEPRINT WITH DEFAULTS ────────────────────────────────────────────────
+GoblinDefaults: <[
+    health-points: 100,
+    position: [0, 0],
+]>;
+
+$goblin-defaults-1: GoblinDefaults[];
+$goblin-defaults-1;            // prints [ $health-points: 100, $position: [0, 0] ]
+
+$goblin-defaults-2: GoblinDefaults[
+    $health-points: 105,
+    $position: [11, 15],
+];
+$goblin-defaults-2;            // prints [ $health-points: 105, $position: [11, 15] ]
+
+$goblin-defaults-3: GoblinDefaults[
+    $position: [10, 10],
+];
+$goblin-defaults-3;            // prints [ $health-points: 100, $position: [10, 10] ]
+
+
+//= BLUEPRINT WITH COMPLEX FIELDS AND FUNCTION ─────────────────────────────
+Goblin: <[
+    health-points: Number,
+    position: [Number, Number],
+    attacks: [
+        $bite: Number,
+        $torch: Number,
+    ],
+    status-effect: Text,
+]>;
+
+take-damage: (
+    param $target: ;
+    param $damage: 0;
+    $target.health-points - $damage :> $target.health-points;
+    return($target);
+);
+
+$goblin-1: Goblin[
+    $health-points: 100,
+    $position: [10, 10],
+    $attacks: [
+        $bite: 50,
+        $torch: 40,
+    ],
+    status-effect: "poisoned"
+];
+$goblin-1;      // prints [ $health-points: 100, $position: [10, 10], ... ]
+
+$goblin-2: Goblin[
+    $health-points: 110,
+    $position: [15, 10],
+    $attacks: [
+        $bite: 55,
+        $torch: 35,
+    ],
+    status-effect: "none"
+];
+$goblin-2;      // prints [ $health-points: 110, $position: [15, 10], ... ]
+
+$goblin-1 then take-damage($this, 10) :> $goblin-1;
+$goblin-1.health-points;    // prints 90
+$goblin-2.health-points;    // prints 110 (unchanged)
+
+
+//= BLUEPRINT COMPOSITION ──────────────────────────────────────────────────
+Animal: <[
+    position: [Number, Number, Number],
+]>;
+
+Flying-Animal: <[
+    $wings: "true",
+    fly: (
+        param $z-position-movement: Number;
+        $self.position.3 + $z-position-movement :> $self.position.3;
+        return($self);
+    )
+]>;
+
+Swimming-Animal: <[
+    $lives-near-water: Text,
+    swim: (
+        param $x-position-movement: Number;
+        param $y-position-movement: Number;
+        $self.position.1 + $x-position-movement :> $self.position.1;
+        $self.position.2 + $y-position-movement :> $self.position.2;
+        return($self);
+    )
+]>;
+
+Duck: Animal and Flying-Animal and Swimming-Animal;
+
+$donald: Duck[
+    $position: [10, 5, 0]
+];
+$donald.position;            // prints [10, 5, 0]
+$donald.fly(5);
+$donald.position.3;          // prints 5
+
+Pelican: Animal and Flying-Animal and Swimming-Animal and <[large-mouth: "true"]>;
+$pelican: Pelican[
+    $position: [0, 0, 0],
+    large-mouth: "true"
+];
+$pelican.large-mouth;        // prints "true"
+
+
+//= BLUEPRINT COMPOSITION: CONFLICT ERROR ──────────────────────────────
+A: <[x: 1]>;
+B: <[x: 2]>;
+// C: A and B;     // error: duplicate property 'x' in composed blueprints
+
+
+//= SIMPLE VARIANT GROUP (OPTIONS ONLY) ────────────────────────────────
+Magic-Type variants: Fire,
+                    or Ice,
+                    or Wind,
+                    or Earth,
+                    or Neutral;
+
+$wizard-attacks: [
+    $attack-spell-1: Magic-Type.Fire,
+    $attack-spell-2: Magic-Type.Ice,
+    $flying-spell: Magic-Type.Wind,
+    $magic-shield: Magic-Type.Earth,
+    $sword: Magic-Type.Neutral
+];
+$wizard-attacks.attack-spell-1;   // prints Magic-Type.Fire
+
+$wizard-attacks.bad-spell: Magic-Type.Plasma; // error: 'Plasma' not a valid Magic-Type
+
+
+//= VARIANTS WITH BLUEPRINTS (SUM-OF-PRODUCTS) ─────────────────────────
+Goblin1: <[
+    health: Number,
+    position: [Number, Number],
+    cackle: (
+        return("heeheehee");
+    )
+]>;
+Orc1: <[
+    health: Number,
+    position: [Number, Number],
+    shout: (
+        return("Manmeat for dinner!");
+    )
+]>;
+Troll1: <[
+    health: Number,
+    position: [Number, Number],
+    bellow: (
+        return("RARGH!!!");
+    )
+]>;
+
+Monster1 variants: Goblin1,
+                or Orc1,
+                or Troll1;
+
+$enemy1: Monster.Goblin1[ health: 25, position: [1,1] ];
+$enemy2: Monster.Orc1[ health: 40, position: [2,2] ];
+
+$enemy1.cackle();      // prints "heeheehee"
+$enemy2.shout();       // prints "Manmeat for dinner!"
+
+
+//= VARIANT GROUPING WITH INLINE BLUEPRINTS ────────────────────────────
+Monster2 variants:
+    Goblin2: <[
+        health: Number,
+        position: [Number, Number],
+        cackle: (
+            return("heeheehee");
+        )
+    ]>,
+    or Orc2: <[
+        health: Number,
+        position: [Number, Number],
+        shout: (
+            return("Manmeat for dinner!");
+        )
+    ]>,
+    or Troll2: <[
+        health: Number,
+        position: [Number, Number],
+        bellow: (
+            return("RARGH!!!");
+        )
+    ]>;
+
+$foe: Monster.Troll2[ health: 100, position: [0,0] ];
+$foe.bellow();      // prints "RARGH!!!"
+
+
+//= VARIANTS WITH SHARED BLUEPRINT FIELDS ──────────────────────────────
+Monster3 variants:
+    Monster3: <[
+        health: Number,
+        position: [Number, Number]
+    ]>,
+    and Goblin3: <[
+        cackle: (
+            return("heeheehee");
+        )
+    ]>,
+    or Orc3: <[
+        shout: (
+            return("Manmeat for dinner!");
+        )
+    ]>,
+    or Troll3: <[
+        bellow: (
+            return("RARGH!!!");
+        )
+    ]>;
+
+$g: Monster.Goblin3[ health: 7, position: [8,8] ];
+$g.cackle();           // prints "heeheehee"
+$g.health;             // prints 7
+
+// All three share Monster fields, each gets its own variant behavior
+
+//= USING VARIANTS AS FIELD VALUES IN ANOTHER BLUEPRINT ────────────────
+Goblin4 variants:
+    Goblin4: <[
+        health: Number,
+        position: [Number, Number],
+        elemental-type: Magic-Type
+    ]>,
+    and Ice-Goblin: <[
+        elemental-type: Magic-Type.Ice
+    ]>,
+    or Earth-Goblin: <[
+        elemental-type: Magic-Type.Earth
+    ]>,
+    or Normal-Goblin: <[
+        elemental-type: Magic-Type.Neutral
+    ]>;
+
+$iceg: Goblin.Ice-Goblin[ health: 10, position: [2,2] ];
+$iceg.elemental-type;     // prints Magic-Type.Ice
+
+$normg: Goblin.Normal-Goblin[ health: 10, position: [0,0] ];
+$normg.elemental-type;    // prints Magic-Type.Neutral
