@@ -49,7 +49,7 @@ Goblin: <[
     status-effect: Text,
 ]>;
 
-take-damage: (
+take-damage-blueprint: (
     param $target: ;
     param $damage: 0;
     $target.health-points - $damage :> $target.health-points;
@@ -78,7 +78,7 @@ $goblin-2: Goblin[
 ];
 $goblin-2;      // prints [$health-points: 110, $position: [15, 10], ...]
 
-$goblin-1 then take-damage($this, 10) :> $goblin-1;
+$goblin-1 then take-damage-blueprint($this, 10) :> $goblin-1;
 $goblin-1.health-points;    // prints 90
 $goblin-2.health-points;    // prints 110 (unchanged)
 

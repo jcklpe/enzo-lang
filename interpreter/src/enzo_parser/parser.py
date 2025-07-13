@@ -444,8 +444,12 @@ class Parser:
                 blueprint_def = self.parse_blueprint_definition()
                 return Binding(expr1.name, blueprint_def, code_line=code_line)
 
+            # Support empty bind: $x: ;
+            if self.peek() and self.peek().type == "SEMICOLON":
+                return Binding(expr1.name, None, code_line=code_line)
+
             # Check if this is a blueprint composition: Name and OtherName
-            # First parse the value, then check if it's followed by "and"
+            # Parse the value expression
             value = self.parse_value_expression()
 
             # If the next token is "and", this is blueprint composition
@@ -455,10 +459,6 @@ class Parser:
                     first_blueprint = value.name
                     composition = self.parse_blueprint_composition(first_blueprint)
                     return Binding(expr1.name, composition, code_line=code_line)
-
-            # Support empty bind: $x: ;
-            if value is None and self.peek() and self.peek().type == "SEMICOLON":
-                return Binding(expr1.name, None, code_line=code_line)
 
             # If the value is a FunctionAtom, mark it as named
             if isinstance(value, FunctionAtom):

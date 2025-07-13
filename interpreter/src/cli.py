@@ -23,11 +23,6 @@ from src.color_helpers import color_error, color_code
 
 DISABLE_COLOR = not sys.stdout.isatty() or os.environ.get("NO_COLOR") == "1"
 
-def _is_standalone_function_call(stmt):
-    """Check if a statement is a standalone function call that shouldn't print output."""
-    from src.enzo_parser.ast_nodes import Invoke
-    return isinstance(stmt, Invoke)
-
 def say(val):
     print(val)
 
@@ -313,18 +308,14 @@ def main():
             result = eval_ast(ast, value_demand=True)
             # If result is a list (from Program), print each non-None value on its own line
             if isinstance(result, list):
-                for i, val in enumerate(result):
-                    # Check if this statement is a standalone function call
-                    is_function_call = i < len(ast) and _is_standalone_function_call(ast[i])
-                    if val is not None and not is_function_call:
+                for val in result:
+                    if val is not None:
                         if isinstance(val, (list, dict, Table)):
                             print(format_val(val))
                         else:
                             print(val)
             else:
-                # Check if this is a standalone function call
-                is_function_call = len(ast) == 1 and _is_standalone_function_call(ast[0])
-                if result is not None and not is_function_call:
+                if result is not None:
                     if isinstance(result, (list, dict, Table)):
                         print(format_val(result))
                     else:
