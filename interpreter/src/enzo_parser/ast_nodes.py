@@ -160,4 +160,52 @@ class ParameterDeclaration(ASTNode):
         self.default_value = default_value
     def __repr__(self):
         return f"ParameterDeclaration(name={self.name!r}, default_value={self.default_value!r})"
+
+class BlueprintAtom(ASTNode):
+    def __init__(self, fields, code_line=None):
+        super().__init__(code_line)
+        self.fields = fields  # List of (name, type_or_default) tuples
+    def __repr__(self):
+        return f"BlueprintAtom(fields={self.fields!r})"
+
+class BlueprintInstantiation(ASTNode):
+    def __init__(self, blueprint_name, field_values, code_line=None):
+        super().__init__(code_line)
+        self.blueprint_name = blueprint_name
+        self.field_values = field_values  # List of (name, value) tuples
+    def __repr__(self):
+        return f"BlueprintInstantiation(blueprint_name={self.blueprint_name!r}, field_values={self.field_values!r})"
+
+class BlueprintComposition(ASTNode):
+    def __init__(self, blueprints, code_line=None):
+        super().__init__(code_line)
+        self.blueprints = blueprints  # List of blueprint names
+    def __repr__(self):
+        return f"BlueprintComposition(blueprints={self.blueprints!r})"
+
+class VariantGroup(ASTNode):
+    def __init__(self, name, variants, code_line=None):
+        super().__init__(code_line)
+        self.name = name
+        self.variants = variants  # List of variant names or (name, blueprint) tuples
+    def __repr__(self):
+        return f"VariantGroup(name={self.name!r}, variants={self.variants!r})"
+
+class VariantAccess(ASTNode):
+    def __init__(self, variant_group_name, variant_name, code_line=None):
+        super().__init__(code_line)
+        self.variant_group_name = variant_group_name
+        self.variant_name = variant_name
+    def __repr__(self):
+        return f"VariantAccess(variant_group_name={self.variant_group_name!r}, variant_name={self.variant_name!r})"
+
+class VariantInstantiation(ASTNode):
+    def __init__(self, variant_group_name, variant_name, field_values, code_line=None):
+        super().__init__(code_line)
+        self.variant_group_name = variant_group_name
+        self.variant_name = variant_name
+        self.field_values = field_values  # List of (name, value) tuples
+    def __repr__(self):
+        return f"VariantInstantiation(variant_group_name={self.variant_group_name!r}, variant_name={self.variant_name!r}, field_values={self.field_values!r})"
+
 # ...add more as needed

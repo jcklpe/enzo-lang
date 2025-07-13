@@ -1,7 +1,7 @@
 from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val, log_debug, EnzoList, deep_copy_enzo_value
 from collections import ChainMap
-from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantAccess, VariantInstantiation
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
 from src.error_messaging import (
     error_message_already_defined,
@@ -28,7 +28,12 @@ from src.error_messaging import (
 )
 import os
 
-_env = {}  # single global environment
+_env = {
+    # Predefined type names for use in blueprint definitions and parameter annotations
+    'Number': 'Number',
+    'Text': 'Text',
+    '$self': '$self'
+}  # single global environment
 
 class EnzoFunction:
     def __init__(self, params, local_vars, body, closure_env, is_multiline=False):
@@ -42,6 +47,14 @@ class EnzoFunction:
         # Show only param names for readability
         param_names = [p[0] if isinstance(p, (list, tuple)) else str(p) for p in self.params]
         return f"<function ({', '.join(param_names)}) multiline={self.is_multiline}>"
+
+class EnzoVariantInstance:
+    def __init__(self, group_name, variant_name):
+        self.group_name = group_name
+        self.variant_name = variant_name
+
+    def __repr__(self):
+        return f"{self.group_name}.{self.variant_name}"
 
 class ReferenceWrapper:
     """Wrapper for explicit references created with @ operator."""
@@ -715,14 +728,29 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 else:
                     raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=t_code_line)
 
-        # Legacy list handling and property access on non-EnzoList objects
-        if isinstance(idx, str):
-            if getattr(node, 'is_property_access', False):
+        # Check if this is variant access before falling back to error handling
+        if isinstance(idx, str) and getattr(node, 'is_property_access', False):
+            # Check if base is a variant group (has a variants attribute)
+            if hasattr(base, 'variants'):
+                # This is variant access: VariantGroup.VariantName
+                variant_group_name = None
+                if isinstance(node.base, VarInvoke):
+                    variant_group_name = node.base.name
+
+                # Check if it's a valid variant
+                if idx not in base.variants:
+                    raise EnzoRuntimeError(f"error: '{idx}' not a valid {variant_group_name}", code_line=t_code_line)
+
+                # Create a variant instance using the global class
+                return EnzoVariantInstance(variant_group_name, idx)
+            else:
                 # Property access on non-list objects should give "list property not found"
                 raise EnzoRuntimeError(error_message_list_property_not_found(idx), code_line=t_code_line)
-            else:
-                # String indexing should give "can't use text as index"
-                raise EnzoRuntimeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
+
+        # Legacy list handling and property access on non-EnzoList objects
+        if isinstance(idx, str):
+            # String indexing should give "can't use text as index"
+            raise EnzoRuntimeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
         if not isinstance(base, list):
             if isinstance(node.base, VarInvoke):
                 raise EnzoRuntimeError(error_message_index_applies_to_lists(), code_line=t_code_line)
@@ -736,6 +764,219 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         return val
     if isinstance(node, ParameterDeclaration):
         raise EnzoRuntimeError(error_message_param_outside_function(), code_line=getattr(node, 'code_line', None))
+
+    # Blueprint evaluation
+    if isinstance(node, BlueprintAtom):
+        # BlueprintAtom represents a blueprint definition
+        # For now, we'll store it as-is in the environment when it's bound to a name
+        return node
+
+    if isinstance(node, BlueprintInstantiation):
+        # BlueprintInstantiation represents creating an instance from a blueprint
+        blueprint_name = node.blueprint_name
+
+        # Look up the blueprint definition
+        if blueprint_name not in env:
+            raise EnzoRuntimeError(f"error: unknown blueprint '{blueprint_name}'", code_line=getattr(node, 'code_line', None))
+
+        blueprint_def = env[blueprint_name]
+        if not isinstance(blueprint_def, BlueprintAtom):
+            raise EnzoRuntimeError(f"error: '{blueprint_name}' is not a blueprint", code_line=getattr(node, 'code_line', None))
+
+        # Create an instance by evaluating the field values and creating an EnzoList
+        from src.runtime_helpers import EnzoList
+        instance = EnzoList()
+
+        # Create a map of provided field values for efficient lookup
+        provided_values = {}
+        for field_name, field_value in node.field_values:
+            clean_field_name = field_name[1:] if field_name.startswith('$') else field_name
+            provided_values[clean_field_name] = field_value
+
+        # Iterate through blueprint fields in their definition order
+        for field_name, field_default in blueprint_def.fields:
+            clean_field_name = field_name[1:] if field_name.startswith('$') else field_name
+            key_with_prefix = f'${clean_field_name}'
+
+            if clean_field_name in provided_values:
+                # Use the provided value
+                evaluated_value = eval_ast(provided_values[clean_field_name], value_demand=True, env=env)
+                instance.set_key(key_with_prefix, evaluated_value)
+            elif field_default is not None:
+                # Use the default value - preserve function objects, don't auto-invoke
+                if isinstance(field_default, FunctionAtom):
+                    default_value = eval_ast(field_default, value_demand=False, env=env)
+                else:
+                    default_value = eval_ast(field_default, value_demand=True, env=env)
+                instance.set_key(key_with_prefix, default_value)
+
+        # TODO: Add type validation
+
+        return instance
+
+    if isinstance(node, BlueprintComposition):
+        # BlueprintComposition represents composing multiple blueprints
+        combined_fields = []
+        seen_field_names = set()
+
+        for blueprint_item in node.blueprints:
+            blueprint_def = None
+
+            if isinstance(blueprint_item, str):
+                # Blueprint name - look it up in environment
+                if blueprint_item not in env:
+                    raise EnzoRuntimeError(f"error: unknown blueprint '{blueprint_item}'", code_line=getattr(node, 'code_line', None))
+                blueprint_def = env[blueprint_item]
+                if not isinstance(blueprint_def, BlueprintAtom):
+                    raise EnzoRuntimeError(f"error: '{blueprint_item}' is not a blueprint", code_line=getattr(node, 'code_line', None))
+            elif isinstance(blueprint_item, BlueprintAtom):
+                # Inline blueprint definition
+                blueprint_def = blueprint_item
+            else:
+                raise EnzoRuntimeError(f"error: invalid blueprint component in composition", code_line=getattr(node, 'code_line', None))
+
+            # Check for field conflicts and collect fields
+            for field_name, field_default in blueprint_def.fields:
+                clean_field_name = field_name[1:] if field_name.startswith('$') else field_name
+                if clean_field_name in seen_field_names:
+                    raise EnzoRuntimeError(f"error: duplicate property '{clean_field_name}' in composed blueprints", code_line=getattr(node, 'code_line', None))
+                seen_field_names.add(clean_field_name)
+                combined_fields.append((field_name, field_default))
+
+        # Return a new blueprint with the combined fields
+        return BlueprintAtom(combined_fields, code_line=getattr(node, 'code_line', None))
+
+    if isinstance(node, VariantGroup):
+        # VariantGroup represents a variant group definition
+        # Process variants and register inline blueprint definitions
+        variant_names = []
+        group_blueprint = None  # Store the blueprint if the group name matches a variant
+
+        for variant in node.variants:
+            if isinstance(variant, tuple):
+                # Inline blueprint definition: (variant_name, blueprint_def)
+                variant_name, blueprint_def = variant
+                variant_names.append(variant_name)
+
+                if variant_name == node.name:
+                    # This variant has the same name as the group - store separately
+                    group_blueprint = blueprint_def
+                    env[f"__{node.name}__blueprint"] = blueprint_def
+                else:
+                    # Register other blueprints normally
+                    env[variant_name] = blueprint_def
+            else:
+                # Simple variant name - assume it's already defined elsewhere
+                variant_names.append(variant)
+
+        # Create a runtime variant group that validates variant access
+        class EnzoVariantGroup:
+            def __init__(self, name, variants, group_blueprint=None):
+                self.name = name
+                self.variants = set(variants)  # Valid variant names
+                self.group_blueprint = group_blueprint  # Blueprint for group.group access
+
+            def __repr__(self):
+                return f"VariantGroup({self.name})"
+
+        return EnzoVariantGroup(node.name, variant_names, group_blueprint)
+
+        return EnzoVariantGroup(node.name, variant_names)
+
+    if isinstance(node, VariantAccess):
+        # VariantAccess represents accessing a variant (e.g., Magic-Type.Fire)
+        variant_group_name = node.variant_group_name
+        variant_name = node.variant_name
+
+        # Look up the variant group
+        if variant_group_name not in env:
+            raise EnzoRuntimeError(f"error: unknown variant group '{variant_group_name}'", code_line=getattr(node, 'code_line', None))
+
+        variant_group = env[variant_group_name]
+
+        # Check if it's a valid variant
+        if hasattr(variant_group, 'variants') and variant_name not in variant_group.variants:
+            raise EnzoRuntimeError(f"error: '{variant_name}' not a valid {variant_group_name}", code_line=getattr(node, 'code_line', None))
+
+        # Create a variant instance using the global class
+        return EnzoVariantInstance(variant_group_name, variant_name)
+    if isinstance(node, VariantInstantiation):
+        # VariantInstantiation represents creating an instance of a specific variant
+        variant_group_name = node.variant_group_name
+        variant_name = node.variant_name
+
+        # Look up the variant group to validate the variant
+        if variant_group_name not in env:
+            raise EnzoRuntimeError(f"error: unknown variant group '{variant_group_name}'", code_line=getattr(node, 'code_line', None))
+
+        variant_group = env[variant_group_name]
+        if not hasattr(variant_group, 'variants') or variant_name not in variant_group.variants:
+            raise EnzoRuntimeError(f"error: '{variant_name}' not a valid {variant_group_name}", code_line=getattr(node, 'code_line', None))
+
+        # Collect blueprints to compose for this variant
+        blueprints_to_compose = []
+
+        # Check if there's a preserved group blueprint (for cases like Monster3.Monster3)
+        group_blueprint_key = f"__{variant_group_name}__blueprint"
+        if group_blueprint_key in env:
+            blueprints_to_compose.append(env[group_blueprint_key])
+
+        # Look up the specific variant blueprint
+        if variant_name not in env:
+            raise EnzoRuntimeError(f"error: unknown variant '{variant_name}'", code_line=getattr(node, 'code_line', None))
+
+        variant_blueprint = env[variant_name]
+        if not isinstance(variant_blueprint, BlueprintAtom):
+            raise EnzoRuntimeError(f"error: '{variant_name}' is not a blueprint", code_line=getattr(node, 'code_line', None))
+
+        # Add the variant blueprint (avoid duplicates)
+        if not blueprints_to_compose or variant_blueprint != blueprints_to_compose[0]:
+            blueprints_to_compose.append(variant_blueprint)
+
+        # Create an instance by combining all blueprints
+        from src.runtime_helpers import EnzoList
+        instance = EnzoList()
+
+        # Create a map of provided field values for efficient lookup
+        provided_values = {}
+        for field_name, field_value in node.field_values:
+            clean_field_name = field_name[1:] if field_name.startswith('$') else field_name
+            provided_values[clean_field_name] = field_value
+
+        # Collect all fields from all blueprints (later blueprints override earlier ones)
+        all_fields = []
+        seen_field_names = set()
+
+        for blueprint in blueprints_to_compose:
+            for field_name, field_default in blueprint.fields:
+                clean_field_name = field_name[1:] if field_name.startswith('$') else field_name
+                if clean_field_name not in seen_field_names:
+                    all_fields.append((field_name, field_default))
+                    seen_field_names.add(clean_field_name)
+                else:
+                    # Override: remove the previous field and add the new one
+                    all_fields = [(fn, fd) for fn, fd in all_fields if (fn[1:] if fn.startswith('$') else fn) != clean_field_name]
+                    all_fields.append((field_name, field_default))
+
+        # Iterate through all combined fields in their definition order
+        for field_name, field_default in all_fields:
+            clean_field_name = field_name[1:] if field_name.startswith('$') else field_name
+            key_with_prefix = f'${clean_field_name}'
+
+            if clean_field_name in provided_values:
+                # Use the provided value
+                evaluated_value = eval_ast(provided_values[clean_field_name], value_demand=True, env=env)
+                instance.set_key(key_with_prefix, evaluated_value)
+            elif field_default is not None:
+                # Use the default value - preserve function objects, don't auto-invoke
+                if isinstance(field_default, FunctionAtom):
+                    default_value = eval_ast(field_default, value_demand=False, env=env)
+                else:
+                    default_value = eval_ast(field_default, value_demand=True, env=env)
+                instance.set_key(key_with_prefix, default_value)
+
+        return instance
+
     raise EnzoRuntimeError(error_message_unknown_node(node), code_line=getattr(node, 'code_line', None))
 
 # ── text_atom‐interpolation helper ───────────────────────────────────────────
