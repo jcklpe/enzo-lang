@@ -952,7 +952,7 @@ Higher order functions are first class citizens in Enzo and have dedicated synta
 #### Filter
 
 ```javascript!
-$filtered-list: filter $item = "dog" in $original-list;
+filter $item is "dog" in $original-list :> $filtered-list;
 ```
 
 #### Transformation (map)
