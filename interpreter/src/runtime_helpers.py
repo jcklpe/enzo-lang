@@ -35,7 +35,7 @@ def format_val(v):
         return f"{{ {', '.join(items)} }}"
     elif isinstance(v, list):
         items = ", ".join(format_val(el) for el in v)
-        return f"[ {items} ]"
+        return f"[{items}]"
     elif isinstance(v, str):
         return f'"{v}"' if "\n" not in v else v
     elif callable(v):
@@ -51,6 +51,30 @@ def clear_debug_log():
 def log_debug(msg):
     pass  # Disable debug output
     # print(msg)  # Enable for debugging
+
+def deep_copy_enzo_value(value):
+    """Create a deep copy of an Enzo value (lists, tables, etc.)."""
+    if isinstance(value, EnzoList):
+        new_list = EnzoList()
+        # Copy all elements
+        for element in value._elements:
+            new_list.append(deep_copy_enzo_value(element))
+        # Copy key mapping
+        new_list._key_map = value._key_map.copy()
+        return new_list
+    elif isinstance(value, (dict, Table)):
+        # Deep copy dictionaries/tables
+        new_dict = Table() if isinstance(value, Table) else {}
+        for k, v in value.items():
+            new_dict[k] = deep_copy_enzo_value(v)
+        return new_dict
+    elif isinstance(value, list):
+        # Deep copy regular Python lists
+        return [deep_copy_enzo_value(item) for item in value]
+    else:
+        # For primitive types (numbers, strings, functions), return as-is
+        # Functions are immutable, primitives are copied by value
+        return value
 
 class EnzoList:
     """Enhanced list that supports both indexed and keyed access."""
@@ -130,4 +154,4 @@ class EnzoList:
             else:
                 items.append(format_val(element))
 
-        return f"[ {', '.join(items)} ]"
+        return f"[{', '.join(items)}]"

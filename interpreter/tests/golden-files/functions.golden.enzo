@@ -18,11 +18,11 @@
 //= Multiline nested function atoms
 32
 //= Single line, implicit return, named function
-"this is the normal function call;"
+"this is the normal function invocation;"
 4
-"this is the $times2 style function call;"
+"this is the $times2 style function invocation;"
 4
-"this is the $times2(); style function call"
+"this is the $times2(); style function invocation"
 4
 //= Nameless function: multi-line with no explicit return (should error)
 error: multi-line anonymous functions require explicit return
@@ -55,7 +55,7 @@ error: missing necessary params
 error: missing necessary params
     $subtractor(4);
 
-//= List of functions called by index
+//= List of functions invoked by index
 11
 20
 
@@ -87,7 +87,7 @@ error: expected function reference (@) or function invocation ($)
 error: duplicate parameter name '$x' in function definition
     param $x: 2;
 
-//= Empty function declaration and call
+//= Empty function declaration and invoked
 //= Function with default param referencing previous param
 10
 4

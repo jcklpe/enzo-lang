@@ -10,14 +10,14 @@ $x: 10;             // error $x has already been declared
 //= REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
 $x <: 100;
 $x;                 // prints 100
-$x <: "hello";      // error: cannot assign Text to Number
+$x <: "hello";      // error: cannot bind Text to Number
 
 //= FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
 $z: 7;       // binds 7
 $z;         // prints 7
 $z <: 8;            // rebind OK, z now 8
 $z;             // prints 8
-$z <: "oops";       // error: cannot assign Text to Number
+$z <: "oops";       // error: cannot bind Text to Number
 $z : "oops";       // error: $z already defined
 
 //= MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
@@ -32,7 +32,7 @@ $var_xyz;                 // prints “30”
 //= REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
 55 :> $newImplicit;
 $newImplicit;               // prints “55”
-$newImplicit <: "oops";     // error: cannot assign Text to Number
+$newImplicit <: "oops";     // error: cannot bind Text to Number
 $dougie <: "cool dude";     // should not error.
 $dougie;                    // prints "cool dude".
 
@@ -52,14 +52,14 @@ $-foo;        // prints 3
 
 //= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
 $emptyListTest: []; // binds []
-$emptyListTest;    // prints “[ ]”
+$emptyListTest;    // prints “[]”
 $emptyListTest.1;  // error: list index out of range
 
 //= BIND EMPTY AND THEN FILL WITH LIST ────────────────────────────────────
 $empty-list: ;
 $empty-list: 50;    //error: $empty-list already defined
 $empty-list<: ["now not empty"];  //bind contents to list
-$empty-list;       // prints “[ "now not empty" ]”
+$empty-list;       // prints “["now not empty"]”
 
 //= DECLARE LIST AND ACCESS ITEMS ────────────────────────────────────────
 $colors: ["red", "green", "blue", "yellow"]; // binds list
@@ -72,12 +72,12 @@ $nestedList: [[1, 2], [3, 4]];
 $nestedList.2.1;   // prints “3”
 
 //= MIXED LIST‐INSIDE‐LIST ● INDEX VS ATTR ──────────────────────────────
-$mix: [ $lst: ["a", "b", "c"] ];  //binds list
+$mix: [$lst: ["a", "b", "c"]];  //binds list
 $mix.lst.2;                // prints “b”
 
 //= LIST OF LISTS + INDEX OF LIST ────────────────────────────────────
-$lol-index: [ [ $x: 5 ], [ $x: 7 ] ];  // binds list
-$lol-index;                 // prints “[ [ $x: 5 ], [ $x: 7 ] ]”
+$lol-index: [[$x: 5], [$x: 7]];  // binds list
+$lol-index;                 // prints “[[$x: 5], [$x: 7]]”
 $lol-index.2.x;             // prints “7”
 
 //= Out-of-bounds and weird list indices
@@ -93,13 +93,13 @@ $list.1.1;          // error: list index out of range
 $mutable: [1,2];
 $mutable;
 $mutable.1 <: 5;        // updates first element to 5
-$mutable;               // prints [ 5, 2 ]
+$mutable;               // prints [5, 2]
 $mutable.3 <: 9;        // error: list index out of range
 
 //= Trailing commas
 // These are fine
-$goodList-index: [1, 2, 3, ]; // binds list
-$goodList-index;              // prints  [ 1, 2, 3 ]
+$goodList-index: [1, 2, 3,]; // binds list
+$goodList-index;              // prints  [1, 2, 3]
 // these should error
 $badList1-index: [1,,2];                        // error: remove one comma
 $badList2-index: [,1,2];                        // error: leading comma
@@ -138,27 +138,27 @@ $negzero;                 // prints 0 (should not crash)
 $weird: --5;              // error: double minus not allowed
 
 //= LIST MAPPING STUFF ───────────────────────────────────────────────────────────
-$list-map: [ $name: "Alice", $age: 30 ];
-$list-map;             // binds “[ $name: "Alice", $age: 30 ]”
+$list-map: [$name: "Alice", $age: 30];
+$list-map;             // binds “[$name: "Alice", $age: 30]”
 $list-map.name;        // prints “Alice”
 $list-map.age;         // prints “30”
 
 //= REBINDING LIST PROPERTIES ────────────────────────────────────────────
 $list-map.name <: "Bob";
 $list-map.name;        // prints “Bob”
-$list-map;             // prints “[ $name: "Bob", $age: 30 ]”
+$list-map;             // prints “[$name: "Bob", $age: 30]”
 
 //= ANOTHER LIST + PROPERTY REBIND ───────────────────────────────────────
-$list-map2: [ $foo: 42, $bar: "hello" ];
+$list-map2: [$foo: 42, $bar: "hello"];
 $list-map2;
 $list-map2.bar;        // prints “hello”
 $list-map2.foo <: 100;
 $list-map2.foo;
-$list-map2;            // prints “[ $foo: 100, $bar: "hello" ]”
+$list-map2;            // prints “[$foo: 100, $bar: "hello"]”
 
 //= EMPTY LIST LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
 $emptyListMap: [];
-$emptyListMap;            // prints “[ ]”
+$emptyListMap;            // prints “[]”
 $emptyListMap.someKey;    // error: Keyname '$someKey' does not exist on this list
 
 //= NESTED LIST + MIXED INDEX/PROPERTY ───────────────────────────────────────
@@ -166,7 +166,7 @@ $nestedListMap: [
     $inner: [
         $val: 42,
         $arr: [10, 20]
-    ]
+]
 ];
 $nestedListMap;
 $nestedListMap.inner.val;     // prints “42”
@@ -178,27 +178,27 @@ $nestedListMap.inner.val;     // prints “100”
 
 //= COMPLEX LIST INDEX/PROPERTY ACCESS ─────────────────────────
 $complex: [
-    $list-map: [ $a: [100, 200], $b: "x" ],
-    $list-index: [ [ $foo: 1 ], [ $foo: 2 ] ]
+    $list-map: [$a: [100, 200], $b: "x"],
+    $list-index: [[$foo: 1], [$foo: 2]]
 ];
-$complex;           // prints [ $list-map: [ $a: [ 100, 200 ], $b: "x" ], $list-index: [ [ $foo: 1 ], [ $foo: 2 ] ] ]
+$complex;           // prints [$list-map: [$a: [100, 200], $b: "x"], $list-index: [[$foo: 1], [$foo: 2]]]
 $complex.list-map.a.1;    // prints “100”
 $complex.list-index.2.foo;  // prints “2”
 
 //= LIST OF LISTS + INDEX OF LIST ─────────────────────────────────────
-$lol: [ $first: [1, 2], $second: [3, 4] ];
+$lol: [$first: [1, 2], $second: [3, 4]];
 $lol;
 $lol.first.2;         // prints “2”
-$lol.second;          // prints “[ 3, 4 ]”
+$lol.second;          // prints “[ 3, 4]”
 
 //= MORE LIST WEIRDNESS
-$deep-list: [ $x: [ $y: [ $z: 7 ] ] ];
-$deep-list;            // prints [ $x: [ $y: [ $z: 7 ] ] ]
+$deep-list: [$x: [$y: [$z: 7]]];
+$deep-list;            // prints [$x: [$y: [$z: 7]]]
 $deep-list.x.y.z; // prints 7
 
 //= List property errors
-$list9: [ $foo: 1 ];
-$list9;                // prints [ $foo: 1 ]
+$list9: [$foo: 1];
+$list9;                // prints [$foo: 1]
 $list9.bar;         // error: list property '$bar' not found
 $list9.1;           // prints 1
 $list9.foo.bar;     // error: list property '$bar' not found
@@ -207,25 +207,25 @@ $prim: 999;
 $prim;                      // prints 999;
 $prim.someKey <: 5;       // error: list property '$someKey' not found
 
-$myList: [ $a: 1 ];
-$myList;                    // prints [ $a: 1 ]
+$myList: [$a: 1];
+$myList;                    // prints [$a: 1]
 $myList.1;                 // prints 1
 
-$table-error: [ $x: 1 ];
-$table-error;                   // prints [ $x: 1 ]
+$table-error: [$x: 1];
+$table-error;                   // prints [$x: 1]
 $table-error.x <: 99;           // rebinds 99 to $table-error.x
 $table-error.x;                 // prints 99
-$table-error;                   // prints [ $x: 99 ]
+$table-error;                   // prints [$x: 99]
 $table-error.y <: 42;           // error: list property '$y' not found
 
 //= Valid trailing commas (should succeed)
-$goodList: [ $foo: 1, $bar: 2, ];
+$goodList: [$foo: 1, $bar: 2,];
 $goodList;
 
 //= invalid trailing commas (should error)
-$badList1: [ $foo: 1,, $bar: 2 ];
-$badList2: [ ,$foo: 1, $bar: 2 ];
-$badList3: [ , ];
+$badList1: [$foo: 1,, $bar: 2];
+$badList2: [ ,$foo: 1, $bar: 2];
+$badList3: [ ,];
 
 //= TEXT + INTERPOLATION ───────────────────────────────────────────────────
 $text-example: ;
@@ -259,7 +259,7 @@ $y;
 "Sum=<($x + $y);> Prod=<($x * $y);>";   // prints “Sum=10 Prod=21”
 
 //= COMPOUND INTERPOLATION WITH LIST ACCESS ────────────────────────
-$myList-text: [ $greeting: "hi", $nums: [2, 4] ];
+$myList-text: [$greeting: "hi", $nums: [2, 4]];
 $myList-text;
 "<$myList-text.greeting;>! The nums are:<$myList-text.nums.1;>, and <$myList-text.nums.2;>";
                          // prints “hi! The nums are: 2,4”
@@ -324,11 +324,11 @@ return(($x + $y));); // prints 201
 
 //= Single line, implicit return, named function
 times2: (2 * 2); // binds (2 * 2) to the times2 keyname
-"this is the normal function call;";
+"this is the normal function invocation;";
 times2();       // prints 4
-"this is the $times2 style function call;";
+"this is the $times2 style function invocation;";
 $times2;       // prints 4
-"this is the $times2(); style function call";
+"this is the $times2(); style function invocation";
 $times2();       // prints 4
 
 //= Nameless function: multi-line with no explicit return (should error)
@@ -379,7 +379,7 @@ $subtractor(3, 4);   // prints 1
 subtractor();        // error: missing necessary params
 
 $subtractor(4);   //error: missing necessary params
-//= List of functions called by index
+//= List of functions invoked by index
 $funs: [(param $x: ; $x + 1;), (param $x: ; $x * 2;)];
 $funs.1(10);              // → 11
 $funs.2(10);              // → 20
@@ -450,7 +450,7 @@ duplicate-params: (
     return($x);
 );
 
-//= Empty function declaration and call
+//= Empty function declaration and invocation
 empty-fn: ();
 empty-fn();     // returns empty.
 
@@ -602,8 +602,8 @@ return($sum);); // returns 15
 [[1,2],[3,4]] then ($this.2.1 * 10); // returns 30
 
 //= PIPELINE LIST PROPERTY
-[ $val: 10 ] then ($this.val + 5); // returns 15
-[ $val: 5, $val2: 10 ] then ($this.val + $this.val2); // returns 15
+[$val: 10] then ($this.val + 5); // returns 15
+[$val: 5, $val2: 10] then ($this.val + $this.val2); // returns 15
 
 //= PIPELINE ERROR NO FUNCTION ATOM
 5 then 10; // error: pipeline expects function atom after `then`
@@ -643,3 +643,442 @@ breaking2: (
     param $y: ;
     return($x + $y + $this); // error: can't use reserved $this keyname in named function declaration
 );
+
+//= COPY BY DEFAULT: LISTS ───────────────────────────────────────────────────────────
+$original: [1, 2, 3];
+$original;  // print [1, 2, 3]
+$copy: $original;        // creates a copy of the list
+$copy.1 <: 99;
+$copy;                   // prints [99, 2, 3]
+$original;               // prints [1, 2, 3] original unaffected
+
+//= COPY BY DEFAULT: NESTED LISTS ───────────────────────────────────────────────────
+$nested-original: [$inner: [10, 20]];
+$nested-copy: $nested-original;
+$nested-copy.inner.1 <: 99;
+$nested-copy;            // prints [$inner: [99, 20]]
+$nested-original;        // prints [$inner: [10, 20]] original unaffected
+
+//= VARIABLE REFERENCE WITH @ ───────────────────────────────────────────────────────
+$original-list: [4, 5, 6];
+$reference-list: @original-list;   // stores a reference explicitly
+$reference-list.2 <: 99;
+$reference-list;        // prints [4, 99, 6]
+$original-list;         // prints [4, 99, 6] original affected due to reference
+
+//= REFERENCE TO VARIABLE (COPY VS EXPLICIT REFERENCE) ──────────────────────────────
+$x-ref: 100;
+$y-ref: $x-ref;                 // copy by default
+$y-ref <: 200;
+$x-ref;                     // prints 100 (original unaffected)
+$y-ref;                     // prints 200
+
+$ref-x: @x-ref;            // explicit reference
+$ref-x <: 300;
+$ref-x;                 // prints 300
+$x-ref;                     // prints 300 (original affected due to reference)
+
+//= FUNCTION ARGUMENT REFERENCE VS COPY ──────────────────────────────────────────────
+modify-list: (
+    param $lst: ;
+    $lst.1 <: 99;
+    return($lst);
+);
+
+$test-list: [1,2,3];
+modify-list($test-list);   // returns [99,2,3] but does not mutate original
+$test-list;                // prints [1,2,3] original unaffected
+
+modify-list-ref: (
+    param $lst-ref: ;
+    $lst-ref.1 <: 99;
+    return($lst-ref);
+);
+
+$test-list-ref: [1,2,3];
+modify-list-ref(@test-list-ref);  // returns [99,2,3] and mutates original
+$test-list-ref;                    // prints [99,2,3] original affected
+
+//= REFERENCE VS COPY IN LIST OF LISTS ──────────────────────────────────────────────
+$list-container: [
+    $first: [1,2],
+    $second: [3,4]
+];
+
+$copy-container: $list-container;        // copy container
+$copy-container.first.1 <: 99;
+$copy-container;         // prints [$first: [99,2], $second: [3,4]]
+$list-container;         // prints [$first: [1,2], $second: [3,4]] original unaffected
+
+$ref-container: @list-container;        // reference container
+$ref-container.second.2 <: 88;
+$ref-container;          // prints [$first: [1,2], $second: [3,88]]
+$list-container;         // prints [$first: [1,2], $second: [3,88]] original affected
+
+//= REFERENCE VS COPY IN FUNCTIONS ──────────────────────────────────────────────────
+$number: 10;
+copy-increment: (
+    param $num: ;
+    $num + 1 :> $num;
+    return($num);
+);
+
+copy-increment($number); // returns 11
+$number;                 // prints 10 original unaffected
+
+ref-increment: (
+    param $num: ;
+    $num + 1 :> $num;
+    return($num);
+);
+
+ref-increment(@number); // returns 11
+$number;                 // prints 11 original affected
+
+//= COPY-BY-DEFAULT WITH FUNCTIONS ────────────────────────────────────────────
+$foo-ref1: [$bar: 1];
+$foo-ref1;
+
+mutate-bar: (
+    param $target: ;
+    $target.bar <: 99;
+    return($target);
+);
+
+// No @ — $foo is copied into the function
+$foo-ref1 then mutate-bar($this);   // prints [$bar: 99]
+$foo-ref1.bar;                      // still prints 1 — original not mutated
+
+//= REFERENCE PASSING WITH @ ───────────────────────────────────────────────────
+$foo-ref2: [$bar: 1];
+$foo-ref2;
+
+mutate-bar2: (
+    param $target: ;
+    $target.bar <: 42;
+    return($target);
+);
+
+$foo-ref2 then mutate-bar2(@this);  // prints [$bar: 42]
+$foo-ref2.bar;                      // prints 42 — original WAS mutated
+
+//= REFERENCE CAPTURE WITHIN A FUNCTION ────────────────────────────────────────
+$counter-ref: [
+    $count: 10,
+    increment: (
+        $self.count + 1 :> $self.count;
+        return($self.count);
+    )
+];
+$counter-ref.count;             // → 10
+$counter-ref.increment();       // → 11
+$counter-ref.increment();       // → 12
+$counter-ref.count;             // → 12
+
+//= COPY-BY-DEFAULT INSIDE A METHOD ─────────────────────────────────────────────
+$counter2: [
+    $count: 20,
+    increment: (
+        $copy: $self;
+        $copy.count + 1 :> $copy.count;
+        return($copy.count);
+    )
+];
+$counter2.count;             // → 20
+$counter2.increment();       // → 21
+$counter2.count;             // → still 20 — copy mutated, not self
+
+//= USING $this IN A PIPELINE ───────────────────────────────────────────────────
+$goblin-ref: [
+    $health: 100,
+    take-damage: (
+        param $amount: 10;
+        $self.health - $amount :> $self.health;
+        return($self);
+    )
+];
+$goblin-ref;                   // → [$health: 100]
+$goblin-ref.take-damage(15);   // → [$health: 85]
+$goblin-ref.health;            // → 85
+
+//= USING EXTERNAL FUNCTION + PIPELINE + @this ────────────────────────────────
+take-damage: (
+    param $target: ;
+    param $amount: 5;
+    $target.health - $amount :> $target.health;
+    return($target);
+);
+
+$orc-ref: [$health: 120];
+$orc-ref then take-damage(@this, 20);  // → [$health: 100]
+$orc-ref.health;                        // → 100
+
+//= COPY-BY-DEFAULT FAILS TO MUTATE ─────────────────────────────────────────────
+$orc-ref2: [$health: 150];
+$orc-ref2 then take-damage($this, 25);  // → [$health: 125]
+$orc-ref2.health;                       // → 150 — original not mutated
+
+//= SIMPLE BLUEPRINT INSTANTIATION ───────────────────────────────────────────
+SimpleGoblin: <[
+    health-points: Number,
+    position: [Number, Number],
+]>;
+
+$simple-goblin-1: SimpleGoblin[
+    $health-points: 100,
+    $position: [10, 10],
+];
+$simple-goblin-1;      // prints [$health-points: 100, $position: [10, 10]]
+
+$simple-goblin-2: SimpleGoblin[
+    $health-points: 100,
+    $position: [10, 15],
+];
+$simple-goblin-2;      // prints [$health-points: 100, $position: [10, 15]]
+
+
+//= BLUEPRINT WITH DEFAULTS ────────────────────────────────────────────────
+GoblinDefaults: <[
+    health-points: 100,
+    position: [0, 0],
+]>;
+
+$goblin-defaults-1: GoblinDefaults[];
+$goblin-defaults-1;            // prints [$health-points: 100, $position: [0, 0]]
+
+$goblin-defaults-2: GoblinDefaults[
+    $health-points: 105,
+    $position: [11, 15],
+];
+$goblin-defaults-2;            // prints [$health-points: 105, $position: [11, 15]]
+
+$goblin-defaults-3: GoblinDefaults[
+    $position: [10, 10],
+];
+$goblin-defaults-3;            // prints [$health-points: 100, $position: [10, 10]]
+
+
+//= BLUEPRINT WITH COMPLEX FIELDS AND FUNCTION ─────────────────────────────
+Goblin: <[
+    health-points: Number,
+    position: [Number, Number],
+    attacks: [
+        $bite: Number,
+        $torch: Number,
+],
+    status-effect: Text,
+]>;
+
+take-damage-blueprint: (
+    param $target: ;
+    param $damage: 0;
+    $target.health-points - $damage :> $target.health-points;
+    return($target);
+);
+
+$goblin-1: Goblin[
+    $health-points: 100,
+    $position: [10, 10],
+    $attacks: [
+        $bite: 50,
+        $torch: 40,
+],
+    $status-effect: "poisoned"
+];
+$goblin-1;      // prints [$health-points: 100, $position: [10, 10], ...]
+
+$goblin-2: Goblin[
+    $health-points: 110,
+    $position: [15, 10],
+    $attacks: [
+        $bite: 55,
+        $torch: 35,
+   ],
+    $status-effect: "none"
+];
+$goblin-2;      // prints [$health-points: 110, $position: [15, 10], ...]
+
+$goblin-1 then take-damage-blueprint($this, 10) :> $goblin-1;
+$goblin-1.health-points;    // prints 90
+$goblin-2.health-points;    // prints 110 (unchanged)
+
+
+//= BLUEPRINT COMPOSITION ──────────────────────────────────────────────────
+Animal: <[
+    position: [Number, Number, Number],
+]>;
+
+Flying-Animal: <[
+    wings: "true",
+    fly: (
+        param $z-position-movement: Number;
+        $self.position.3 + $z-position-movement :> $self.position.3;
+        return($self);
+    )
+]>;
+
+Swimming-Animal: <[
+    lives-near-water: Text,
+    swim: (
+        param $x-position-movement: Number;
+        param $y-position-movement: Number;
+        $self.position.1 + $x-position-movement :> $self.position.1;
+        $self.position.2 + $y-position-movement :> $self.position.2;
+        return($self);
+    )
+]>;
+
+Duck: Animal and Flying-Animal and Swimming-Animal;
+
+$donald: Duck[
+    $position: [10, 5, 0]
+];
+$donald.position;            // prints [10, 5, 0]
+$donald.fly(5);
+$donald.position.3;          // prints 5
+
+Pelican: Animal and Flying-Animal and Swimming-Animal and <[large-mouth: "true"]>;
+$pelican: Pelican[
+    $position: [0, 0, 0],
+    $large-mouth: "true"
+];
+$pelican.large-mouth;        // prints "true"
+
+
+//= BLUEPRINT COMPOSITION: CONFLICT ERROR ──────────────────────────────
+A: <[x: 1]>;
+B: <[x: 2]>;
+C: A and B;     // error: duplicate property 'x' in composed blueprints
+
+
+//= SIMPLE VARIANT GROUP (OPTIONS ONLY) ────────────────────────────────
+Magic-Type variants: Fire,
+                    or Ice,
+                    or Wind,
+                    or Earth,
+                    or Neutral;
+
+$wizard-attacks: [
+    $attack-spell-1: Magic-Type.Fire,
+    $attack-spell-2: Magic-Type.Ice,
+    $flying-spell: Magic-Type.Wind,
+    $magic-shield: Magic-Type.Earth,
+    $sword: Magic-Type.Neutral
+];
+$wizard-attacks.attack-spell-1;   // prints Magic-Type.Fire
+
+$wizard-attacks.bad-spell: Magic-Type.Plasma; // error: 'Plasma' not a valid Magic-Type
+
+
+//= VARIANTS WITH BLUEPRINTS (SUM-OF-PRODUCTS) ─────────────────────────
+Goblin1: <[
+    health: Number,
+    position: [Number, Number],
+    cackle: (
+        return("heeheehee");
+    )
+]>;
+Orc1: <[
+    health: Number,
+    position: [Number, Number],
+    shout: (
+        return("Manmeat for dinner!");
+    )
+]>;
+Troll1: <[
+    health: Number,
+    position: [Number, Number],
+    bellow: (
+        return("RARGH!!!");
+    )
+]>;
+
+Monster1 variants: Goblin1,
+                or Orc1,
+                or Troll1;
+
+$enemy1: Monster1.Goblin1[$health: 25, $position: [1,1]];
+$enemy2: Monster1.Orc1[$health: 40, $position: [2,2]];
+
+$enemy1.cackle();      // prints "heeheehee"
+$enemy2.shout();       // prints "Manmeat for dinner!"
+
+
+//= VARIANT GROUPING WITH INLINE BLUEPRINTS ────────────────────────────
+Monster2 variants:
+    Goblin2: <[
+        health: Number,
+        position: [Number, Number],
+        cackle: (
+            return("heeheehee");
+        )
+   ]>,
+    or Orc2: <[
+        health: Number,
+        position: [Number, Number],
+        shout: (
+            return("Manmeat for dinner!");
+        )
+   ]>,
+    or Troll2: <[
+        health: Number,
+        position: [Number, Number],
+        bellow: (
+            return("RARGH!!!");
+        )
+   ]>;
+
+$foe: Monster2.Troll2[$health: 100, $position: [0,0]];
+$foe.bellow();      // prints "RARGH!!!"
+
+
+//= VARIANTS WITH SHARED BLUEPRINT FIELDS ──────────────────────────────
+Monster3 variants:
+    Monster3: <[
+        health: Number,
+        position: [Number, Number]
+   ]>,
+    and Goblin3: <[
+        cackle: (
+            return("heeheehee");
+        )
+   ]>,
+    or Orc3: <[
+        shout: (
+            return("Manmeat for dinner!");
+        )
+   ]>,
+    or Troll3: <[
+        bellow: (
+            return("RARGH!!!");
+        )
+   ]>;
+
+$g: Monster3.Goblin3[$health: 7, $position: [8,8]];
+$g.cackle();           // prints "heeheehee"
+$g.health;             // prints 7
+
+// All three share Monster fields, each gets its own variant behavior
+
+//= USING VARIANTS AS FIELD VALUES IN ANOTHER BLUEPRINT ────────────────
+Goblin4 variants:
+    Goblin4: <[
+        health: Number,
+        position: [Number, Number],
+        elemental-type: Magic-Type
+   ]>,
+    and Ice-Goblin: <[
+        elemental-type: Magic-Type.Ice
+   ]>,
+    or Earth-Goblin: <[
+        elemental-type: Magic-Type.Earth
+   ]>,
+    or Normal-Goblin: <[
+        elemental-type: Magic-Type.Neutral
+   ]>;
+
+$iceg: Goblin4.Ice-Goblin[$health: 10, $position: [2,2]];
+$iceg.elemental-type;     // prints Magic-Type.Ice
+
+$normg: Goblin4.Normal-Goblin[$health: 10, $position: [0,0]];
+$normg.elemental-type;    // prints Magic-Type.Neutral

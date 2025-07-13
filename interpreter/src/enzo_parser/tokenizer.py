@@ -17,6 +17,8 @@ TOKEN_SPEC = [
     ("GE", r">="),
     ("EQ", r"=="),
     ("NE", r"!="),
+    ("BLUEPRINT_START", r"<\["),    # <[ - Must come before LT and LBRACK
+    ("BLUEPRINT_END", r"\]>"),      # ]> - Must come before RBRACK and GT
     ("LPAR", r"\("),
     ("RPAR", r"\)"),
     ("LBRACK", r"\["),
@@ -33,6 +35,9 @@ TOKEN_SPEC = [
     ("STAR", r"\*"),
     ("COMMENT", r"//.*"),  # Move COMMENT before SLASH to match "//" properly
     ("SLASH", r"/"),
+    ("AND", r"\band\b"),            # \b for word boundaries
+    ("OR", r"\bor\b"),              # \b for word boundaries
+    ("VARIANTS", r"\bvariants\b"),  # \b for word boundaries
     ("LT", r"<"),
     ("GT", r">"),
     ("EQ_SINGLE", r"="),

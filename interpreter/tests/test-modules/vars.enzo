@@ -10,14 +10,14 @@ $x: 10;             // error $x has already been declared
 //= REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
 $x <: 100;
 $x;                 // prints 100
-$x <: "hello";      // error: cannot assign Text to Number
+$x <: "hello";      // error: cannot bind Text to Number
 
 //= FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
 $z: 7;       // binds 7
 $z;         // prints 7
 $z <: 8;            // rebind OK, z now 8
 $z;             // prints 8
-$z <: "oops";       // error: cannot assign Text to Number
+$z <: "oops";       // error: cannot bind Text to Number
 $z : "oops";       // error: $z already defined
 
 //= MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
@@ -32,7 +32,7 @@ $var_xyz;                 // prints “30”
 //= REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
 55 :> $newImplicit;
 $newImplicit;               // prints “55”
-$newImplicit <: "oops";     // error: cannot assign Text to Number
+$newImplicit <: "oops";     // error: cannot bind Text to Number
 $dougie <: "cool dude";     // should not error.
 $dougie;                    // prints "cool dude".
 

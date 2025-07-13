@@ -48,8 +48,125 @@ class Parser:
         # Delegate to parser_list.py
         return parse_list_atom(self)
 
+    def parse_blueprint_definition(self):
+        """Parse <[field: Type, ...]> syntax"""
+        self.expect("BLUEPRINT_START")  # <[
+
+        fields = []
+        while self.peek() and self.peek().type != "BLUEPRINT_END":
+            # Skip newlines
+            while self.peek() and self.peek().type == "NEWLINE":
+                self.advance()
+
+            # Check if we've reached the end after skipping newlines
+            if not self.peek() or self.peek().type == "BLUEPRINT_END":
+                break
+
+            # Parse field: Type or field: default_value
+            field_name_token = self.expect("KEYNAME")
+            field_name = field_name_token.value
+            self.expect("BIND")  # :
+
+            field_type_or_default = self.parse_value_expression()
+            fields.append((field_name, field_type_or_default))
+
+            # Skip comma if present
+            if self.peek() and self.peek().type == "COMMA":
+                self.advance()
+
+        self.expect("BLUEPRINT_END")  # ]>
+
+        return BlueprintAtom(fields, code_line=self._get_code_line(field_name_token) if field_name_token else None)
+
+    def parse_blueprint_instantiation(self, blueprint_name):
+        """Parse BlueprintName[field: value, ...] syntax"""
+        start_token = self.expect("LBRACK")  # [
+
+        field_values = []
+        while self.peek() and self.peek().type != "RBRACK":
+            if self.peek().type == "KEYNAME":
+                field_name_token = self.advance()
+                field_name = field_name_token.value
+                self.expect("BIND")  # :
+                field_value = self.parse_value_expression()
+                field_values.append((field_name, field_value))
+
+            if self.peek() and self.peek().type == "COMMA":
+                self.advance()
+
+        self.expect("RBRACK")  # ]
+
+        return BlueprintInstantiation(blueprint_name, field_values, code_line=self._get_code_line(start_token))
+
+    def parse_blueprint_composition(self, first_blueprint):
+        """Parse A and B and C syntax, including inline blueprints"""
+        blueprints = [first_blueprint]
+
+        while self.peek() and self.peek().type == "AND":
+            self.advance()  # consume AND
+
+            # Check if next element is an inline blueprint definition
+            if self.peek() and self.peek().type == "BLUEPRINT_START":
+                inline_blueprint = self.parse_blueprint_definition()
+                blueprints.append(inline_blueprint)
+            elif self.peek() and self.peek().type == "KEYNAME":
+                next_blueprint_token = self.advance()
+                blueprints.append(next_blueprint_token.value)
+            else:
+                raise EnzoParseError("Expected blueprint name or inline blueprint after 'and'",
+                                   code_line=self._get_code_line(self.peek()) if self.peek() else None)
+
+        return BlueprintComposition(blueprints, code_line=self._get_code_line(self.tokens[self.pos-1]))
+
+    def parse_variant_group(self, name):
+        """Parse variants: A, or B, or C syntax or complex variant definitions"""
+        self.expect("VARIANTS")  # variants
+        self.expect("BIND")      # :
+
+        variants = []
+
+        # Parse first variant
+        variant = self.parse_single_variant()
+        variants.append(variant)
+
+        # Parse additional variants with optional comma and "or"/"and"
+        while True:
+            # Skip optional comma
+            if self.peek() and self.peek().type == "COMMA":
+                self.advance()
+
+            # Check for "or" or "and" keyword
+            if self.peek() and self.peek().type in ("OR", "AND"):
+                self.advance()  # consume OR/AND
+                variant = self.parse_single_variant()
+                variants.append(variant)
+            else:
+                break
+
+        return VariantGroup(name, variants, code_line=self._get_code_line(self.tokens[self.pos-1]))
+
+    def parse_single_variant(self):
+        """Parse a single variant which can be just a name or Name: <[...]>"""
+        if self.peek() and self.peek().type == "KEYNAME":
+            variant_name = self.advance().value
+
+            # Check if this variant has an inline blueprint definition
+            if self.peek() and self.peek().type == "BIND":
+                self.advance()  # consume ":"
+                if self.peek() and self.peek().type == "BLUEPRINT_START":
+                    blueprint_def = self.parse_blueprint_definition()
+                    return (variant_name, blueprint_def)
+                else:
+                    # This might be another type or expression, but for now just treat as name
+                    # TODO: Handle other variant value types
+                    return variant_name
+            else:
+                return variant_name
+        else:
+            raise EnzoParseError("Expected variant name", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+
     def parse_postfix(self, base):
-        # Handle function calls and chained dot-number and dot-variable for nested indexing
+        # Handle function invocations and chained dot-number and dot-variable for nested indexing
         debug_chain = []  # DEBUG: collect chain for print
 
         while True:
@@ -74,6 +191,12 @@ class Parser:
                         base = ListIndex(base, VarInvoke(key, code_line=code_line), code_line=code_line)
                     else:
                         debug_chain.append(f".{key}")  # DEBUG
+                        # For now, always treat as property access unless we implement variant group detection
+                        # Check if this is variant access: VariantGroup.VariantName
+                        # TODO: Add variant group detection logic here
+                        # if isinstance(base, VarInvoke) and is_variant_group(base.name):
+                        #     base = VariantAccess(base.name, key, code_line=code_line)
+                        # else:
                         # Property access: .foo
                         base = ListIndex(base, TextAtom(key, code_line=code_line), code_line=code_line, is_property_access=True)
                 elif t and t.type == "TEXT_TOKEN":
@@ -85,7 +208,7 @@ class Parser:
                     # If not a valid index or property, break
                     break
             elif t and t.type == "LPAR":
-                # Function call: parse arguments
+                # Function invoke: parse arguments
                 self.advance()  # consume LPAR
                 args = []
                 code_line = self._get_code_line(t)
@@ -96,14 +219,54 @@ class Parser:
                     if self.peek() and self.peek().type == "COMMA":
                         self.advance()  # consume comma
                     elif self.peek() and self.peek().type != "RPAR":
-                        raise EnzoParseError("Expected ',' or ')' in function call", code_line=code_line)
+                        raise EnzoParseError("Expected ',' or ')' in function invocation", code_line=code_line)
 
                 if not self.peek() or self.peek().type != "RPAR":
-                    raise EnzoParseError("Expected ')' to close function call", code_line=code_line)
+                    raise EnzoParseError("Expected ')' to close function invocation", code_line=code_line)
                 self.advance()  # consume RPAR
 
                 base = Invoke(base, args, code_line=code_line)
                 debug_chain.append(f"(...)")  # DEBUG
+            elif t and t.type == "LBRACK" and isinstance(base, VarInvoke):
+                # This could be blueprint instantiation: BlueprintName[...]
+                blueprint_instantiation = self.parse_blueprint_instantiation(base.name)
+                base = blueprint_instantiation
+                debug_chain.append(f"[...]")  # DEBUG
+            elif t and t.type == "LBRACK" and isinstance(base, ListIndex) and getattr(base, 'is_property_access', False):
+                # This could be variant instantiation: VariantGroup.VariantName[...]
+                if isinstance(base.base, VarInvoke) and isinstance(base.index, TextAtom):
+                    variant_group_name = base.base.name
+                    variant_name = base.index.value
+                    # Parse the instantiation part
+                    self.advance()  # consume LBRACK
+                    field_values = []
+
+                    # Parse field assignments
+                    while self.peek() and self.peek().type != "RBRACK":
+                        if self.peek().type == "KEYNAME":
+                            field_name = self.advance().value
+                            self.expect("BIND")  # :
+                            field_value = self.parse_value_expression()
+                            field_values.append((field_name, field_value))
+                        else:
+                            # Skip non-field elements for now
+                            self.parse_value_expression()
+
+                        if self.peek() and self.peek().type == "COMMA":
+                            self.advance()  # consume comma
+                        elif self.peek() and self.peek().type != "RBRACK":
+                            break
+
+                    self.expect("RBRACK")
+
+                    # Create a variant instantiation node
+                    # For now, we'll create a special variant instantiation that the evaluator can handle
+                    from src.enzo_parser.ast_nodes import VariantInstantiation
+                    base = VariantInstantiation(variant_group_name, variant_name, field_values, code_line=self._get_code_line(t))
+                    debug_chain.append(f"[variant...]")  # DEBUG
+                else:
+                    # Regular blueprint instantiation on property access
+                    break
             else:
                 # No more postfix operations
                 break
@@ -140,7 +303,7 @@ class Parser:
             self.advance()
             # Parse the expression after @, which could be a simple variable or property access
             expr = self.parse_value_expression()
-            node = FunctionRef(expr, code_line=code_line)
+            node = ReferenceAtom(expr, code_line=code_line)
         elif t.type == "LPAR":
             # ALL parentheses create function atoms according to the language spec
             node = self.parse_function_atom()
@@ -149,6 +312,8 @@ class Parser:
                 self.advance()
         elif t.type == "LBRACK":
             node = self.parse_list_atom()
+        elif t.type == "BLUEPRINT_START":
+            node = self.parse_blueprint_definition()
         elif t.type == "MINUS":
             self.advance()
             t2 = self.peek()
@@ -256,7 +421,7 @@ class Parser:
                 from src.enzo_parser.ast_nodes import ParameterDeclaration
                 return ParameterDeclaration(var_name, default_value, code_line=code_line)
 
-        # Support assignment to variable, list index, or table index
+        # Support binding to variable, list index, or table index
         # Parse a value expression (could be VarInvoke, ListIndex, etc.)
         expr1 = self.parse_value_expression()
         # Assignment: <:
@@ -265,17 +430,46 @@ class Parser:
             value = self.parse_value_expression()
             return BindOrRebind(expr1, value, code_line=code_line)
 
-        # Variable binding: $x: ...
+        # Check for variant group: Name variants: ...
+        if isinstance(expr1, VarInvoke) and self.peek() and self.peek().type == "VARIANTS":
+            variant_group = self.parse_variant_group(expr1.name)
+            return Binding(expr1.name, variant_group, code_line=code_line)
+
+        # Variable binding: $x: ... or Blueprint definition: Name: <[...]>
         if isinstance(expr1, VarInvoke) and self.peek() and self.peek().type == "BIND":
             self.advance()  # consume BIND
+
+            # Check if this is a blueprint definition: Name: <[...]>
+            if self.peek() and self.peek().type == "BLUEPRINT_START":
+                blueprint_def = self.parse_blueprint_definition()
+                return Binding(expr1.name, blueprint_def, code_line=code_line)
+
             # Support empty bind: $x: ;
             if self.peek() and self.peek().type == "SEMICOLON":
                 return Binding(expr1.name, None, code_line=code_line)
+
+            # Check if this is a blueprint composition: Name and OtherName
+            # Parse the value expression
             value = self.parse_value_expression()
+
+            # If the next token is "and", this is blueprint composition
+            if self.peek() and self.peek().type == "AND":
+                # The value should be a VarInvoke (blueprint name)
+                if isinstance(value, VarInvoke):
+                    first_blueprint = value.name
+                    composition = self.parse_blueprint_composition(first_blueprint)
+                    return Binding(expr1.name, composition, code_line=code_line)
+
             # If the value is a FunctionAtom, mark it as named
             if isinstance(value, FunctionAtom):
                 value.is_named = True
             return Binding(expr1.name, value, code_line=code_line)
+
+        # Property binding: $list.property: ... (binding to list/object properties)
+        if isinstance(expr1, ListIndex) and getattr(expr1, 'is_property_access', False) and self.peek() and self.peek().type == "BIND":
+            self.advance()  # consume BIND
+            value = self.parse_value_expression()
+            return BindOrRebind(expr1, value, code_line=code_line)
         # Implicit bind-or-rebind: :>
         if self.peek() and self.peek().type == "REBIND_RIGHTWARD":
             self.advance()
