@@ -56,6 +56,31 @@ class EnzoVariantInstance:
     def __repr__(self):
         return f"{self.group_name}.{self.variant_name}"
 
+class EnzoVariantGroup:
+    def __init__(self, name, variants, group_blueprint=None):
+        self.name = name
+        self.variants = set(variants)  # Valid variant names
+        self.group_blueprint = group_blueprint  # Blueprint for group.group access
+
+    def __str__(self):
+        return self.name  # Display just the name, not "VariantGroup(name)"
+
+    def __repr__(self):
+        return f"VariantGroup({self.name})"
+
+# Initialize built-in variant groups
+def _initialize_builtin_variants():
+    """Initialize built-in variant groups for boolean-like values"""
+    # Simple boolean-like variants
+    _env["True"] = EnzoVariantGroup("True", ["True"])
+    _env["False"] = EnzoVariantGroup("False", ["False"])
+
+    # Status variants for more complex boolean logic
+    _env["Status"] = EnzoVariantGroup("Status", ["True", "False"])
+
+# Initialize built-ins after the class is defined
+_initialize_builtin_variants()
+
 class ReferenceWrapper:
     """Wrapper for explicit references created with @ operator."""
     def __init__(self, expr, env):
@@ -261,6 +286,21 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         log_debug(f"[BINDING] Attempting to bind {name}, env keys: {list(env.keys())}")
         if name == '$this':
             raise EnzoRuntimeError(error_message_cannot_declare_this(), code_line=node.code_line)
+
+        # Special handling for variant group extension
+        if name in env and isinstance(node.value, VariantGroup):
+            existing_value = env[name]
+            if isinstance(existing_value, EnzoVariantGroup):
+                # This is extending an existing variant group - merge the variants
+                new_variant_group = eval_ast(node.value, value_demand=False, env=env, is_function_context=is_function_context)
+                if isinstance(new_variant_group, EnzoVariantGroup):
+                    # Merge the variants from both groups
+                    merged_variants = existing_value.variants.union(new_variant_group.variants)
+                    # Create a new variant group with merged variants
+                    merged_group = EnzoVariantGroup(name, list(merged_variants), existing_value.group_blueprint)
+                    env[name] = merged_group
+                    return None
+
         # In function context, local variables can shadow global ones
         # In global context, redeclaration is an error
         if not is_function_context and name in env:
@@ -870,18 +910,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 variant_names.append(variant)
 
         # Create a runtime variant group that validates variant access
-        class EnzoVariantGroup:
-            def __init__(self, name, variants, group_blueprint=None):
-                self.name = name
-                self.variants = set(variants)  # Valid variant names
-                self.group_blueprint = group_blueprint  # Blueprint for group.group access
-
-            def __repr__(self):
-                return f"VariantGroup({self.name})"
-
         return EnzoVariantGroup(node.name, variant_names, group_blueprint)
-
-        return EnzoVariantGroup(node.name, variant_names)
 
     if isinstance(node, VariantAccess):
         # VariantAccess represents accessing a variant (e.g., Magic-Type.Fire)
