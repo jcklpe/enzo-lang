@@ -778,6 +778,15 @@ Goblin variants:
 
 ```
 
+You can add to an existing variant group like so:
+```javascript!
+Goblin variants: Fire-Goblin: <[
+    elemental-type: Magic-Type.Fire;
+]>;
+```
+
+
+
 ### Control Flow Statements
 
 *Assigning value operator (`:`)and comparing values (`is`) are visually and semantically distinct which avoids the overloading common in most other programming languages. All comparisons are strict.*
@@ -794,10 +803,11 @@ $username: "Alice";
 $items:     [1,2,3];
 $config:    [ mode:"dark" ];
 $log: ( say("hi"); );
+$example: Monster; // Almost all variant groups and variant group values will be coerced to "true" values;
+$example2: Monster.Goblin;
 ```
 
 Examples of “false” conditions:
-
 ```javascript!
 $zero:      0;
 $emptyText: "";
@@ -808,8 +818,11 @@ $emptyTbl2:  [key: ;];
 $no-operation: ( );
 $no-operation2: ( param: ;);
 $unset:     ;
-$no:        false; // there is no standalone boolean type, but false is left in as a potential false value for readability purposes
+$kinda-hacky: False; // built in variant group explained below.
+$hacky2: Status.False; // Built in variant group explained below. Kind of hacky. It's the only variant group value that will return false in a boolean context.
 ```
+
+The built in blueprint variant groups `True`, `False`, and `Status` (with builtin members `Status.True`, and Status.False`) are provided out of the box. These are provided for the sake of readability, they're not a proper separate "Boolean type" as found in many other languages. They can be extended by the user, such as adding things like `Status.Loading`, `Status.Dead` or what have you.
 
 ##### If
 
@@ -817,7 +830,7 @@ $no:        false; // there is no standalone boolean type, but false is left in 
 $fav-color: "blue";
 
 if $fav-color is "blue",
-	say("fav color is blue");
+	"fav color is blue";
 end;
 ```
 
@@ -827,7 +840,7 @@ end;
 $status: ;
 
 if not $status,
-	say("no current status");
+	"no current status";
 end;
 ```
 
