@@ -655,13 +655,15 @@ class Parser:
 
     def parse_reverse_destructuring(self, source_expr):
         """Parse reverse destructuring: source[] :> $var1, $var2"""
-        from src.enzo_parser.ast_nodes import ReverseDestructuring
+        from src.enzo_parser.ast_nodes import ReverseDestructuring, ReferenceAtom
 
         # Consume :>
         self.advance()
 
-        # Check if this starts with @ for reference destructuring
-        is_reference = False
+        # Check if the source expression is a ReferenceAtom (indicates reference destructuring)
+        is_reference = isinstance(source_expr, ReferenceAtom)
+
+        # Also check if this starts with @ for reference destructuring (alternative syntax)
         if self.peek() and self.peek().type == "AT":
             is_reference = True
             self.advance()  # consume @

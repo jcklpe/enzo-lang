@@ -352,20 +352,20 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         return None  # Do not output anything for binding    # Handle destructuring statements
     if isinstance(node, DestructuringBinding):
         # Handle basic destructuring: $var1, $var2: source[]
-        
+
         # Check for duplicate variable names
         seen_vars = set()
         for var_name in node.target_vars:
             if var_name in seen_vars:
                 raise EnzoRuntimeError(error_message_duplicate_variable_names(), code_line=node.code_line)
             seen_vars.add(var_name)
-        
+
         source_value = eval_ast(node.source_expr, value_demand=True, env=env)
 
         # If source_value is a ReferenceWrapper, dereference it first
         if isinstance(source_value, ReferenceWrapper):
             source_value = source_value.get_value()
-            
+
             # If the referenced value is a BlueprintInstantiation, evaluate it to get the list
             if isinstance(source_value, BlueprintInstantiation):
                 source_value = eval_ast(source_value, value_demand=True, env=env)
@@ -459,20 +459,20 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
     if isinstance(node, ReverseDestructuring):
         # Handle reverse destructuring: source[] :> $var1, $var2
-        
+
         # Check for duplicate variable names
         seen_vars = set()
         for var_name in node.target_vars:
             if var_name in seen_vars:
                 raise EnzoRuntimeError(error_message_duplicate_variable_names(), code_line=node.code_line)
             seen_vars.add(var_name)
-        
+
         source_value = eval_ast(node.source_expr, value_demand=True, env=env)
 
         # If source_value is a ReferenceWrapper, dereference it first
         if isinstance(source_value, ReferenceWrapper):
             source_value = source_value.get_value()
-            
+
             # If the referenced value is a BlueprintInstantiation, evaluate it to get the list
             if isinstance(source_value, BlueprintInstantiation):
                 source_value = eval_ast(source_value, value_demand=True, env=env)
@@ -521,7 +521,41 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
                     # Handle reference destructuring if specified
                     if getattr(node, 'is_reference', False):
-                        env[var_name] = ReferenceWrapper(lambda v=value: v)
+                        # Create a reference to the source key for this variable
+                        # We need to create a ListIndex node that represents source.key
+
+                        # Extract the base variable from the source expression
+                        if hasattr(node, 'source_expr') and hasattr(node.source_expr, 'target'):
+                            # Handle @variable[] case - get the variable name from ReferenceAtom target
+                            base_var_name = node.source_expr.target.blueprint_name
+                            base_var_node = VarInvoke(base_var_name, code_line=getattr(node, 'code_line', None))
+                        else:
+                            # Fallback - use the source expression directly
+                            base_var_node = node.source_expr
+
+                        # Find the matching key for this variable
+                        matching_key = None
+                        for key_candidate in key_candidates:
+                            try:
+                                source_value.get_by_key(key_candidate)
+                                matching_key = key_candidate
+                                break
+                            except KeyError:
+                                continue
+
+                        if matching_key:
+                            # Remove $ prefix for property access
+                            prop_name = matching_key[1:] if matching_key.startswith('$') else matching_key
+                            property_access = ListIndex(
+                                base=base_var_node,
+                                index=TextAtom(prop_name),
+                                is_property_access=True,
+                                code_line=getattr(node, 'code_line', None)
+                            )
+                            env[var_name] = ReferenceWrapper(property_access, env)
+                        else:
+                            # Fallback to regular value if no key found
+                            env[var_name] = deep_copy_enzo_value(value)
                     else:
                         env[var_name] = deep_copy_enzo_value(value)
 
@@ -612,20 +646,20 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
     if isinstance(node, RestructuringBinding):
         # Handle restructuring: $var1, $var2 -> $new: source[]
-        
+
         # Check for duplicate variable names
         seen_vars = set()
         for var_name in node.target_vars:
             if var_name in seen_vars:
                 raise EnzoRuntimeError(error_message_duplicate_variable_names(), code_line=node.code_line)
             seen_vars.add(var_name)
-        
+
         source_value = eval_ast(node.source_expr, value_demand=True, env=env)
 
         # If source_value is a ReferenceWrapper, dereference it first
         if isinstance(source_value, ReferenceWrapper):
             source_value = source_value.get_value()
-            
+
             # If the referenced value is a BlueprintInstantiation, evaluate it to get the list
             if isinstance(source_value, BlueprintInstantiation):
                 source_value = eval_ast(source_value, value_demand=True, env=env)
@@ -1050,8 +1084,34 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     else:
                         raise EnzoRuntimeError(error_message_unknown_variable(ref_name), code_line=t_code_line)
                 else:
-                    # Complex reference (e.g., to list index) - not implemented yet
-                    raise EnzoRuntimeError("Cannot assign to complex reference", code_line=t_code_line)
+                    # Complex reference (e.g., to list index) - implement assignment
+                    if isinstance(ref_expr, ListIndex):
+                        # Handle assignment to referenced list property
+                        base_result = eval_ast(ref_expr.base, env=ref_env, value_demand=False)
+
+                        # If the base is a ReferenceWrapper, we need to operate on the referenced object
+                        if isinstance(base_result, ReferenceWrapper):
+                            base = base_result.get_value()
+                        else:
+                            base = base_result
+
+                        idx = eval_ast(ref_expr.index, env=ref_env)
+
+                        # Handle EnzoList property assignment
+                        if isinstance(base, EnzoList):
+                            if isinstance(idx, str) and getattr(ref_expr, 'is_property_access', False):
+                                # Property assignment (e.g., $list.name := value)
+                                try:
+                                    base.set_by_key(f'${idx}', actual_value)
+                                    return None
+                                except KeyError:
+                                    raise EnzoRuntimeError(error_message_list_property_not_found(idx), code_line=t_code_line)
+                            else:
+                                raise EnzoTypeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
+                        else:
+                            raise EnzoTypeError(error_message_index_applies_to_lists(), code_line=t_code_line)
+                    else:
+                        raise EnzoRuntimeError("Cannot assign to complex reference", code_line=t_code_line)
 
             # Normal variable assignment
             if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(actual_value):
@@ -1137,8 +1197,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 raise EnzoRuntimeError(error_message_unknown_variable(var_name), code_line=getattr(node, 'code_line', None))
 
             original_var = env[var_name]
-            
-            # If the original variable is an EnzoList, we want to preserve its structure 
+
+            # If the original variable is an EnzoList, we want to preserve its structure
             # and update it intelligently rather than replacing it entirely
             if isinstance(original_var, EnzoList) and isinstance(value, (list, EnzoList)):
                 # Smart update: try to match up values with existing keys
@@ -1166,7 +1226,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             else:
                 # Replace the entire variable with the new value (fallback)
                 env[var_name] = deep_copy_enzo_value(value)
-                
+
                 # Also update with/without $ prefix
                 if var_name.startswith('$'):
                     bare_name = var_name[1:]
