@@ -12,9 +12,7 @@ I'm def interested in feedback but also understand that this is basically just a
 
 Also want to give a shout out to the ["Quorum Language Project"](https://quorumlanguage.com/) for opening my eyes to the intersection between UX practice and syntax design.
 
-## Syntax Reference
-
-### Comments
+## Comments
 
 ```javascript!
 // single line comment, will not appear in final output. This allows you to write things in the source code for you to read and help remember what stuff does.
@@ -28,7 +26,7 @@ Also want to give a shout out to the ["Quorum Language Project"](https://quoruml
 //= Test case title commment. Used for breaking up test cases as part of the automated regression testing and will appear on the frontend to the user.
 ```
 
-### Atoms
+## Atoms
 
 Atoms are the most basic parts of the enzo language. Atoms are separated by a semi-colon `;` punctuation.
 
@@ -43,7 +41,7 @@ You use keynames to more easily invoke that atomvalue where you need in code. An
 
 There are 5 types of atoms. These types are [static but inferred](https://www.perplexity.ai/search/plain-language-explanation-of-bIpK7TNKTtCK.Ao8RdeIuw).
 
-#### Number atom
+### Number atom
 
 A number atom is any [real number](https://en.wikipedia.org/wiki/Real_number).
 
@@ -61,7 +59,7 @@ Example of a number atom bound a keyname:
 $number-example: 888;
 ```
 
-#### Text (string)
+### Text (string)
 
 A text atom is any sequence of characters enclosed in double quotes `"..."`.
 This includes letters, numbers, punctuation, spaces, emoji, or [any valid Unicode symbol](https://en.wikipedia.org/wiki/Unicode).
@@ -81,7 +79,7 @@ Example of text atom bound a keyname:
 $text-example: "here is some text";
 ```
 
-##### Text interpolation
+#### Text interpolation
 
 ```javascript!
 $name: "Bob";
@@ -98,7 +96,7 @@ $text-example;
 //returns the text "the result of the two variables added together is 8"
 ```
 
-#### List (array/list/map/object/dict)
+### List (array/list/map/object/dict)
 
 A list atom is an ordered sequence of values, either atoms, keynames referencing those atoms, or keyname-atomvalue pairs, enclosed in brackets `[...]`.
 
@@ -162,7 +160,7 @@ $pick:     $reversed.2;       // → "blue"
 
 The numeric indexing of lists starts at 1.
 
-##### Dot-Numeric vs. Property Access
+#### Dot-Numeric vs. Property Access
 
 - **List property access** uses a “dot + identifier” (e.g. `$user.name`).
 - **List indexing** uses a “dot + integer literal” (e.g. `$user.friends.2`)—the parser sees the digit immediately after the dot and interprets it as list indexing rather than property lookup.
@@ -179,7 +177,7 @@ $secondLog: $user.logs.2;    // → "logout"
 
 ```
 
-#### Function (anonymous function/expression block)
+### Function (anonymous function/expression block)
 
 A function atom is a piece of code that does something and gives an atomvalue back.
 
@@ -249,7 +247,7 @@ $function2();    // returns 9
 $function2(5);   // returns 10
 ```
 
-##### Function Atom Evaluation
+#### Function Atom Evaluation
 
 In Enzo, parentheses always create a function atom (an anonymous function/code block).
 
@@ -257,7 +255,7 @@ If a function atom appears in a context that requires its value immediately (suc
 If a function atom is being bound to a variable, stored in a list or list, or passed as an argument to a function that expects a function, it is stored as a function object and only invoked when called.
 This is called demand-driven function atom evaluation.
 
-##### Empty variables (null, undefined)
+### Empty variables (null, undefined)
 
 A variable can be created that is empty.
 
@@ -267,7 +265,7 @@ A variable can be created that is empty.
 
 It has no type.
 
-### Variable Rebinding
+## Variable Rebinding
 
 When a variable has already been declared, but it's value is reasigned it can be done like so:
 
@@ -277,7 +275,7 @@ $dog-name <: "Fluffy";
 "Ralph" :> $dog-name;
 ```
 
-#### Filling empty values
+### Filling empty values
 
 When an empty variable is initially created, it has no type. The first non-empty value bound to it locks it into that type.
 
@@ -293,26 +291,29 @@ $x <: "five"
 // ❌ error: cannot bind Text to a Number type variable
 ```
 
-### Variable Invocation/Use
-
+## Variable Invocation
 Default case:
-
 ```javascript!
 $text-example: "here is some text";
 $text-example;
 //returns "here is some text"
 ```
 
-All variables are invoked by value
-
+All variables are passed by copy/value
 ```javascript!
 $text-example: "here is some text";
 $text-example2: $text-example;
-$text-example2;
-// returns "here is some text"
+$text-example2; // returns "here is some text"
+
+// This is also true of Lists (unlike Javascript)
+$list-example: [$property1: 4, $property2: 4];
+$example: $list-example.property1;
+$list-example.property1 <: 5;
+$example;   // returns 4
+
 ```
 
-#### Function invocation
+## Function invocation
 
 ```javascript!
 function-example: (
@@ -322,22 +323,18 @@ function-example: (
     return(($first-number + $second-number + $third-number));
     );
 
-function-example();
-//returns 3
+// You can invoke a function in three equal ways:
+function-example(); //returns 3
+$function-example; //returns 3
+$function-example(); //returns 3
 
-function-example(10, 9);
-//returns 20
+// You can invoke a function and pass it arguments in 2 ways:
+function-example(10, 9);//returns 20
+$function-example(10, 9);//returns 20
 
-function-example2: (
-    $first-number: 5;
-    param $second-number: ;
-    param $third-number: number: ;
-
-    return(($first-number * $second-number / $third-number));
-)
 
 // arguments can be bound to parameters either by order
-function-example2(1, 2);
+function-example(1, 2);
 // returns 2.5
 
 // or by named binding
@@ -348,11 +345,25 @@ function-example2();
 // returns error
 ```
 
-##### Function invocation versus reference
-Enzo distinguishes **invoking** a function from **referencing** it.
-Invoking a function has parentheses, like this:
-
+Functions like all other variables are also passed by copy/value:
 ```javascript!
+$global-var: 5;
+function-example: (
+    return($global-var);
+);
+$example: function-example();
+$example; // returns 5
+$global-var<: 6;
+$example; // returns 5;
+```
+
+## Invocation versus reference
+Enzo distinguishes **invoking** a variable or function (by value/copy) from **referencing** it.
+
+Here is how you invoke variables and functions:
+```javascript!
+$x; // invokes the variable of x and returns its value
+
 function-name();
 //or
 $function-name();
