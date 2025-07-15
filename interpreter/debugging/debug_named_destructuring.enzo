@@ -1,0 +1,2 @@
+$person2: [$name2: "Todd", $age2: 27, $favorite-color2: "blue"];
+$name2, $age2, $favorite-color2 -> $shirt-color: $person2[];

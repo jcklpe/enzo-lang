@@ -1,7 +1,7 @@
 from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val, log_debug, EnzoList, deep_copy_enzo_value
 from collections import ChainMap
-from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantAccess, VariantInstantiation
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
 from src.error_messaging import (
     error_message_already_defined,
@@ -18,6 +18,8 @@ from src.error_messaging import (
     error_message_cant_use_text_as_index,
     error_message_index_applies_to_lists,
     error_message_cannot_bind_target,
+    error_message_destructure_count_mismatch,
+    error_message_duplicate_variable_names,
     error_message_cannot_declare_this,
     error_message_multiline_function_requires_return,
     error_message_param_outside_function,
@@ -261,7 +263,6 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         return _interp(node.value, src_line=code_line, env=env)
     if isinstance(node, ListAtom):
         from src.enzo_parser.ast_nodes import ListKeyValue
-        from src.runtime_helpers import EnzoList
 
         enzo_list = EnzoList()
         for el in node.elements:
@@ -348,7 +349,397 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             dollar_name = '$' + name
             if dollar_name not in env:  # Don't overwrite existing $variable
                 env[dollar_name] = actual_val
-        return None  # Do not output anything for binding
+        return None  # Do not output anything for binding    # Handle destructuring statements
+    if isinstance(node, DestructuringBinding):
+        # Handle basic destructuring: $var1, $var2: source[]
+        
+        # Check for duplicate variable names
+        seen_vars = set()
+        for var_name in node.target_vars:
+            if var_name in seen_vars:
+                raise EnzoRuntimeError(error_message_duplicate_variable_names(), code_line=node.code_line)
+            seen_vars.add(var_name)
+        
+        source_value = eval_ast(node.source_expr, value_demand=True, env=env)
+
+        # If source_value is a ReferenceWrapper, dereference it first
+        if isinstance(source_value, ReferenceWrapper):
+            source_value = source_value.get_value()
+            
+            # If the referenced value is a BlueprintInstantiation, evaluate it to get the list
+            if isinstance(source_value, BlueprintInstantiation):
+                source_value = eval_ast(source_value, value_demand=True, env=env)
+
+        # Check if this is an EnzoList (enhanced list with key support)
+        if isinstance(source_value, EnzoList):
+            # Try named destructuring first (if variable names match keys)
+            named_matches = 0
+            for var_name in node.target_vars:
+                # Try both with and without $ prefix
+                key_candidates = [var_name]
+                if var_name.startswith('$'):
+                    key_candidates.append(var_name[1:])  # without $
+                else:
+                    key_candidates.append('$' + var_name)  # with $
+
+                # Check if any key candidate exists in the list
+                for key_candidate in key_candidates:
+                    try:
+                        source_value.get_by_key(key_candidate)
+                        named_matches += 1
+                        break
+                    except KeyError:
+                        continue
+
+            # If most/all variables have matching keys, use named destructuring
+            if named_matches >= len(node.target_vars) * 0.5:  # At least 50% match
+                # Named destructuring
+                for var_name in node.target_vars:
+                    value = Empty()  # Default if not found
+
+                    # Try both with and without $ prefix
+                    key_candidates = [var_name]
+                    if var_name.startswith('$'):
+                        key_candidates.append(var_name[1:])  # without $
+                    else:
+                        key_candidates.append('$' + var_name)  # with $
+
+                    # Look for the key
+                    for key_candidate in key_candidates:
+                        try:
+                            value = source_value.get_by_key(key_candidate)
+                            break
+                        except KeyError:
+                            continue
+
+                    env[var_name] = deep_copy_enzo_value(value)
+
+                    # Also make accessible with/without $ prefix
+                    if var_name.startswith('$'):
+                        bare_name = var_name[1:]
+                        if bare_name not in env:
+                            env[bare_name] = deep_copy_enzo_value(value)
+                    else:
+                        dollar_name = '$' + var_name
+                        if dollar_name not in env:
+                            env[dollar_name] = deep_copy_enzo_value(value)
+
+                return None
+
+            # Fall back to positional destructuring for EnzoList
+            items = source_value._elements
+        elif isinstance(source_value, list):
+            items = source_value
+        elif isinstance(source_value, dict):
+            items = list(source_value.values())
+        else:
+            raise EnzoRuntimeError(f"Cannot destructure non-list value: {source_value}", code_line=node.code_line)
+
+        # Positional destructuring (original logic)
+        # Check that we have enough elements
+        if len(items) < len(node.target_vars):
+            raise EnzoRuntimeError(error_message_destructure_count_mismatch(), code_line=node.code_line)
+
+        # Assign each variable
+        for i, var_name in enumerate(node.target_vars):
+            value = items[i] if i < len(items) else Empty()
+            env[var_name] = deep_copy_enzo_value(value)
+
+            # Also make accessible with/without $ prefix
+            if var_name.startswith('$'):
+                bare_name = var_name[1:]
+                if bare_name not in env:
+                    env[bare_name] = deep_copy_enzo_value(value)
+            else:
+                dollar_name = '$' + var_name
+                if dollar_name not in env:
+                    env[dollar_name] = deep_copy_enzo_value(value)
+
+        return None
+
+    if isinstance(node, ReverseDestructuring):
+        # Handle reverse destructuring: source[] :> $var1, $var2
+        
+        # Check for duplicate variable names
+        seen_vars = set()
+        for var_name in node.target_vars:
+            if var_name in seen_vars:
+                raise EnzoRuntimeError(error_message_duplicate_variable_names(), code_line=node.code_line)
+            seen_vars.add(var_name)
+        
+        source_value = eval_ast(node.source_expr, value_demand=True, env=env)
+
+        # If source_value is a ReferenceWrapper, dereference it first
+        if isinstance(source_value, ReferenceWrapper):
+            source_value = source_value.get_value()
+            
+            # If the referenced value is a BlueprintInstantiation, evaluate it to get the list
+            if isinstance(source_value, BlueprintInstantiation):
+                source_value = eval_ast(source_value, value_demand=True, env=env)
+
+        # Check if this is an EnzoList (enhanced list with key support)
+        if isinstance(source_value, EnzoList):
+            # Try named destructuring first (if variable names match keys)
+            named_matches = 0
+            for var_name in node.target_vars:
+                # Try both with and without $ prefix
+                key_candidates = [var_name]
+                if var_name.startswith('$'):
+                    key_candidates.append(var_name[1:])  # without $
+                else:
+                    key_candidates.append('$' + var_name)  # with $
+
+                # Check if any key candidate exists in the list
+                for key_candidate in key_candidates:
+                    try:
+                        source_value.get_by_key(key_candidate)
+                        named_matches += 1
+                        break
+                    except KeyError:
+                        continue
+
+            # If most/all variables have matching keys, use named destructuring
+            if named_matches >= len(node.target_vars) * 0.5:  # At least 50% match
+                # Named destructuring
+                for var_name in node.target_vars:
+                    value = Empty()  # Default if not found
+
+                    # Try both with and without $ prefix
+                    key_candidates = [var_name]
+                    if var_name.startswith('$'):
+                        key_candidates.append(var_name[1:])  # without $
+                    else:
+                        key_candidates.append('$' + var_name)  # with $
+
+                    # Look for the key
+                    for key_candidate in key_candidates:
+                        try:
+                            value = source_value.get_by_key(key_candidate)
+                            break
+                        except KeyError:
+                            continue
+
+                    # Handle reference destructuring if specified
+                    if getattr(node, 'is_reference', False):
+                        env[var_name] = ReferenceWrapper(lambda v=value: v)
+                    else:
+                        env[var_name] = deep_copy_enzo_value(value)
+
+                    # Also make accessible with/without $ prefix
+                    if var_name.startswith('$'):
+                        bare_name = var_name[1:]
+                        if bare_name not in env:
+                            env[bare_name] = env[var_name]
+                    else:
+                        dollar_name = '$' + var_name
+                        if dollar_name not in env:
+                            env[dollar_name] = env[var_name]
+
+                return None
+
+            # Fall back to positional destructuring for EnzoList
+            items = source_value._elements
+        elif isinstance(source_value, list):
+            items = source_value
+        elif isinstance(source_value, dict):
+            items = list(source_value.values())
+        else:
+            raise EnzoRuntimeError(f"Cannot destructure non-list value: {source_value}", code_line=node.code_line)
+
+        # Check that we have enough elements
+        if len(items) < len(node.target_vars):
+            raise EnzoRuntimeError(error_message_destructure_count_mismatch(), code_line=node.code_line)
+
+        # Assign each variable
+        for i, var_name in enumerate(node.target_vars):
+            value = items[i] if i < len(items) else Empty()
+
+            # Handle reference destructuring if specified
+            if getattr(node, 'is_reference', False):
+                env[var_name] = ReferenceWrapper(lambda: value)
+            else:
+                env[var_name] = deep_copy_enzo_value(value)
+
+            # Also make accessible with/without $ prefix
+            if var_name.startswith('$'):
+                bare_name = var_name[1:]
+                if bare_name not in env:
+                    env[bare_name] = env[var_name]
+            else:
+                dollar_name = '$' + var_name
+                if dollar_name not in env:
+                    env[dollar_name] = env[var_name]
+
+        return None
+
+    if isinstance(node, ReferenceDestructuring):
+        # Handle reference destructuring: @$var1, @$var2: source[]
+        source_value = eval_ast(node.source_expr, value_demand=True, env=env)
+
+        # Ensure source is iterable
+        if hasattr(source_value, 'elements'):  # EnzoList
+            items = source_value.elements
+        elif isinstance(source_value, list):
+            items = source_value
+        elif isinstance(source_value, dict):
+            items = list(source_value.values())
+        else:
+            raise EnzoRuntimeError(f"Cannot destructure non-list value: {source_value}", code_line=node.code_line)
+
+        # Check that we have enough elements
+        if len(items) < len(node.target_vars):
+            raise EnzoRuntimeError(error_message_destructure_count_mismatch(), code_line=node.code_line)
+
+        # Assign each variable as references
+        for i, var_name in enumerate(node.target_vars):
+            if i < len(items):
+                # Create reference wrapper that points to the original item
+                env[var_name] = ReferenceWrapper(lambda idx=i: items[idx])
+            else:
+                env[var_name] = ReferenceWrapper(lambda: Empty())
+
+            # Also make accessible with/without $ prefix
+            if var_name.startswith('$'):
+                bare_name = var_name[1:]
+                if bare_name not in env:
+                    env[bare_name] = env[var_name]
+            else:
+                dollar_name = '$' + var_name
+                if dollar_name not in env:
+                    env[dollar_name] = env[var_name]
+
+        return None
+
+    if isinstance(node, RestructuringBinding):
+        # Handle restructuring: $var1, $var2 -> $new: source[]
+        
+        # Check for duplicate variable names
+        seen_vars = set()
+        for var_name in node.target_vars:
+            if var_name in seen_vars:
+                raise EnzoRuntimeError(error_message_duplicate_variable_names(), code_line=node.code_line)
+            seen_vars.add(var_name)
+        
+        source_value = eval_ast(node.source_expr, value_demand=True, env=env)
+
+        # If source_value is a ReferenceWrapper, dereference it first
+        if isinstance(source_value, ReferenceWrapper):
+            source_value = source_value.get_value()
+            
+            # If the referenced value is a BlueprintInstantiation, evaluate it to get the list
+            if isinstance(source_value, BlueprintInstantiation):
+                source_value = eval_ast(source_value, value_demand=True, env=env)
+
+        # Check if this is an EnzoList (enhanced list with key support)
+        if isinstance(source_value, EnzoList):
+            # Try named destructuring first (if variable names match keys)
+            named_matches = 0
+            for var_name in node.target_vars:
+                # Try both with and without $ prefix
+                key_candidates = [var_name]
+                if var_name.startswith('$'):
+                    key_candidates.append(var_name[1:])  # without $
+                else:
+                    key_candidates.append('$' + var_name)  # with $
+
+                # Also try enhanced pattern matching (remove numeric suffixes)
+                for key_candidate in key_candidates[:]:  # Copy list to avoid modification during iteration
+                    for suffix_pattern in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']:
+                        if key_candidate.endswith(suffix_pattern):
+                            key_candidates.append(key_candidate[:-1])  # Remove suffix
+
+                # Try to find a matching key
+                value = None
+                for key_candidate in key_candidates:
+                    try:
+                        value = source_value.get_by_key(key_candidate)
+                        named_matches += 1
+                        break
+                    except KeyError:
+                        continue
+
+                if value is not None:
+                    env[var_name] = deep_copy_enzo_value(value)
+                    # Also make accessible with/without $ prefix
+                    if var_name.startswith('$'):
+                        bare_name = var_name[1:]
+                        if bare_name not in env:
+                            env[bare_name] = deep_copy_enzo_value(value)
+                    else:
+                        dollar_name = '$' + var_name
+                        if dollar_name not in env:
+                            env[dollar_name] = deep_copy_enzo_value(value)
+
+            # Use named destructuring if we got matches for more than 50% of variables
+            if named_matches >= len(node.target_vars) * 0.5:
+                # Now set the renamed variable to the last extracted value
+                if node.target_vars:  # Make sure we have variables
+                    last_var = node.target_vars[-1]
+                    if last_var in env:
+                        env[node.new_var] = env[last_var]
+                        # Also make accessible with/without $ prefix
+                        if node.new_var.startswith('$'):
+                            bare_name = node.new_var[1:]
+                            if bare_name not in env:
+                                env[bare_name] = env[last_var]
+                        else:
+                            dollar_name = '$' + node.new_var
+                            if dollar_name not in env:
+                                env[dollar_name] = env[last_var]
+                return None
+
+            # Fall back to positional destructuring for EnzoList
+            items = source_value._elements
+        elif isinstance(source_value, list):
+            items = source_value
+        elif isinstance(source_value, dict):
+            items = list(source_value.values())
+        else:
+            raise EnzoRuntimeError(f"Cannot destructure non-list value: {source_value}", code_line=node.code_line)
+
+        # Check that we have enough elements
+        if len(items) < len(node.target_vars):
+            raise EnzoRuntimeError(error_message_destructure_count_mismatch(), code_line=node.code_line)
+
+        # First, assign the original variables
+        for i, var_name in enumerate(node.target_vars):
+            value = items[i] if i < len(items) else Empty()
+
+            if getattr(node, 'is_reference', False):
+                env[var_name] = ReferenceWrapper(lambda idx=i: items[idx])
+            else:
+                env[var_name] = deep_copy_enzo_value(value)
+
+            # Also make accessible with/without $ prefix
+            if var_name.startswith('$'):
+                bare_name = var_name[1:]
+                if bare_name not in env:
+                    env[bare_name] = env[var_name]
+            else:
+                dollar_name = '$' + var_name
+                if dollar_name not in env:
+                    env[dollar_name] = env[var_name]
+
+        # Then assign the new composite variable containing the extracted values
+        extracted_values = [items[i] if i < len(items) else Empty() for i in range(len(node.target_vars))]
+        new_list = EnzoList()
+        for val in extracted_values:
+            new_list.append(val)
+
+        env[node.new_var] = new_list
+
+        # Also make accessible with/without $ prefix
+        if node.new_var.startswith('$'):
+            bare_name = node.new_var[1:]
+            if bare_name not in env:
+                env[bare_name] = new_list
+        else:
+            dollar_name = '$' + node.new_var
+            if dollar_name not in env:
+                env[dollar_name] = new_list
+
+        return None
+
     if isinstance(node, VarInvoke):
         name = node.name
         if name not in env:
@@ -385,6 +776,16 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
     if isinstance(node, ReferenceAtom):
         target = node.target
 
+        # Special handling for BlueprintInstantiation references (e.g., @person8[])
+        if isinstance(target, BlueprintInstantiation):
+            # Check if this is actually a reference to an existing variable, not a blueprint
+            var_name = target.blueprint_name
+            if var_name in env and not isinstance(env[var_name], BlueprintAtom):
+                # This is a reference to an existing variable, not a blueprint instantiation
+                # Create a VarInvoke node instead and wrap it as a reference
+                var_invoke = VarInvoke(var_name, code_line=getattr(target, 'code_line', None))
+                return ReferenceWrapper(var_invoke, env)
+
         # Special handling for function references (backwards compatibility)
         if isinstance(target, VarInvoke):
             # Check if the target is a function
@@ -396,7 +797,6 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         elif isinstance(target, ListIndex) and target.is_property_access:
             # Handle @object.method
             try:
-                from src.runtime_helpers import EnzoList
                 base_val = eval_ast(target.base, value_demand=True, env=env)
                 if isinstance(base_val, EnzoList):
                     prop_name = target.index.value
@@ -463,7 +863,6 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 args.append(eval_ast(arg, value_demand=True, env=env))
 
         # EnzoList indexing and keyed access
-        from src.runtime_helpers import EnzoList
         if isinstance(left, EnzoList):
             if len(args) != 1:
                 raise EnzoTypeError(error_message_index_must_be_number(), code_line=getattr(node, 'code_line', None))
@@ -682,7 +1081,6 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 assign_value = value  # Use the copied value (from above)
 
             # Handle EnzoList binding
-            from src.runtime_helpers import EnzoList
             if isinstance(base, EnzoList):
                 if isinstance(idx, (int, float)):
                     if isinstance(idx, float) and not idx.is_integer():
@@ -730,6 +1128,56 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=t_code_line)
             base[idx - 1] = value
             return None
+
+        # Handle assignment to BlueprintInstantiation with empty field_values (list assignment)
+        if isinstance(target, BlueprintInstantiation) and not target.field_values:
+            # This is $variable[] <: value - assign value to the variable
+            var_name = target.blueprint_name
+            if var_name not in env:
+                raise EnzoRuntimeError(error_message_unknown_variable(var_name), code_line=getattr(node, 'code_line', None))
+
+            original_var = env[var_name]
+            
+            # If the original variable is an EnzoList, we want to preserve its structure 
+            # and update it intelligently rather than replacing it entirely
+            if isinstance(original_var, EnzoList) and isinstance(value, (list, EnzoList)):
+                # Smart update: try to match up values with existing keys
+                if isinstance(value, EnzoList):
+                    # If the new EnzoList has keys, copy them
+                    if value._key_map:
+                        for key in value._key_map:
+                            original_var.set_key(key, value.get_by_key(key))
+                    else:
+                        # If the new EnzoList only has positional elements, map them to existing keys
+                        existing_keys = list(original_var._key_map.keys())
+                        for i, val in enumerate(value._elements):
+                            if i < len(existing_keys):
+                                key = existing_keys[i]
+                                original_var.set_key(key, val)
+                elif isinstance(value, list):
+                    # If it's a regular list, try to map values to existing keys
+                    existing_keys = list(original_var._key_map.keys())
+                    for i, val in enumerate(value):
+                        if i < len(existing_keys):
+                            # Update existing key with new value
+                            key = existing_keys[i]
+                            original_var.set_key(key, val)
+                # Don't need to reassign - we modified the existing object
+            else:
+                # Replace the entire variable with the new value (fallback)
+                env[var_name] = deep_copy_enzo_value(value)
+                
+                # Also update with/without $ prefix
+                if var_name.startswith('$'):
+                    bare_name = var_name[1:]
+                    if bare_name in env:
+                        env[bare_name] = deep_copy_enzo_value(value)
+                else:
+                    dollar_name = '$' + var_name
+                    if dollar_name in env:
+                        env[dollar_name] = deep_copy_enzo_value(value)
+            return None
+
         raise EnzoRuntimeError(error_message_cannot_bind_target(target), code_line=getattr(node, 'code_line', None))
     if isinstance(node, ListIndex):
         base = eval_ast(node.base, env=env)
@@ -737,7 +1185,6 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         t_code_line = getattr(node, 'code_line', code_line)
 
         # Handle EnzoList indexing
-        from src.runtime_helpers import EnzoList
         if isinstance(base, EnzoList):
             try:
                 if isinstance(idx, (int, float)):
@@ -824,7 +1271,6 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             raise EnzoRuntimeError(f"error: '{blueprint_name}' is not a blueprint", code_line=getattr(node, 'code_line', None))
 
         # Create an instance by evaluating the field values and creating an EnzoList
-        from src.runtime_helpers import EnzoList
         instance = EnzoList()
 
         # Create a map of provided field values for efficient lookup
@@ -963,7 +1409,6 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             blueprints_to_compose.append(variant_blueprint)
 
         # Create an instance by combining all blueprints
-        from src.runtime_helpers import EnzoList
         instance = EnzoList()
 
         # Create a map of provided field values for efficient lookup

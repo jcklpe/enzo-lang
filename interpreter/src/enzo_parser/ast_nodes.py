@@ -208,4 +208,39 @@ class VariantInstantiation(ASTNode):
     def __repr__(self):
         return f"VariantInstantiation(variant_group_name={self.variant_group_name!r}, variant_name={self.variant_name!r}, field_values={self.field_values!r})"
 
+class DestructuringBinding(ASTNode):
+    def __init__(self, target_vars, source_expr, code_line=None):
+        super().__init__(code_line)
+        self.target_vars = target_vars    # List of variable names
+        self.source_expr = source_expr    # Source expression to destructure from
+    def __repr__(self):
+        return f"DestructuringBinding(target_vars={self.target_vars!r}, source_expr={self.source_expr!r})"
+
+class ReverseDestructuring(ASTNode):
+    def __init__(self, source_expr, target_vars, is_reference=False, code_line=None):
+        super().__init__(code_line)
+        self.source_expr = source_expr    # Source expression to destructure from
+        self.target_vars = target_vars    # List of variable names
+        self.is_reference = is_reference  # Whether this is reference destructuring
+    def __repr__(self):
+        return f"ReverseDestructuring(source_expr={self.source_expr!r}, target_vars={self.target_vars!r}, is_reference={self.is_reference!r})"
+
+class ReferenceDestructuring(ASTNode):
+    def __init__(self, target_vars, source_expr, code_line=None):
+        super().__init__(code_line)
+        self.target_vars = target_vars    # List of variable names
+        self.source_expr = source_expr    # Source expression to destructure from
+    def __repr__(self):
+        return f"ReferenceDestructuring(target_vars={self.target_vars!r}, source_expr={self.source_expr!r})"
+
+class RestructuringBinding(ASTNode):
+    def __init__(self, target_vars, new_var, source_expr, is_reference=False, code_line=None):
+        super().__init__(code_line)
+        self.target_vars = target_vars    # List of variable names to extract
+        self.new_var = new_var           # New variable name for the collection
+        self.source_expr = source_expr    # Source expression to destructure from
+        self.is_reference = is_reference  # Whether this is reference destructuring
+    def __repr__(self):
+        return f"RestructuringBinding(target_vars={self.target_vars!r}, new_var={self.new_var!r}, source_expr={self.source_expr!r}, is_reference={self.is_reference!r})"
+
 # ...add more as needed

@@ -1,0 +1,3 @@
+$person2: [$name2: "Todd", $age2: 27, $favorite-color2: "blue"];
+print("Type of person2:", type($person2));
+print("person2 value:", $person2);

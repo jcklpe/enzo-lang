@@ -112,8 +112,21 @@ class EnzoList:
 
         # Try different key formats
         for k in self._key_map:
+            # Exact match
             if k == key or k == f"${lookup_key}" or (k.startswith('$') and k[1:] == lookup_key):
                 return self._elements[self._key_map[k]]
+
+        # Try pattern matching: if looking for "name", try "name" + suffix patterns
+        # This handles cases like looking for "name" and finding "$name6"
+        if not lookup_key.isdigit():  # Don't do pattern matching for numeric keys
+            for k in self._key_map:
+                k_base = k[1:] if k.startswith('$') else k  # Remove $ prefix
+                # Check if the stored key starts with the lookup key + digit suffix
+                if k_base.startswith(lookup_key) and len(k_base) > len(lookup_key):
+                    suffix = k_base[len(lookup_key):]
+                    # If the suffix is numeric or a common separator + numeric, it's a match
+                    if suffix.isdigit() or (suffix.startswith('-') and suffix[1:].isdigit()):
+                        return self._elements[self._key_map[k]]
 
         raise KeyError(f"list property not found: ${lookup_key}")
 
