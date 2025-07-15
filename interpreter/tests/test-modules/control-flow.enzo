@@ -1,0 +1,151 @@
+//= SIMPLE IF/ELSE ─────────────────────────────────────────────
+$number-control: 42;
+
+if $number-control is 42,
+  "The answer!";
+else,
+  "Not the answer.";
+end;
+// Expected: "The answer!"
+
+//= IF/ELSE IF/ELSE ────────────────────────────────────────────
+$color-control: "red";
+
+if $color-control is "blue",
+  "Cool color!";
+else if $color-control is "red",
+  "Hot color!";
+else,
+  "Unknown color.";
+end;
+// Expected: "Hot color!"
+
+//= IF “OR” LOGIC ──────────────────────────────────────────────
+$day: "Saturday";
+
+if $day is "Saturday" or "Sunday",
+  "It's the weekend!";
+else,
+  "It's a weekday.";
+end;
+// Expected: "It's the weekend!"
+
+//= IF NOT ────────────────────────────────────────────────────
+$logged-in: ;
+
+if not $logged-in,
+  "Please log in!";
+end;
+
+// Expected: "Please log in!"
+
+//= NESTED IF ─────────────────────────────────────────────────
+$score: 95;
+
+if $score is at least 90,
+  if $score is 100,
+    "Perfect score!";
+  else,
+    "Great job!";
+  end;
+else,
+  "Keep trying!";
+end;
+// Expected: "Great job!"
+
+//= COMPARISON OPERATORS ──────────────────────────────────────
+$temp: 40;
+
+if $temp is less than 50,
+  "It's cold!";
+end;
+
+if $temp is at least 40,
+  "Not freezing!";
+end;
+// Expected: "It's cold!" then "Not freezing!"
+
+//= SIMPLE PATTERN MATCHING BY TYPE ───────────────────────────
+Monster-Control variants: Goblin, or Orc;
+
+$enemy-control: Monster.Goblin[];
+
+if $enemy-control is Goblin,
+  "It's a goblin!";
+else if $enemy-control is Orc,
+  "It's an orc!";
+else,
+  "Unknown enemy!";
+end;
+// Expected: "It's a goblin!"
+
+//= PATTERN MATCHING WITH DESTRUCTURING ──────────────────────
+$action: Action.Move[ $x: 5, $y: 10 ];
+
+if $action is Move with $x, $y,
+  "Moving to <$x>, <$y>!";
+else if $action is Attack with $target,
+  "Attacking <$target>!";
+end;
+
+// Expected: "Moving to <5>, <10>!"
+
+//= PATTERN MATCHING WITH GUARDS ─────────────────────────────
+$action: Action.Move[ $x: 2, $y: 3 ];
+
+if $action is Move with $x, $y and $x is greater than 0,
+  "Moved right to <$x>, <$y>!";
+else if $action is Move with $x, $y and $x is at most 0,
+  "Moved left to <$x>, <$y>!";
+end;
+
+// Expected: "Moved right to <2>, <3>!"
+
+
+
+
+//= PATTERN MATCHING WITH VARIANT GROUPS ─────────────────────
+
+
+Magic-Type variants: Fire, or Ice, or Wind, or Earth;
+
+$element: Magic-Type.Fire;
+
+if $element is Fire,
+  "It's fire!";
+else if $element is Ice,
+  "It's ice!";
+else,
+  "Something else.";
+end;
+
+// Expected: "It's fire!"
+
+
+
+
+//= IF IN A LOOP ──────────────────────────────────────────────
+
+
+$nums: [1, 2, 3, 4, 5];
+
+for $num in $nums,
+  if $num is at least 3,
+    $num);
+  end;
+end;
+
+// Expected: prints "3", "4", "5"
+
+
+
+
+//= IF WITH BUILTIN VARIANTS (TRUE/FALSE) ────────────────────
+
+
+$signal: Status.True;
+
+if $signal is Status.True,
+  "Signal is ON!";
+else,
+  "Signal is OFF!";
