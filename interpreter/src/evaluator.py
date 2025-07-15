@@ -482,12 +482,31 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             # Try named destructuring first (if variable names match keys)
             named_matches = 0
             for var_name in node.target_vars:
-                # Try both with and without $ prefix
-                key_candidates = [var_name]
-                if var_name.startswith('$'):
-                    key_candidates.append(var_name[1:])  # without $
+                # Check if this variable has a renamed source key
+                source_key = None
+                if hasattr(node, 'renamed_pairs') and node.renamed_pairs:
+                    # Find the source key for this target variable
+                    for src_key, target_var in node.renamed_pairs.items():
+                        if target_var == var_name:
+                            source_key = src_key
+                            break
+                
+                # If no renamed source, use the variable name itself
+                if source_key is None:
+                    source_key = var_name
+
+                # Try both with and without $ prefix for the source key
+                key_candidates = [source_key]
+                if source_key.startswith('$'):
+                    key_candidates.append(source_key[1:])  # without $
                 else:
-                    key_candidates.append('$' + var_name)  # with $
+                    key_candidates.append('$' + source_key)  # with $
+
+                # Also try enhanced pattern matching (remove numeric suffixes)
+                for key_candidate in key_candidates[:]:  # Copy list to avoid modification during iteration
+                    for suffix_pattern in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']:
+                        if key_candidate.endswith(suffix_pattern):
+                            key_candidates.append(key_candidate[:-1])  # Remove suffix
 
                 # Check if any key candidate exists in the list
                 for key_candidate in key_candidates:
@@ -504,12 +523,31 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 for var_name in node.target_vars:
                     value = Empty()  # Default if not found
 
-                    # Try both with and without $ prefix
-                    key_candidates = [var_name]
-                    if var_name.startswith('$'):
-                        key_candidates.append(var_name[1:])  # without $
+                    # Check if this variable has a renamed source key
+                    source_key = None
+                    if hasattr(node, 'renamed_pairs') and node.renamed_pairs:
+                        # Find the source key for this target variable
+                        for src_key, target_var in node.renamed_pairs.items():
+                            if target_var == var_name:
+                                source_key = src_key
+                                break
+                    
+                    # If no renamed source, use the variable name itself
+                    if source_key is None:
+                        source_key = var_name
+
+                    # Try both with and without $ prefix for the source key
+                    key_candidates = [source_key]
+                    if source_key.startswith('$'):
+                        key_candidates.append(source_key[1:])  # without $
                     else:
-                        key_candidates.append('$' + var_name)  # with $
+                        key_candidates.append('$' + source_key)  # with $
+
+                    # Also try enhanced pattern matching (remove numeric suffixes)
+                    for key_candidate in key_candidates[:]:  # Copy list to avoid modification during iteration
+                        for suffix_pattern in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']:
+                            if key_candidate.endswith(suffix_pattern):
+                                key_candidates.append(key_candidate[:-1])  # Remove suffix
 
                     # Look for the key
                     for key_candidate in key_candidates:
@@ -590,7 +628,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
             # Handle reference destructuring if specified
             if getattr(node, 'is_reference', False):
-                env[var_name] = ReferenceWrapper(lambda: value)
+                env[var_name] = ReferenceWrapper(lambda: value, env)
             else:
                 env[var_name] = deep_copy_enzo_value(value)
 
@@ -628,9 +666,9 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         for i, var_name in enumerate(node.target_vars):
             if i < len(items):
                 # Create reference wrapper that points to the original item
-                env[var_name] = ReferenceWrapper(lambda idx=i: items[idx])
+                env[var_name] = ReferenceWrapper(lambda idx=i: items[idx], env)
             else:
-                env[var_name] = ReferenceWrapper(lambda: Empty())
+                env[var_name] = ReferenceWrapper(lambda: Empty(), env)
 
             # Also make accessible with/without $ prefix
             if var_name.startswith('$'):
@@ -740,7 +778,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             value = items[i] if i < len(items) else Empty()
 
             if getattr(node, 'is_reference', False):
-                env[var_name] = ReferenceWrapper(lambda idx=i: items[idx])
+                env[var_name] = ReferenceWrapper(lambda idx=i: items[idx], env)
             else:
                 env[var_name] = deep_copy_enzo_value(value)
 

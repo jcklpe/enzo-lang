@@ -217,13 +217,14 @@ class DestructuringBinding(ASTNode):
         return f"DestructuringBinding(target_vars={self.target_vars!r}, source_expr={self.source_expr!r})"
 
 class ReverseDestructuring(ASTNode):
-    def __init__(self, source_expr, target_vars, is_reference=False, code_line=None):
+    def __init__(self, source_expr, target_vars, is_reference=False, renamed_pairs=None, code_line=None):
         super().__init__(code_line)
         self.source_expr = source_expr    # Source expression to destructure from
         self.target_vars = target_vars    # List of variable names
         self.is_reference = is_reference  # Whether this is reference destructuring
+        self.renamed_pairs = renamed_pairs or {}  # Mapping of source_key -> target_var for renaming
     def __repr__(self):
-        return f"ReverseDestructuring(source_expr={self.source_expr!r}, target_vars={self.target_vars!r}, is_reference={self.is_reference!r})"
+        return f"ReverseDestructuring(source_expr={self.source_expr!r}, target_vars={self.target_vars!r}, is_reference={self.is_reference!r}, renamed_pairs={self.renamed_pairs!r})"
 
 class ReferenceDestructuring(ASTNode):
     def __init__(self, target_vars, source_expr, code_line=None):

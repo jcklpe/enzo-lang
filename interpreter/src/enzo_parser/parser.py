@@ -421,6 +421,33 @@ class Parser:
                 from src.enzo_parser.ast_nodes import ParameterDeclaration
                 return ParameterDeclaration(var_name, default_value, code_line=code_line)
 
+        # Look ahead for complex bracket destructuring: [$var1, $var2 -> $var3]:> $target[]
+        # This must be checked BEFORE KEYNAME destructuring detection
+        if (self.peek() and self.peek().type == "LBRACK"):
+            # Check if this looks like complex bracket destructuring
+            pos = 1
+            found_keyname = False
+            found_arrow_or_comma = False
+            found_rbrack = False
+            found_rebind_rightward = False
+            while self.peek(pos) and pos < 30:  # Reasonable lookahead limit
+                token = self.peek(pos)
+                if token.type == "KEYNAME" and not found_keyname:
+                    found_keyname = True
+                elif token.type in ["COMMA", "ARROW"] and found_keyname:
+                    found_arrow_or_comma = True
+                elif token.type == "RBRACK" and found_arrow_or_comma:
+                    found_rbrack = True
+                elif token.type == "REBIND_RIGHTWARD" and found_rbrack:
+                    found_rebind_rightward = True
+                    break
+                elif token.type in ["SEMICOLON", "NEWLINE", "RBRACE"]:
+                    break  # End of statement
+                pos += 1
+
+            if found_rebind_rightward:
+                return self.parse_complex_bracket_destructuring()
+
         # --- Handle destructuring: $var1, $var2: source[] or $var1, $var2 -> $new: source[] ---
         if t and t.type == "KEYNAME":
             # Look ahead to see if this is destructuring
@@ -452,16 +479,16 @@ class Parser:
                     pos += 1
                 return False
 
-            if is_destructuring_pattern():
-                return self.parse_destructuring_statement()
-
-            # Look ahead for reverse destructuring: $var[] :> $var1, $var2
-            # Check for pattern: KEYNAME LBRACK RBRACK REBIND_RIGHTWARD KEYNAME
+            # Look ahead for reverse destructuring: $var[] :> $var1, $var2, $var3 -> $var4
+            # Check for pattern: KEYNAME LBRACK RBRACK REBIND_RIGHTWARD (with variables and commas/arrows after)
             if (self.peek(1) and self.peek(1).type == "LBRACK" and
                 self.peek(2) and self.peek(2).type == "RBRACK" and
-                self.peek(3) and self.peek(3).type == "REBIND_RIGHTWARD" and
-                self.peek(4) and self.peek(4).type == "KEYNAME"):
+                self.peek(3) and self.peek(3).type == "REBIND_RIGHTWARD"):
+                # More flexible check - just need to see REBIND_RIGHTWARD after []
                 return self.parse_reverse_destructuring_early()
+
+            if is_destructuring_pattern():
+                return self.parse_destructuring_statement()
 
         # Support binding to variable, list index, or table index
         # Parse a value expression (could be VarInvoke, ListIndex, etc.)
@@ -516,8 +543,19 @@ class Parser:
         if self.peek() and self.peek().type == "REBIND_RIGHTWARD":
             # Look ahead to see if this is reverse destructuring (variable after :>)
             if self.peek(1) and self.peek(1).type == "KEYNAME":
-                # Look further ahead for comma to confirm destructuring
-                if self.peek(2) and self.peek(2).type == "COMMA":
+                # Look further ahead for comma OR arrow to confirm destructuring
+                pos = 2
+                found_destructuring_pattern = False
+                while self.peek(pos) and pos < 10:  # Look ahead a reasonable amount
+                    token = self.peek(pos)
+                    if token.type in ["COMMA", "ARROW"]:
+                        found_destructuring_pattern = True
+                        break
+                    elif token.type in ["SEMICOLON", "NEWLINE", "RBRACE"]:
+                        break
+                    pos += 1
+
+                if found_destructuring_pattern:
                     return self.parse_reverse_destructuring(expr1)
 
         # Implicit bind-or-rebind: :>
@@ -675,15 +713,19 @@ class Parser:
         first_var_token = self.advance()
         first_var = first_var_token.value
 
+        target_vars = []
+        renamed_pairs = {}
+
         # Check for renaming with -> for the first variable
         if self.peek() and self.peek().type == "ARROW":
             self.advance()  # consume ->
             if not self.peek() or self.peek().type != "KEYNAME":
                 raise EnzoParseError("Expected new variable name after '->' in reverse destructuring", code_line=self._get_code_line(self.peek()) if self.peek() else None)
             new_var_name = self.advance().value
-            target_vars = [new_var_name]
+            target_vars.append(new_var_name)
+            renamed_pairs[first_var] = new_var_name  # source_key -> target_var
         else:
-            target_vars = [first_var]
+            target_vars.append(first_var)
 
         # Parse remaining variables separated by commas
         while self.peek() and self.peek().type == "COMMA":
@@ -707,10 +749,11 @@ class Parser:
                     raise EnzoParseError("Expected new variable name after '->' in reverse destructuring", code_line=self._get_code_line(self.peek()) if self.peek() else None)
                 new_var_name = self.advance().value
                 target_vars.append(new_var_name)
+                renamed_pairs[var_name] = new_var_name  # source_key -> target_var
             else:
                 target_vars.append(var_name)
 
-        return ReverseDestructuring(source_expr, target_vars, is_reference, code_line=self._get_code_line(first_var_token))
+        return ReverseDestructuring(source_expr, target_vars, is_reference, renamed_pairs, code_line=self._get_code_line(first_var_token))
 
     def parse_reverse_destructuring_early(self):
         """Parse reverse destructuring detected early: $var[] :> $var1, $var2"""
@@ -740,15 +783,19 @@ class Parser:
         first_var_token = self.advance()
         first_var = first_var_token.value
 
+        target_vars = []
+        renamed_pairs = {}
+
         # Check for renaming with -> for the first variable
         if self.peek() and self.peek().type == "ARROW":
             self.advance()  # consume ->
             if not self.peek() or self.peek().type != "KEYNAME":
                 raise EnzoParseError("Expected new variable name after '->' in reverse destructuring", code_line=self._get_code_line(self.peek()) if self.peek() else None)
             new_var_name = self.advance().value
-            target_vars = [new_var_name]
+            target_vars.append(new_var_name)
+            renamed_pairs[first_var] = new_var_name  # source_key -> target_var
         else:
-            target_vars = [first_var]
+            target_vars.append(first_var)
 
         # Parse remaining variables separated by commas
         while self.peek() and self.peek().type == "COMMA":
@@ -772,10 +819,11 @@ class Parser:
                     raise EnzoParseError("Expected new variable name after '->' in reverse destructuring", code_line=self._get_code_line(self.peek()) if self.peek() else None)
                 new_var_name = self.advance().value
                 target_vars.append(new_var_name)
+                renamed_pairs[var_name] = new_var_name  # source_key -> target_var
             else:
                 target_vars.append(var_name)
 
-        return ReverseDestructuring(source_var, target_vars, is_reference, code_line=self._get_code_line(first_var_token))
+        return ReverseDestructuring(source_var, target_vars, is_reference, renamed_pairs, code_line=self._get_code_line(first_var_token))
 
     def parse_destructuring_source(self):
         """Parse source expression in destructuring context, handling [] suffix properly."""
@@ -803,6 +851,56 @@ class Parser:
         else:
             # No brackets - just return the variable
             return base_expr
+
+    def parse_complex_bracket_destructuring(self):
+        """Parse complex bracket destructuring: [$var1, $var2 -> $var3]:> $target[]"""
+        from src.enzo_parser.ast_nodes import RestructuringBinding
+
+        # Consume [
+        self.advance()
+
+        # Parse first variable
+        if not self.peek() or self.peek().type != "KEYNAME":
+            raise EnzoParseError("Expected variable name in complex bracket destructuring", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+
+        first_var_token = self.advance()
+        first_var = first_var_token.value
+        target_vars = [first_var]
+        new_var = None
+
+        # Parse remaining variables separated by commas
+        while self.peek() and self.peek().type == "COMMA":
+            self.advance()  # consume comma
+
+            if not self.peek() or self.peek().type != "KEYNAME":
+                raise EnzoParseError("Expected variable name after comma in complex bracket destructuring", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+
+            var_name = self.advance().value
+            target_vars.append(var_name)
+
+        # Check for renaming operator -> after all variables have been parsed
+        if self.peek() and self.peek().type == "ARROW":
+            self.advance()  # consume ->
+
+            if not self.peek() or self.peek().type != "KEYNAME":
+                raise EnzoParseError("Expected new variable name after '->' in complex bracket destructuring", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+
+            new_var = self.advance().value
+
+        # Consume ]
+        if not self.peek() or self.peek().type != "RBRACK":
+            raise EnzoParseError("Expected ']' in complex bracket destructuring", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+        self.advance()
+
+        # Consume :>
+        if not self.peek() or self.peek().type != "REBIND_RIGHTWARD":
+            raise EnzoParseError("Expected ':>' after ']' in complex bracket destructuring", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+        self.advance()
+
+        # Parse target expression (should be something like $target[])
+        target_expr = self.parse_destructuring_source()
+
+        return RestructuringBinding(target_vars, new_var, target_expr, False, code_line=self._get_code_line(first_var_token))
 
 # Top-level API for main interpreter and debug module
 
