@@ -1,0 +1,131 @@
+//= SIMPLE NAMED DESTRUCTURING ─────────────────────────────
+$person1: [
+  $name1: "Todd",
+  $age1: 27,
+  $favorite-color1: "blue"
+];
+$name1, $age1, $favorite-color1: $person-destruct[];
+$name1;            // prints "Todd"
+$age1;             // prints 27
+$favorite-color1;  // prints "blue"
+
+//= NAMED DESTRUCTURING WITH RENAMING ────────────────────
+$person2: [
+  $name2: "Todd",
+  $age2: 27,
+  $favorite-color2: "blue"
+];
+$name2, $age2, $favorite-color2 -> $shirt-color: $person[];
+$name2;           // prints "Todd"
+$age2;            // prints 27
+$shirt-color;     // prints "blue"
+
+//= ALTERNATE DIRECTION DESTRUCTURING ────────────────────
+$person3: [
+  $name3: "Todd",
+  $age3: 27,
+  $favorite-color3: "blue"
+];
+$person3[] :> $name3, $age3, $favorite-color3;
+$name3;              // prints "Todd"
+$age3;               // prints 27
+$favorite-color3;    // prints "blue"
+
+//= POSITIONAL DESTRUCTURING ─────────────────────────────
+$example-list1: [1, 2, 3];
+$x-destruct, $y-destruct, $z-destruct: $example-list1[];
+$x-destruct;               // prints 1
+$y-destruct;               // prints 2
+$z-destruct;               // prints 3
+
+//= HYBRID NAMED+POSITIONAL DESTRUCTURING ────────────────
+$person4: [5, $foo4: 6, 7];
+$foo4, $bar4, $baz4: $person4[];
+$foo4;             // prints 6   (by name)
+$bar4;             // prints 5   (first position)
+$baz4;             // prints 7   (second position)
+
+//= HYBRID NAMED+POSITIONAL WITH DIFFERENT ORDER ─────────
+$person5: [5, $foo5: 6, 7];
+$bar5, $foo5, $baz5: $person5[];
+$bar5;            // prints 5   (first position)
+$foo5;            // prints 6   (by name)
+$baz5;            // prints 7   (second position)
+
+//= COPY BY VALUE: CHANGING DESTRUCTURED VARIABLE DOES NOT MUTATE ORIGINAL ──────
+$person6: [$name6: "Ali", $age6: 21];
+$name6, $age6: $person6[];
+"Mo" :> $name6;
+22 :> $age6;
+$person6.name;     // prints "Ali"
+$person6.age;      // prints 21
+$name6;            // prints "Mo"
+$age6;             // prints 22
+
+//= RESTRUCTURING: WRITING BACK TO ORIGINAL ──────────────
+$person7: [$name7: "Bea", $age7: 40];
+$name7, $age7: $person7[];
+"Beatrix" :> $name7;
+$age7<: 41;
+$person7.name;     // prints "Bea"
+$person7.age;      // prints 40
+$person7[] <: [$name7, $age7];
+$person7.name;     // prints "Beatrix"
+$person7.age;      // prints 41
+
+//= PARTIAL RESTRUCTURING ────────────────────────────────
+$person6: [$name6: "Cal", $age6: 19, $color6: "yellow"];
+$name6, $age6, $color6: $person6[];
+"Calvin" :> $name6;
+$person6[] <: [$name6];
+$person6.name;     // prints "Calvin"
+$person6.age;      // prints 19 (unchanged)
+$person6.color;    // prints "yellow"
+
+//= RESTRUCTURING WITH RENAMING ─────────────────────────
+$person7: [$age7: 5, $color7: "green"];
+$person7[] :> $age7, $color7 -> $fav-color7;
+$age7;               // returns 5
+$fav-color7;         // returns "green"
+[$age7, $fav-color7 -> $color7]:> $person7[];
+$person7.color7;    // prints "green"
+
+//= DESTRUCTURING BY REFERENCE: MUTATION PROPAGATES ─────
+$person8: [$name8: "Dana", $age8: 50];
+@person8[] :> $name8, $age8;
+"Dan" :> $name8;
+51 :> $age8;
+$person8.name;     // prints "Dan"
+$person8.age;      // prints 51
+
+//= DESTRUCTURING WITH RENAMING BY REFERENCE ─────────────
+@person8[] :> $n8, $a8;
+"Denise" :> $n8;
+$person8.name;     // prints "Denise"
+
+//= EDGE CASE: AMBIGUOUS DESTRUCTURE (SHOULD ERROR) ─────
+$hybrid9: [10, $foo9: 20, 30];
+$foo9, $foo9, $bar: $hybrid[]; // error: duplicate variable names in destructure
+
+//= EDGE CASE: TOO MANY OR TOO FEW VARIABLES (SHOULD ERROR) ─────────────
+$example-list10: [1, 2, 3];
+$a10, $b10, $c10, $d10: $example-list10[]; // error: destructure count mismatch
+$x10, $y10: $example-list10[]; // this should work and should only destructure the first two list entires by positional index
+$x10; // returns 1
+$y10; // returns 2
+
+//= DESTRUCTURING OF EMPTY LIST ────────────────────────
+$empty11: [];
+$a11, $b11: $empty11[]; // error: destructure count mismatch
+
+//= NESTED DESTRUCTURING ──────────────────────────────
+$outer12: [ [$x12: 5, $y12: 9], 2 ];
+$inner12, $z12: $outer12[];
+$inner12.x;           // prints 5
+$inner12.y;           // prints 9
+$z12;                 // prints 2
+
+//= RESTRUCTURING NESTED LIST ─────────────────────────
+$inner12.x <: 7;
+[$inner12, $z12] :> $outer12[];
+$outer12.1.x;         // prints 7
