@@ -19,8 +19,8 @@
 3
 
 //= HYBRID NAMED+POSITIONAL DESTRUCTURING ────────────────
-6
 5
+6
 7
 
 //= HYBRID NAMED+POSITIONAL WITH DIFFERENT ORDER ─────────
@@ -59,17 +59,17 @@
 
 //= EDGE CASE: AMBIGUOUS DESTRUCTURE (SHOULD ERROR) ─────
 error: duplicate variable names in destructure
-  $foo9, $foo9, $bar: $hybrid[];
+    $foo9, $foo9, $bar9: $hybrid9[];
 
 //= EDGE CASE: TOO MANY OR TOO FEW VARIABLES (SHOULD ERROR) ─────────────
 error: destructure count mismatch
-  $a10, $b10, $c10, $d10: $example-list10[];
+    $a10, $b10, $c10, $d10: $example-list10[];
 1
 2
 
 //= DESTRUCTURING OF EMPTY LIST ────────────────────────
 error: destructure count mismatch
-  $a11, $b11: $empty11[];
+    $a11, $b11: $empty11[];
 
 //= NESTED DESTRUCTURING ──────────────────────────────
 5

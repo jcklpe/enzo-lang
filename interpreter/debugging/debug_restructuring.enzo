@@ -1,0 +1,5 @@
+$person7: [$name7: "Bea", $age7: 40];
+$name7, $age7: $person7[];
+"Beatrix" :> $name7;
+$age7<: 41;
+$person7[] <: [$name7, $age7];

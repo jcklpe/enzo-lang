@@ -112,20 +112,63 @@ class EnzoList:
 
         # Try different key formats
         for k in self._key_map:
+            # Exact match
             if k == key or k == f"${lookup_key}" or (k.startswith('$') and k[1:] == lookup_key):
                 return self._elements[self._key_map[k]]
+
+        # Try pattern matching: if looking for "name", try "name" + suffix patterns
+        # This handles cases like looking for "name" and finding "$name6"
+        if not lookup_key.isdigit():  # Don't do pattern matching for numeric keys
+            for k in self._key_map:
+                k_base = k[1:] if k.startswith('$') else k  # Remove $ prefix
+                # Check if the stored key starts with the lookup key + digit suffix
+                if k_base.startswith(lookup_key) and len(k_base) > len(lookup_key):
+                    suffix = k_base[len(lookup_key):]
+                    # If the suffix is numeric or a common separator + numeric, it's a match
+                    if suffix.isdigit() or (suffix.startswith('-') and suffix[1:].isdigit()):
+                        return self._elements[self._key_map[k]]
 
         raise KeyError(f"list property not found: ${lookup_key}")
 
     def set_by_key(self, key, value):
         """Set element by key name."""
-        # Find the actual key in the map
+        # Normalize key (remove $ prefix for lookup if present)
+        lookup_key = key[1:] if key.startswith('$') else key
+
+        # Try different key formats
         for k in self._key_map:
-            lookup_key = key[1:] if key.startswith('$') else key
+            # Exact match
             if k == key or k == f"${lookup_key}" or (k.startswith('$') and k[1:] == lookup_key):
                 self._elements[self._key_map[k]] = value
                 return
+
+        # Try pattern matching: if looking for "x", try "x" + suffix patterns
+        # This handles cases like looking for "x" and finding "$x12"
+        if not lookup_key.isdigit():  # Don't do pattern matching for numeric keys
+            for k in self._key_map:
+                k_base = k[1:] if k.startswith('$') else k  # Remove $ prefix
+                # Check if the stored key starts with the lookup key + digit suffix
+                if k_base.startswith(lookup_key) and len(k_base) > len(lookup_key):
+                    suffix = k_base[len(lookup_key):]
+                    # If the suffix is numeric or a common separator + numeric, it's a match
+                    if suffix.isdigit() or (suffix.startswith('-') and suffix[1:].isdigit()):
+                        self._elements[self._key_map[k]] = value
+                        return
+
         raise KeyError(f"list property not found: ${key}")
+
+    def get_key_at_index(self, index):
+        """Get the key name for the element at the given 0-based index."""
+        if index < 0 or index >= len(self._elements):
+            return None
+
+        # Find the key that maps to this index
+        for key, key_index in self._key_map.items():
+            if key_index == index:
+                return key
+
+        # If no key found, this is a positional-only element
+        return None
 
     def __len__(self):
         return len(self._elements)

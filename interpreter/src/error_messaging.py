@@ -157,3 +157,9 @@ def error_message_duplicate_param(param_name, code_line=None):
     # Ensure param_name has $ prefix for display
     display_name = param_name if param_name.startswith('$') else f'${param_name}'
     return f"error: duplicate parameter name '{display_name}' in function definition"
+
+def error_message_destructure_count_mismatch():
+    return "error: destructure count mismatch"
+
+def error_message_duplicate_variable_names():
+    return "error: duplicate variable names in destructure"

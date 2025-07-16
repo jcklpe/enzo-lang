@@ -13,6 +13,7 @@ class Token(NamedTuple):
 TOKEN_SPEC = [
     ("REBIND_RIGHTWARD", r":>"),
     ("REBIND_LEFTWARD", r"<:"),
+    ("ARROW", r"->"),               # -> Must come before MINUS
     ("LE", r"<="),
     ("GE", r">="),
     ("EQ", r"=="),

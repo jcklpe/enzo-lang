@@ -4,7 +4,7 @@ $person1: [
   $age1: 27,
   $favorite-color1: "blue"
 ];
-$name1, $age1, $favorite-color1: $person-destruct[];
+$name1, $age1, $favorite-color1: $person1[];
 $name1;            // prints "Todd"
 $age1;             // prints 27
 $favorite-color1;  // prints "blue"
@@ -15,7 +15,7 @@ $person2: [
   $age2: 27,
   $favorite-color2: "blue"
 ];
-$name2, $age2, $favorite-color2 -> $shirt-color: $person[];
+$name2, $age2, $favorite-color2 -> $shirt-color: $person2[];
 $name2;           // prints "Todd"
 $age2;            // prints 27
 $shirt-color;     // prints "blue"
@@ -57,8 +57,8 @@ $person6: [$name6: "Ali", $age6: 21];
 $name6, $age6: $person6[];
 "Mo" :> $name6;
 22 :> $age6;
-$person6.name;     // prints "Ali"
-$person6.age;      // prints 21
+$person6.name6;     // prints "Ali"
+$person6.age6;      // prints 21
 $name6;            // prints "Mo"
 $age6;             // prints 22
 
@@ -67,45 +67,45 @@ $person7: [$name7: "Bea", $age7: 40];
 $name7, $age7: $person7[];
 "Beatrix" :> $name7;
 $age7<: 41;
-$person7.name;     // prints "Bea"
-$person7.age;      // prints 40
+$person7.name7;     // prints "Bea"
+$person7.age7;      // prints 40
 $person7[] <: [$name7, $age7];
-$person7.name;     // prints "Beatrix"
-$person7.age;      // prints 41
+$person7.name7;     // prints "Beatrix"
+$person7.age7;      // prints 41
 
 //= PARTIAL RESTRUCTURING ────────────────────────────────
-$person6: [$name6: "Cal", $age6: 19, $color6: "yellow"];
-$name6, $age6, $color6: $person6[];
-"Calvin" :> $name6;
-$person6[] <: [$name6];
-$person6.name;     // prints "Calvin"
-$person6.age;      // prints 19 (unchanged)
-$person6.color;    // prints "yellow"
+$person16: [$name16: "Cal", $age16: 19, $color16: "yellow"];
+$name16, $age16, $color16: $person16[];
+"Calvin" :> $name16;
+$person16[] <: [$name16];
+$person16.name16;     // prints "Calvin"
+$person16.age16;      // prints 19 (unchanged)
+$person16.color16;    // prints "yellow"
 
 //= RESTRUCTURING WITH RENAMING ─────────────────────────
-$person7: [$age7: 5, $color7: "green"];
-$person7[] :> $age7, $color7 -> $fav-color7;
-$age7;               // returns 5
-$fav-color7;         // returns "green"
-[$age7, $fav-color7 -> $color7]:> $person7[];
-$person7.color7;    // prints "green"
+$person17: [$age17: 5, $color17: "green"];
+$person17[] :> $age17, $color17 -> $fav-color17;
+$age17;               // returns 5
+$fav-color17;         // returns "green"
+[$age17, $fav-color17 -> $color17]:> $person17[];
+$person17.color17;    // prints "green"
 
 //= DESTRUCTURING BY REFERENCE: MUTATION PROPAGATES ─────
 $person8: [$name8: "Dana", $age8: 50];
 @person8[] :> $name8, $age8;
 "Dan" :> $name8;
 51 :> $age8;
-$person8.name;     // prints "Dan"
-$person8.age;      // prints 51
+$person8.name8;     // prints "Dan"
+$person8.age8;      // prints 51
 
 //= DESTRUCTURING WITH RENAMING BY REFERENCE ─────────────
 @person8[] :> $n8, $a8;
 "Denise" :> $n8;
-$person8.name;     // prints "Denise"
+$person8.name8;     // prints "Denise"
 
 //= EDGE CASE: AMBIGUOUS DESTRUCTURE (SHOULD ERROR) ─────
 $hybrid9: [10, $foo9: 20, 30];
-$foo9, $foo9, $bar: $hybrid[]; // error: duplicate variable names in destructure
+$foo9, $foo9, $bar9: $hybrid9[]; // error: duplicate variable names in destructure
 
 //= EDGE CASE: TOO MANY OR TOO FEW VARIABLES (SHOULD ERROR) ─────────────
 $example-list10: [1, 2, 3];
@@ -121,11 +121,11 @@ $a11, $b11: $empty11[]; // error: destructure count mismatch
 //= NESTED DESTRUCTURING ──────────────────────────────
 $outer12: [ [$x12: 5, $y12: 9], 2 ];
 $inner12, $z12: $outer12[];
-$inner12.x;           // prints 5
-$inner12.y;           // prints 9
+$inner12.x12;           // prints 5
+$inner12.y12;           // prints 9
 $z12;                 // prints 2
 
 //= RESTRUCTURING NESTED LIST ─────────────────────────
-$inner12.x <: 7;
+$inner12.x12 <: 7;
 [$inner12, $z12] :> $outer12[];
-$outer12.1.x;         // prints 7
+$outer12.1.x12;         // prints 7

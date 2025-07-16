@@ -31,10 +31,6 @@ Let’s say you want a **Goblin** to become an **Orc** under certain conditions 
 You could define a function to “upgrade” the type:
 
 ```
-enzo
-
-
-CopyEdit
 evolve-to-orc: (
     param $goblin: Monster.Goblin;
     // take goblin's health, maybe increase it, give starting rage
@@ -49,10 +45,6 @@ evolve-to-orc: (
 And use it in a pipeline:
 
 ```
-enzo
-
-
-CopyEdit
 $enemy then
     if $this is a Goblin and $this.health is less than 10,
         evolve-to-orc($this)
@@ -67,10 +59,6 @@ Now, if the enemy was a Goblin with low health, it “mutates” to an Orc—*ty
 You could also have a generic pattern for “switching” to any variant:
 
 ```
-enzo
-
-
-CopyEdit
 become: (
     param $new-variant: ;
     param $data: [ ];
@@ -93,10 +81,6 @@ Here are some broader *scenarios*:
    A character reaches enough XP to become a higher class.
 
   ```
-  enzo
-
-
-  CopyEdit
   $player
       then if $this.xp is greater than 1000,
           become(Hero.Warrior, [health: $this.health + 50, power: 20])
@@ -108,10 +92,6 @@ Here are some broader *scenarios*:
    Document moves from “draft” to “review” to “approved.”
 
   ```
-  enzo
-
-
-  CopyEdit
   $doc
       then if $this.status is "draft" and $this.ready,
           become(Document.Review, [reviewer: "Kim"])
