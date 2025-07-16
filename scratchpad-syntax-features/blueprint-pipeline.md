@@ -81,10 +81,6 @@ Here are some broader *scenarios*:
    A character reaches enough XP to become a higher class.
 
   ```
-  enzo
-
-
-  CopyEdit
   $player
       then if $this.xp is greater than 1000,
           become(Hero.Warrior, [health: $this.health + 50, power: 20])
@@ -96,10 +92,6 @@ Here are some broader *scenarios*:
    Document moves from “draft” to “review” to “approved.”
 
   ```
-  enzo
-
-
-  CopyEdit
   $doc
       then if $this.status is "draft" and $this.ready,
           become(Document.Review, [reviewer: "Kim"])

@@ -490,7 +490,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         if target_var == var_name:
                             source_key = src_key
                             break
-                
+
                 # If no renamed source, use the variable name itself
                 if source_key is None:
                     source_key = var_name
@@ -531,7 +531,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                             if target_var == var_name:
                                 source_key = src_key
                                 break
-                    
+
                     # If no renamed source, use the variable name itself
                     if source_key is None:
                         source_key = var_name
@@ -628,7 +628,40 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
             # Handle reference destructuring if specified
             if getattr(node, 'is_reference', False):
-                env[var_name] = ReferenceWrapper(lambda: value, env)
+                # For EnzoList, try to create property reference if there's a key at this position
+                if isinstance(source_value, EnzoList):
+                    key_at_position = source_value.get_key_at_index(i)
+                    if key_at_position:
+                        # Create a property access reference
+                        base_var_node = node.source_expr
+                        prop_name = key_at_position[1:] if key_at_position.startswith('$') else key_at_position
+                        property_access = ListIndex(
+                            base=base_var_node,
+                            index=TextAtom(prop_name),
+                            is_property_access=True,
+                            code_line=getattr(node, 'code_line', None)
+                        )
+                        env[var_name] = ReferenceWrapper(property_access, env)
+                    else:
+                        # Fallback to positional reference for positional-only elements
+                        base_var_node = node.source_expr
+                        index_node = NumberAtom(i)
+                        list_index_ref = ListIndex(
+                            base=base_var_node,
+                            index=index_node,
+                            code_line=getattr(node, 'code_line', None)
+                        )
+                        env[var_name] = ReferenceWrapper(list_index_ref, env)
+                else:
+                    # Create a reference to the original list element
+                    base_var_node = node.source_expr
+                    index_node = NumberAtom(i)
+                    list_index_ref = ListIndex(
+                        base=base_var_node,
+                        index=index_node,
+                        code_line=getattr(node, 'code_line', None)
+                    )
+                    env[var_name] = ReferenceWrapper(list_index_ref, env)
             else:
                 env[var_name] = deep_copy_enzo_value(value)
 
@@ -684,7 +717,46 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
     if isinstance(node, RestructuringBinding):
         # Handle restructuring: $var1, $var2 -> $new: source[]
+        
+        # Special case: If new_var is None, this might be reverse assignment
+        # Syntax: [$var1, $var2] :> $target[] should assign values TO target
+        if node.new_var is None:
+            # This is reverse assignment: write target_vars values to source_expr
+            target_list = eval_ast(node.source_expr, value_demand=True, env=env)
+            
+            # Create new list with current values of target_vars
+            new_elements = []
+            for var_name in node.target_vars:
+                if var_name in env:
+                    new_elements.append(env[var_name])
+                else:
+                    new_elements.append(Empty())
+            
+            # Replace the target list contents
+            if hasattr(target_list, '_elements'):  # EnzoList
+                target_list._elements.clear()
+                target_list._key_map.clear()
+                for i, element in enumerate(new_elements):
+                    target_list._elements.append(element)
+            else:
+                # If it's a regular list, we need to update the variable
+                # Get the target variable name
+                if hasattr(node.source_expr, 'name'):
+                    target_var = node.source_expr.name
+                    env[target_var] = new_elements
+                    # Also update without $ prefix if needed
+                    if target_var.startswith('$'):
+                        bare_name = target_var[1:]
+                        if bare_name not in env:
+                            env[bare_name] = new_elements
+                    else:
+                        dollar_name = '$' + target_var
+                        if dollar_name not in env:
+                            env[dollar_name] = new_elements
+            
+            return None
 
+        # Regular restructuring logic (extraction)
         # Check for duplicate variable names
         seen_vars = set()
         for var_name in node.target_vars:
@@ -798,17 +870,18 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         for val in extracted_values:
             new_list.append(val)
 
-        env[node.new_var] = new_list
+        if node.new_var is not None:
+            env[node.new_var] = new_list
 
-        # Also make accessible with/without $ prefix
-        if node.new_var.startswith('$'):
-            bare_name = node.new_var[1:]
-            if bare_name not in env:
-                env[bare_name] = new_list
-        else:
-            dollar_name = '$' + node.new_var
-            if dollar_name not in env:
-                env[dollar_name] = new_list
+            # Also make accessible with/without $ prefix
+            if node.new_var.startswith('$'):
+                bare_name = node.new_var[1:]
+                if bare_name not in env:
+                    env[bare_name] = new_list
+            else:
+                dollar_name = '$' + node.new_var
+                if dollar_name not in env:
+                    env[dollar_name] = new_list
 
         return None
 

@@ -105,7 +105,7 @@ $person8.name8;     // prints "Denise"
 
 //= EDGE CASE: AMBIGUOUS DESTRUCTURE (SHOULD ERROR) ─────
 $hybrid9: [10, $foo9: 20, 30];
-$foo9, $foo9, $bar: $hybrid9[]; // error: duplicate variable names in destructure
+$foo9, $foo9, $bar9: $hybrid9[]; // error: duplicate variable names in destructure
 
 //= EDGE CASE: TOO MANY OR TOO FEW VARIABLES (SHOULD ERROR) ─────────────
 $example-list10: [1, 2, 3];
@@ -121,11 +121,11 @@ $a11, $b11: $empty11[]; // error: destructure count mismatch
 //= NESTED DESTRUCTURING ──────────────────────────────
 $outer12: [ [$x12: 5, $y12: 9], 2 ];
 $inner12, $z12: $outer12[];
-$inner12.x;           // prints 5
-$inner12.y;           // prints 9
+$inner12.x12;           // prints 5
+$inner12.y12;           // prints 9
 $z12;                 // prints 2
 
 //= RESTRUCTURING NESTED LIST ─────────────────────────
-$inner12.x <: 7;
+$inner12.x12 <: 7;
 [$inner12, $z12] :> $outer12[];
-$outer12.1.x;         // prints 7
+$outer12.1.x12;         // prints 7
