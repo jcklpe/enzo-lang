@@ -474,6 +474,9 @@ class Parser:
                         return True  # Found comma followed by colon
                     elif token.type == "ARROW" and found_comma:
                         return True  # Found comma followed by arrow (renaming)
+                    elif token.type == "VARIANTS":
+                        # If we encounter 'variants' keyword, this is NOT destructuring
+                        return False
                     elif token.type in ["SEMICOLON", "NEWLINE", "RBRACE"]:
                         break  # End of statement
                     pos += 1
