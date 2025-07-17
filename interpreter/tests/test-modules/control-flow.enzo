@@ -1,151 +1,586 @@
-//= SIMPLE IF/ELSE ─────────────────────────────────────────────
-$number-control: 42;
-
-if $number-control is 42,
-  "The answer!";
-else,
-  "Not the answer.";
-end;
-// Expected: "The answer!"
-
-//= IF/ELSE IF/ELSE ────────────────────────────────────────────
-$color-control: "red";
-
-if $color-control is "blue",
-  "Cool color!";
-else if $color-control is "red",
-  "Hot color!";
-else,
-  "Unknown color.";
-end;
-// Expected: "Hot color!"
-
-//= IF “OR” LOGIC ──────────────────────────────────────────────
-$day: "Saturday";
-
-if $day is "Saturday" or "Sunday",
-  "It's the weekend!";
-else,
-  "It's a weekday.";
-end;
-// Expected: "It's the weekend!"
-
-//= IF NOT ────────────────────────────────────────────────────
-$logged-in: ;
-
-if not $logged-in,
-  "Please log in!";
+//= SIMPLE IF TEST
+$status-if: "ready";
+If $status-if,
+  "Ready!"; // should print "Ready!"
 end;
 
-// Expected: "Please log in!"
+//= IF CONDITION NOT MET and not
+$status-if-empty: "";
+If $status-if-empty,
+  "Won't print"; // shouldn't print
+end;
 
-//= NESTED IF ─────────────────────────────────────────────────
-$score: 95;
+If not $status-if-empty,
+  "this should print"; // should print
+end;
 
-if $score is at least 90,
-  if $score is 100,
-    "Perfect score!";
-  else,
-    "Great job!";
+//= ELSE TEST
+$status-else: "";
+If $status-else,
+  "Won't print";
+Else,
+  "Fallback triggered"; // should print
+end;
+
+//= NOT CONDITION FALSE
+$status-not2: "value";
+If not $status-not2,
+  "Won't print";
+end;
+
+If $status-not2,
+  "this should print";
+end;
+
+//= IS VALUE MATCH TRUE and False
+$color-match: "blue";
+If $color-match is "blue",
+  "Matched blue"; // should print
+end;
+
+If $color-match is "red",
+  "Won't print";
+end;
+
+//= IS TYPE MATCH TRUE
+$val-num: 42;
+If $val-num is Number,
+  "It's a number"; // should print
+end;
+
+//= IS TYPE MATCH FALSE
+If $color-match is Number,
+  "Won't print";
+end;
+
+//= IS EMPTY MATCH
+$empty-val: ;
+If $empty-val is Empty,
+  "Empty detected"; // should print
+end;
+
+//= LESS THAN TRUE and FALSE
+$num-less: 5;
+If $num-less is less than 10,
+  "Less than 10"; // should print
+end;
+
+If $num-less is less than 3,
+  "Won't print";
+end;
+
+//= GREATER THAN TRUE and FALSE
+$num-greater: 20;
+If $num-greater is greater than 10,
+  "Greater than 10"; // should print
+end;
+
+If $num-greater is greater than 50,
+  "Won't print";
+end;
+
+//= AT MOST (<=) TRUE and FALSE
+$num-at-most: 10;
+If $num-at-most is at most 10,
+  "At most 10"; // should print
+end;
+
+If $num-at-most is at most 9,
+  "Won't print";
+end;
+
+//= AT LEAST (>=) TRUE and FALSE
+$num-at-least: 10;
+If $num-at-least is at least 10,
+  "At least 10"; // should print
+end;
+
+If $num-at-least is at least 20,
+  "Won't print";
+end;
+
+//= CONTAINS TRUE and FALSE
+$list-contain: [1, 2, 3];
+If $list-contain contains 2,
+  "Contains 2"; // should print
+end;
+
+If $list-contain contains 5,
+  "Won't print";
+end;
+
+//= AND
+$status-and: "active";
+$count-and: 5;
+If $status-and is "active" and $count-and is 5,
+  "Both conditions true"; // should print
+end;
+
+If $status-and is "inactive" and $count-and is 5,
+  "Won't print";
+end;
+
+//= OR
+If $status-and is "inactive" or $count-and is 5,
+  "At least one true"; // should print
+end;
+
+If $status-and is "inactive" or $count-and is 10,
+  "Won't print";
+end;
+
+//= ELSE IF FIRST MATCH
+$status-elseif: "first";
+If $status-elseif is "first",
+  "First match"; // should print
+Else if $status-elseif is "second",
+  "Second match";
+Else,
+  "Fallback";
+end;
+
+//= ELSE IF SECOND MATCH
+$status-elseif<: "second";
+If $status-elseif is "first",
+  "Won't print";
+Else if $status-elseif is "second",
+  "Second match"; // should print
+Else,
+  "Fallback";
+end;
+
+//= ELSE IF FALLBACK MATCH
+$status-elseif<: "third";
+If $status-elseif is "first",
+  "Won't print";
+Else if $status-elseif is "second",
+  "Won't print";
+Else,
+  "Fallback matched"; // should print
+end;
+
+//= MULTI-BRANCH SWITCH
+$switch-val: "B";
+If $switch-val is "A",
+  "A";
+or is "B",
+  "B matched"; // should print
+or is "C",
+  "C";
+end;
+
+//= MULTI-BRANCH WITH DEFAULT (ELSE FALLBACK)
+$fruit<: "orange";
+If $fruit is "banana",
+  "Banana";
+or is "apple",
+  "Apple";
+Else,
+  "Fallback fruit"; // should print
+end;
+
+//= MULTI-BRANCH TYPE GUARD MATCHING
+$value: 15;
+If $value is Number and is greater than 10,
+  "Big number"; // should print
+or is Number and is at most 10,
+  "Small number";
+Else,
+  "Not a number";
+end;
+
+//= MULTI-BRANCH TYPE MATCH WITH VARIANT
+$type-val: Magic-Type.Ice;
+If $type-val is Magic-Type.Fire,
+  "Fire type";
+or is Magic-Type.Ice,
+  "Ice type matched"; // should print
+or is Magic-Type.Wind,
+  "Wind type";
+Else,
+  "Unknown type";
+end;
+
+//= MULTI-BRANCH CONTAINS MATCH
+$bag: ["coin", "key", "map"];
+If $bag contains "sword",
+  "Sword found";
+or contains "key",
+  "Key found"; // should print
+Else,
+  "No useful items";
+end;
+
+//= MULTI-BRANCH MATCH WITH EMPTY CONDITIONS
+$test-empty: "";
+If $test-empty,
+  "Has value";
+or not $test-empty,
+  "has no value"; // should print
+end;
+
+//= MULTI-BRANCH COMPOUND LOGIC
+$compound: 3;
+If $compound is Number and is greater than 10,
+  "Big number";
+or is Number and is at most 5,
+  "Small number matched"; // should print
+or Number,
+  "Number matched";
+Else,
+  "Fallback";
+end;
+
+
+//= MULTI-BRANCH LIST EXACT MATCH
+$list-exact: [1,2,3];
+If $list-exact is [3,2,1],
+  "Reverse matched";
+or is [1,2,3],
+  "Exact list matched"; // should print
+Else,
+  "No exact list match";
+end;
+
+//= MULTI-BRANCH WITH VARIANT GROUP
+$monster-type1: Monster.Goblin;
+If $monster-type1 is Monster.Orc,
+  "Orc matched";
+or is Monster.Goblin,
+  "Goblin matched"; // should print
+or is Monster.Troll,
+  "Troll matched";
+Else,
+  "No monster match";
+end;
+
+//= INLINE IF TRUE and FALSE
+$inline-if: "ready";
+If $inline-if, "Go!";, Else "Wait!"; // prints "Go!"
+
+$inline-if<: "";
+If $inline-if, "Go!";, Else "Wait!"; // prints "Wait!"
+
+//= SIMPLE FOR LOOP
+$list-for: [1,2,3];
+For $item in $list-for,
+  "Item: <$item>"; // prints each item
+end;
+
+//= WHILE LOOP SIMPLE
+$count-while: 1;
+While $count-while is less than 3,
+  $count-while;
+  $count-while <: $count-while + 1;
+end;
+$count-while; // prints 3
+
+//= BOOLEAN EDGE CASE FALSE CONDITIONS
+If 0, "Won't print"; end;
+If "", "Won't print"; end;
+If [], "Won't print"; end;
+If [0,0,0], "Won't print"; end;
+If False, "Won't print"; end;
+If Status.False, "Won't print"; end;
+
+If not 0, "will print"; end;
+If not "", "will print"; end;
+If not [], "will print"; end;
+If not [0,0,0], "will print"; end;
+If not False, "will print"; end;
+If not Status.False, "will print"; end;
+
+//= BOOLEAN EDGE CASE TRUE CONDITIONS
+If Monster, "True variant group"; end; // prints
+If Monster.Goblin, "True variant value"; end; // prints
+If "hi", "True text atom"; end; // prints
+
+//= Function Atom as condition
+If ( ), "Won't print"; end; // empty function atom shouldn't trigger
+
+If (4 + 5), "Will print"; end; // function with value should trigger
+
+If (5 - 5), "Won't print"; end; // function returns 0 which is a false condition
+If not (5 - 5), "Will print"; end; // function returns 0 which is a false condition
+
+//= IF WITH FUNCTION RETURNING EMPTY (FALSY)
+empty-fn-test: ();
+If empty-fn-test(),
+  "Won't print";
+Else,
+  "Empty function result"; // should print
+end;
+
+//= IF WITH FUNCTION RETURNING NON-EMPTY (TRUTHY)
+non-empty-fn-test: ("result";);
+If non-empty-fn-test(),
+  "Non-empty function result"; // should print
+end;
+
+//= IF WITH VARIABLE SET TO EMPTY LIST THEN MUTATED TO TRUTHY LIST
+$list-mutate: [];
+If $list-mutate,
+  "Won't print initially";
+end;
+$list-mutate <: [1];
+If $list-mutate,
+  "List became truthy"; // should print
+end;
+
+//= IF WITH VARIABLE SET TO TEXT "0" (TRUTHY)
+$text-zero: "0";
+If $text-zero,
+  "Text '0' is truthy"; // should print
+end;
+
+//= IF WITH VARIABLE SET TO NUMBER 0.0 (FALSY)
+$num-zero: 0.0;
+If $num-zero,
+  "Won't print";
+Else,
+  "0.0 is falsy"; // should print
+end;
+
+//= IF WITH EMPTY BLUEPRINT INSTANCE (TRUTHY)
+EmptyBP: <[]>;
+$empty-bp: EmptyBP[];
+If $empty-bp,
+  "Empty blueprint is truthy"; // should print
+end;
+
+//= IF WITH VARIABLE SET TO STATUS.FALSE THEN MUTATED TO CUSTOM STATUS (TRUTHY)
+$status-custom: Status.False;
+If $status-custom,
+  "Won't print initially";
+end;
+Status variants: Loading, or Dead;
+$status-custom <: Status.Loading;
+If $status-custom,
+  "Custom status is truthy"; // should print
+end;
+
+//= WHILE LOOP NEVER ENTERED (INITIAL CONDITION FALSE)
+$count-never: 5;
+While $count-never is less than 0,
+  "Never prints";
+  $count-never <: $count-never - 1;
+end;
+$count-never; // prints 5, unchanged
+
+//= FOR LOOP WITH EMPTY LIST (NEVER ENTERED)
+$empty-list-for: [];
+For $item in $empty-list-for,
+  "Never prints";
+end;
+$empty-list-for; // prints []
+
+//= ERROR: FOR LOOP WITH NON-ITERABLE
+For $item10 in 10, // error: for loop over non-iterable
+  "Won't print";
+end;
+
+//= MULTI-BRANCH MATCH WITH FIRST TRUTHY MATCH ONLY
+$multi-branch: "first";
+If $multi-branch is "first",
+  "First matched"; // should print
+or is "first",
+  "Second matched (shouldn't print)";
+end;
+
+//= MULTI-BRANCH MATCH WITH MULTIPLE TRUTHY CONDITIONS, ONLY FIRST EXECUTES
+$multi-branch-num: 10;
+If $multi-branch-num is at least 5,
+  "At least 5 matched"; // should print
+or is Number,
+  "Generic number matched (shouldn't print)";
+end;
+
+//= ERROR CASE: USING UNDEFINED VARIABLE IN IF
+If $undefined-var,
+  "Won't print";
+end; // error: undefined variable
+
+//= ERROR CASE: INVALID COMPARISON TYPE
+If $list-contain is less than 10,
+  "Won't print";
+end; // error: can't compare list with number
+
+//= ERROR CASE: INVALID USE OF "CONTAINS" ON NON-LIST
+$non-list-val: 10;
+If $non-list-val contains 1,
+  "Won't print";
+end; // error: contains used on non-list
+
+//= ERROR CASE: INVALID MULTI-BRANCH "or" WITHOUT PRECEDING IF
+or "value",
+  "Won't print";
+end; // error: 'or' without preceding 'If'
+
+//= ERROR CASE: ELSE IF WITHOUT INITIAL IF
+Else if $color is "blue",
+  "Won't print";
+end; // error: 'Else if' without preceding 'If'
+
+//= ERROR CASE: ELSE WITHOUT INITIAL IF
+Else,
+  "Won't print";
+end; // error: 'Else' without preceding 'If'
+
+//= BOOLEAN TEST: LIST WITH ALL FALSY ELEMENTS
+$list-all-falsy: [0, "", [], False];
+If $list-all-falsy,
+  "won't print"; // shouldn't print
+end;
+
+If not $list-all-falsy,
+  "All falsy elements in a list are falsy"; // should print
+end;
+
+//= BOOLEAN TEST: TEXT WITH WHITESPACE ONLY (TRUTHY)
+$text-whitespace: "   ";
+If $text-whitespace,
+  "Whitespace text is truthy"; // should print
+end;
+
+//= BOOLEAN TEST: VARIABLE WITH EMPTY BLUEPRINT VARIANT (TRUTHY)
+EmptyVariantBP variants: Empty, or Filled;
+$empty-variant: EmptyVariantBP.Empty;
+If $empty-variant,
+  "Empty variant is truthy"; // should print
+end;
+
+//= BOOLEAN TEST: EMPTY PARAMETERIZED FUNCTION (FALSY)
+$empty-param-fn: (param $x: ;);
+If $empty-param-fn,
+  "Won't print";
+Else,
+  "Empty parameterized function is falsy"; // should print
+end;
+
+//= INLINE IF WITH VARIABLE SET TO NUMBER 1 (TRUTHY)
+$inline-num: 1;
+If $inline-num, "Number 1 is truthy";, Else "Won't print"; // prints truthy
+
+//= INLINE IF WITH EMPTY LIST (FALSY)
+$inline-list: [];
+If $inline-list, "Won't print";, Else "Empty list falsy"; // prints falsy
+
+//= DESTRUCTURE IN IF CONDITION (Truthy)
+$person21: [$name21: "Eve", $age21: 28];
+$name21, $age21: $person21[];
+If $age21 is greater than 21,
+  "<$name21> is over 21"; // should print "Eve is over 21"
+end;
+
+//= DESTRUCTURING BY REFERENCE AND MUTATION IN CONTROL FLOW
+$player21: [$hp21: 50, $status21: "alive"];
+@player21[] :> $hp21, $status21;
+If $hp21 is less than 100,
+  100 :> $hp21; // mutate referenced destructured variable
+end;
+$player21.hp; // should now be 100
+
+//= MULTI-STAGE PIPELINE WITH CONDITIONAL STEP ERROR
+$list-pipe: [1,2,3,4];
+$list-pipe
+then ($this contains 4) :> $contains-four;  // error: comparison word in pipeline
+
+//= Has function and pipeline
+has1: (
+  param $list: ;
+  param $value: ;
+  If $list contains $value, return(True); Else return(False); end;
+);
+
+$list-pipe22: [1,2,3,4];
+$list-pipe22 then has1($this, 4) :> $contains-four22;
+
+If $contains-four22,
+  "List contains four"; // should print
+end;
+
+//= IF CONDITION WITH LIST INDEX ACCESS
+$list-index23: ["zero", "one", "two"];
+If $list-index23.2 is "one",
+  "Second index matched 'one'"; // should print
+end;
+
+If $list-index23.3 is "one",
+  "Won't print";
+Else,
+  "Third index is not 'one'"; // should print
+end;
+
+//= LIST MAPPING WITH CONTROL FLOW CONDITION
+$user-map: [$username: "alice", $active: "yes"];
+If $user-map.active is "yes",
+  "<$user-map.username> is active"; // should print "alice is active"
+end;
+
+//= LIST MAPPING AND PIPELINE INTO CONTROL FLOW
+$user-map
+then ($this.active) :> $is-active;
+If $is-active is "yes",
+  "User active status: yes"; // should print
+end;
+
+//= BLUEPRINT DEFAULTS IN CONTROL FLOW
+Character: <[$hp: 100, $mana: 50]>;
+$hero: Character[];
+If $hero.hp is at least 100,
+  "Hero at full health"; // should print
+end;
+
+//= ERROR: IF CONDITION ACCESSING INVALID LIST INDEX
+$bad-list50: [1,2,3];
+If $bad-list50.4, // error: list index out of range
+  "Won't print";
+end;
+
+//= ERROR: IF CONDITION ON UNDEFINED PROPERTY IN LIST
+$user-bad: [$name: "Bob"];
+If $user-bad.age, // error: list property '$age' not found
+  "Won't print";
+end;
+
+//= More destructuring stuff and conditionals stuff
+$nums29: [5,6,7];
+$x29, $y29, $z29: $nums29[];
+If $x29 is 5 and $y29 is 6 and $z29 is 7, "Pass: positional destructure"; end;
+
+//= multiple statements in an inline if
+If True, "passing one statement from inline If"; "passing a second one"; end;
+If True, $inline-value: 5; $inline-value; end;  // prints 5
+If False, "this shouldn't print";, Else,  $inline-value2: 6; $inline-value2; end;  // prints 6
+
+//= IF WITH NESTED CONDITIONALS
+$status-nested: "outer";
+If $status-nested is "outer",
+  If $status-nested,
+    "Nested condition true"; // should print
   end;
-else,
-  "Keep trying!";
-end;
-// Expected: "Great job!"
-
-//= COMPARISON OPERATORS ──────────────────────────────────────
-$temp: 40;
-
-if $temp is less than 50,
-  "It's cold!";
 end;
 
-if $temp is at least 40,
-  "Not freezing!";
-end;
-// Expected: "It's cold!" then "Not freezing!"
-
-//= SIMPLE PATTERN MATCHING BY TYPE ───────────────────────────
-Monster-Control variants: Goblin, or Orc;
-
-$enemy-control: Monster.Goblin[];
-
-if $enemy-control is Goblin,
-  "It's a goblin!";
-else if $enemy-control is Orc,
-  "It's an orc!";
-else,
-  "Unknown enemy!";
-end;
-// Expected: "It's a goblin!"
-
-//= PATTERN MATCHING WITH DESTRUCTURING ──────────────────────
-$action: Action.Move[ $x: 5, $y: 10 ];
-
-if $action is Move with $x, $y,
-  "Moving to <$x>, <$y>!";
-else if $action is Attack with $target,
-  "Attacking <$target>!";
+//= PIPELINE WITH INLINE FUNCTION RETURNING EMPTY (FALSY)
+empty-fn-pipeline: ();
+empty-fn-pipeline then ($this) :> $pipeline-empty;
+If not $pipeline-empty,
+  "Pipeline resulted in empty"; // should print
 end;
 
-// Expected: "Moving to <5>, <10>!"
-
-//= PATTERN MATCHING WITH GUARDS ─────────────────────────────
-$action: Action.Move[ $x: 2, $y: 3 ];
-
-if $action is Move with $x, $y and $x is greater than 0,
-  "Moved right to <$x>, <$y>!";
-else if $action is Move with $x, $y and $x is at most 0,
-  "Moved left to <$x>, <$y>!";
+//= BOOLEAN TEST: NESTED LIST WITH TRUTHY AND FALSY ELEMENTS
+$nested-list66: [0, "", [0, "valid"]];
+If $nested-list66,
+  "Nested list considered truthy"; // should print
 end;
 
-// Expected: "Moved right to <2>, <3>!"
-
-
-
-
-//= PATTERN MATCHING WITH VARIANT GROUPS ─────────────────────
-
-
-Magic-Type variants: Fire, or Ice, or Wind, or Earth;
-
-$element: Magic-Type.Fire;
-
-if $element is Fire,
-  "It's fire!";
-else if $element is Ice,
-  "It's ice!";
-else,
-  "Something else.";
+//= ERROR: USING "is" WITH A VARIANT THAT DOES NOT EXIST
+If $status-bp is StatusVariantBP.Unknown, // error: invalid variant comparison
+  "Won't print";
 end;
 
-// Expected: "It's fire!"
-
-
-
-
-//= IF IN A LOOP ──────────────────────────────────────────────
-
-
-$nums: [1, 2, 3, 4, 5];
-
-for $num in $nums,
-  if $num is at least 3,
-    $num);
-  end;
+//= IF CONDITION WITH NESTED LIST INDEX ACCESS
+$nested-list: [["zero", "one"], ["two", "three"]];
+If $nested-list.2.1 is "two",
+  "Nested index matched 'two'"; // should print
 end;
-
-// Expected: prints "3", "4", "5"
-
-
-
-
-//= IF WITH BUILTIN VARIANTS (TRUE/FALSE) ────────────────────
-
-
-$signal: Status.True;
-
-if $signal is Status.True,
-  "Signal is ON!";
-else,
-  "Signal is OFF!";
