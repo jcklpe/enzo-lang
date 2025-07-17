@@ -332,9 +332,16 @@ $function-example(); //returns 3
 function-example(10, 9);//returns 20
 $function-example(10, 9);//returns 20
 
+function-example2: (
+    $first-number: 5;
+    param $second-number: ;
+    param $third-number: number: ;
+
+    return(($first-number * $second-number / $third-number));
+)
 
 // arguments can be bound to parameters either by order
-function-example(1, 2);
+function-example2(1, 2);
 // returns 2.5
 
 // or by named binding
@@ -342,7 +349,7 @@ function-example2($third-number<: 2, $second-number<: 3);
 // returns 7.5
 
 function-example2();
-// returns error
+// returns error, due to missing arguments
 ```
 
 Functions like all other variables are also passed by copy/value:
@@ -357,71 +364,7 @@ $global-var<: 6;
 $example; // returns 5;
 ```
 
-## Invocation versus reference
-Enzo distinguishes **invoking** a variable or function (by value/copy) from **referencing** it.
-
-Here is how you invoke variables and functions:
-```javascript!
-$x; // invokes the variable of x and returns its value
-
-function-name();
-//or
-$function-name();
-// or even just this as long as you don't need to pass any arguments to the parameters
-$function-name;
-```
-
-A function name with no sigil or parens is always an error:
-
-```javascript!
-function-name; // this is always an error!
-```
-
-Referencing a function however has an `@` sigil:
-
-```javascript!
-@function-name;   // returns the function object
-@function-name(); // this is an error. You can't do this.
-
-```
-
-Example of this in action:
-
-```javascript!
-// 1) Define a function
-increment: (
-  param $number: ;
-  return($number + 1);
-);
-
-// 2) Call it directly:
-$total: increment(5);
-// 6 is now bound to $total
-
-// 3) Reference it as data (must use $):
-$op: @increment;
-// ✓ $op now holds the function object
-
-// 4) Call via your $-bound alias:
-$result: $op(10);
-// 11 bound to $result
-
-// 5) Higher-order usage:
-applyTwice: (
-  param $function:();      // expects a function object
-  param $value: 1;          // default value of 1 tells it to expect a number
-  return($function($function($value)));
-);
-
-// Pass the function **reference** with `$` and without `()`:
-$twice: applyTwice(@increment, 7);
-// 9 bound to $twice
-```
-
-#### Passing a function as a parameter
-
-Functions are eager evaluation by default:
-
+Example of function invocation passed as an argument for another function's parameter:
 ```javascript!
 $campfire-status: "unlit";
 
@@ -443,8 +386,7 @@ announcer(get-campfire-status());
 // Expected output: "campfire: lit"
 ```
 
-#### Invoking a function from a list property
-
+Function atoms can be saved to a keyname like any other atomvalue, even keynames in lists, and they can also be invoked pretty much the same way from the list as any other item:
 ```javascript!
 $dog: [
     $name: "Ralph",
@@ -474,15 +416,14 @@ toLowerCase($dog.play-dead("Jerry"));
 // returns "ah! i was murdered by jerry!"
 ```
 
-Example of invoking a list function and also passing an additional function as a parameter
-
+Example of invoking a list function and also passing an additional function as a parameter:
 ```javascript!
 $animal: [
     $dog: [
         $bark: (
             param $status: ;
             param $message: ;
-            if $status = "loud",
+            if $status is "loud",
                 return( toUpper($message) );
             else,
                 return( toLower($message) );
@@ -501,7 +442,64 @@ $animal.dog.bark(getCurrentStatus(), "Bark Bark");
 
 ```
 
-### List Destructuring/Restructuring
+## Invocation versus reference
+Enzo distinguishes **invoking** a variable or function (by value/copy) from **referencing** it using the `@` sigil. This is a generalized solution to reference versus copy across Enzo.
+
+```javascript!
+@variable;        // returns a reference to the variable, not it's value
+@function-name;   // returns a reference to the function
+```
+
+Unlike most languages where functions are referenced by omitting the parentheses, function name with no sigil or parens is always an error:
+```javascript!
+function-name; // this is always an error!
+@function-name(); // This is also an error!
+```
+
+Example of this in action for simple variables:
+```javascript!
+$referenced-value: 8;
+$referring-variable: @referenced-value;
+$referring-variable;  // returns 8
+$referenced-value<: 9;
+$referring-variable;  // returns 9
+$referring-variable<: 10;
+$referenced-value;  // returns 10
+```
+
+Example of this in action for function reference:
+```javascript!
+// 1) Define a function
+increment: (
+  param $number: ;
+  return($number + 1);
+);
+
+// 2) Call it directly:
+$total: increment(5);
+// 6 is now bound to $total
+
+// 3) Bind a function reference to a keyname:
+$op: @increment;
+// ✓ $op now holds the function object
+
+// 4) Call via your $-bound alias:
+$result: $op(10);
+// 11 bound to $result
+
+// 5) Higher-order usage:
+applyTwice: (
+  param $function:();      // expects a function object
+  param $value: 1;          // default value of 1 tells it to expect a number
+  return($function($function($value)));
+);
+
+// Pass the function **reference** with `@`:
+$twice: applyTwice(@increment, 7);
+// 9 bound to $twice
+```
+
+## List Destructuring/Restructuring
 Destructuring lets you quickly break a list into separate variables, so you can work with each piece individually. Instead of accessing values with long property paths or indexes, destructuring gives you short, readable names for the things you need, making your code simpler and less error-prone.
 It’s especially handy when working with complex data structures or when you want to pull out just the relevant bits from a list.
 ```javscript!
@@ -559,10 +557,10 @@ $person.name; // returns "Tim"
 
 ```
 
-### Custom Types
+## Custom Types
 Custom types let you define your own data structures in Enzo, providing clarity, consistency, and type safety throughout your code. They help ensure data matches the expected shape or structure, reducing bugs and improving readability.
 
-#### Blueprint (class/interface/struct/product type)
+### Blueprint (class/interface/struct/product type)
 Blueprints are reusable templates in Enzo used to instantiate multiple similar objects or data structures. They clearly define the shape, properties, and default values for these structures, enabling organized, type-safe, and repeatable object creation.
 
 Simple example of creating two goblins with different positions on the board:
@@ -644,7 +642,7 @@ $goblin-2: Goblin[
 $goblin-1 then take-damage($this, 10) :> $goblin-1; // $goblin-1 takes damage and is returned by the function with it's health points decreased by 10. $goblin-2 still has 110 health. Two things coming from the same blueprint.
 ```
 
-##### Composing blueprints together
+#### Composing blueprints together
 You can combine blueprints to reuse common parts, like sharing properties or abilities.
 ```javascript!
 Animal: <[
@@ -687,10 +685,10 @@ Pelican: Animal and Flying-Animal and Swimming-Animal and  <[large-mouth: "true"
 Note: If multiple blueprints are composed together and they have conflicting property names (such as both having a "position" property) this is an error. Notice how the "Animal" blueprint above is used to compose in a property that might otherwise be shared between the Flying-Animal and Swimming-Animal blueprints.
 
 
-##### Blueprint Variants (enum/sum type)
+### Blueprint Variants (enum/sum type)
 Sometimes, you want a value to be one of several specific options. For example, a monster could be a Goblin, an Orc, or a Troll. This is where blueprint variants come in—they group options together and ensure you only use one at a time.
 
-###### (A) Simple Choices
+#### (A) Simple Choices
 If you just want to specify a valid list of options:
 ```javascript!
 Magic-Type variants: Fire,
@@ -708,7 +706,7 @@ $wizard-attacks: [
 ];
 ```
 
-###### (B) Variants with Blueprints (sum-of-products)
+#### (B) Variants with Blueprints (sum-of-products)
 You can also define variants where each choice has its own structure:
 ```javascript!
 Goblin: <[
@@ -799,7 +797,6 @@ Monster variants:
         )
     ]>;
 // Goblin, Orc, and Troll all share the Monster qualities defined in the Monster Blueprint
-
 ```
 
 You can use those variant grouping values (as in case A) as values in other blueprints too (such as in case B):
@@ -829,8 +826,7 @@ Goblin variants: Fire-Goblin: <[
 ]>;
 ```
 
-### Dataflow Operators
-
+## Dataflow Operators
 Enzo provides a pair of dataflow operators,`then` and `$this` to thread a value through a sequence of standalone transformations without nesting or method chaining.
 
 Simple example using function atoms:
@@ -860,10 +856,9 @@ then select($this, ["id","email"]);
 
 // or use a "left to right" binding to keep the value going purely from left to right
 $users then filter($this, "active") then sortBy($this, "lastName")then select($this, ["id","email"]):> $selected;
-
 ```
 
-While `:>` is usualy used to rebind values, it can be used to also declare and bind all in one move, which can be useful with pipeline operations so that you can keep a nice `function() then function() then function() :> $final-variable`
+While `:>` is usualy used to rebind values, it can also be used to declare and bind all in one move, which can be useful with pipeline operations so that you can keep a nice `function() then function() then function() :> $final-variable`
 
 The use of the `$this` operator allows for flexibility in how the output of one function gets piped to the next
 
@@ -880,7 +875,6 @@ then reward($this, "rawhide chew")
 ```
 
 You can also use pipeline operators on Lists:
-
 ```javascript!
 $colors: ["red", "green", "blue", "yellow"];
 
@@ -892,7 +886,6 @@ then $this.3;       // index into the result
 **IMPORTANT NOTE:** `$this` is completely unrelated to the `this` keyword found in other languages like javascript. Do not confuse the two. Enzo uses `$self` for that purpose.
 
 ##### Why use `then` pipeline?
-
 - No nesting. Keeps your code flat and readable.
 - No method chaining. Functions remain standalone and there's no overloading of dot notation for list property access and piping stuff together.
 - Clear data-flow. You always read top-to-bottom, left-to-right.
@@ -924,37 +917,3 @@ then $this.3;       // index into the result
 | **Pipeline** `$v then foo($0,1)`                | `foo($v,1)`                                 |
 | **Inline if** `if cond, a, else b`              | `if cond then a else b end`                 |
 | **List destructure** `$x,$y : [1,2]`            | `$tmp : [1,2]; $x : $tmp[0]; $y : $tmp[1];` |
-
-## To-do and Questions:
-- casting solutions?
-
-# scratch pad
-Random notes about things I'm not really sure about yet.
-
----
-
-### Built-in Functions
-
-```javascript!
-say();
-//builtin print function
-
-return();
-// Exit current function with value.
-
-error(message);
-// Raise an exception that halts execution
-
-import("path/to/resource/to/import");
-// imports packages
-
-export("component-name")
-// exports components (for a potential markup language syntax in the future?)
-
-unpack()
-// spread operator ???
-
-toggle()
-// like saying status = !status
-
-```

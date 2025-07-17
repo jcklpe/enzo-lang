@@ -486,3 +486,84 @@ error: 'Plasma' not a valid Magic-Type
 //= USING VARIANTS AS FIELD VALUES IN ANOTHER BLUEPRINT ────────────────
 Magic-Type.Ice
 Magic-Type.Neutral
+
+//= SIMPLE NAMED DESTRUCTURING ─────────────────────────────
+"Todd"
+27
+"blue"
+
+//= NAMED DESTRUCTURING WITH RENAMING ────────────────────
+"Todd"
+27
+"blue"
+
+//= ALTERNATE DIRECTION DESTRUCTURING ────────────────────
+"Todd"
+27
+"blue"
+
+//= POSITIONAL DESTRUCTURING ─────────────────────────────
+1
+2
+3
+
+//= HYBRID NAMED+POSITIONAL DESTRUCTURING ────────────────
+5
+6
+7
+
+//= HYBRID NAMED+POSITIONAL WITH DIFFERENT ORDER ─────────
+5
+6
+7
+
+//= COPY BY VALUE: CHANGING DESTRUCTURED VARIABLE DOES NOT MUTATE ORIGINAL ──────
+"Ali"
+21
+"Mo"
+22
+
+//= RESTRUCTURING: WRITING BACK TO ORIGINAL ──────────────
+"Bea"
+40
+"Beatrix"
+41
+
+//= PARTIAL RESTRUCTURING ────────────────────────────────
+"Calvin"
+19
+"yellow"
+
+//= RESTRUCTURING WITH RENAMING ─────────────────────────
+5
+"green"
+"green"
+
+//= DESTRUCTURING BY REFERENCE: MUTATION PROPAGATES ─────
+"Dan"
+51
+
+//= DESTRUCTURING WITH RENAMING BY REFERENCE ─────────────
+"Denise"
+
+//= EDGE CASE: AMBIGUOUS DESTRUCTURE (SHOULD ERROR) ─────
+error: duplicate variable names in destructure
+    $foo9, $foo9, $bar9: $hybrid9[];
+
+//= EDGE CASE: TOO MANY OR TOO FEW VARIABLES (SHOULD ERROR) ─────────────
+error: destructure count mismatch
+    $a10, $b10, $c10, $d10: $example-list10[];
+1
+2
+
+//= DESTRUCTURING OF EMPTY LIST ────────────────────────
+error: destructure count mismatch
+    $a11, $b11: $empty11[];
+
+//= NESTED DESTRUCTURING ──────────────────────────────
+5
+9
+2
+
+//= RESTRUCTURING NESTED LIST ─────────────────────────
+7

@@ -126,6 +126,6 @@ $inner12.y12;           // prints 9
 $z12;                 // prints 2
 
 //= RESTRUCTURING NESTED LIST ─────────────────────────
-$inner12.x12 <: 7;
+$inner12.x <: 7;
 [$inner12, $z12] :> $outer12[];
 $outer12.1.x12;         // prints 7
