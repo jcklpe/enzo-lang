@@ -1,0 +1,591 @@
+//= MULTI-BRANCH LIST EXACT MATCH
+
+$list-exact: [1,2,3];
+
+If $list-exact is [3,2,1],
+
+  "Reverse matched";
+
+or is [1,2,3],
+
+  "Exact list matched"; // should print
+
+Else,
+
+  "No exact list match";
+
+end;
+
+//= MULTI-BRANCH WITH VARIANT GROUP
+
+$monster-type1: Monster.Goblin;
+
+If $monster-type1 is Monster.Orc,
+
+  "Orc matched";
+
+or is Monster.Goblin,
+
+  "Goblin matched"; // should print
+
+or is Monster.Troll,
+
+  "Troll matched";
+
+Else,
+
+  "No monster match";
+
+end;
+
+//= INLINE IF TRUE and FALSE
+
+$inline-if: "ready";
+
+If $inline-if, "Go!";, Else "Wait!"; // prints "Go!"
+
+$inline-if<: "";
+
+If $inline-if, "Go!";, Else "Wait!"; // prints "Wait!"
+
+//= SIMPLE FOR LOOP
+
+$list-for: [1,2,3];
+
+For $item in $list-for,
+
+  "Item: <$item>"; // prints each item
+
+end;
+
+//= WHILE LOOP SIMPLE
+
+$count-while: 1;
+
+While $count-while is less than 3,
+
+  $count-while;
+
+  $count-while <: $count-while + 1;
+
+end;
+
+$count-while; // prints 3
+
+//= BOOLEAN EDGE CASE FALSE CONDITIONS
+
+If 0, "Won't print"; end;
+
+If "", "Won't print"; end;
+
+If [], "Won't print"; end;
+
+If [0,0,0], "Won't print"; end;
+
+If False, "Won't print"; end;
+
+If Status.False, "Won't print"; end;
+
+If not 0, "will print"; end;
+
+If not "", "will print"; end;
+
+If not [], "will print"; end;
+
+If not [0,0,0], "will print"; end;
+
+If not False, "will print"; end;
+
+If not Status.False, "will print"; end;
+
+//= BOOLEAN EDGE CASE TRUE CONDITIONS
+
+If Monster, "True variant group"; end; // prints
+
+If Monster.Goblin, "True variant value"; end; // prints
+
+If "hi", "True text atom"; end; // prints
+
+//= Function Atom as condition
+
+If ( ), "Won't print"; end; // empty function atom shouldn't trigger
+
+If (4 + 5), "Will print"; end; // function with value should trigger
+
+If (5 - 5), "Won't print"; end; // function returns 0 which is a false condition
+
+If not (5 - 5), "Will print"; end; // function returns 0 which is a false condition
+
+//= IF WITH FUNCTION RETURNING EMPTY (FALSY)
+
+empty-fn-test: ();
+
+If empty-fn-test(),
+
+  "Won't print";
+
+Else,
+
+  "Empty function result"; // should print
+
+end;
+
+//= IF WITH FUNCTION RETURNING NON-EMPTY (TRUTHY)
+
+non-empty-fn-test: ("result";);
+
+If non-empty-fn-test(),
+
+  "Non-empty function result"; // should print
+
+end;
+
+//= IF WITH VARIABLE SET TO EMPTY LIST THEN MUTATED TO TRUTHY LIST
+
+$list-mutate: [];
+
+If $list-mutate,
+
+  "Won't print initially";
+
+end;
+
+$list-mutate <: [1];
+
+If $list-mutate,
+
+  "List became truthy"; // should print
+
+end;
+
+//= IF WITH VARIABLE SET TO TEXT "0" (TRUTHY)
+
+$text-zero: "0";
+
+If $text-zero,
+
+  "Text '0' is truthy"; // should print
+
+end;
+
+//= IF WITH VARIABLE SET TO NUMBER 0.0 (FALSY)
+
+$num-zero: 0.0;
+
+If $num-zero,
+
+  "Won't print";
+
+Else,
+
+  "0.0 is falsy"; // should print
+
+end;
+
+//= IF WITH EMPTY BLUEPRINT INSTANCE (TRUTHY)
+
+EmptyBP: <[]>;
+
+$empty-bp: EmptyBP[];
+
+If $empty-bp,
+
+  "Empty blueprint is truthy"; // should print
+
+end;
+
+//= IF WITH VARIABLE SET TO STATUS.FALSE THEN MUTATED TO CUSTOM STATUS (TRUTHY)
+
+$status-custom: Status.False;
+
+If $status-custom,
+
+  "Won't print initially";
+
+end;
+
+Status variants: Loading, or Dead;
+
+$status-custom <: Status.Loading;
+
+If $status-custom,
+
+  "Custom status is truthy"; // should print
+
+end;
+
+//= WHILE LOOP NEVER ENTERED (INITIAL CONDITION FALSE)
+
+$count-never: 5;
+
+While $count-never is less than 0,
+
+  "Never prints";
+
+  $count-never <: $count-never - 1;
+
+end;
+
+$count-never; // prints 5, unchanged
+
+//= FOR LOOP WITH EMPTY LIST (NEVER ENTERED)
+
+$empty-list-for: [];
+
+For $item in $empty-list-for,
+
+  "Never prints";
+
+end;
+
+$empty-list-for; // prints []
+
+//= ERROR: FOR LOOP WITH NON-ITERABLE
+
+For $item10 in 10, // error: for loop over non-iterable
+
+  "Won't print";
+
+end;
+
+//= MULTI-BRANCH MATCH WITH FIRST TRUTHY MATCH ONLY
+
+$multi-branch: "first";
+
+If $multi-branch is "first",
+
+  "First matched"; // should print
+
+or is "first",
+
+  "Second matched (shouldn't print)";
+
+end;
+
+//= MULTI-BRANCH MATCH WITH MULTIPLE TRUTHY CONDITIONS, ONLY FIRST EXECUTES
+
+$multi-branch-num: 10;
+
+If $multi-branch-num is at least 5,
+
+  "At least 5 matched"; // should print
+
+or is Number,
+
+  "Generic number matched (shouldn't print)";
+
+end;
+
+//= ERROR CASE: USING UNDEFINED VARIABLE IN IF
+
+If $undefined-var,
+
+  "Won't print";
+
+end; // error: undefined variable
+
+//= ERROR CASE: INVALID COMPARISON TYPE
+
+If $list-contain is less than 10,
+
+  "Won't print";
+
+end; // error: can't compare list with number
+
+//= ERROR CASE: INVALID USE OF "CONTAINS" ON NON-LIST
+
+$non-list-val: 10;
+
+If $non-list-val contains 1,
+
+  "Won't print";
+
+end; // error: contains used on non-list
+
+//= ERROR CASE: INVALID MULTI-BRANCH "or" WITHOUT PRECEDING IF
+
+or "value",
+
+  "Won't print";
+
+end; // error: 'or' without preceding 'If'
+
+//= ERROR CASE: ELSE IF WITHOUT INITIAL IF
+
+Else if $color is "blue",
+
+  "Won't print";
+
+end; // error: 'Else if' without preceding 'If'
+
+//= ERROR CASE: ELSE WITHOUT INITIAL IF
+
+Else,
+
+  "Won't print";
+
+end; // error: 'Else' without preceding 'If'
+
+//= BOOLEAN TEST: LIST WITH ALL FALSY ELEMENTS
+
+$list-all-falsy: [0, "", [], False];
+
+If $list-all-falsy,
+
+  "won't print"; // shouldn't print
+
+end;
+
+If not $list-all-falsy,
+
+  "All falsy elements in a list are falsy"; // should print
+
+end;
+
+//= BOOLEAN TEST: TEXT WITH WHITESPACE ONLY (TRUTHY)
+
+$text-whitespace: "   ";
+
+If $text-whitespace,
+
+  "Whitespace text is truthy"; // should print
+
+end;
+
+//= BOOLEAN TEST: VARIABLE WITH EMPTY BLUEPRINT VARIANT (TRUTHY)
+
+EmptyVariantBP variants: Empty, or Filled;
+
+$empty-variant: EmptyVariantBP.Empty;
+
+If $empty-variant,
+
+  "Empty variant is truthy"; // should print
+
+end;
+
+//= BOOLEAN TEST: EMPTY PARAMETERIZED FUNCTION (FALSY)
+
+$empty-param-fn: (param $x: ;);
+
+If $empty-param-fn,
+
+  "Won't print";
+
+Else,
+
+  "Empty parameterized function is falsy"; // should print
+
+end;
+
+//= INLINE IF WITH VARIABLE SET TO NUMBER 1 (TRUTHY)
+
+$inline-num: 1;
+
+If $inline-num, "Number 1 is truthy";, Else "Won't print"; // prints truthy
+
+//= INLINE IF WITH EMPTY LIST (FALSY)
+
+$inline-list: [];
+
+If $inline-list, "Won't print";, Else "Empty list falsy"; // prints falsy
+
+//= DESTRUCTURE IN IF CONDITION (Truthy)
+
+$person21: [$name21: "Eve", $age21: 28];
+
+$name21, $age21: $person21[];
+
+If $age21 is greater than 21,
+
+  "<$name21> is over 21"; // should print "Eve is over 21"
+
+end;
+
+//= DESTRUCTURING BY REFERENCE AND MUTATION IN CONTROL FLOW
+
+$player21: [$hp21: 50, $status21: "alive"];
+
+@player21[] :> $hp21, $status21;
+
+If $hp21 is less than 100,
+
+  100 :> $hp21; // mutate referenced destructured variable
+
+end;
+
+$player21.hp; // should now be 100
+
+//= MULTI-STAGE PIPELINE WITH CONDITIONAL STEP ERROR
+
+$list-pipe: [1,2,3,4];
+
+$list-pipe
+
+then ($this contains 4) :> $contains-four;  // error: comparison word in pipeline
+
+//= Has function and pipeline
+
+has1: (
+
+  param $list: ;
+
+  param $value: ;
+
+  If $list contains $value, return(True); Else return(False); end;
+
+);
+
+$list-pipe22: [1,2,3,4];
+
+$list-pipe22 then has1($this, 4) :> $contains-four22;
+
+If $contains-four22,
+
+  "List contains four"; // should print
+
+end;
+
+//= IF CONDITION WITH LIST INDEX ACCESS
+
+$list-index23: ["zero", "one", "two"];
+
+If $list-index23.2 is "one",
+
+  "Second index matched 'one'"; // should print
+
+end;
+
+If $list-index23.3 is "one",
+
+  "Won't print";
+
+Else,
+
+  "Third index is not 'one'"; // should print
+
+end;
+
+//= LIST MAPPING WITH CONTROL FLOW CONDITION
+
+$user-map: [$username: "alice", $active: "yes"];
+
+If $user-map.active is "yes",
+
+  "<$user-map.username> is active"; // should print "alice is active"
+
+end;
+
+//= LIST MAPPING AND PIPELINE INTO CONTROL FLOW
+
+$user-map
+
+then ($this.active) :> $is-active;
+
+If $is-active is "yes",
+
+  "User active status: yes"; // should print
+
+end;
+
+//= BLUEPRINT DEFAULTS IN CONTROL FLOW
+
+Character: <[$hp: 100, $mana: 50]>;
+
+$hero: Character[];
+
+If $hero.hp is at least 100,
+
+  "Hero at full health"; // should print
+
+end;
+
+//= ERROR: IF CONDITION ACCESSING INVALID LIST INDEX
+
+$bad-list50: [1,2,3];
+
+If $bad-list50.4, // error: list index out of range
+
+  "Won't print";
+
+end;
+
+//= ERROR: IF CONDITION ON UNDEFINED PROPERTY IN LIST
+
+$user-bad: [$name: "Bob"];
+
+If $user-bad.age, // error: list property '$age' not found
+
+  "Won't print";
+
+end;
+
+//= More destructuring stuff and conditionals stuff
+
+$nums29: [5,6,7];
+
+$x29, $y29, $z29: $nums29[];
+
+If $x29 is 5 and $y29 is 6 and $z29 is 7, "Pass: positional destructure"; end;
+
+//= multiple statements in an inline if
+
+If True, "passing one statement from inline If"; "passing a second one"; end;
+
+If True, $inline-value: 5; $inline-value; end;  // prints 5
+
+If False, "this shouldn't print";, Else,  $inline-value2: 6; $inline-value2; end;  // prints 6
+
+//= IF WITH NESTED CONDITIONALS
+
+$status-nested: "outer";
+
+If $status-nested is "outer",
+
+  If $status-nested,
+
+​    "Nested condition true"; // should print
+
+  end;
+
+end;
+
+//= PIPELINE WITH INLINE FUNCTION RETURNING EMPTY (FALSY)
+
+empty-fn-pipeline: ();
+
+empty-fn-pipeline then ($this) :> $pipeline-empty;
+
+If not $pipeline-empty,
+
+  "Pipeline resulted in empty"; // should print
+
+end;
+
+//= BOOLEAN TEST: NESTED LIST WITH TRUTHY AND FALSY ELEMENTS
+
+$nested-list66: [0, "", [0, "valid"]];
+
+If $nested-list66,
+
+  "Nested list considered truthy"; // should print
+
+end;
+
+//= ERROR: USING "is" WITH A VARIANT THAT DOES NOT EXIST
+
+If $status-bp is StatusVariantBP.Unknown, // error: invalid variant comparison
+
+  "Won't print";
+
+end;
+
+//= IF CONDITION WITH NESTED LIST INDEX ACCESS
+
+$nested-list: [["zero", "one"], ["two", "three"]];
+
+If $nested-list.2.1 is "two",
+
+  "Nested index matched 'two'"; // should print
+
+end;
