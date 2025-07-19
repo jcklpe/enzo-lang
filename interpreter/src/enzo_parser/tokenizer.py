@@ -48,6 +48,21 @@ TOKEN_SPEC = [
     ("RETURN", r"return"),  # Add RETURN keyword before KEYNAME
     ("THEN", r"then"),      # Add THEN keyword before KEYNAME
     ("PARAM", r"param"),    # Add PARAM keyword before KEYNAME
+    # Control flow keywords (must come before KEYNAME)
+    ("IF", r"\bIf\b"),
+    ("ELSE", r"\bElse\b"),
+    ("END", r"\bend\b"),
+    ("NOT", r"\bnot\b"),
+    ("IS", r"\bis\b"),
+    ("LESS", r"\bless\b"),
+    ("THAN", r"\bthan\b"),
+    ("GREATER", r"\bgreater\b"),
+    ("AT_WORD", r"\bat\b"),         # "at" as a word (for "at most", "at least")
+    ("MOST", r"\bmost\b"),
+    ("LEAST", r"\bleast\b"),
+    ("CONTAINS", r"\bcontains\b"),
+    ("EITHER", r"\beither\b"),
+    ("OTHERWISE", r"\bOtherwise\b"),
     ("THIS", r"\$this"),    # Add $this as dedicated reserved token
     # Allow dashes in variable names after the first character for both $-prefixed and non-prefixed
     ("KEYNAME",      r"\$[a-zA-Z0-9_-]+|[a-zA-Z_][a-zA-Z0-9_-]*"),

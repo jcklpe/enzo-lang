@@ -399,6 +399,10 @@ class Parser:
             # Always consume a trailing semicolon or comma after return
             return ReturnNode(expr, code_line=code_line)
 
+        # --- Handle control flow: If statements ---
+        if t and t.type == "IF":
+            return self.parse_if_statement()
+
         # --- Handle param statement: param $name: default_value; ---
         if t and t.type == "PARAM":
             self.advance()  # consume 'param'
@@ -904,6 +908,140 @@ class Parser:
         target_expr = self.parse_destructuring_source()
 
         return RestructuringBinding(target_vars, new_var, target_expr, False, code_line=self._get_code_line(first_var_token))
+
+    def parse_if_statement(self):
+        """Parse If statement with optional Else if and Else blocks"""
+        from src.enzo_parser.ast_nodes import IfStatement
+
+        # Consume 'If'
+        self.advance()
+
+        # Parse condition
+        condition = self.parse_comparison()
+
+        # Expect comma
+        if not self.peek() or self.peek().type != "COMMA":
+            raise EnzoParseError("Expected ',' after If condition", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+        self.advance()
+
+        # Parse then block (statements until 'end', 'Else', or 'Else if')
+        then_block = []
+        while self.peek() and self.peek().type not in ("END", "ELSE"):
+            stmt = self.parse_statement()
+            then_block.append(stmt)
+            # Consume semicolons
+            while self.peek() and self.peek().type == "SEMICOLON":
+                self.advance()
+
+        # Parse optional else block
+        else_block = None
+        if self.peek() and self.peek().type == "ELSE":
+            self.advance()  # consume 'Else'
+
+            # Check for 'Else if' pattern
+            if self.peek() and self.peek().type == "IF":
+                # This is 'Else if' - parse as nested if statement
+                else_block = [self.parse_if_statement()]
+            else:
+                # Regular else block
+                if self.peek() and self.peek().type == "COMMA":
+                    self.advance()  # consume comma after 'Else'
+
+                # Parse else statements
+                else_block = []
+                while self.peek() and self.peek().type != "END":
+                    stmt = self.parse_statement()
+                    else_block.append(stmt)
+                    # Consume semicolons
+                    while self.peek() and self.peek().type == "SEMICOLON":
+                        self.advance()
+
+        # Expect 'end'
+        if not self.peek() or self.peek().type != "END":
+            raise EnzoParseError("Expected 'end' after If statement", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+        self.advance()  # consume 'end'
+
+        return IfStatement(condition, then_block, else_block)
+
+    def parse_comparison(self):
+        """Parse comparison expressions like 'expr is value' or 'expr contains value'"""
+        from src.enzo_parser.ast_nodes import ComparisonExpression, LogicalExpression, NotExpression
+
+        # Parse left side
+        left = self.parse_logical_expression()
+
+        return left
+
+    def parse_logical_expression(self):
+        """Parse logical expressions with 'and' and 'or'"""
+        from src.enzo_parser.ast_nodes import LogicalExpression
+
+        left = self.parse_not_expression()
+
+        while self.peek() and self.peek().type in ("AND", "OR"):
+            op_token = self.advance()
+            right = self.parse_not_expression()
+            left = LogicalExpression(left, op_token.value, right)
+
+        return left
+
+    def parse_not_expression(self):
+        """Parse 'not' expressions"""
+        from src.enzo_parser.ast_nodes import NotExpression
+
+        if self.peek() and self.peek().type == "NOT":
+            self.advance()  # consume 'not'
+            expr = self.parse_comparison_expression()
+            return NotExpression(expr)
+
+        return self.parse_comparison_expression()
+
+    def parse_comparison_expression(self):
+        """Parse comparison expressions like 'expr is value'"""
+        from src.enzo_parser.ast_nodes import ComparisonExpression
+
+        left = self.parse_value_expression()
+
+        # Check for comparison operators
+        if self.peek() and self.peek().type == "IS":
+            op_start = self.advance()  # consume 'is'
+            operator = "is"
+
+            # Check for compound operators like 'is less than'
+            if self.peek() and self.peek().type == "LESS":
+                self.advance()  # consume 'less'
+                if self.peek() and self.peek().type == "THAN":
+                    self.advance()  # consume 'than'
+                    operator = "is less than"
+                else:
+                    raise EnzoParseError("Expected 'than' after 'is less'", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+            elif self.peek() and self.peek().type == "GREATER":
+                self.advance()  # consume 'greater'
+                if self.peek() and self.peek().type == "THAN":
+                    self.advance()  # consume 'than'
+                    operator = "is greater than"
+                else:
+                    raise EnzoParseError("Expected 'than' after 'is greater'", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+            elif self.peek() and self.peek().type == "AT_WORD":
+                at_token = self.advance()  # consume 'at'
+                if self.peek() and self.peek().type == "MOST":
+                    self.advance()  # consume 'most'
+                    operator = "is at most"
+                elif self.peek() and self.peek().type == "LEAST":
+                    self.advance()  # consume 'least'
+                    operator = "is at least"
+                else:
+                    raise EnzoParseError("Expected 'most' or 'least' after 'is at'", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+
+            right = self.parse_value_expression()
+            return ComparisonExpression(left, operator, right)
+
+        elif self.peek() and self.peek().type == "CONTAINS":
+            self.advance()  # consume 'contains'
+            right = self.parse_value_expression()
+            return ComparisonExpression(left, "contains", right)
+
+        return left
 
 # Top-level API for main interpreter and debug module
 

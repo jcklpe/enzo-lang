@@ -104,6 +104,8 @@ def split_statements(lines):
     paren_depth = 0
     brace_depth = 0
     bracket_depth = 0
+    if_depth = 0  # Track control flow depth
+    
     for line in lines:
         stripped = line.rstrip('\n')
         # Skip blank/comment lines unless already in a statement
@@ -117,6 +119,15 @@ def split_statements(lines):
         # Update depths (but ignore characters in comments)
         comment_start = stripped.find('//')
         line_to_parse = stripped if comment_start == -1 else stripped[:comment_start]
+        
+        # Track control flow keywords
+        import re
+        # Check for If/Else/end keywords (must be whole words)
+        if re.search(r'\bIf\b', line_to_parse):
+            if_depth += 1
+        if re.search(r'\bend\b', line_to_parse):
+            if_depth = max(0, if_depth - 1)  # Prevent negative depth
+        
         for char in line_to_parse:
             if char == '(':
                 paren_depth += 1
@@ -133,7 +144,7 @@ def split_statements(lines):
         buffer.append(stripped)
         # Only break on semicolon if all depths are zero and semicolon is not in a comment
         has_semicolon = ';' in line_to_parse  # Only check semicolons outside of comments
-        if paren_depth <= 0 and brace_depth <= 0 and bracket_depth <= 0 and has_semicolon:
+        if paren_depth <= 0 and brace_depth <= 0 and bracket_depth <= 0 and if_depth <= 0 and has_semicolon:
             stmts.append(buffer)
             buffer = []
     if buffer:
@@ -155,9 +166,11 @@ def run_enzo_file(filename):
         # --- NEW: If this block is a list of single-line statements, process each line independently ---
         # BUT: Don't do this if the block starts with '(' (function atom) or other multi-line constructs
         # ALSO: Don't do this if any line contains 'then (' (pipeline with function atom)
+        # ALSO: Don't do this if the block contains control flow keywords (If, Else, end)
         if (all(';' in line for line in stmt_lines) and len(stmt_lines) > 1 and
             not any(line.strip().startswith(('(', '[', '{')) for line in stmt_lines) and
-            not any('then (' in line for line in stmt_lines)):
+            not any('then (' in line for line in stmt_lines) and
+            not any(any(keyword in line for keyword in ['If ', 'Else', 'end;']) for line in stmt_lines)):
             for line in stmt_lines:
                 line = line.strip()
                 if not line:
@@ -209,7 +222,17 @@ def run_enzo_file(filename):
         log_debug(f"[CLI] About to parse statement: {repr(statement)}")
 
         try:
-            result = eval_ast(parse(statement), value_demand=True)
+            # Use parse_program for multi-line statements, parse for single statements
+            if '\n' in statement or ';' in statement.rstrip(';'):
+                # Multi-line or multiple statements - use program parser
+                from src.enzo_parser.parser import parse_program
+                result = eval_ast(parse_program(statement), value_demand=True)
+                # If result is a list and has only one element, unwrap it
+                if isinstance(result, list) and len(result) == 1:
+                    result = result[0]
+            else:
+                # Single statement - use regular parser
+                result = eval_ast(parse(statement), value_demand=True)
             if result is not None:
                 print(format_val(result))
         except InterpolationParseError as e:

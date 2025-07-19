@@ -1,7 +1,7 @@
 from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val, log_debug, EnzoList, deep_copy_enzo_value
 from collections import ChainMap
-from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding, IfStatement, ComparisonExpression, LogicalExpression, NotExpression
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
 from src.error_messaging import (
     error_message_already_defined,
@@ -717,13 +717,13 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
     if isinstance(node, RestructuringBinding):
         # Handle restructuring: $var1, $var2 -> $new: source[]
-        
+
         # Special case: If new_var is None, this might be reverse assignment
         # Syntax: [$var1, $var2] :> $target[] should assign values TO target
         if node.new_var is None:
             # This is reverse assignment: write target_vars values to source_expr
             target_list = eval_ast(node.source_expr, value_demand=True, env=env)
-            
+
             # Create new list with current values of target_vars
             new_elements = []
             for var_name in node.target_vars:
@@ -731,7 +731,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     new_elements.append(env[var_name])
                 else:
                     new_elements.append(Empty())
-            
+
             # Replace the target list contents
             if hasattr(target_list, '_elements'):  # EnzoList
                 target_list._elements.clear()
@@ -753,7 +753,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         dollar_name = '$' + target_var
                         if dollar_name not in env:
                             env[dollar_name] = new_elements
-            
+
             return None
 
         # Regular restructuring logic (extraction)
@@ -1622,6 +1622,45 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
         return instance
 
+    # Control flow evaluation
+    if isinstance(node, IfStatement):
+        condition_result = eval_ast(node.condition, env=env)
+        if _is_truthy(condition_result):
+            # Execute then block
+            result = None
+            for stmt in node.then_block:
+                result = eval_ast(stmt, env=env)
+            return result
+        elif node.else_block:
+            # Execute else block
+            result = None
+            for stmt in node.else_block:
+                result = eval_ast(stmt, env=env)
+            return result
+        return None
+
+    if isinstance(node, ComparisonExpression):
+        left_val = eval_ast(node.left, env=env)
+        right_val = eval_ast(node.right, env=env)
+        return _compare_values(left_val, node.operator, right_val)
+
+    if isinstance(node, LogicalExpression):
+        left_val = eval_ast(node.left, env=env)
+        if node.operator == "and":
+            if not _is_truthy(left_val):
+                return left_val  # Short-circuit
+            return eval_ast(node.right, env=env)
+        elif node.operator == "or":
+            if _is_truthy(left_val):
+                return left_val  # Short-circuit
+            return eval_ast(node.right, env=env)
+        else:
+            raise EnzoRuntimeError(f"Unknown logical operator: {node.operator}", code_line=code_line)
+
+    if isinstance(node, NotExpression):
+        operand_val = eval_ast(node.operand, env=env)
+        return not _is_truthy(operand_val)
+
     raise EnzoRuntimeError(error_message_unknown_node(node), code_line=getattr(node, 'code_line', None))
 
 # ── text_atom‐interpolation helper ───────────────────────────────────────────
@@ -1694,4 +1733,70 @@ def _check_for_this_reference(node):
             if _check_for_this_reference(attr_value):
                 return True
 
+    return False
+
+def _is_truthy(value):
+    """Determine if a value is truthy in Enzo's boolean context"""
+    if value is None or isinstance(value, Empty):
+        return False
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value != 0
+    if isinstance(value, str):
+        return value != ""
+    if isinstance(value, list):
+        return len(value) > 0
+    if isinstance(value, EnzoList):
+        return len(value.elements) > 0
+    if isinstance(value, EnzoVariantInstance):
+        # Check for specific falsy variants
+        if value.group_name == "False" or (value.group_name == "Status" and value.variant_name == "False"):
+            return False
+        return True
+    if isinstance(value, EnzoFunction):
+        return True
+    return bool(value)
+
+def _compare_values(left, operator, right):
+    """Compare two values using the given operator"""
+    if operator == "is":
+        # Type and value comparison
+        if isinstance(right, str) and right in ["Number", "Text", "List", "Empty"]:
+            # Type checking
+            if right == "Number":
+                return isinstance(left, (int, float))
+            elif right == "Text":
+                return isinstance(left, str)
+            elif right == "List":
+                return isinstance(left, (list, EnzoList))
+            elif right == "Empty":
+                return left is None or isinstance(left, Empty)
+        # Value comparison
+        return left == right
+    elif operator == "is less than":
+        return isinstance(left, (int, float)) and isinstance(right, (int, float)) and left < right
+    elif operator == "is greater than":
+        return isinstance(left, (int, float)) and isinstance(right, (int, float)) and left > right
+    elif operator == "is at most":
+        return isinstance(left, (int, float)) and isinstance(right, (int, float)) and left <= right
+    elif operator == "is at least":
+        return isinstance(left, (int, float)) and isinstance(right, (int, float)) and left >= right
+    elif operator == "contains":
+        if isinstance(left, (list, EnzoList)):
+            if isinstance(left, EnzoList):
+                return right in left.elements
+            else:
+                return right in left
+        return False
+    else:
+        raise EnzoRuntimeError(f"Unknown comparison operator: {operator}")
+
+def _contains_value(container, value):
+    """Check if container contains value"""
+    if isinstance(container, (list, EnzoList)):
+        if isinstance(container, EnzoList):
+            return value in container.elements
+        else:
+            return value in container
     return False
