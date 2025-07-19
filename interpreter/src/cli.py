@@ -105,7 +105,7 @@ def split_statements(lines):
     brace_depth = 0
     bracket_depth = 0
     if_depth = 0  # Track control flow depth
-    
+
     for line in lines:
         stripped = line.rstrip('\n')
         # Skip blank/comment lines unless already in a statement
@@ -119,7 +119,7 @@ def split_statements(lines):
         # Update depths (but ignore characters in comments)
         comment_start = stripped.find('//')
         line_to_parse = stripped if comment_start == -1 else stripped[:comment_start]
-        
+
         # Track control flow keywords
         import re
         # Check for If/Else/end keywords (must be whole words)
@@ -127,7 +127,7 @@ def split_statements(lines):
             if_depth += 1
         if re.search(r'\bend\b', line_to_parse):
             if_depth = max(0, if_depth - 1)  # Prevent negative depth
-        
+
         for char in line_to_parse:
             if char == '(':
                 paren_depth += 1
@@ -227,14 +227,19 @@ def run_enzo_file(filename):
                 # Multi-line or multiple statements - use program parser
                 from src.enzo_parser.parser import parse_program
                 result = eval_ast(parse_program(statement), value_demand=True)
-                # If result is a list and has only one element, unwrap it
-                if isinstance(result, list) and len(result) == 1:
-                    result = result[0]
+                # If result is a list, print each string result on its own line
+                if isinstance(result, list):
+                    for item in result:
+                        if item is not None and isinstance(item, str):
+                            print(format_val(item))
+                else:
+                    if result is not None:
+                        print(format_val(result))
             else:
                 # Single statement - use regular parser
                 result = eval_ast(parse(statement), value_demand=True)
-            if result is not None:
-                print(format_val(result))
+                if result is not None:
+                    print(format_val(result))
         except InterpolationParseError as e:
             msg = format_parse_error(e, src=statement)
             if "\n" in msg:
