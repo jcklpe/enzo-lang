@@ -1,4 +1,5 @@
 # enzo-lang
+
 ![image](https://hackmd.io/_uploads/BJTFqAWVex.png)
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jcklpe/enzo-lang/blob/master/interpreter/demo.ipynb)
@@ -12,6 +13,7 @@ I'm def interested in feedback but also understand that this is basically just a
 Also want to give a shout out to the ["Quorum Language Project"](https://quorumlanguage.com/) for opening my eyes to the intersection between UX practice and syntax design.
 
 ## Comments
+
 ```javascript!
 // single line comment, will not appear in final output. This allows you to write things in the source code for you to read and help remember what stuff does.
 /' block comment, the use of single quote has better keyboard ergonomics than the star symbol typically used '/
@@ -19,6 +21,7 @@ Also want to give a shout out to the ["Quorum Language Project"](https://quoruml
 ```
 
 ## Atoms
+
 Atoms are the most basic parts of the enzo language. Atoms are separated by a semi-colon `;` punctuation.
 
 Atoms can be bound to a keyname using the `:` operator. Keynames are distinguished with the `$` sigil.
@@ -33,6 +36,7 @@ You use keynames to more easily invoke that atomvalue where you need in code. An
 There are 5 types of atoms. These types are [static but inferred](https://www.perplexity.ai/search/plain-language-explanation-of-bIpK7TNKTtCK.Ao8RdeIuw).
 
 ### Number atom
+
 A number atom is any [real number](https://en.wikipedia.org/wiki/Real_number).
 
 ```javascript!
@@ -50,6 +54,7 @@ $number-example: 888;
 ```
 
 ### Text (string)
+
 A text atom is any sequence of characters enclosed in double quotes `"..."`.
 This includes letters, numbers, punctuation, spaces, emoji, or [any valid Unicode symbol](https://en.wikipedia.org/wiki/Unicode).
 
@@ -69,6 +74,7 @@ $text-example: "here is some text";
 ```
 
 #### Text interpolation
+
 ```javascript!
 $name: "Bob";
 $favorite-color: "blue";
@@ -85,6 +91,7 @@ $text-example;
 ```
 
 ### List (array/list/map/object/dict)
+
 A list atom is an ordered sequence of values, either atoms, keynames referencing those atoms, or keyname-atomvalue pairs, enclosed in brackets `[...]`.
 
 ```javascript!
@@ -127,7 +134,6 @@ $list-example: [
 ];
 ```
 
-
 You can access a specific item in the list via a numbered index like so:
 
 ```javascript!
@@ -150,6 +156,7 @@ $pick:     $reversed.2;       // → "blue"
 The numeric indexing of lists starts at 1.
 
 #### Dot-Numeric vs. Property Access
+
 - **List property access** uses a “dot + identifier” (e.g. `$user.name`).
 - **List indexing** uses a “dot + integer literal” (e.g. `$user.friends.2`)—the parser sees the digit immediately after the dot and interprets it as list indexing rather than property lookup.
 
@@ -166,11 +173,13 @@ $secondLog: $user.logs.2;    // → "logout"
 ```
 
 ### Function (anonymous function/expression block)
+
 A function atom is a piece of code that does something and gives an atomvalue back.
 
 Examples:
 
 Basic arithmetic
+
 ```javascript!
 (2 + 2);    // returns 4
 (2 - 3);    // returns -1
@@ -234,6 +243,7 @@ $function2(5);   // returns 10
 ```
 
 #### Function Atom Evaluation
+
 In Enzo, parentheses always create a function atom (an anonymous function/code block).
 
 If a function atom appears in a context that requires its value immediately (such as a top-level statement, string interpolation, or as a value in a return statement), it is immediately invoked.
@@ -241,6 +251,7 @@ If a function atom is being bound to a variable, stored in a list or list, or pa
 This is called demand-driven function atom evaluation.
 
 ### Empty variables (null, undefined)
+
 A variable can be created that is empty.
 
 ```javascript!
@@ -250,6 +261,7 @@ A variable can be created that is empty.
 It has no type.
 
 ## Variable Rebinding
+
 When a variable has already been declared, but it's value is reasigned it can be done like so:
 
 ```javascript!
@@ -259,6 +271,7 @@ $dog-name <: "Fluffy";
 ```
 
 ### Filling empty values
+
 When an empty variable is initially created, it has no type. The first non-empty value bound to it locks it into that type.
 
 ```javascript!
@@ -274,7 +287,9 @@ $x <: "five"
 ```
 
 ## Variable Invocation
+
 Default case:
+
 ```javascript!
 $text-example: "here is some text";
 $text-example;
@@ -297,6 +312,7 @@ $example;   // returns 4
 ```
 
 ## Function invocation
+
 ```javascript!
 function-example: (
     param $first-number: 1;
@@ -429,6 +445,7 @@ $animal.dog.bark(getCurrentStatus(), "Bark Bark");
 ```
 
 ## Invocation versus reference
+
 Enzo distinguishes **invoking** a variable or function (by value/copy) from **referencing** it using the `@` sigil. This is a generalized solution to reference versus copy across Enzo.
 
 ```javascript!
@@ -489,6 +506,7 @@ $twice: applyTwice(@increment, 7);
 ```
 
 ## List Destructuring/Restructuring
+
 Destructuring lets you quickly break a list into separate variables, so you can work with each piece individually. Instead of accessing values with long property paths or indexes, destructuring gives you short, readable names for the things you need, making your code simpler and less error-prone.
 It’s especially handy when working with complex data structures or when you want to pull out just the relevant bits from a list.
 
@@ -534,7 +552,7 @@ $person.name; // returns "Jason"
 [$age, $shirt-color -> $favorite-color] :> $person[];
 ```
 
- If you want to destructure by reference (meaning you want changes to the destructured variables to automatically propagate to the original list being destructured) then you need to use the `@` sigil when destructuring. This makes restructuring unnecessary but means all changes to the destructured variables will effect the original:
+If you want to destructure by reference (meaning you want changes to the destructured variables to automatically propagate to the original list being destructured) then you need to use the `@` sigil when destructuring. This makes restructuring unnecessary but means all changes to the destructured variables will effect the original:
 
 ```javscript!
 $person : [
@@ -550,9 +568,11 @@ $person.name; // returns "Tim"
 ```
 
 ## Custom Types
+
 Custom types let you define your own data structures in Enzo, providing clarity, consistency, and type safety throughout your code. They help ensure data matches the expected shape or structure, reducing bugs and improving readability.
 
 ### Blueprint (class/interface/struct/product type)
+
 Blueprints are reusable templates in Enzo used to instantiate multiple similar objects or data structures. They clearly define the shape, properties, and default values for these structures, enabling organized, type-safe, and repeatable object creation.
 
 Simple example of creating two goblins with different positions on the board:
@@ -634,6 +654,7 @@ $goblin-1 then take-damage($this, 10) :> $goblin-1; // $goblin-1 takes damage an
 ```
 
 #### Composing blueprints together
+
 You can combine blueprints to reuse common parts, like sharing properties or abilities.
 
 ```javascript!
@@ -676,11 +697,12 @@ Pelican: Animal and Flying-Animal and Swimming-Animal and  <[large-mouth: "true"
 
 Note: If multiple blueprints are composed together and they have conflicting property names (such as both having a "position" property) this is an error. Notice how the "Animal" blueprint above is used to compose in a property that might otherwise be shared between the Flying-Animal and Swimming-Animal blueprints.
 
-
 ### Blueprint Variants (enum/sum type)
+
 Sometimes, you want a value to be one of several specific options. For example, a monster could be a Goblin, an Orc, or a Troll. This is where blueprint variants come in—they group options together and ensure you only use one at a time.
 
 #### (A) Simple Choices
+
 If you just want to specify a valid list of options:
 
 ```javascript!
@@ -700,6 +722,7 @@ $wizard-attacks: [
 ```
 
 #### (B) Variants with Blueprints (sum-of-products)
+
 You can also define variants where each choice has its own structure:
 
 ```javascript!
@@ -825,9 +848,11 @@ Goblin variants: Fire-Goblin: <[
 ```
 
 ## Control flow logic
+
 Control flow logic lets you tell your code what to do next, based on the current state or value of things. It checks conditions (like "Is this list empty?" or "Is the user logged in?") and decides which blocks of code to run.
 
 ### True/false conditions
+
 There is no dedicated "boolean" type in Enzo. All values [are interpreted as either true or false](https://www.perplexity.ai/search/what-is-truthy-and-falsy-in-a-dZk5OogGSRmHQLFjGJB4HA) in control flow statements, according to these rules:
 Examples of “true” conditions:
 
@@ -857,11 +882,12 @@ $kinda-hacky: False; // Built in variant group explained below.
 $hacky2: Status.False; // Built in variant group explained below.
 ```
 
-The built in blueprint variant groups `True`, `False`, and `Status` (with builtin members `Status.True`, and Status.False`) are provided out of the box. These are provided for the sake of readability, they're not a proper separate "Boolean type" as found in many other languages. They can be extended by the user, such as adding things like `Status.Loading`, `Status.Dead` or what have you. `False` and `Status.False` are the only variant group or variant values which return false in a truth condition context. Kinda hacky? ...True!
+The built in blueprint variant groups `True`, `False`, and `Status` (with builtin members `Status.True`, and `Status.False`) are provided out of the box. These are provided for the sake of readability, they're not a proper separate "Boolean type" as found in many other languages. They can be extended by the user, such as adding things like `Status.Loading`, `Status.Dead`or what have you.`False` and `Status.False` are the only variant group or variant values which return false in a truth condition context. Kinda hacky? ...True!
 
 Comparisons and functions do not automatically return a boolean type, but functions may return True or False by convention.
 
 ### If
+
 `If` by itself just checks for a true condition value.
 
 ```javascript!
@@ -873,6 +899,7 @@ end;
 ```
 
 ### Else
+
 Else provides a fallback for if the If condition is not met.
 
 ```javascript!
@@ -884,6 +911,7 @@ end;
 ```
 
 ### not
+
 Add in `not` to test for false condition values instead of true condition values.
 
 ```javascript!
@@ -912,7 +940,9 @@ end;
 ```
 
 ### Comparison words
+
 #### is
+
 `is` is a comparison word, where rather than simply testing the variable for true/false condition values, a comparison is made, which then resolves to a true/false condition value.
 
 ```javascript!
@@ -928,6 +958,7 @@ end;
 `is` can be used to compare in several ways:
 
 ##### Value match
+
 Most of our examples have been value matches. It's just "does this variable match this value":
 
 ```javascript!
@@ -937,6 +968,7 @@ end;
 ```
 
 ##### Type match
+
 ```javascript!
 If $x is Number,
     "It's a number!";
@@ -952,6 +984,7 @@ end;
 ```
 
 ### less than
+
 `less than` is a comparison word that checks if a number is less than another number.
 
 ```javascript!
@@ -963,6 +996,7 @@ end;
 ```
 
 #### greater than
+
 `greater than` is a comparison word that checks if a number is greater than another number.
 
 ```javascript!
@@ -974,6 +1008,7 @@ end;
 ```
 
 #### at most (<=)
+
 `at most` is a comparison word that checks if a number is less than or equal to another number.
 
 ```javascript!
@@ -985,6 +1020,7 @@ end;
 ```
 
 #### at least (>=)
+
 `at least` is a comparison word that checks if a number is greater than or equal to another number.
 
 ```javascript!
@@ -996,6 +1032,7 @@ end;
 ```
 
 #### contains
+
 `contains` is a comparison word that checks if a list contains a value.
 
 ```javascript!
@@ -1013,7 +1050,9 @@ end;
 ```
 
 ### Condition combiners
+
 #### and
+
 `and` allows you to test for multiple conditions. Both must resolve to true for the logic to fire.
 
 ```javascript!
@@ -1031,6 +1070,7 @@ end;
 ```
 
 #### or
+
 `or` allows you to test for multiple conditions, and only one needs to resolve to true for the logic to fire.
 
 ```javascript!
@@ -1042,6 +1082,7 @@ end;
 ```
 
 ### Else if
+
 If you want to chain several if statements in a row, but only have the subsequent ones fire if the prior one fails you can use `Else if`.
 
 ```javascript!
@@ -1055,6 +1096,7 @@ end;
 ```
 
 ### Multi-branch checks (switch statement)
+
 Multi-branch checks let you test one value against several conditions in a row.
 
 ```javascript!
@@ -1086,6 +1128,7 @@ end;
 Order matters when using `either` so keep that in mind.
 
 ### Inline if statement
+
 ```javascript!
 If $ready, "ready to go!";, Else "not ready yet!";
 ```
@@ -1093,6 +1136,7 @@ If $ready, "ready to go!";, Else "not ready yet!";
 There are no ternaries. I personally find them very difficult to read, but I think this inline syntax is pretty compact all things considered.
 
 ### For
+
 ```javascript!
 For $param in $list-name,
     "this iteration has returned <$param> of <$list-name>";
@@ -1100,6 +1144,7 @@ end;
 ```
 
 ### While
+
 ```javascript!
 While $number is less than 10,
     $number <: $number + 1
@@ -1107,6 +1152,7 @@ end;
 ```
 
 ## Dataflow Operators
+
 Enzo provides a pair of dataflow operators,`then` and `$this` to thread a value through a sequence of standalone transformations without nesting or method chaining.
 
 Simple example using function atoms:
@@ -1195,8 +1241,9 @@ then $this.3;       // index into the result
 
 ## Desugaring catalogue
 
+
 | Sugar syntax                         | Core form after parse-rewrite               |
-| ------------------------------------ | ------------------------------------------- |
+| -------------------------------------- | --------------------------------------------- |
 | **Pipeline** `$v then foo($0,1)`     | `foo($v,1)`                                 |
 | **Inline if** `if cond, a, else b`   | `if cond then a else b end`                 |
 | **List destructure** `$x,$y : [1,2]` | `$tmp : [1,2]; $x : $tmp[0]; $y : $tmp[1];` |
