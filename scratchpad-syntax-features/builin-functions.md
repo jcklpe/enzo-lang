@@ -22,4 +22,25 @@ unpack()
 toggle()
 // like saying status = !status
 
+length();
+// find list length
+
+trim()
+trim left right?
+find substring
+
+input() // for text adventure
+
+absolute value?
+
+enumerate? range?
+
+type()
+
+random
+
+rounding
+
+$random (defaults   )
+
 ```

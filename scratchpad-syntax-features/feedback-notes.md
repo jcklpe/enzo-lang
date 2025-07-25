@@ -1,0 +1,6 @@
+- implement classic algos
+- consider the use of computed indices for arrays with $array.($index + 1)
+- implement classic recursion tests
+- modulo?
+- squaring operators?
+- inverse exponent (the root)
