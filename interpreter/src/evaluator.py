@@ -682,8 +682,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         source_value = eval_ast(node.source_expr, value_demand=True, env=env)
 
         # Ensure source is iterable
-        if hasattr(source_value, 'elements'):  # EnzoList
-            items = source_value.elements
+        if isinstance(source_value, EnzoList):
+            items = source_value._elements
         elif isinstance(source_value, list):
             items = source_value
         elif isinstance(source_value, dict):
@@ -1757,7 +1757,7 @@ def _is_truthy(value):
     if isinstance(value, list):
         return len(value) > 0
     if isinstance(value, EnzoList):
-        return len(value.elements) > 0
+        return len(value) > 0
     if isinstance(value, EnzoVariantInstance):
         # Check for specific falsy variants
         if value.group_name == "False" or (value.group_name == "Status" and value.variant_name == "False"):
@@ -1793,10 +1793,7 @@ def _compare_values(left, operator, right):
         return isinstance(left, (int, float)) and isinstance(right, (int, float)) and left >= right
     elif operator == "contains":
         if isinstance(left, (list, EnzoList)):
-            if isinstance(left, EnzoList):
-                return right in left.elements
-            else:
-                return right in left
+            return _contains_value(left, right)
         return False
     else:
         raise EnzoRuntimeError(f"Unknown comparison operator: {operator}")
