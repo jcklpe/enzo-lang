@@ -1641,16 +1641,16 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
     if isinstance(node, ComparisonExpression):
         left_val = eval_ast(node.left, env=env)
-        
+
         # Special handling for type comparisons with 'is'
-        if (node.operator == "is" and 
-            isinstance(node.right, VarInvoke) and 
+        if (node.operator == "is" and
+            isinstance(node.right, VarInvoke) and
             node.right.name in ["Number", "Text", "List", "Empty"]):
             # Pass the type name directly instead of evaluating as a variable
             right_val = node.right.name
         else:
             right_val = eval_ast(node.right, env=env)
-            
+
         return _compare_values(left_val, node.operator, right_val)
 
     if isinstance(node, LogicalExpression):

@@ -49,6 +49,8 @@ TOKEN_SPEC = [
     ("THEN", r"then"),      # Add THEN keyword before KEYNAME
     ("PARAM", r"param"),    # Add PARAM keyword before KEYNAME
     # Control flow keywords (must come before KEYNAME)
+    # Note: ELSE_IF must come before ELSE to match the longer pattern first
+    ("ELSE_IF", r"\bElse if\b"),
     ("IF", r"\bIf\b"),
     ("ELSE", r"\bElse\b"),
     ("END", r"\bend\b"),

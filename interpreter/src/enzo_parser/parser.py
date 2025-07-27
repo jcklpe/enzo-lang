@@ -909,10 +909,70 @@ class Parser:
 
         return RestructuringBinding(target_vars, new_var, target_expr, False, code_line=self._get_code_line(first_var_token))
 
-    def parse_if_statement(self):
-        """Parse If statement with optional Else if and Else blocks"""
+    def _parse_if_body(self, condition, consume_end=True):
+        """Parse the body of an if statement given a condition"""
         from src.enzo_parser.ast_nodes import IfStatement
 
+        # Parse then block (statements until 'end', 'Else', or 'Else if')
+        then_block = []
+        while self.peek() and self.peek().type not in ("END", "ELSE", "ELSE_IF"):
+            stmt = self.parse_statement()
+            then_block.append(stmt)
+            # Consume semicolons
+            while self.peek() and self.peek().type == "SEMICOLON":
+                self.advance()
+
+        # Parse optional else block
+        else_block = None
+        if self.peek() and self.peek().type in ("ELSE", "ELSE_IF"):
+            if self.peek().type == "ELSE_IF":
+                # This is 'Else if' - parse the condition and create nested if
+                self.advance()  # consume 'Else if'
+
+                # Parse condition directly
+                nested_condition = self.parse_comparison()
+
+                # Expect comma
+                if not self.peek() or self.peek().type != "COMMA":
+                    raise EnzoParseError("Expected ',' after Else if condition", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+                self.advance()
+
+                # Create a nested if statement with this condition (don't consume end)
+                nested_if = self._parse_if_body(nested_condition, consume_end=False)
+                else_block = [nested_if]
+            else:
+                # Handle regular ELSE
+                self.advance()  # consume 'Else'
+
+                # Check for 'Else if' pattern (legacy support)
+                if self.peek() and self.peek().type == "IF":
+                    # This is 'Else if' - parse as nested if statement
+                    else_block = [self.parse_if_statement()]
+                else:
+                    # Regular else block
+                    if self.peek() and self.peek().type == "COMMA":
+                        self.advance()  # consume comma after 'Else'
+
+                    # Parse else statements
+                    else_block = []
+                    while self.peek() and self.peek().type != "END":
+                        stmt = self.parse_statement()
+                        else_block.append(stmt)
+                        # Consume semicolons
+                        while self.peek() and self.peek().type == "SEMICOLON":
+                            self.advance()
+
+        # Only consume 'end' if this is the outermost call
+        if consume_end:
+            # Expect 'end'
+            if not self.peek() or self.peek().type != "END":
+                raise EnzoParseError("Expected 'end' after If statement", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+            self.advance()  # consume 'end'
+
+        return IfStatement(condition, then_block, else_block)
+
+    def parse_if_statement(self):
+        """Parse If statement with optional Else if and Else blocks"""
         # Consume 'If'
         self.advance()
 
@@ -924,44 +984,8 @@ class Parser:
             raise EnzoParseError("Expected ',' after If condition", code_line=self._get_code_line(self.peek()) if self.peek() else None)
         self.advance()
 
-        # Parse then block (statements until 'end', 'Else', or 'Else if')
-        then_block = []
-        while self.peek() and self.peek().type not in ("END", "ELSE"):
-            stmt = self.parse_statement()
-            then_block.append(stmt)
-            # Consume semicolons
-            while self.peek() and self.peek().type == "SEMICOLON":
-                self.advance()
-
-        # Parse optional else block
-        else_block = None
-        if self.peek() and self.peek().type == "ELSE":
-            self.advance()  # consume 'Else'
-
-            # Check for 'Else if' pattern
-            if self.peek() and self.peek().type == "IF":
-                # This is 'Else if' - parse as nested if statement
-                else_block = [self.parse_if_statement()]
-            else:
-                # Regular else block
-                if self.peek() and self.peek().type == "COMMA":
-                    self.advance()  # consume comma after 'Else'
-
-                # Parse else statements
-                else_block = []
-                while self.peek() and self.peek().type != "END":
-                    stmt = self.parse_statement()
-                    else_block.append(stmt)
-                    # Consume semicolons
-                    while self.peek() and self.peek().type == "SEMICOLON":
-                        self.advance()
-
-        # Expect 'end'
-        if not self.peek() or self.peek().type != "END":
-            raise EnzoParseError("Expected 'end' after If statement", code_line=self._get_code_line(self.peek()) if self.peek() else None)
-        self.advance()  # consume 'end'
-
-        return IfStatement(condition, then_block, else_block)
+        # Use helper to parse the rest
+        return self._parse_if_body(condition)
 
     def parse_comparison(self):
         """Parse comparison expressions like 'expr is value' or 'expr contains value'"""
