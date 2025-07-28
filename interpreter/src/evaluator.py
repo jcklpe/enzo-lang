@@ -57,12 +57,12 @@ class EnzoVariantInstance:
 
     def __repr__(self):
         return f"{self.group_name}.{self.variant_name}"
-    
+
     def __eq__(self, other):
         if not isinstance(other, EnzoVariantInstance):
             return False
         return self.group_name == other.group_name and self.variant_name == other.variant_name
-    
+
     def __hash__(self):
         return hash((self.group_name, self.variant_name))
 
@@ -1080,14 +1080,9 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         results = []
         for stmt in node.statements:
             if stmt is not None:
-                try:
-                    val = eval_ast(stmt, value_demand=True, env=env)
-                    if val is not None:
-                        results.append(val)
-                except Exception as e:
-                    # Format the error as string, as the test runner expects error output
-                    results.append(str(e))
-                    break  # Stop evaluating further statements after the first error
+                val = eval_ast(stmt, value_demand=True, env=env)
+                if val is not None:
+                    results.append(val)
         # Print each result on its own line (handled by CLI), or return as list for test runner
         return results
     if isinstance(node, list):

@@ -1089,6 +1089,7 @@ $person1: [
   $age1: 27,
   $favorite-color1: "blue"
 ];
+
 $name1, $age1, $favorite-color1: $person1[];
 $name1;            // prints "Todd"
 $age1;             // prints 27

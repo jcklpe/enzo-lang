@@ -227,10 +227,10 @@ def run_enzo_file(filename):
                 # Multi-line or multiple statements - use program parser
                 from src.enzo_parser.parser import parse_program
                 result = eval_ast(parse_program(statement), value_demand=True)
-                # If result is a list, print each string result on its own line
+                # If result is a list, print each non-None result on its own line
                 if isinstance(result, list):
                     for item in result:
-                        if item is not None and isinstance(item, str):
+                        if item is not None:
                             print(format_val(item))
                 else:
                     if result is not None:
