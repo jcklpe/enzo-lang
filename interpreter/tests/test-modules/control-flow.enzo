@@ -285,22 +285,18 @@ If $inline-if, "Go!"; Else, "Wait!"; end; // prints "Wait!"
 
 //= SIMPLE FOR LOOP
 $list-for: [1,2,3];
-// For loops not implemented yet - simulating with manual iteration
-$item: $list-for.1;
-"Item: <$item>";
-$item: $list-for.2;
-"Item: <$item>";
-$item: $list-for.3;
-"Item: <$item>";
+For $item in $list-for,
+  "Item: <$item>"; // prints each item
+end;
 
 //= WHILE LOOP SIMPLE
 // While loops not implemented yet - simulating with manual steps
 $count-while: 1;
-$count-while;
-$count-while <: $count-while + 1;
-$count-while;
-$count-while <: $count-while + 1;
-$count-while;
+While $count-while is less than 3,
+  $count-while;
+  $count-while <: $count-while + 1;
+end;
+$count-while; // prints 3
 
 //= BOOLEAN EDGE CASE FALSE CONDITIONS
 Status variants: True, or False;
@@ -317,10 +313,8 @@ If not [0,0,0], "will print"; end;
 If not Status.False, "will print"; end;
 
 //= BOOLEAN EDGE CASE TRUE CONDITIONS
-Monster variants: Goblin, or Orc, or Troll;
-
-If Monster, "True variant group"; end; // prints
-If Monster.Goblin, "True variant value"; end; // prints
+If Monster-Branch, "True variant group"; end; // prints
+If Monster-Branch.Goblin, "True variant value"; end; // prints
 If "hi", "True text atom"; end; // prints
 
 //= Function Atom as condition

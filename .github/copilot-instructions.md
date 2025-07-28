@@ -3,6 +3,9 @@ applyTo: "**"
 ---
 # Project general coding standards
 
+# Rules you must always follow
+- Never ever change a test case or golden file without explicitly consulting me and getting the go ahead, even if the test case has a typo or something that doesn't follow spec and makes it fail.
+
 ## Important Context
 - The interpreter can be found in folder `~/work/enzo-lang/interpreter/`. `enzo-lang/` is the root project folder but all terminal commands for the interpreter must be run from the interpreter folder.
 - The interpreter project is a poetry env so you have to use `poetry run python` instead of just `python`
