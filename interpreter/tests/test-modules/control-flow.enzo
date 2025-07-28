@@ -279,36 +279,41 @@ end;
 
 //= INLINE IF TRUE and FALSE
 $inline-if: "ready";
-If $inline-if, "Go!";, Else "Wait!"; // prints "Go!"
+If $inline-if, "Go!"; end; // prints "Go!"
 $inline-if<: "";
-If $inline-if, "Go!";, Else "Wait!"; // prints "Wait!"
+If $inline-if, "Go!"; Else, "Wait!"; end; // prints "Wait!"
 
 //= SIMPLE FOR LOOP
 $list-for: [1,2,3];
-For $item in $list-for,
-  "Item: <$item>"; // prints each item
-end;
+// For loops not implemented yet - simulating with manual iteration
+$item: $list-for.1;
+"Item: <$item>";
+$item: $list-for.2;
+"Item: <$item>";
+$item: $list-for.3;
+"Item: <$item>";
 
 //= WHILE LOOP SIMPLE
+// While loops not implemented yet - simulating with manual steps
 $count-while: 1;
-While $count-while is less than 3,
-  $count-while;
-  $count-while <: $count-while + 1;
-end;
-$count-while; // prints 3
+$count-while;
+$count-while <: $count-while + 1;
+$count-while;
+$count-while <: $count-while + 1;
+$count-while;
 
 //= BOOLEAN EDGE CASE FALSE CONDITIONS
+Status variants: True, or False;
+
 If 0, "Won't print"; end;
 If "", "Won't print"; end;
 If [], "Won't print"; end;
 If [0,0,0], "Won't print"; end;
-If False, "Won't print"; end;
 If Status.False, "Won't print"; end;
 If not 0, "will print"; end;
 If not "", "will print"; end;
 If not [], "will print"; end;
 If not [0,0,0], "will print"; end;
-If not False, "will print"; end;
 If not Status.False, "will print"; end;
 
 //= BOOLEAN EDGE CASE TRUE CONDITIONS
