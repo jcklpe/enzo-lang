@@ -209,13 +209,19 @@ Otherwise,
 end;
 
 //= MULTI-BRANCH TYPE MATCH WITH VARIANT
-$type-val: Magic-Type.Ice;
+Magic-Type2 variants: Fire,
+                    or Ice,
+                    or Wind,
+                    or Earth,
+                    or Neutral;
 
-If $type-val either is Magic-Type.Fire,
+$type-val: Magic-Type2.Ice;
+
+If $type-val either is Magic-Type2.Fire,
   "Fire type";
-or is Magic-Type.Ice,
+or is Magic-Type2.Ice,
   "Ice type matched"; // should print
-or is Magic-Type.Wind,
+or is Magic-Type2.Wind,
   "Wind type";
 Otherwise,
   "Unknown type";
@@ -239,7 +245,7 @@ If $compound either is Number and is greater than 10,
   "Big number";
 or is Number and is at most 5,
   "Small number matched"; // should print
-or Number,
+or is Number,
   "Number matched";
 Otherwise,
   "Fallback";

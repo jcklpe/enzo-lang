@@ -1085,6 +1085,14 @@ class Parser:
             self.advance()  # consume 'contains'
             right = self.parse_value_expression()
             return ComparisonExpression(left_expr, "contains", right)
+        elif self.peek() and self.peek().type == "KEYNAME":
+            # Handle shorthand type checking: "or Number" means "or is Number"
+            type_name = self.peek().value
+            if type_name in ["Number", "Text", "List", "Empty"]:
+                self.advance()  # consume the type name
+                return ComparisonExpression(left_expr, "is", type_name)
+            else:
+                raise EnzoParseError("Expected comparison operator in branch condition", code_line=self._get_code_line(self.peek()) if self.peek() else None)
         else:
             raise EnzoParseError("Expected comparison operator in branch condition", code_line=self._get_code_line(self.peek()) if self.peek() else None)
 

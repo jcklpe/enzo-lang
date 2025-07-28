@@ -57,6 +57,14 @@ class EnzoVariantInstance:
 
     def __repr__(self):
         return f"{self.group_name}.{self.variant_name}"
+    
+    def __eq__(self, other):
+        if not isinstance(other, EnzoVariantInstance):
+            return False
+        return self.group_name == other.group_name and self.variant_name == other.variant_name
+    
+    def __hash__(self):
+        return hash((self.group_name, self.variant_name))
 
 class EnzoVariantGroup:
     def __init__(self, name, variants, group_blueprint=None):
