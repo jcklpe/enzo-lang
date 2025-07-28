@@ -203,7 +203,7 @@ class EnzoList:
         """Check equality with another list or EnzoList."""
         if isinstance(other, EnzoList):
             # Compare elements and key mappings
-            return (self._elements == other._elements and 
+            return (self._elements == other._elements and
                     self._key_map == other._key_map)
         elif isinstance(other, list):
             # Compare with regular Python list - only if no keys are set

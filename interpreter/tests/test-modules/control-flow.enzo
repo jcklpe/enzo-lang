@@ -267,7 +267,7 @@ Monster-Branch variants: Goblin, or Orc, or Troll;
 
 $monster-type1: Monster-Branch.Goblin;
 
-If $monster-type1 is Monster-Branch.Orc,
+If $monster-type1 either is Monster-Branch.Orc,
     "Orc matched";
   or is Monster-Branch.Goblin,
     "Goblin matched"; // should print
