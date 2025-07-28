@@ -1032,7 +1032,26 @@ class Parser:
         return IfStatement(condition, then_block, else_block)
 
     def _parse_branch_condition(self, left_expr):
-        """Parse a branch condition like 'is \"A\"'"""
+        """Parse a branch condition like 'is \"A\"' or 'is Number and is greater than 10'"""
+        from src.enzo_parser.ast_nodes import ComparisonExpression, LogicalExpression
+
+        # Parse the first comparison
+        first_comparison = self._parse_single_comparison(left_expr)
+
+        # Check for logical operators (and, or)
+        if self.peek() and self.peek().type in ("AND", "OR"):
+            operator = self.peek().value
+            self.advance()  # consume 'and' or 'or'
+
+            # Parse the right side - this should be another comparison with the same left_expr
+            right_comparison = self._parse_single_comparison(left_expr)
+
+            return LogicalExpression(first_comparison, operator, right_comparison)
+
+        return first_comparison
+
+    def _parse_single_comparison(self, left_expr):
+        """Parse a single comparison like 'is \"A\"' or 'is Number'"""
         from src.enzo_parser.ast_nodes import ComparisonExpression
 
         # Parse the operator and right side
@@ -1051,6 +1070,14 @@ class Parser:
                 if self.peek() and self.peek().type == "THAN":
                     self.advance()  # consume 'than'
                     operator = "is greater than"
+            elif self.peek() and self.peek().type == "AT_WORD":
+                at_token = self.advance()  # consume 'at'
+                if self.peek() and self.peek().type == "MOST":
+                    self.advance()  # consume 'most'
+                    operator = "is at most"
+                elif self.peek() and self.peek().type == "LEAST":
+                    self.advance()  # consume 'least'
+                    operator = "is at least"
 
             right = self.parse_value_expression()
             return ComparisonExpression(left_expr, operator, right)
