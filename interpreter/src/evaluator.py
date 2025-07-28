@@ -1810,16 +1810,45 @@ def _is_truthy(value):
     if isinstance(value, str):
         return value != ""
     if isinstance(value, list):
-        return len(value) > 0
+        # A list is falsy if it's empty or contains only falsy values
+        if len(value) == 0:
+            return False
+        return any(_is_truthy(item) for item in value)
     if isinstance(value, EnzoList):
-        return len(value) > 0
+        # A list is falsy if it's empty or contains only falsy values
+        if len(value) == 0:
+            return False
+        return any(_is_truthy(item) for item in value)
     if isinstance(value, EnzoVariantInstance):
         # Check for specific falsy variants
         if value.group_name == "False" or (value.group_name == "Status" and value.variant_name == "False"):
             return False
         return True
-    if isinstance(value, EnzoFunction):
+    if isinstance(value, EnzoVariantGroup):
+        # A variant group is falsy only if it's the False group
+        if value.name == "False":
+            return False
         return True
+    if isinstance(value, EnzoFunction):
+        # A function is truthy only if it has body statements and would return a truthy value
+        if not value.body:
+            return False  # Empty function is falsy
+
+        # Evaluate the function to check its return value
+        try:
+            # Create a temporary environment for function evaluation
+            temp_env = {}
+            result = None
+            for stmt in value.body:
+                result = eval_ast(stmt, env=temp_env)
+            # Function is truthy if its result is truthy
+            return _is_truthy(result) if result is not None else False
+        except:
+            # If evaluation fails, assume truthy (non-empty function)
+            return True
+    # Handle built-in False constant
+    if hasattr(value, '__class__') and value.__class__.__name__ == 'False':
+        return False
     return bool(value)
 
 def _compare_values(left, operator, right):
