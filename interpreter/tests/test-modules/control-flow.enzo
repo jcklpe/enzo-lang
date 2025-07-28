@@ -290,7 +290,6 @@ For $item in $list-for,
 end;
 
 //= WHILE LOOP SIMPLE
-// While loops not implemented yet - simulating with manual steps
 $count-while: 1;
 While $count-while is less than 3,
   $count-while;
@@ -299,17 +298,17 @@ end;
 $count-while; // prints 3
 
 //= BOOLEAN EDGE CASE FALSE CONDITIONS
-Status variants: True, or False;
-
-If 0, "Won't print"; end;
-If "", "Won't print"; end;
-If [], "Won't print"; end;
-If [0,0,0], "Won't print"; end;
-If Status.False, "Won't print"; end;
+If 0, "Won't print1"; end;
+If "", "Won't print2"; end;
+If [], "Won't print3"; end;
+If [0,0,0], "Won't print4"; end;
+If False, "Won't print5"; end;
+If Status.False, "Won't print6"; end;
 If not 0, "will print"; end;
 If not "", "will print"; end;
 If not [], "will print"; end;
 If not [0,0,0], "will print"; end;
+If not False, "will print"; end;
 If not Status.False, "will print"; end;
 
 //= BOOLEAN EDGE CASE TRUE CONDITIONS
@@ -318,10 +317,10 @@ If Monster-Branch.Goblin, "True variant value"; end; // prints
 If "hi", "True text atom"; end; // prints
 
 //= Function Atom as condition
-If ( ), "Won't print"; end; // empty function atom shouldn't trigger
+If ( ), "Won't print1"; end; // empty function atom shouldn't trigger
 
 If (4 + 5), "Will print"; end; // function with value should trigger
 
-If (5 - 5), "Won't print"; end; // function returns 0 which is a false condition
+If (5 - 5), "Won't print2"; end; // function returns 0 which is a false condition
 
 If not (5 - 5), "Will print"; end; // function returns 0 which is a false condition

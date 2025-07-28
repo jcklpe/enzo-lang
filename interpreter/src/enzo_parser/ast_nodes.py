@@ -283,3 +283,22 @@ class NotExpression(ASTNode):
 
     def __repr__(self):
         return f"NotExpression(operand={self.operand!r})"
+
+class ForLoop(ASTNode):
+    def __init__(self, variable, iterable, body, code_line=None):
+        super().__init__(code_line)
+        self.variable = variable    # Variable name to bind each item to
+        self.iterable = iterable    # Expression that evaluates to a list/iterable
+        self.body = body           # List of statements to execute for each item
+
+    def __repr__(self):
+        return f"ForLoop(variable={self.variable!r}, iterable={self.iterable!r}, body={self.body!r})"
+
+class WhileLoop(ASTNode):
+    def __init__(self, condition, body, code_line=None):
+        super().__init__(code_line)
+        self.condition = condition  # Condition expression to evaluate
+        self.body = body           # List of statements to execute while true
+
+    def __repr__(self):
+        return f"WhileLoop(condition={self.condition!r}, body={self.body!r})"

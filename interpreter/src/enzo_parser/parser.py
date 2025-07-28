@@ -403,6 +403,14 @@ class Parser:
         if t and t.type == "IF":
             return self.parse_if_statement()
 
+        # --- Handle control flow: For loops ---
+        if t and t.type == "FOR":
+            return self.parse_for_loop()
+
+        # --- Handle control flow: While loops ---
+        if t and t.type == "WHILE":
+            return self.parse_while_loop()
+
         # --- Handle param statement: param $name: default_value; ---
         if t and t.type == "PARAM":
             self.advance()  # consume 'param'
@@ -1156,6 +1164,81 @@ class Parser:
 
         # Use helper to parse the rest
         return self._parse_if_body(condition)
+
+    def parse_for_loop(self):
+        """Parse For loop: For $variable in $iterable, body; end;"""
+        from src.enzo_parser.ast_nodes import ForLoop
+
+        self.advance()  # consume 'For'
+        code_line = self._get_code_line(self.peek()) if self.peek() else None
+
+        # Expect variable name
+        if not self.peek() or self.peek().type != "KEYNAME":
+            raise EnzoParseError("Expected variable name after 'For'", code_line=code_line)
+        variable = self.advance().value
+
+        # Expect 'in'
+        if not self.peek() or self.peek().type != "IN":
+            raise EnzoParseError("Expected 'in' after For variable", code_line=code_line)
+        self.advance()  # consume 'in'
+
+        # Parse iterable expression
+        iterable = self.parse_value_expression()
+
+        # Expect comma
+        if not self.peek() or self.peek().type != "COMMA":
+            raise EnzoParseError("Expected ',' after For iterable", code_line=code_line)
+        self.advance()  # consume ','
+
+        # Parse body statements until 'end'
+        body = []
+        while self.peek() and self.peek().type != "END":
+            stmt = self.parse_statement()
+            if stmt:
+                body.append(stmt)
+            # Consume semicolons
+            while self.peek() and self.peek().type == "SEMICOLON":
+                self.advance()
+
+        # Expect 'end'
+        if not self.peek() or self.peek().type != "END":
+            raise EnzoParseError("Expected 'end' after For loop body", code_line=code_line)
+        self.advance()  # consume 'end'
+
+        return ForLoop(variable, iterable, body, code_line=code_line)
+
+    def parse_while_loop(self):
+        """Parse While loop: While condition, body; end;"""
+        from src.enzo_parser.ast_nodes import WhileLoop
+
+        self.advance()  # consume 'While'
+        code_line = self._get_code_line(self.peek()) if self.peek() else None
+
+        # Parse condition
+        condition = self.parse_comparison()
+
+        # Expect comma
+        if not self.peek() or self.peek().type != "COMMA":
+            raise EnzoParseError("Expected ',' after While condition", code_line=code_line)
+        self.advance()  # consume ','
+
+        # Parse body statements until 'end'
+        body = []
+        while self.peek() and self.peek().type != "END":
+            stmt = self.parse_statement()
+            if stmt:
+                body.append(stmt)
+
+            # Consume optional semicolon after statement
+            if self.peek() and self.peek().type == "SEMICOLON":
+                self.advance()
+
+        # Expect 'end'
+        if not self.peek() or self.peek().type != "END":
+            raise EnzoParseError("Expected 'end' after While loop body", code_line=code_line)
+        self.advance()  # consume 'end'
+
+        return WhileLoop(condition, body, code_line=code_line)
 
     def parse_comparison(self):
         """Parse comparison expressions like 'expr is value' or 'expr contains value'"""

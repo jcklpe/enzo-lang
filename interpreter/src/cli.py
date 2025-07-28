@@ -122,8 +122,8 @@ def split_statements(lines):
 
         # Track control flow keywords
         import re
-        # Check for If/Else/end keywords (must be whole words)
-        if re.search(r'\bIf\b', line_to_parse):
+        # Check for If/For/While/Else/end keywords (must be whole words)
+        if re.search(r'\b(If|For|While)\b', line_to_parse):
             if_depth += 1
         if re.search(r'\bend\b', line_to_parse):
             if_depth = max(0, if_depth - 1)  # Prevent negative depth
@@ -170,7 +170,7 @@ def run_enzo_file(filename):
         if (all(';' in line for line in stmt_lines) and len(stmt_lines) > 1 and
             not any(line.strip().startswith(('(', '[', '{')) for line in stmt_lines) and
             not any('then (' in line for line in stmt_lines) and
-            not any(any(keyword in line for keyword in ['If ', 'Else', 'end;']) for line in stmt_lines)):
+            not any(any(keyword in line for keyword in ['If ', 'For ', 'While ', 'Else', 'end;', 'end']) for line in stmt_lines)):
             for line in stmt_lines:
                 line = line.strip()
                 if not line:
@@ -231,7 +231,13 @@ def run_enzo_file(filename):
                 if isinstance(result, list):
                     for item in result:
                         if item is not None:
-                            print(format_val(item))
+                            # If the item is itself a list from a loop, print each element
+                            if isinstance(item, list):
+                                for sub_item in item:
+                                    if sub_item is not None:
+                                        print(format_val(sub_item))
+                            else:
+                                print(format_val(item))
                 else:
                     if result is not None:
                         print(format_val(result))
