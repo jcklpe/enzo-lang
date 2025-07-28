@@ -971,15 +971,150 @@ class Parser:
 
         return IfStatement(condition, then_block, else_block)
 
+    def _parse_multi_branch_if(self, left_expr):
+        """Parse multi-branch if statement with either/or syntax"""
+        from src.enzo_parser.ast_nodes import IfStatement
+
+        # Consume 'either'
+        self.advance()
+
+        # Parse the first condition: either is "A"
+        condition = self._parse_branch_condition(left_expr)
+
+        # Expect comma
+        if not self.peek() or self.peek().type != "COMMA":
+            raise EnzoParseError("Expected ',' after branch condition", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+        self.advance()
+
+        # Parse then block for first branch
+        then_block = []
+        while self.peek() and self.peek().type not in ("OR", "OTHERWISE", "END"):
+            stmt = self.parse_statement()
+            then_block.append(stmt)
+            # Consume semicolons
+            while self.peek() and self.peek().type == "SEMICOLON":
+                self.advance()
+
+        # Parse additional branches with 'or'
+        else_block = None
+        if self.peek() and self.peek().type in ("OR", "OTHERWISE"):
+            if self.peek().type == "OR":
+                # Parse more 'or' branches recursively
+                self.advance()  # consume 'or'
+
+                # Parse next condition: or is "B"
+                next_condition = self._parse_branch_condition(left_expr)
+
+                # Create nested if for the remaining branches
+                nested_if = self._parse_multi_branch_if_continuation(left_expr, next_condition)
+                else_block = [nested_if]
+            else:
+                # OTHERWISE case
+                self.advance()  # consume 'Otherwise'
+
+                # Expect comma
+                if self.peek() and self.peek().type == "COMMA":
+                    self.advance()
+
+                # Parse otherwise statements
+                else_block = []
+                while self.peek() and self.peek().type != "END":
+                    stmt = self.parse_statement()
+                    else_block.append(stmt)
+                    while self.peek() and self.peek().type == "SEMICOLON":
+                        self.advance()
+
+        # Expect 'end'
+        if not self.peek() or self.peek().type != "END":
+            raise EnzoParseError("Expected 'end' after multi-branch If statement", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+        self.advance()  # consume 'end'
+
+        return IfStatement(condition, then_block, else_block)
+
+    def _parse_branch_condition(self, left_expr):
+        """Parse a branch condition like 'is \"A\"'"""
+        from src.enzo_parser.ast_nodes import ComparisonExpression
+
+        # Parse the operator and right side
+        if self.peek() and self.peek().type == "IS":
+            operator = "is"
+            self.advance()
+
+            # Check for compound operators
+            if self.peek() and self.peek().type == "LESS":
+                self.advance()  # consume 'less'
+                if self.peek() and self.peek().type == "THAN":
+                    self.advance()  # consume 'than'
+                    operator = "is less than"
+            elif self.peek() and self.peek().type == "GREATER":
+                self.advance()  # consume 'greater'
+                if self.peek() and self.peek().type == "THAN":
+                    self.advance()  # consume 'than'
+                    operator = "is greater than"
+
+            right = self.parse_value_expression()
+            return ComparisonExpression(left_expr, operator, right)
+        elif self.peek() and self.peek().type == "CONTAINS":
+            self.advance()  # consume 'contains'
+            right = self.parse_value_expression()
+            return ComparisonExpression(left_expr, "contains", right)
+        else:
+            raise EnzoParseError("Expected comparison operator in branch condition", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+
+    def _parse_multi_branch_if_continuation(self, left_expr, condition):
+        """Parse continuation of multi-branch if (for 'or' branches)"""
+        from src.enzo_parser.ast_nodes import IfStatement
+
+        # Expect comma
+        if not self.peek() or self.peek().type != "COMMA":
+            raise EnzoParseError("Expected ',' after branch condition", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+        self.advance()
+
+        # Parse then block for this branch
+        then_block = []
+        while self.peek() and self.peek().type not in ("OR", "OTHERWISE", "END"):
+            stmt = self.parse_statement()
+            then_block.append(stmt)
+            while self.peek() and self.peek().type == "SEMICOLON":
+                self.advance()
+
+        # Parse next branch if any
+        else_block = None
+        if self.peek() and self.peek().type in ("OR", "OTHERWISE"):
+            if self.peek().type == "OR":
+                self.advance()  # consume 'or'
+                next_condition = self._parse_branch_condition(left_expr)
+                nested_if = self._parse_multi_branch_if_continuation(left_expr, next_condition)
+                else_block = [nested_if]
+            else:
+                # OTHERWISE case
+                self.advance()  # consume 'Otherwise'
+
+                if self.peek() and self.peek().type == "COMMA":
+                    self.advance()
+
+                else_block = []
+                while self.peek() and self.peek().type != "END":
+                    stmt = self.parse_statement()
+                    else_block.append(stmt)
+                    while self.peek() and self.peek().type == "SEMICOLON":
+                        self.advance()
+
+        return IfStatement(condition, then_block, else_block)
+
     def parse_if_statement(self):
         """Parse If statement with optional Else if and Else blocks"""
         # Consume 'If'
         self.advance()
 
-        # Parse condition
+        # Parse condition (this might be a single condition or start of multi-branch)
         condition = self.parse_comparison()
 
-        # Expect comma
+        # Check if this is a multi-branch if (either keyword)
+        if self.peek() and self.peek().type == "EITHER":
+            return self._parse_multi_branch_if(condition)
+
+        # Expect comma for single-branch if
         if not self.peek() or self.peek().type != "COMMA":
             raise EnzoParseError("Expected ',' after If condition", code_line=self._get_code_line(self.peek()) if self.peek() else None)
         self.advance()
