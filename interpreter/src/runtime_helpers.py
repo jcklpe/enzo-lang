@@ -198,3 +198,22 @@ class EnzoList:
                 items.append(format_val(element))
 
         return f"[{', '.join(items)}]"
+
+    def __eq__(self, other):
+        """Check equality with another list or EnzoList."""
+        if isinstance(other, EnzoList):
+            # Compare elements and key mappings
+            return (self._elements == other._elements and 
+                    self._key_map == other._key_map)
+        elif isinstance(other, list):
+            # Compare with regular Python list - only if no keys are set
+            if self._key_map:
+                return False  # EnzoList with keys can't equal plain list
+            return self._elements == other
+        return False
+
+    def __hash__(self):
+        """Make EnzoList hashable for use as dict keys."""
+        # Convert key_map to a frozenset of items for hashing
+        key_items = frozenset(self._key_map.items()) if self._key_map else frozenset()
+        return hash((tuple(self._elements), key_items))

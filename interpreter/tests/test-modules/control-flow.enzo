@@ -258,7 +258,7 @@ If $list-exact either is [3,2,1],
   "Reverse matched";
 or is [1,2,3],
   "Exact list matched"; // should print
-Else,
+Otherwise,
   "No exact list match";
 end;
 
@@ -273,7 +273,7 @@ If $monster-type1 is Monster-Branch.Orc,
     "Goblin matched"; // should print
   or is Monster-Branch.Troll,
     "Troll matched";
-  Else,
+  Otherwise,
     "No monster match";
 end;
 
@@ -312,6 +312,8 @@ If not False, "will print"; end;
 If not Status.False, "will print"; end;
 
 //= BOOLEAN EDGE CASE TRUE CONDITIONS
+Monster variants: Goblin, or Orc, or Troll;
+
 If Monster, "True variant group"; end; // prints
 If Monster.Goblin, "True variant value"; end; // prints
 If "hi", "True text atom"; end; // prints
