@@ -67,3 +67,40 @@
 
 //= MULTI-BRANCH COMPOUND LOGIC
 "Small number matched"
+
+//= MULTI-BRANCH LIST EXACT MATCH
+"Exact list matched"
+
+//= MULTI-BRANCH WITH VARIANT GROUP
+"Goblin matched"
+
+//= INLINE IF TRUE and FALSE
+"Go!"
+"Wait!"
+
+//= SIMPLE FOR LOOP
+"Item: 1"
+"Item: 2"
+"Item: 3"
+
+//= WHILE LOOP SIMPLE
+1
+2
+3
+
+//= BOOLEAN EDGE CASE FALSE CONDITIONS
+"will print"
+"will print"
+"will print"
+"will print"
+"will print"
+"will print"
+
+//= BOOLEAN EDGE CASE TRUE CONDITIONS
+"True variant group"
+"True variant value"
+"True text atom"
+
+//= Function Atom as condition
+"Will print"
+"Will print"

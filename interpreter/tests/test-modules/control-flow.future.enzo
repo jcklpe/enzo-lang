@@ -1,207 +1,59 @@
-//= MULTI-BRANCH LIST EXACT MATCH
-
-$list-exact: [1,2,3];
-
-If $list-exact is [3,2,1],
-
-  "Reverse matched";
-
-or is [1,2,3],
-
-  "Exact list matched"; // should print
-
-Else,
-
-  "No exact list match";
-
-end;
-
-//= MULTI-BRANCH WITH VARIANT GROUP
-
-$monster-type1: Monster.Goblin;
-
-If $monster-type1 is Monster.Orc,
-
-  "Orc matched";
-
-or is Monster.Goblin,
-
-  "Goblin matched"; // should print
-
-or is Monster.Troll,
-
-  "Troll matched";
-
-Else,
-
-  "No monster match";
-
-end;
-
-//= INLINE IF TRUE and FALSE
-
-$inline-if: "ready";
-
-If $inline-if, "Go!";, Else "Wait!"; // prints "Go!"
-
-$inline-if<: "";
-
-If $inline-if, "Go!";, Else "Wait!"; // prints "Wait!"
-
-//= SIMPLE FOR LOOP
-
-$list-for: [1,2,3];
-
-For $item in $list-for,
-
-  "Item: <$item>"; // prints each item
-
-end;
-
-//= WHILE LOOP SIMPLE
-
-$count-while: 1;
-
-While $count-while is less than 3,
-
-  $count-while;
-
-  $count-while <: $count-while + 1;
-
-end;
-
-$count-while; // prints 3
-
-//= BOOLEAN EDGE CASE FALSE CONDITIONS
-
-If 0, "Won't print"; end;
-
-If "", "Won't print"; end;
-
-If [], "Won't print"; end;
-
-If [0,0,0], "Won't print"; end;
-
-If False, "Won't print"; end;
-
-If Status.False, "Won't print"; end;
-
-If not 0, "will print"; end;
-
-If not "", "will print"; end;
-
-If not [], "will print"; end;
-
-If not [0,0,0], "will print"; end;
-
-If not False, "will print"; end;
-
-If not Status.False, "will print"; end;
-
-//= BOOLEAN EDGE CASE TRUE CONDITIONS
-
-If Monster, "True variant group"; end; // prints
-
-If Monster.Goblin, "True variant value"; end; // prints
-
-If "hi", "True text atom"; end; // prints
-
-//= Function Atom as condition
-
-If ( ), "Won't print"; end; // empty function atom shouldn't trigger
-
-If (4 + 5), "Will print"; end; // function with value should trigger
-
-If (5 - 5), "Won't print"; end; // function returns 0 which is a false condition
-
-If not (5 - 5), "Will print"; end; // function returns 0 which is a false condition
-
 //= IF WITH FUNCTION RETURNING EMPTY (FALSY)
-
 empty-fn-test: ();
 
 If empty-fn-test(),
-
   "Won't print";
-
 Else,
-
   "Empty function result"; // should print
-
 end;
 
 //= IF WITH FUNCTION RETURNING NON-EMPTY (TRUTHY)
-
 non-empty-fn-test: ("result";);
 
 If non-empty-fn-test(),
-
   "Non-empty function result"; // should print
-
 end;
 
 //= IF WITH VARIABLE SET TO EMPTY LIST THEN MUTATED TO TRUTHY LIST
-
 $list-mutate: [];
 
 If $list-mutate,
-
   "Won't print initially";
-
 end;
 
 $list-mutate <: [1];
 
 If $list-mutate,
-
   "List became truthy"; // should print
-
 end;
 
 //= IF WITH VARIABLE SET TO TEXT "0" (TRUTHY)
-
 $text-zero: "0";
 
 If $text-zero,
-
   "Text '0' is truthy"; // should print
-
 end;
 
 //= IF WITH VARIABLE SET TO NUMBER 0.0 (FALSY)
-
 $num-zero: 0.0;
 
 If $num-zero,
-
   "Won't print";
-
 Else,
-
   "0.0 is falsy"; // should print
-
 end;
 
 //= IF WITH EMPTY BLUEPRINT INSTANCE (TRUTHY)
-
 EmptyBP: <[]>;
-
 $empty-bp: EmptyBP[];
-
 If $empty-bp,
-
   "Empty blueprint is truthy"; // should print
-
 end;
 
 //= IF WITH VARIABLE SET TO STATUS.FALSE THEN MUTATED TO CUSTOM STATUS (TRUTHY)
-
 $status-custom: Status.False;
-
 If $status-custom,
-
   "Won't print initially";
-
 end;
 
 Status variants: Loading, or Dead;
@@ -209,47 +61,32 @@ Status variants: Loading, or Dead;
 $status-custom <: Status.Loading;
 
 If $status-custom,
-
   "Custom status is truthy"; // should print
-
 end;
 
 //= WHILE LOOP NEVER ENTERED (INITIAL CONDITION FALSE)
-
 $count-never: 5;
-
 While $count-never is less than 0,
-
   "Never prints";
-
   $count-never <: $count-never - 1;
-
 end;
 
 $count-never; // prints 5, unchanged
 
 //= FOR LOOP WITH EMPTY LIST (NEVER ENTERED)
-
 $empty-list-for: [];
-
 For $item in $empty-list-for,
-
   "Never prints";
-
 end;
 
 $empty-list-for; // prints []
 
 //= ERROR: FOR LOOP WITH NON-ITERABLE
-
 For $item10 in 10, // error: for loop over non-iterable
-
   "Won't print";
-
 end;
 
 //= MULTI-BRANCH MATCH WITH FIRST TRUTHY MATCH ONLY
-
 $multi-branch: "first";
 
 If $multi-branch is "first",
