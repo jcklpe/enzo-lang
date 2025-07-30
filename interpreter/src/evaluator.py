@@ -1630,23 +1630,33 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # Check if this is a non-exclusive multi-branch
         if hasattr(node, 'is_non_exclusive_multi_branch') and node.is_non_exclusive_multi_branch:
             # For non-exclusive multi-branch, evaluate all conditions and execute all matching ones
-            result = None
+            results = []
             any_executed = False
-            
+
             for condition, then_block in node.all_branches:
                 condition_result = eval_ast(condition, env=env)
                 if _is_truthy(condition_result):
                     any_executed = True
-                    # Execute this branch
+                    # Execute this branch and collect all results
                     for stmt in then_block:
                         result = eval_ast(stmt, env=env)
-            
+                        if result is not None:
+                            results.append(result)
+
             # If no branches executed and there's an else block, execute it
             if not any_executed and node.else_block:
                 for stmt in node.else_block:
                     result = eval_ast(stmt, env=env)
-            
-            return result
+                    if result is not None:
+                        results.append(result)
+
+            # Return all results as a list if there are multiple, or the single result
+            if len(results) == 0:
+                return None
+            elif len(results) == 1:
+                return results[0]
+            else:
+                return results
         else:
             # Regular exclusive if statement
             condition_result = eval_ast(node.condition, env=env)

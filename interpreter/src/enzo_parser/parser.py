@@ -1154,21 +1154,29 @@ class Parser:
     def _parse_non_exclusive_multi_branch(self, first_condition, first_then_block, consume_end=True):
         """Parse non-exclusive multi-branch if statement where all matching conditions execute"""
         from src.enzo_parser.ast_nodes import IfStatement
-        
+
         branches = [(first_condition, first_then_block)]
-        
+
         # Parse all 'or' branches
         while self.peek() and self.peek().type == "OR":
             self.advance()  # consume 'or'
-            
-            # Parse the condition for this branch
-            or_condition = self.parse_comparison()
-            
+
+            # Extract the left expression from the first condition for reuse
+            left_expr = None
+            if hasattr(first_condition, 'left'):
+                left_expr = first_condition.left
+
+            # Parse the condition for this branch using the same left expression
+            if left_expr is not None:
+                or_condition = self._parse_branch_condition(left_expr)
+            else:
+                or_condition = self.parse_comparison()
+
             # Expect comma
             if not self.peek() or self.peek().type != "COMMA":
                 raise EnzoParseError("Expected ',' after or condition", code_line=self._get_code_line(self.peek()) if self.peek() else None)
             self.advance()
-            
+
             # Parse the body for this branch
             or_then_block = []
             while self.peek() and self.peek().type not in ("END", "ELSE", "ELSE_IF", "OR"):
@@ -1177,20 +1185,20 @@ class Parser:
                 # Consume semicolons
                 while self.peek() and self.peek().type == "SEMICOLON":
                     self.advance()
-            
+
             branches.append((or_condition, or_then_block))
-        
+
         # For non-exclusive multi-branch, we need to create a structure that allows
         # all matching conditions to execute. We'll create nested if statements
         # but modify the evaluation logic to handle non-exclusive behavior
-        
+
         # Create the first if statement
         result_if = IfStatement(first_condition, first_then_block, None, code_line=self._get_code_line(self.peek()) if self.peek() else None)
-        
+
         # Set a special attribute to mark this as non-exclusive
         result_if.is_non_exclusive_multi_branch = True
         result_if.all_branches = branches
-        
+
         # Handle any remaining else/else if blocks normally
         else_block = None
         if self.peek() and self.peek().type in ("ELSE", "ELSE_IF"):
@@ -1230,16 +1238,16 @@ class Parser:
                         # Consume semicolons
                         while self.peek() and self.peek().type == "SEMICOLON":
                             self.advance()
-        
+
         result_if.else_block = else_block
-        
+
         # Only consume 'end' if this is the outermost call
         if consume_end:
             # Expect 'end'
             if not self.peek() or self.peek().type != "END":
                 raise EnzoParseError("Expected 'end' after If statement", code_line=self._get_code_line(self.peek()) if self.peek() else None)
             self.advance()  # consume 'end'
-        
+
         return result_if
 
     def parse_if_statement(self):
