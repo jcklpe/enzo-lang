@@ -1627,20 +1627,42 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
     # Control flow evaluation
     if isinstance(node, IfStatement):
-        condition_result = eval_ast(node.condition, env=env)
-        if _is_truthy(condition_result):
-            # Execute then block
+        # Check if this is a non-exclusive multi-branch
+        if hasattr(node, 'is_non_exclusive_multi_branch') and node.is_non_exclusive_multi_branch:
+            # For non-exclusive multi-branch, evaluate all conditions and execute all matching ones
             result = None
-            for stmt in node.then_block:
-                result = eval_ast(stmt, env=env)
+            any_executed = False
+            
+            for condition, then_block in node.all_branches:
+                condition_result = eval_ast(condition, env=env)
+                if _is_truthy(condition_result):
+                    any_executed = True
+                    # Execute this branch
+                    for stmt in then_block:
+                        result = eval_ast(stmt, env=env)
+            
+            # If no branches executed and there's an else block, execute it
+            if not any_executed and node.else_block:
+                for stmt in node.else_block:
+                    result = eval_ast(stmt, env=env)
+            
             return result
-        elif node.else_block:
-            # Execute else block
-            result = None
-            for stmt in node.else_block:
-                result = eval_ast(stmt, env=env)
-            return result
-        return None
+        else:
+            # Regular exclusive if statement
+            condition_result = eval_ast(node.condition, env=env)
+            if _is_truthy(condition_result):
+                # Execute then block
+                result = None
+                for stmt in node.then_block:
+                    result = eval_ast(stmt, env=env)
+                return result
+            elif node.else_block:
+                # Execute else block
+                result = None
+                for stmt in node.else_block:
+                    result = eval_ast(stmt, env=env)
+                return result
+            return None
 
     if isinstance(node, ForLoop):
         # Evaluate the iterable
@@ -1648,7 +1670,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
         # Ensure it's iterable
         if not isinstance(iterable_value, (list, EnzoList)):
-            raise EnzoRuntimeError(f"For loop iterable must be a list, got {type(iterable_value).__name__}", code_line=node.code_line)
+            from src.error_messaging import error_message_for_loop_non_iterable
+            raise EnzoRuntimeError(error_message_for_loop_non_iterable(), code_line=node.code_line)
 
         # Create a new scope for the loop variable
         loop_env = env.copy()

@@ -163,3 +163,6 @@ def error_message_destructure_count_mismatch():
 
 def error_message_duplicate_variable_names():
     return "error: duplicate variable names in destructure"
+
+def error_message_for_loop_non_iterable():
+    return "error: `For` loop must be over a list"

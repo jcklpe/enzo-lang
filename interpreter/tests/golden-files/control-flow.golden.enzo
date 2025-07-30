@@ -121,10 +121,82 @@
 "0.0 is falsy"
 
 //= IF WITH EMPTY BLUEPRINT INSTANCE (TRUTHY)
-"Empty blueprint is truthy"
+"Empty blueprint is falsy!"
 
 //= IF WITH VARIABLE SET TO STATUS.FALSE THEN MUTATED TO CUSTOM STATUS (TRUTHY)
 "Custom status is truthy"
 
 //= WHILE LOOP NEVER ENTERED (INITIAL CONDITION FALSE)
 5
+
+//= FOR LOOP WITH EMPTY LIST (NEVER ENTERED)
+[]
+
+//= ERROR: FOR LOOP WITH NON-ITERABLE
+error: `For` loop must be over a list
+    For $item10 in 10, // error: `For` loop must be over a list
+
+//= MULTI-BRANCH MATCH WITH FIRST TRUTHY MATCH ONLY
+"Second matched"
+
+//= MULTI-BRANCH MATCH WITH MULTIPLE TRUTHY CONDITIONS, ONLY FIRST EXECUTES
+"At least 5 matched"
+
+//= MULTI-BRANCH MATCH WITH MULTIPLE TRUTHY CONDITIONS, ALL EXECUTE
+"At least 5 matched"
+"generic number should print"
+
+//= ERROR CASE: USING UNDEFINED VARIABLE IN IF
+error: undefined variable
+    If $undefined-var, // error: undefined variable
+
+//= ERROR CASE: INVALID COMPARISON TYPE
+error: can't compare list with number
+  If $list-contain is less than 10,
+
+//= ERROR CASE: INVALID USE OF "CONTAINS" ON NON-LIST
+error: contains used on non-list
+  If $non-list-val contains 1,
+
+//= ERROR CASE: INVALID MULTI-BRANCH "or" WITHOUT PRECEDING IF
+error: `or` without preceding `If`
+  or "value", // error: `or` without preceding `If`
+
+//= ERROR CASE: ELSE IF WITHOUT INITIAL IF
+error: `Else if` without preceding `If`
+  Else if $color is "blue", // error: `Else if` without preceding `If`
+
+//= ERROR CASE: ELSE WITHOUT INITIAL IF
+error: `Else` without preceding `If`
+  Else, // error: `Else` without preceding `If`
+
+//= BOOLEAN TEST: LIST WITH ALL FALSY ELEMENTS
+"All falsy elements in a list are falsy"
+
+//= BOOLEAN TEST: TEXT WITH WHITESPACE ONLY (TRUTHY)
+"Whitespace text is truthy"
+
+//= BOOLEAN TEST: VARIABLE WITH EMPTY BLUEPRINT VARIANT (TRUTHY)
+"Empty variant is truthy"
+
+//= BOOLEAN TEST: EMPTY PARAMETERIZED FUNCTION (FALSY)
+"Empty parameterized function is falsy"
+
+//= INLINE IF WITH VARIABLE SET TO NUMBER 1 (TRUTHY)
+"Number 1 is truthy"
+
+//= INLINE IF WITH EMPTY LIST (FALSY)
+"Empty list falsy"
+
+//= DESTRUCTURE IN IF CONDITION (Truthy)
+"Eve is over 21"
+
+//= DESTRUCTURING BY REFERENCE AND MUTATION IN CONTROL FLOW
+100
+
+//= MULTI-STAGE PIPELINE WITH CONDITIONAL STEP ERROR
+error: comparison word in pipeline
+  then ($this contains 4) :> $contains-four;
+
+//= Has function and pipeline
+"List contains four"
