@@ -1,2 +1,5 @@
 - casting solutions?
 - implement computed index access stuff
+- builtin functions
+- alter Blueprint variant additions to use "<:" operator to be more consistent with existing mutation/rebinding functionality
+- should conditionals use the {} delimiters instead of if end? or maybe all actions taken contained within a function atom?

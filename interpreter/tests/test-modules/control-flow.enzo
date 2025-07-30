@@ -324,3 +324,80 @@ If (4 + 5), "Will print"; end; // function with value should trigger
 If (5 - 5), "Won't print2"; end; // function returns 0 which is a false condition
 
 If not (5 - 5), "Will print"; end; // function returns 0 which is a false condition
+
+//= IF WITH FUNCTION RETURNING EMPTY (FALSY)
+empty-fn-test: ();
+
+If empty-fn-test(),
+  "Won't print";
+Else,
+  "Empty function result"; // should print
+end;
+
+//= IF WITH FUNCTION RETURNING NON-EMPTY (TRUTHY)
+non-empty-fn-test: ("result";);
+
+If non-empty-fn-test(),
+  "Non-empty function result"; // should print
+end;
+
+//= IF WITH VARIABLE SET TO EMPTY LIST THEN MUTATED TO TRUTHY LIST
+$list-mutate: [];
+
+If $list-mutate,
+  "Won't print initially";
+end;
+
+$list-mutate <: [1];
+
+If $list-mutate,
+  "List became truthy"; // should print
+end;
+
+//= IF WITH VARIABLE SET TO TEXT "0" (TRUTHY)
+$text-zero: "0";
+
+If $text-zero,
+  "Text '0' is truthy"; // should print
+end;
+
+//= IF WITH VARIABLE SET TO NUMBER 0.0 (FALSY)
+$num-zero: 0.0;
+
+If $num-zero,
+  "Won't print";
+Else,
+  "0.0 is falsy"; // should print
+end;
+
+//= IF WITH EMPTY BLUEPRINT INSTANCE (falsy)
+EmptyBP: <[]>;
+$empty-bp: EmptyBP[];
+If $empty-bp,
+  "won't print"; // shouldn't print
+Else,
+  "empty blueprint instance is falsy"; // should print
+end;
+
+//= IF WITH VARIABLE SET TO STATUS.FALSE THEN MUTATED TO CUSTOM STATUS (TRUTHY)
+$status-custom: Status.False;
+If $status-custom,
+  "Won't print initially";
+end;
+
+Status variants: Loading, or Dead;
+
+$status-custom <: Status.Loading;
+
+If $status-custom,
+  "Custom status is truthy"; // should print
+end;
+
+//= WHILE LOOP NEVER ENTERED (INITIAL CONDITION FALSE)
+$count-never: 5;
+While $count-never is less than 0,
+  "Never prints";
+  $count-never <: $count-never - 1;
+end;
+
+$count-never; // prints 5, unchanged

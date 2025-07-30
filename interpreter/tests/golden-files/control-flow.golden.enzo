@@ -104,3 +104,27 @@
 //= Function Atom as condition
 "Will print"
 "Will print"
+
+//= IF WITH FUNCTION RETURNING EMPTY (FALSY)
+"Empty function result"
+
+//= IF WITH FUNCTION RETURNING NON-EMPTY (TRUTHY)
+"Non-empty function result"
+
+//= IF WITH VARIABLE SET TO EMPTY LIST THEN MUTATED TO TRUTHY LIST
+"List became truthy"
+
+//= IF WITH VARIABLE SET TO TEXT "0" (TRUTHY)
+"Text '0' is truthy"
+
+//= IF WITH VARIABLE SET TO NUMBER 0.0 (FALSY)
+"0.0 is falsy"
+
+//= IF WITH EMPTY BLUEPRINT INSTANCE (TRUTHY)
+"Empty blueprint is truthy"
+
+//= IF WITH VARIABLE SET TO STATUS.FALSE THEN MUTATED TO CUSTOM STATUS (TRUTHY)
+"Custom status is truthy"
+
+//= WHILE LOOP NEVER ENTERED (INITIAL CONDITION FALSE)
+5
