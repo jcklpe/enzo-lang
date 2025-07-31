@@ -1,0 +1,52 @@
+// #Loops
+// Infinite loop
+Loop {
+"this is the song that doesn't end. Yes, it goes on and on, my friend Some people started singing it not knowing what it was, and they’ll continue singing it forever just because "
+}
+
+// You can end a loop by writing `end;`
+$iteration: 0;
+$message: "There have been <$iteration> full iteration/s";
+Loop {
+    $iteration + 1 :> $iteration;
+    $message;
+    end-loop;
+} // This will iterate once, print the message and then end.
+
+// And you can use control flow stuff to end based on conditions.
+$iteration: 0;
+$message: "There have been <$iteration> full iteration/s";
+Loop {
+    $iteration + 1 :> $iteration;
+    $message;
+    If $iteration is more than 10,
+        end-loop;
+    end;
+} // this will print 11 times then end.
+
+// This allows you to create more complex loops that can end loop in multiple ways
+<<need example here of a more complex Loop with multiple reasons to end loop>>
+
+// Loops can modified in a couple of ways to be a little less boilerplate:
+// ## While loops
+$iteration: 0;
+$message: "There have been <$iteration> full iteration/s";
+Loop while $iteration is less than 10 {
+    $iteration + 1 :> $iteration;
+    $message;
+} // this will print 10 times
+
+// ## Until loops
+// the opposite of a while loop
+$iteration: 0;
+$message: "There have been <$iteration> full iteration/s";
+Loop until $iteration is more than 10 {
+    $iteration + 1 :> $iteration;
+    $message;
+} // this will print 10 times
+
+// ## For loops
+$item-list: [1, 2, 3, 4, 5];
+Loop for $item in $item-list {
+    "this iteration has returned <$item> of <$item-list>";
+}
