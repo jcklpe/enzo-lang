@@ -1247,3 +1247,6 @@ then $this.3;       // index into the result
 | **Pipeline** `$v then foo($0,1)`     | `foo($v,1)`                                 |
 | **Inline if** `if cond, a, else b`   | `if cond then a else b end`                 |
 | **List destructure** `$x,$y : [1,2]` | `$tmp : [1,2]; $x : $tmp[0]; $y : $tmp[1];` |
+
+
+test
