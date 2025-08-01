@@ -4,3 +4,4 @@
 - alter Blueprint variant additions to use "<:" operator to be more consistent with existing mutation/rebinding functionality
 - should conditionals use the {} delimiters instead of if end? or maybe all actions taken contained within a function atom?
 - reform the way loops work?
+- is odd/even conditional?
