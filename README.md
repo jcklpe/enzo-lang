@@ -246,6 +246,28 @@ $function2();    // returns 9
 $function2(5);   // returns 10
 ```
 
+#### Expression Context Rules
+**Enzo allows arithmetic and single expressions to appear in most contexts without requiring function atom parentheses:**
+
+```javascript!
+// ✅ Bare expressions work in these contexts:
+$result: $x + $y;               // assignment
+$x + 1 :> $x;                   // rebinding
+5 + 3;                          // top-level statement
+"Value: <$x + 1>";              // string interpolation
+```
+
+**Function atom parentheses are required for:**
+```javascript!
+// Multi-statement blocks need function atoms for scoping
+($temp: $x + 1; $temp * 2);     // local variables and complex logic
+
+// Storing expressions as function atoms
+$func: (2 * 2);                 // stores function atom
+```
+
+This design reduces paren noise while maintaining the power of function atoms for complex logic and explicit scoping.
+
 #### Demand-driven function evaluation
 In Enzo, parentheses always create a function atom.
 
@@ -260,6 +282,8 @@ Demanded:
   - `(2 * 2);` at the top level of a file or entered into the CLI directly → evaluates function returning 4.
 - **Arithmetic context:**
   - `$result: (x + y) * 2;` → evaluates function, then multiplies. The variable type of `$result` is Number.
+- **Function argument context:**
+  - `test-func((2 + 2), (3 + 3));` → evaluates both function atoms, passes values 4 and 6 to the function parameters
 - **Conditional context:**
   - `If ($iteration + 1) is less than 20` → evaluates function, then compares the result to 20.
 - **Complex numeric index context:**
@@ -269,11 +293,27 @@ Demanded:
 - **Immediate invocation sigil context:**
   - `$func-value: !(2 * 2);` → Immediately evaluates the function and assigns 4 to `$func-value`. The variable type of `$func-value` is Number.
 
-
 Not demanded:
 - **Storage context:**
   - `$func: (2 * 2);` → stores function atom. The variable type of `$func` is Function.
 
+#### Forcing immediate evaluation with `!`
+Sometimes you want to force immediate evaluation in contexts where function atoms would normally be stored. Use the `!` sigil to override the default demand-driven behavior:
+
+```javascript!
+// Without !: stores function atom
+$func: (2 * 2);                 // Variable type: Function
+$func();                         // Call later → returns 4
+
+// With !: forces immediate evaluation
+$value: !(2 * 2);               // Variable type: Number, value: 4
+$value <: 5;                    // ✅ Type-consistent rebinding
+```
+
+**Key benefits:**
+- **Type consistency**: Enables rebinding variables with computed values
+- **Clear intent**: Makes immediate evaluation explicit rather than context-dependent
+- **Flexibility**: Works with any function atom, from simple arithmetic to complex computations
 
 ### Empty variables (null, undefined)
 A variable can be created that is empty.
@@ -464,7 +504,6 @@ Enzo distinguishes **invoking** a variable or function (by value/copy) from **re
 Unlike most languages where functions are referenced by omitting the parentheses, function name with no sigil or parens is always an error:
 ```javascript!
 function-name; // this is always an error!
-@function-name(); // This is also an error!
 ```
 
 Example of this in action for simple variables:
@@ -509,6 +548,25 @@ applyTwice: (
 $twice: applyTwice(@increment, 7);
 // 9 bound to $twice
 ```
+
+You can also use `@()` to create references to nameless functions:
+```javascript!
+$funcs-list: [@(param $x:; $x + 1), @(param $x:; $x * 2)];
+processCustomers($customers, @(
+    param $customer: ;
+    "Email: <$customer.email>";
+));
+```
+
+### Using a reference for partial application
+Sometimes you want to make a new function that is like an existing function but more constrained. Let's say the function take 2 arguments, but you want to make a new one where the second argument is always the same, and only the first one can be customized. You can do this with a feature called "partial application":
+```javascript!
+add: (param a: , param b: ; a + b);
+add5: @add( , 5);
+
+add5(10);  // returns 15
+```
+
 
 ## List Destructuring/Restructuring
 Destructuring lets you quickly break a list into separate variables, so you can work with each piece individually. Instead of accessing values with long property paths or indexes, destructuring gives you short, readable names for the things you need, making your code simpler and less error-prone.
@@ -884,11 +942,12 @@ If $fav-color, (
 #### Else
 Else provides a fallback for if the If condition is not met.
 ```javascript!
-If $status is "red alert",
+If $status is "red alert", (
     "Panic!!!";
-Else,
+),
+Else, (
     "Nothing to worry about";
-end;
+);
 ```
 
 #### Else if
