@@ -1,0 +1,9 @@
+$fruit: "orange";
+
+If $fruit either is "banana", (
+  "Banana";),
+or is "apple", (
+  "Apple";),
+Otherwise, (
+  "Fallback fruit";
+);

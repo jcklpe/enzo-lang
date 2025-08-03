@@ -1006,6 +1006,10 @@ class Parser:
         then_function = self.parse_function_atom()
         then_block = then_function.body  # Extract statements from function atom
 
+        # Check for comma after function atom (needed for or/Otherwise clauses)
+        if self.peek() and self.peek().type == "COMMA":
+            self.advance()  # consume comma
+
         # Parse additional branches with 'or'
         else_block = None
         if self.peek() and self.peek().type in ("OR", "OTHERWISE"):
@@ -1117,6 +1121,10 @@ class Parser:
         
         then_function = self.parse_function_atom()
         then_block = then_function.body  # Extract statements from function atom
+
+        # Check for comma after function atom (needed for or/Otherwise clauses)
+        if self.peek() and self.peek().type == "COMMA":
+            self.advance()  # consume comma
 
         # Parse next branch if any
         else_block = None
