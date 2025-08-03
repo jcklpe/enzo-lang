@@ -1,0 +1,14 @@
+//= SIMPLE IF TEST
+"Ready!"
+
+//= IF CONDITION NOT MET and not
+"this should print"
+
+//= ELSE TEST
+"Fallback triggered"
+
+//= NOT CONDITION FALSE
+"this should print"
+
+//= IS VALUE MATCH TRUE and False
+"Matched blue"

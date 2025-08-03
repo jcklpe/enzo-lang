@@ -1,0 +1,48 @@
+//= SIMPLE IF TEST
+$status-if: "ready";
+
+If $status-if, (
+  "Ready!"; // should print "Ready!"
+);
+
+//= IF CONDITION NOT MET and not
+$status-if-empty: "";
+
+If $status-if-empty, (
+  "Won't print"; // shouldn't print
+);
+
+If not $status-if-empty, (
+  "this should print"; // should print
+);
+
+//= ELSE TEST
+$status-else: "";
+
+If $status-else, (
+  "Won't print";),
+Else, (
+  "Fallback triggered"; // should print
+);
+
+//= NOT CONDITION FALSE
+$status-not2: "value";
+
+If not $status-not2, (
+  "Won't print";
+);
+
+If $status-not2, (
+  "this should print";
+);
+
+//= IS VALUE MATCH TRUE and False
+$color-match: "blue";
+
+If $color-match is "blue", (
+  "Matched blue"; // should print
+);
+
+If $color-match is "red", (
+  "Won't print";
+);

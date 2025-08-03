@@ -210,7 +210,7 @@ $y: 100;
 return(($x + $y));
 ); // returns 200
 ```
-Single line function atoms do not require an explicit return. Multi-line function atoms must always have an explicit return.
+Single line function atoms do not require an explicit return. Multi-line function atoms never have implicit return. If you're running any kind of process you expect to have a return value then you will require an explicit return.
 
 Function atoms can also be bound to a keyname.
 ```javascript!
