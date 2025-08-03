@@ -1,0 +1,5 @@
+//= TEST COMMENT 1
+"Hello";
+
+//= TEST COMMENT 2  
+"World";

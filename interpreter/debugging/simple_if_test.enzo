@@ -1,0 +1,5 @@
+$status-if: "ready";
+
+If $status-if, (
+  "Ready!";
+);

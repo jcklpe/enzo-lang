@@ -122,9 +122,13 @@ def split_statements(lines):
 
         # Track control flow keywords
         import re
-        # Check for If/For/While/Else/end keywords (must be whole words)
+        # Check for If/For/While keywords (must be whole words)
         if re.search(r'\b(If|For|While)\b', line_to_parse):
             if_depth += 1
+        # In new syntax, closing parenthesis followed by semicolon ends control flow
+        if re.search(r'\);\s*$', line_to_parse) and if_depth > 0:
+            if_depth = max(0, if_depth - 1)  # Prevent negative depth
+        # Keep old 'end' keyword support for backwards compatibility
         if re.search(r'\bend\b', line_to_parse):
             if_depth = max(0, if_depth - 1)  # Prevent negative depth
 
