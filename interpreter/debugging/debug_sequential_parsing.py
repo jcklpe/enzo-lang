@@ -12,15 +12,15 @@ from evaluator import eval_ast
 def debug_sequential_parsing():
     with open('tests/test-modules/subset-conditional-flow.enzo', 'r') as f:
         content = f.read()
-    
+
     print("=== DEBUGGING SEQUENTIAL PARSING ===")
-    
+
     try:
         # Parse the entire file first
         statements = parse(content)
-        
+
         print(f"✅ Parsing successful. Found {len(statements)} statements")
-        
+
         # Now try evaluating statement by statement
         for i, stmt in enumerate(statements):
             print(f"\n--- Statement {i+1}: {type(stmt).__name__} ---")
@@ -35,7 +35,7 @@ def debug_sequential_parsing():
                 import traceback
                 traceback.print_exc()
                 break
-        
+
     except Exception as e:
         print(f"❌ Parse error: {e}")
         import traceback

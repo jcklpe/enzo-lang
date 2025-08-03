@@ -1002,7 +1002,7 @@ class Parser:
         # Parse then block for first branch - expect function atom
         if not self.peek() or self.peek().type != "LPAR":
             raise EnzoParseError("Expected '(' after branch condition comma", code_line=self._get_code_line(self.peek()) if self.peek() else None)
-        
+
         then_function = self.parse_function_atom()
         then_block = then_function.body  # Extract statements from function atom
 
@@ -1034,7 +1034,7 @@ class Parser:
 
                 if not self.peek() or self.peek().type != "LPAR":
                     raise EnzoParseError("Expected '(' after Otherwise comma", code_line=self._get_code_line(self.peek()) if self.peek() else None)
-                
+
                 else_function = self.parse_function_atom()
                 else_block = else_function.body  # Extract statements from function atom
 
@@ -1118,7 +1118,7 @@ class Parser:
         # Parse then block for this branch - expect function atom
         if not self.peek() or self.peek().type != "LPAR":
             raise EnzoParseError("Expected '(' after branch condition comma", code_line=self._get_code_line(self.peek()) if self.peek() else None)
-        
+
         then_function = self.parse_function_atom()
         then_block = then_function.body  # Extract statements from function atom
 
@@ -1145,7 +1145,7 @@ class Parser:
 
                 if not self.peek() or self.peek().type != "LPAR":
                     raise EnzoParseError("Expected '(' after Otherwise comma", code_line=self._get_code_line(self.peek()) if self.peek() else None)
-                
+
                 else_function = self.parse_function_atom()
                 else_block = else_function.body  # Extract statements from function atom
 
@@ -1180,7 +1180,7 @@ class Parser:
             # Parse the body for this branch - expect function atom
             if not self.peek() or self.peek().type != "LPAR":
                 raise EnzoParseError("Expected '(' after or condition comma", code_line=self._get_code_line(self.peek()) if self.peek() else None)
-            
+
             or_function = self.parse_function_atom()
             or_then_block = or_function.body  # Extract statements from function atom
 
@@ -1231,7 +1231,7 @@ class Parser:
 
                     if not self.peek() or self.peek().type != "LPAR":
                         raise EnzoParseError("Expected '(' after Else comma", code_line=self._get_code_line(self.peek()) if self.peek() else None)
-                    
+
                     else_function = self.parse_function_atom()
                     else_block = else_function.body  # Extract statements from function atom
 

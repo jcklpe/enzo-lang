@@ -16,13 +16,13 @@ If $status-else, (
 ), Else, (
   "Fallback triggered";
 );'''
-    
+
     print(f"Code:\n{code}")
     print("\nTokens:")
-    
+
     tokenizer = Tokenizer(code)
     tokens = tokenizer.tokenize()
-    
+
     for i, token in enumerate(tokens):
         if token.type not in ('WHITESPACE', 'NEWLINE'):
             print(f"  {i}: {token}")

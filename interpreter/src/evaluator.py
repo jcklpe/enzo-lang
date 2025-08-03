@@ -200,11 +200,7 @@ def invoke_function(fn, args, env, self_obj=None):
     # For function execution, we need to allow local variables to shadow global ones
     # So we'll use a special binding context that doesn't check for global conflicts
 
-    # Check if multi-line function atom has explicit return
-    if getattr(fn, 'is_multiline', False):
-        has_return = any(isinstance(stmt, ReturnNode) for stmt in fn.body)
-        if not has_return:
-            raise EnzoRuntimeError(error_message_multiline_function_requires_return())
+    # Multi-line function atoms no longer require explicit returns - they return the last evaluated expression
 
     # Execute all statements in order: local_vars are bindings that appeared in the function body
     # and should be executed in the order they appeared relative to other statements

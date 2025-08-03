@@ -331,11 +331,11 @@ $times2;       // prints 4
 "this is the $times2(); style function invocation";
 $times2();       // prints 4
 
-//= Nameless function: multi-line with no explicit return (should error)
+//= Nameless function: multi-line with no explicit return
 ($x: 1;
  $y: 2;
  $x + $y;
-);         // error: no explicit return in multi-line function
+); // prints 3
 
 //= Multi-line with params and default values
 adder: (

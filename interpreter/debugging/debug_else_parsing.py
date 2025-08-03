@@ -16,17 +16,17 @@ def test_else_parsing():
 Else, (
   "Fallback triggered";
 );'''
-    
+
     print(f"Testing: {test_code}")
     try:
         tokenizer = Tokenizer(test_code)
         tokens = tokenizer.tokenize()
-        
+
         print("\nTokens:")
         for i, token in enumerate(tokens):
             if token.type not in ('WHITESPACE', 'COMMENT'):
                 print(f"  {i}: {token}")
-        
+
         parser = Parser(tokens, test_code)
         ast = parser.parse()
         print(f"✅ Parsed successfully")
