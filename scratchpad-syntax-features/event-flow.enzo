@@ -1,0 +1,53 @@
+// event driven behavior
+// # Signal (Emit/event)
+// potential syntaxes
+Signal user-saved with $user;
+//or
+Signal user-saved{$user};
+
+// # Watch (event watcher, observable subscription)
+Watch $score;
+
+When $score is greater than 1000, (
+    unlockBonus();
+);
+
+// # When (event listener)
+When user.logged-in, (
+    greet($user);
+);
+
+When $score is greater than 1000, (
+    unlockBonus();
+);
+
+// 4o suggested using On for persistent listener and When for a one-off but that seems inelegant, probably have something else to resolve that distinction if that's even needed. Probably could just put some conditional logic within the When statement to ensure it only fires twice. Maybe some way to turn off a signal or unwatch stuff?
+
+save-user: (
+    param $user: ;
+
+    // do save logic...
+
+    Signal user-saved{$user};
+
+    If $user.email is "", (
+        Signal user-missing-email{$user};
+    );
+);
+
+When user-saved{}, (
+    log("User <$this.name> saved!");
+);
+
+When user-missing-email{}, (
+    log("User <$this.name> has no email!");
+);
+
+Signal user-saved{$user, $timestamp};
+// returns a list of user and timestamp
+
+// Observable streams syntax
+$score-stream: Watch $score;
+
+$score-stream.map($this + 1).filter($this > 1000)
+  then unlockBonus();

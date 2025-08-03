@@ -1,0 +1,19 @@
+//= WHILE LOOP SIMPLE
+1
+2
+3
+
+//= WHILE LOOP NEVER ENTERED (INITIAL CONDITION FALSE)
+5
+
+//= SIMPLE FOR LOOP
+"Item: 1"
+"Item: 2"
+"Item: 3"
+
+//= FOR LOOP WITH EMPTY LIST (NEVER ENTERED)
+[]
+
+//= ERROR: FOR LOOP WITH NON-ITERABLE
+error: `For` loop must be over a list
+    For $item10 in 10, // error: `For` loop must be over a list

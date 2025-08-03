@@ -5,3 +5,8 @@
 - should conditionals use the {} delimiters instead of if end? or maybe all actions taken contained within a function atom?
 - reform the way loops work?
 - is odd/even conditional?
+- implement modulo
+- implement classic algos
+- implement classic recursion tests
+- squaring operators?
+- inverse exponent?

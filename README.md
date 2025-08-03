@@ -34,7 +34,7 @@ You use keynames to more easily invoke that atomvalue where you need in code. An
 There are 5 types of atoms. These types are [static but inferred](https://www.perplexity.ai/search/plain-language-explanation-of-bIpK7TNKTtCK.Ao8RdeIuw).
 
 ### Number atom
-A number atom is any [real number](https://en.wikipedia.org/wiki/Real_number).
+A Number atom is any [real number](https://en.wikipedia.org/wiki/Real_number).
 
 ```javascript!
 100;
@@ -44,26 +44,26 @@ A number atom is any [real number](https://en.wikipedia.org/wiki/Real_number).
 -300;
 ```
 
-Example of a number atom bound a keyname:
+Example of a Number atom bound a keyname:
 
 ```javascript!
 $number-example: 888;
 ```
 
 ### Text (string)
-A text atom is any sequence of characters enclosed in double quotes `"..."`.
+A Text atom is any sequence of characters enclosed in double quotes `"..."`.
 This includes letters, numbers, punctuation, spaces, emoji, or [any valid Unicode symbol](https://en.wikipedia.org/wiki/Unicode).
 
 ```javascript!
 "hello world";
-"100";     // note: this is *text*, not a number
+"100";     // note: this is *Text*, not a Number
 "π ≈ 3.14159";
 "emoji: 😀";
 "name_stuff_123";
 "line\nbreak"; // newlines and escape sequences allowed
 ```
 
-Example of text atom bound a keyname:
+Example of Text atom bound a keyname:
 
 ```javascript!
 $text-example: "here is some text";
@@ -147,7 +147,7 @@ $secondLog: $user.logs.2;    // → "logout"
 ### Interpolation
 Sometimes you need to insert a value into another value. Many languages do this with concatenation, or spread operators but Enzo does this through interpolation.
 #### Text interpolation
-Text interpolation allows you to insert dynamic values into text:
+Text interpolation allows you to insert dynamic values into Text:
 ```javascript!
 $name: "Bob";
 $favorite-color: "blue";
@@ -159,7 +159,7 @@ $number-example: 5;
 $number-example2: 3;
 $text-example: "the result of the two variables added together is <($number-example + $number-example2;)>"
 
-$text-example; //returns the text "the result of the two variables added together is 8"
+$text-example; //returns the Text "the result of the two variables added together is 8"
 ```
 
 #### List interpolation (spread/append/prepend)
@@ -338,9 +338,9 @@ $x: ;
 // $x has no value or type
 
 $x <: 5;
-// $x now has a value of 5 and a type of number.
+// $x now has a value of 5 and a type of Number.
 
-$x <: 6 // totally fine to rebind this variable with a new number value.
+$x <: 6 // totally fine to rebind this variable with a new Number value.
 $x <: "five"
 // ❌ error: cannot bind Text to a Number type variable
 ```
@@ -387,7 +387,7 @@ $function-example(10, 9);//returns 20
 function-example2: (
     $first-number: 5;
     param $second-number: ;
-    param $third-number: number: ;
+    param $third-number: Number: ;
 
     return(($first-number * $second-number / $third-number));
 )
@@ -540,7 +540,7 @@ $result: $op(10);
 // 5) Higher-order usage:
 applyTwice: (
   param $function:();      // expects a function object
-  param $value: 1;          // default value of 1 tells it to expect a number
+  param $value: 1;          // default value of 1 tells it to expect a Number
   return($function($function($value)));
 );
 
@@ -670,13 +670,13 @@ $goblin3: Goblin[
     $position: [10, 10],
 ]>;
 Goblin: <[
-    health-points: number,
-    position: [number, number],
+    health-points: Number,
+    position: [Number, Number],
     attacks: [
-        $bite: number,
-        $torch: number,
+        $bite: Number,
+        $torch: Number,
     ],
-    status-effect: text,
+    status-effect: Text,
 ]>;
 
 take-damage: (
@@ -887,7 +887,7 @@ Goblin variants:
 
 You can add to an existing variant group like so:
 ```javascript!
-Goblin variants: Fire-Goblin: <[
+Goblin variants include Fire-Goblin: <[
     elemental-type: Magic-Type.Fire;
 ]>;
 ```
@@ -1032,7 +1032,7 @@ If $x is Monster.Goblin, (
 ```
 
 ##### less than
-`less than` is a comparison word that checks if a number is less than another number.
+`less than` is a comparison word that checks if a Number is less than another Number.
 
 ```javascript!
 $temperature: 98;
@@ -1043,7 +1043,7 @@ If $temperature is less than 50, (
 ```
 
 ##### greater than
-`greater than` is a comparison word that checks if a number is greater than another number.
+`greater than` is a comparison word that checks if a Number is greater than another Number.
 
 ```javascript!
 $temperature: 98;
@@ -1054,7 +1054,7 @@ If $temperature is greater than 88, (
 ```
 
 ##### at most (<=)
-`at most` is a comparison word that checks if a number is less than or equal to another number.
+`at most` is a comparison word that checks if a Number is less than or equal to another Number.
 
 ```javascript!
 $temperature: 98;
@@ -1065,7 +1065,7 @@ If $temperature is at most 120, (
 ```
 
 ##### at least (>=)
-`at least` is a comparison word that checks if a number is greater than or equal to another number.
+`at least` is a comparison word that checks if a Number is greater than or equal to another Number.
 
 ```javascript!
 $temperature: 98;
@@ -1235,12 +1235,12 @@ Loop for $item in $item-list, (
     If ($item % 2) is 1, (   // If $item is odd
         restart-loop;
     );
-    // This code only runs for even numbers
+    // This code only runs for even Numbers
     [<$evens;>, $item] :> $evens;
 );
 $evens;  // [2, 4]
 ```
-In this example, whenever $item is odd, restart-loop; causes the loop to immediately start the next iteration, so only even numbers are added to $evens.
+In this example, whenever $item is odd, restart-loop; causes the loop to immediately start the next iteration, so only even Numbers are added to $evens.
 
 #### Conditional loop flow
 To have a little more readable and less boilerplate there's also a couple of loop subtypes that put their loop conditions up front. You can still use `end-loop;` to end the loop early, or `restart-loop;` to restart it early.

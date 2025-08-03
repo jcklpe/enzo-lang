@@ -1,0 +1,15 @@
+// need to add a new variant to a variant group?
+// interpolation style:
+Goblin variants <: <Goblin variants> or Fire-Goblin;
+
+//append insertion style
+Goblin variants <+ Fire-Goblin;
+Fire-Goblin +> Goblin variants;
+
+// could there be something here for prepending?
+
+// english language insertion
+Goblin variants include Fire-Goblin: <[ elemental-type: Magic-Type.Fire ]>;
+// Fire Goblin in any case should inherit any blueprints that all blueprints in the group have been composed with via `and`
+
+// insertion could also be expanded out to lists.

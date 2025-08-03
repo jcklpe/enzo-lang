@@ -78,15 +78,7 @@
 "Go!"
 "Wait!"
 
-//= SIMPLE FOR LOOP
-"Item: 1"
-"Item: 2"
-"Item: 3"
 
-//= WHILE LOOP SIMPLE
-1
-2
-3
 
 //= BOOLEAN EDGE CASE FALSE CONDITIONS
 "will print"
@@ -125,16 +117,6 @@
 
 //= IF WITH VARIABLE SET TO STATUS.FALSE THEN MUTATED TO CUSTOM STATUS (TRUTHY)
 "Custom status is truthy"
-
-//= WHILE LOOP NEVER ENTERED (INITIAL CONDITION FALSE)
-5
-
-//= FOR LOOP WITH EMPTY LIST (NEVER ENTERED)
-[]
-
-//= ERROR: FOR LOOP WITH NON-ITERABLE
-error: `For` loop must be over a list
-    For $item10 in 10, // error: `For` loop must be over a list
 
 //= MULTI-BRANCH MATCH WITH FIRST TRUTHY MATCH ONLY
 "Second matched"

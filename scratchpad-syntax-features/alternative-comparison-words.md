@@ -1,19 +1,3 @@
-#### either (exclusive or)
-`either` allows you to test for multiple conditions, and only fires if one is true and the rest are false.
-```javascript!
-$status: "red alert";
-
-If $status is either "red alert" or "orange alert",
-    "stuff is looking bad!";
-end;
-```
-
-$age: 19; if $age between 13 and 19, "teenager" end;
-
-$x: 9; if $x within 1 to 10, "in range" end;
-
-$score: 97; if $score within 3 of 100, "almost perfect"; end;
-
 #### has
 `has` is a comparison word that checks if a list has specific keyname.
 ```javascript!

@@ -1,7 +1,0 @@
-- implement classic algos
-- consider the use of computed indices for lists with $list-name.($index + 1)
-- implement classic recursion tests
-- modulo?
-    -  modulo should be "remainder" and be available  as both an operator and a function? (function?) or also %. % fits more with the established pattern of using symbols for mathematical operators but remainder is more self apparent.
-- squaring operators?
-- inverse exponent (the root)
