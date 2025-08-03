@@ -1897,17 +1897,30 @@ def _compare_values(left, operator, right):
         # Value comparison
         return left == right
     elif operator == "is less than":
-        return isinstance(left, (int, float)) and isinstance(right, (int, float)) and left < right
+        if not (isinstance(left, (int, float)) and isinstance(right, (int, float))):
+            from src.error_messaging import error_message_invalid_comparison_type
+            raise EnzoRuntimeError(error_message_invalid_comparison_type())
+        return left < right
     elif operator == "is greater than":
-        return isinstance(left, (int, float)) and isinstance(right, (int, float)) and left > right
+        if not (isinstance(left, (int, float)) and isinstance(right, (int, float))):
+            from src.error_messaging import error_message_invalid_comparison_type
+            raise EnzoRuntimeError(error_message_invalid_comparison_type())
+        return left > right
     elif operator == "is at most":
-        return isinstance(left, (int, float)) and isinstance(right, (int, float)) and left <= right
+        if not (isinstance(left, (int, float)) and isinstance(right, (int, float))):
+            from src.error_messaging import error_message_invalid_comparison_type
+            raise EnzoRuntimeError(error_message_invalid_comparison_type())
+        return left <= right
     elif operator == "is at least":
-        return isinstance(left, (int, float)) and isinstance(right, (int, float)) and left >= right
+        if not (isinstance(left, (int, float)) and isinstance(right, (int, float))):
+            from src.error_messaging import error_message_invalid_comparison_type
+            raise EnzoRuntimeError(error_message_invalid_comparison_type())
+        return left >= right
     elif operator == "contains":
-        if isinstance(left, (list, EnzoList)):
-            return _contains_value(left, right)
-        return False
+        if not isinstance(left, (list, EnzoList)):
+            from src.error_messaging import error_message_contains_non_list
+            raise EnzoRuntimeError(error_message_contains_non_list())
+        return _contains_value(left, right)
     else:
         raise EnzoRuntimeError(f"Unknown comparison operator: {operator}")
 

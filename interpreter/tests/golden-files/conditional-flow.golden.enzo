@@ -130,23 +130,23 @@
 
 //= ERROR CASE: USING UNDEFINED VARIABLE IN IF
 error: undefined variable
-    If $undefined-var, // error: undefined variable
+    If $undefined-var, ( // error: undefined variable
 
 //= ERROR CASE: INVALID COMPARISON TYPE
 error: can't compare list with number
-  If $list-contain is less than 10,
+    If $list-contain is less than 10, (
 
 //= ERROR CASE: INVALID USE OF "CONTAINS" ON NON-LIST
 error: contains used on non-list
-  If $non-list-val contains 1,
+    If $non-list-val contains 1, (
 
 //= ERROR CASE: INVALID MULTI-BRANCH "or" WITHOUT PRECEDING IF
 error: `or` without preceding `If`
-  or "value", // error: `or` without preceding `If`
+    or "value", ( // error: `or` without preceding `If`
 
 //= ERROR CASE: ELSE IF WITHOUT INITIAL IF
 error: `Else if` without preceding `If`
-  Else if $color is "blue", // error: `Else if` without preceding `If`
+    Else if $color is "blue", ( // error: `Else if` without preceding `If`
 
 //= ERROR CASE: ELSE WITHOUT INITIAL IF
 error: `Else` without preceding `If`

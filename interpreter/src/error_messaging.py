@@ -12,7 +12,7 @@ def error_message_already_defined(name):
 def error_message_unknown_variable(name):
     if not name.startswith("$"):
         name = f"${name}"
-    return f"unknown variable: {name}"
+    return f"error: undefined variable"
 
 def error_message_not_a_function(func):
     return f"{func} is not a function"
@@ -166,3 +166,12 @@ def error_message_duplicate_variable_names():
 
 def error_message_for_loop_non_iterable():
     return "error: `For` loop must be over a list"
+
+def error_message_invalid_comparison_type():
+    return "error: can't compare list with number"
+
+def error_message_contains_non_list():
+    return "error: contains used on non-list"
+
+def error_message_comparison_in_pipeline():
+    return "error: comparison word in pipeline"
