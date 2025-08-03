@@ -477,12 +477,12 @@ Else, (
 //= INLINE IF WITH VARIABLE SET TO NUMBER 1 (TRUTHY)
 $inline-num: 1;
 
-If $inline-num, ("Number 1 is truthy"), Else ("Won't print"); // prints truthy
+If $inline-num, ("Number 1 is truthy"), Else, ("Won't print"); // prints truthy
 
 //= INLINE IF WITH EMPTY LIST (FALSY)
 $inline-list: [];
 
-If $inline-list, ("Won't print"), Else ("Empty list falsy"); // prints falsy
+If $inline-list, ("Won't print"), Else, ("Empty list falsy"); // prints falsy
 
 //= DESTRUCTURE IN IF CONDITION (Truthy)
 $person21: [$name21: "Eve", $age21: 28];

@@ -1177,14 +1177,12 @@ class Parser:
                 raise EnzoParseError("Expected ',' after or condition", code_line=self._get_code_line(self.peek()) if self.peek() else None)
             self.advance()
 
-            # Parse the body for this branch
-            or_then_block = []
-            while self.peek() and self.peek().type not in ("END", "ELSE", "ELSE_IF", "OR"):
-                stmt = self.parse_statement()
-                or_then_block.append(stmt)
-                # Consume semicolons
-                while self.peek() and self.peek().type == "SEMICOLON":
-                    self.advance()
+            # Parse the body for this branch - expect function atom
+            if not self.peek() or self.peek().type != "LPAR":
+                raise EnzoParseError("Expected '(' after or condition comma", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+            
+            or_function = self.parse_function_atom()
+            or_then_block = or_function.body  # Extract statements from function atom
 
             branches.append((or_condition, or_then_block))
 
@@ -1226,28 +1224,20 @@ class Parser:
                     # This is 'Else if' - parse as nested if statement
                     else_block = [self.parse_if_statement()]
                 else:
-                    # Regular else block
-                    if self.peek() and self.peek().type == "COMMA":
-                        self.advance()  # consume comma after 'Else'
+                    # Regular else block - expect comma then function atom
+                    if not self.peek() or self.peek().type != "COMMA":
+                        raise EnzoParseError("Expected ',' after Else", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+                    self.advance()  # consume comma after 'Else'
 
-                    # Parse else statements
-                    else_block = []
-                    while self.peek() and self.peek().type != "END":
-                        stmt = self.parse_statement()
-                        else_block.append(stmt)
-                        # Consume semicolons
-                        while self.peek() and self.peek().type == "SEMICOLON":
-                            self.advance()
+                    if not self.peek() or self.peek().type != "LPAR":
+                        raise EnzoParseError("Expected '(' after Else comma", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+                    
+                    else_function = self.parse_function_atom()
+                    else_block = else_function.body  # Extract statements from function atom
 
         result_if.else_block = else_block
 
-        # Only consume 'end' if this is the outermost call
-        if consume_end:
-            # Expect 'end'
-            if not self.peek() or self.peek().type != "END":
-                raise EnzoParseError("Expected 'end' after If statement", code_line=self._get_code_line(self.peek()) if self.peek() else None)
-            self.advance()  # consume 'end'
-
+        # In new syntax, no 'end' token expected - the semicolon after ) ends the statement
         return result_if
 
     def parse_if_statement(self):

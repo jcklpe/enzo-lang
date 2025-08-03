@@ -1,0 +1,7 @@
+$multi-branch-num1: 10;
+
+If $multi-branch-num1 is at least 5, (
+  "At least 5 matched";),
+or is Number, (
+  "generic number should print";
+);
