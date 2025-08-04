@@ -1657,17 +1657,35 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             # Regular exclusive if statement
             condition_result = eval_ast(node.condition, env=env)
             if _is_truthy(condition_result):
-                # Execute then block - ensure environment changes persist between statements
-                result = None
+                # Execute then block - collect all non-None results
+                results = []
                 for stmt in node.then_block:
                     result = eval_ast(stmt, env=env)
-                return result
+                    if result is not None:
+                        results.append(result)
+                
+                # Return all results as a list if there are multiple, or the single result
+                if len(results) == 0:
+                    return None
+                elif len(results) == 1:
+                    return results[0]
+                else:
+                    return results
             elif node.else_block:
-                # Execute else block - ensure environment changes persist between statements
-                result = None
+                # Execute else block - collect all non-None results
+                results = []
                 for stmt in node.else_block:
                     result = eval_ast(stmt, env=env)
-                return result
+                    if result is not None:
+                        results.append(result)
+                
+                # Return all results as a list if there are multiple, or the single result
+                if len(results) == 0:
+                    return None
+                elif len(results) == 1:
+                    return results[0]
+                else:
+                    return results
             return None
 
     if isinstance(node, ForLoop):
