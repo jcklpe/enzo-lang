@@ -21,36 +21,71 @@ Loop, (
 $loop-iteration<: 0;
 Loop, (
     $loop-iteration + 1 :> $loop-iteration;
-    If $m is 2 or $m is 4, (
+    If ($loop-iteration % 2) is 0, (
+        // silent on even numbers
         restart-loop;
     );
-    $m;
+    $loop-iteration; // prints odd numbers
+
+    If $loop-iteration is at least 9, (
+        end-loop;
+    );
+); // prints odd numbers 1-9
+
+
 );
 
+//= SIMPLE LOOP: INCREMENT INSIDE, BREAKS AFTER 5
+$j-loop: 1;
+Loop, (
+  $j-loop;             // should print 1, 2, 3, 4, 5
+  If $j-loop is 5, ( end-loop; );
+  $j-loop + 1 :> $j-loop;
+);
 
+//= Loop function atom shadowing
+$loop-temp: 0;
+$loop-temp;
+Loop, (
+    $loop-temp: 10;  // not an error because this is within a function atom and can shadow
+    $loop-temp; // prints 10
+    end-loop;
+);
 
+$loop-temp; // prints 0 because outer variable remains unchanged by declaration.
 
+Loop, (
+    $loop-temp<: 11;  // this should rebind the outer variable, there is no shadowing here
+    $loop-temp; // prints 11
+    end-loop;
+);
 
+$loop-temp; // returns 11
 
+//= Not a loop error
+(
+    "this function atom is not a loop";
+    end-loop; // error: `end-loop;` inside a non-loop function atom
+);
 
+(
+    "this function atom is not a loop";
+    restart-loop; // error: `restart-loop;` inside a non-loop function atom
+);
 
+//= ERROR: UNDECLARED VARIABLE USED INSIDE LOOP
+Loop, (
+  $undefVar-loop;      // error: undefined variable
+  end-loop;
+);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//= LOOP: PIPELINING IN LOOP BODY
+$p-loop: 1;
+Loop, (
+  $p-loop then ($this * 2) :> $p-loop;
+  If $p-loop is greater than 10, ( end-loop; );
+);
+$p-loop; // should print 16
 
 //= WHILE LOOP SIMPLE
 $count-while: 1;

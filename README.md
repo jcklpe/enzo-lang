@@ -181,6 +181,15 @@ $list2: [4, 5, 6];
 
 $list3: [<$list1>, <$list2>];
 $list3; // returns a flat list of `[1, 2, 3, 4, 5, 6]`
+
+// you can prepend or append items to a list using interpolation like so:
+//prepend
+[0, <$list1>] :> $list1;
+$list1; // returns a list of `[0, 1, 2, 3]`
+
+//append
+$list1<: [<$list1>, "hot dog explosion"];
+$list1; // returns a list of `[0, 1, 2, 3, "hot dog explosion"]`
 ```
 
 ### Function (anonymous function/expression block)

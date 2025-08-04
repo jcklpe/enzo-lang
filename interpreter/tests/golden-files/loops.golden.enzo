@@ -1,3 +1,45 @@
+//= Basic loop: 1 time
+"There have been 1 loop iterations"
+
+//= Basic loop: 3 times
+"There have been 1 loop iterations"
+"There have been 2 loop iterations"
+"There have been 3 loop iterations"
+
+//= LOOP WITH SKIP ON CONDITION
+1
+3
+5
+7
+9
+
+//= SIMPLE LOOP: INCREMENT INSIDE, BREAKS AFTER 5
+1
+2
+3
+4
+5
+
+//= Loop function atom shadowing
+0
+10
+0
+11
+11
+
+//= Not a loop error
+error: `end-loop;` inside a non-loop function atom
+        end-loop;
+error: `restart-loop;` inside a non-loop function atom
+        restart-loop;
+
+//= ERROR: UNDECLARED VARIABLE USED INSIDE LOOP
+error: undefined variable
+      $undefVar-loop;
+
+//= LOOP: PIPELINING IN LOOP BODY
+16
+
 //= WHILE LOOP SIMPLE
 1
 2
