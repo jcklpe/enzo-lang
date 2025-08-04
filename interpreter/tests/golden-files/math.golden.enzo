@@ -43,4 +43,6 @@ error: double minus not allowed
 
 //= MODULO WITH DIVISOR ZERO (ERROR)
 error: No division by zero
+    5 % 0;
 error: No division by zero
+    -5 % 0;

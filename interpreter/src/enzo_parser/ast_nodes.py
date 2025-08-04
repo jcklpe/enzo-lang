@@ -107,6 +107,14 @@ class DivNode(ASTNode):
     def __repr__(self):
         return f"DivNode(left={self.left!r}, right={self.right!r})"
 
+class ModNode(ASTNode):
+    def __init__(self, left, right, code_line=None):
+        super().__init__(code_line)
+        self.left = left
+        self.right = right
+    def __repr__(self):
+        return f"ModNode(left={self.left!r}, right={self.right!r})"
+
 class BindOrRebind(ASTNode):
     def __init__(self, target, value, code_line=None):
         super().__init__(code_line)

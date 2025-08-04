@@ -1,7 +1,7 @@
 from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val, log_debug, EnzoList, deep_copy_enzo_value
 from collections import ChainMap
-from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding, IfStatement, ComparisonExpression, LogicalExpression, NotExpression, ForLoop, WhileLoop
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, ModNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding, IfStatement, ComparisonExpression, LogicalExpression, NotExpression, ForLoop, WhileLoop
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
 from src.error_messaging import (
     error_message_already_defined,
@@ -993,6 +993,20 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         left = eval_ast(node.left, value_demand=True, env=env)
         right = eval_ast(node.right, value_demand=True, env=env)
         return left / right
+    if isinstance(node, ModNode):
+        left = eval_ast(node.left, value_demand=True, env=env)
+        right = eval_ast(node.right, value_demand=True, env=env)
+
+        # Check for modulo by zero
+        if right == 0:
+            raise EnzoRuntimeError("error: No division by zero", code_line=getattr(node, 'code_line', None))
+
+        # Implement Euclidean modulo: result is always non-negative
+        # For Euclidean modulo: a = bq + r where 0 ≤ r < |b|
+        result = left % right
+        if result < 0:
+            result += abs(right)
+        return result
     if isinstance(node, Invoke):
         left = eval_ast(node.func, value_demand=False, env=env)  # Get function object, don't invoke it yet
 
@@ -1109,7 +1123,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             fn = EnzoFunction(right_expr.params, right_expr.local_vars, right_expr.body, pipeline_env, getattr(right_expr, 'is_multiline', False))
             return invoke_function(fn, [], pipeline_env, self_obj=None)
         # For expressions that can potentially reference $this, evaluate in pipeline environment
-        elif isinstance(right_expr, (AddNode, SubNode, MulNode, DivNode, VarInvoke, Invoke, TextAtom, ListIndex, ReferenceAtom)):
+        elif isinstance(right_expr, (AddNode, SubNode, MulNode, DivNode, ModNode, VarInvoke, Invoke, TextAtom, ListIndex, ReferenceAtom)):
             return eval_ast(right_expr, value_demand=True, env=pipeline_env)
         else:
             # For literals and other nodes that can't reference $this, this doesn't make sense

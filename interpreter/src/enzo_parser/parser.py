@@ -343,13 +343,15 @@ class Parser:
     def parse_factor(self):
         node = self.parse_atom()
         node = self.parse_postfix(node)
-        while self.peek() and self.peek().type in ("STAR", "SLASH"):
+        while self.peek() and self.peek().type in ("STAR", "SLASH", "MODULO"):
             op = self.advance()
             right = self.parse_atom()
             if op.type == "STAR":
                 node = MulNode(node, right)
-            else:
+            elif op.type == "SLASH":
                 node = DivNode(node, right)
+            else:  # MODULO
+                node = ModNode(node, right)
         return node
 
     def parse_term(self):

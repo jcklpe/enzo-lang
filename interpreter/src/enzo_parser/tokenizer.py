@@ -36,6 +36,7 @@ TOKEN_SPEC = [
     ("STAR", r"\*"),
     ("COMMENT", r"//.*"),  # Move COMMENT before SLASH to match "//" properly
     ("SLASH", r"/"),
+    ("MODULO", r"%"),
     ("AND", r"\band\b"),            # \b for word boundaries
     ("OR", r"\bor\b"),              # \b for word boundaries
     ("VARIANTS", r"\bvariants\b"),  # \b for word boundaries
