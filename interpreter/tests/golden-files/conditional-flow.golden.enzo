@@ -183,3 +183,49 @@ error: comparison word in pipeline
 
 //= Has function and pipeline
 "List contains four"
+
+//= IF CONDITION WITH LIST INDEX ACCESS
+"Second index matched 'one'"
+"Third index is not 'one'"
+
+//= LIST MAPPING WITH CONTROL FLOW CONDITION
+"alice is active"
+
+//= LIST MAPPING AND PIPELINE INTO CONTROL FLOW
+"User active status: yes"
+
+//= BLUEPRINT DEFAULTS IN CONTROL FLOW
+"Hero at full health"
+
+//= ERROR: IF CONDITION ACCESSING INVALID LIST INDEX
+error: list index out of range
+    If $bad-list50.4, ( // error: list index out of range
+
+//= ERROR: IF CONDITION ON UNDEFINED PROPERTY IN LIST
+error: list property not found: $age
+    If $user-bad.age, ( // error: list property `$age` not found
+
+//= More destructuring stuff and conditionals stuff
+"Pass: positional destructure"
+
+//= multiple statements in an inline if
+"passing one statement from inline If"
+"passing a second one"
+5
+6
+
+//= IF WITH NESTED CONDITIONALS
+"Nested condition true"
+
+//= PIPELINE WITH INLINE FUNCTION RETURNING EMPTY (FALSY)
+"Pipeline resulted in empty"
+
+//= BOOLEAN TEST: NESTED LIST WITH TRUTHY AND FALSY ELEMENTS
+"Nested list considered truthy"
+
+//= ERROR: USING "is" WITH A VARIANT THAT DOES NOT EXIST
+error: undefined variable
+    If $status-bp is StatusVariantBP.Unknown, (// error: undefined variable
+
+//= IF CONDITION WITH NESTED LIST INDEX ACCESS
+"Nested index matched 'two'"

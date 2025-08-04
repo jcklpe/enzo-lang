@@ -1657,13 +1657,13 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             # Regular exclusive if statement
             condition_result = eval_ast(node.condition, env=env)
             if _is_truthy(condition_result):
-                # Execute then block
+                # Execute then block - ensure environment changes persist between statements
                 result = None
                 for stmt in node.then_block:
                     result = eval_ast(stmt, env=env)
                 return result
             elif node.else_block:
-                # Execute else block
+                # Execute else block - ensure environment changes persist between statements
                 result = None
                 for stmt in node.else_block:
                     result = eval_ast(stmt, env=env)

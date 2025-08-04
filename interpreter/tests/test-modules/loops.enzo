@@ -8,7 +8,7 @@ $count-while; // prints 3
 
 //= WHILE LOOP NEVER ENTERED (INITIAL CONDITION FALSE)
 $count-never: 5;
-While $count-never is less than 0, (
+Loop while $count-never is less than 0, (
   "Never prints";
   $count-never <: $count-never - 1;
 );
@@ -17,13 +17,13 @@ $count-never; // prints 5, unchanged
 
 //= SIMPLE FOR LOOP
 $list-for: [1,2,3];
-For $item in $list-for, (
+Loop for $item in $list-for, (
   "Item: <$item>"; // prints each item
 );
 
 //= FOR LOOP WITH EMPTY LIST (NEVER ENTERED)
 $empty-list-for: [];
-For $item in $empty-list-for, (
+Loop for $item in $empty-list-for, (
   "Never prints";
 );
 
@@ -31,6 +31,6 @@ $empty-list-for; // prints []
 
 //= ERROR: FOR LOOP WITH NON-ITERABLE
 $item10: 5;
-For $item10 in 10, ( // error: `For` loop must be over a list
+Loop for $item10 in 10, ( // error: `for` loop must be over a list
   "Won't print";
 );
