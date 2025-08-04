@@ -55,7 +55,8 @@ def log_debug(msg):
 def deep_copy_enzo_value(value):
     """Create a deep copy of an Enzo value (lists, tables, etc.)."""
     if isinstance(value, EnzoList):
-        new_list = EnzoList()
+        # Preserve the blueprint instance flag when copying
+        new_list = EnzoList(is_blueprint_instance=getattr(value, '_is_blueprint_instance', False))
         # Copy all elements
         for element in value._elements:
             new_list.append(deep_copy_enzo_value(element))
@@ -79,9 +80,10 @@ def deep_copy_enzo_value(value):
 class EnzoList:
     """Enhanced list that supports both indexed and keyed access."""
 
-    def __init__(self):
+    def __init__(self, is_blueprint_instance=False):
         self._elements = []     # All elements in insertion order
         self._key_map = {}      # Maps key names to indices
+        self._is_blueprint_instance = is_blueprint_instance  # Track if this came from a blueprint
 
     def append(self, value):
         """Add an element with automatic index."""

@@ -68,6 +68,13 @@ class ListKeyValue(ASTNode):
     def __repr__(self):
         return f"ListKeyValue(keyname={self.keyname!r}, value={self.value!r})"
 
+class ListInterpolation(ASTNode):
+    def __init__(self, expression, code_line=None):
+        super().__init__(code_line)
+        self.expression = expression
+    def __repr__(self):
+        return f"ListInterpolation(expression={self.expression!r})"
+
 class VarInvoke(ASTNode):
     def __init__(self, name, code_line=None):
         super().__init__(code_line)

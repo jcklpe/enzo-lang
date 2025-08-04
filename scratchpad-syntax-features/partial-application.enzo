@@ -1,5 +1,0 @@
-add: (param a: , param b: ; a + b);
-add5: @add( , 5);
-
-add5(10);  // returns 15
-// this is better than js and it leverages Enzo's unique `@` in a cool way.

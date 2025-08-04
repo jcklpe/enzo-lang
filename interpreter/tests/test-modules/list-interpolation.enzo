@@ -18,6 +18,7 @@ $li5;                         // should return ["a", "b", "c"]
 $li6: [1, 2];
 $li7: [3, 4];
 $li8: [<$li6>, [<$li7>]];     // should return [1, 2, [3, 4]]
+$li8;
 
 //= LIST INTERPOLATION: INSERTION
 $li9: [100, 200];
@@ -59,7 +60,7 @@ $li23: [5, 6];
 $li24: [<$li23>];
 $li24;                        // should return [5, 6]
 $li25: [<$li23>, ];
-$li35;                        // should return [5, 6]
+$li25;                        // should return [5, 6]
 
 //= LIST INTERPOLATION: APPEND TO EMPTY LIST
 $li26: [];

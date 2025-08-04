@@ -1,7 +1,7 @@
 from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val, log_debug, EnzoList, deep_copy_enzo_value
 from collections import ChainMap
-from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, ModNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding, IfStatement, ComparisonExpression, LogicalExpression, NotExpression, ForLoop, WhileLoop
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, ModNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding, IfStatement, ComparisonExpression, LogicalExpression, NotExpression, ForLoop, WhileLoop, ListKeyValue, ListInterpolation
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
 from src.error_messaging import (
     error_message_already_defined,
@@ -278,6 +278,21 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 else:
                     value = eval_ast(el.value, value_demand=True, env=env)
                 enzo_list.set_key(key, value)
+            elif isinstance(el, ListInterpolation):
+                # List interpolation: evaluate expression and expand if it's a list
+                interpolated_value = eval_ast(el.expression, value_demand=True, env=env)
+
+                if isinstance(interpolated_value, EnzoList):
+                    # Check if this is a blueprint instance - don't interpolate blueprint instances
+                    if getattr(interpolated_value, '_is_blueprint_instance', False):
+                        raise EnzoRuntimeError("error: cannot interpolate non-List into a List", code_line=getattr(el, 'code_line', None))
+
+                    # Expand the list contents into this list
+                    for item in interpolated_value._elements:
+                        enzo_list.append(item)
+                else:
+                    # Non-list value: raise error as per test expectations
+                    raise EnzoRuntimeError("error: cannot interpolate non-List into a List", code_line=getattr(el, 'code_line', None))
             else:
                 # Regular element - gets auto-indexed
                 if isinstance(el, FunctionAtom):
@@ -1455,7 +1470,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             raise EnzoRuntimeError(f"error: '{blueprint_name}' is not a blueprint", code_line=getattr(node, 'code_line', None))
 
         # Create an instance by evaluating the field values and creating an EnzoList
-        instance = EnzoList()
+        instance = EnzoList(is_blueprint_instance=True)
 
         # Create a map of provided field values for efficient lookup
         provided_values = {}
@@ -1593,7 +1608,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             blueprints_to_compose.append(variant_blueprint)
 
         # Create an instance by combining all blueprints
-        instance = EnzoList()
+        instance = EnzoList(is_blueprint_instance=True)
 
         # Create a map of provided field values for efficient lookup
         provided_values = {}

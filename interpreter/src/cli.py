@@ -13,7 +13,7 @@ from src.evaluator    import eval_ast
 from src.runtime_helpers import Table, format_val, log_debug
 
 # CRITICAL INFO: ALL ERROR HANDLING MUST BE USE THE CENTRALIZED error_handling.py MODULE
-from src.error_handling import InterpolationParseError, ReturnSignal, EnzoParseError
+from src.error_handling import InterpolationParseError, ReturnSignal, EnzoParseError, EnzoRuntimeError
 
 # CRITICAL INFO: ALL ERROR MESSAGING MUST BE USE THE CENTRALIZED error_messaging.py MODULE
 from src.error_messaging import format_parse_error, error_message_unterminated_interpolation, error_message_included_file_not_found, error_message_generic
@@ -201,6 +201,10 @@ def run_enzo_file(filename):
                     msg = format_parse_error(e, src=line)
                     print_enzo_error(msg)
                     continue
+                except EnzoRuntimeError as e:
+                    msg = format_parse_error(e, src=line)
+                    print_enzo_error(msg)
+                    continue
                 except Exception as e:
                     msg = format_parse_error(e, src=line) if hasattr(e, 'code_line') or hasattr(e, 'line') or hasattr(e, 'column') else error_message_generic(str(e))
                     print_enzo_error(msg)
@@ -260,6 +264,10 @@ def run_enzo_file(filename):
                 print_enzo_error(msg)
             continue
         except EnzoParseError as e:
+            msg = format_parse_error(e, src=statement)
+            print_enzo_error(msg)
+            continue
+        except EnzoRuntimeError as e:
             msg = format_parse_error(e, src=statement)
             print_enzo_error(msg)
             continue
@@ -363,6 +371,14 @@ def main():
             else:
                 print(color_error(msg))
         except EnzoParseError as e:
+            msg = format_parse_error(e, src=line)
+            if "\n" in msg:
+                errline, context = msg.split("\n", 1)
+                print(color_error(errline))
+                print(color_code(context))
+            else:
+                print(color_error(msg))
+        except EnzoRuntimeError as e:
             msg = format_parse_error(e, src=line)
             if "\n" in msg:
                 errline, context = msg.split("\n", 1)
