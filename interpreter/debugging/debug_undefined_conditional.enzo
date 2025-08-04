@@ -1,0 +1,4 @@
+//= ERROR CASE: USING UNDEFINED VARIABLE IN IF
+If $undefined-var, ( // error: undefined variable
+  "Won't print";
+);

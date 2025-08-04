@@ -120,7 +120,14 @@ def format_parse_error(err, src=None):
 
 def error_message_with_code_line(msg, code_line):
     #Format an error message with the code line, no caret, for golden file compatibility.
-    return f"{msg}\n    {code_line}"
+    # Handle multi-line code_line by adding indentation to each line
+    if '\n' in code_line:
+        lines = code_line.split('\n')
+        indented_lines = ['  ' + line for line in lines]
+        formatted_code = '\n'.join(indented_lines)
+        return f"{msg}\n{formatted_code}"
+    else:
+        return f"{msg}\n    {code_line}"
 
 def error_message_double_comma_table():
     return "error: extra comma in list"
@@ -175,3 +182,12 @@ def error_message_contains_non_list():
 
 def error_message_comparison_in_pipeline():
     return "error: comparison word in pipeline"
+
+def error_message_or_without_if():
+    return "error: `or` without preceding `If`"
+
+def error_message_else_if_without_if():
+    return "error: `Else if` without preceding `If`"
+
+def error_message_else_without_if():
+    return "error: `Else` without preceding `If`"

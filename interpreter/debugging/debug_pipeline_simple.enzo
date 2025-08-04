@@ -1,0 +1,1 @@
+$list-pipe then ($this contains 4) :> $contains-four;

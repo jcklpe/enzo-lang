@@ -1,5 +1,5 @@
 //= INVOKING AN UNDEFINED VARIABLE
-$undefinedVar;      // error: undefined: $undefinedVar
+$undefinedVar;// error: undefined variable
 
 //= EMPTY BIND ────────────────────────────────────────────────────────────
 $x: ;

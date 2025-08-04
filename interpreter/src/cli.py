@@ -27,25 +27,18 @@ def say(val):
     print(val)
 
 # All references to Enzo's 'number' atom are now 'number atom' or 'number_atom' in comments and user-facing messages.
-def print_enzo_error(msg):
-    # ANSI codes
-    RED = "\033[91m"
-    RESET = "\033[0m"
-    BLACK_BG = "\033[40m"
-    WHITE = "\033[97m"
+def print_enzo_error(msg, color="red"):
+    """Print error message with proper color formatting"""
 
-    # Split into lines
     lines = msg.split('\n')
-    if not lines:
-        print(RED + msg + RESET)
-        return
 
-    # First line: red (the error summary)
-    print(f"{RED}{lines[0]}{RESET}")  # Print to stdout, not stderr
-    # Remaining lines: treat as code block (if present)
-    for code_line in lines[1:]:
-        if code_line.strip():
-            print(f"{BLACK_BG}{WHITE}{code_line.rstrip()}{RESET}")
+    # First line (error description) in red
+    if lines:
+        print(color_error(lines[0]))
+
+        # Remaining lines (code context) with black background
+        for i, line in enumerate(lines[1:]):
+            print(color_code(line.rstrip()))
 
 def read_statement(stdin, interactive):
     buffer = []

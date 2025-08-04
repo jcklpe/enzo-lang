@@ -150,7 +150,7 @@ error: `Else if` without preceding `If`
 
 //= ERROR CASE: ELSE WITHOUT INITIAL IF
 error: `Else` without preceding `If`
-  Else, // error: `Else` without preceding `If`
+    Else, ( // error: `Else` without preceding `If`
 
 //= BOOLEAN TEST: LIST WITH ALL FALSY ELEMENTS
 "All falsy elements in a list are falsy"
@@ -178,6 +178,7 @@ error: `Else` without preceding `If`
 
 //= MULTI-STAGE PIPELINE WITH CONDITIONAL STEP ERROR
 error: comparison word in pipeline
+  $list-pipe
   then ($this contains 4) :> $contains-four;
 
 //= Has function and pipeline

@@ -1,5 +1,5 @@
 //= INVOKING AN UNDEFINED VARIABLE
-unknown variable: $undefinedVar
+error: undefined variable
     $undefinedVar;
 //= EMPTY BIND ────────────────────────────────────────────────────────────
 //= REDECLARING A VARIABLE (USING “:”) ERRORS ────────────────────────────
