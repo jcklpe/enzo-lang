@@ -14,3 +14,33 @@
 0
 error: double minus not allowed
     $weird: --5;
+
+//= Modulo Basics
+1
+2
+0
+0
+0
+
+//= MODULO WITH NEGATIVES
+1
+2
+1
+
+//= MODULO WITH ZERO DIVIDEND
+0
+
+//= MODULO BY 1
+0
+0
+
+//= MODULO BY -1
+0
+0
+
+//= MODULO WITH LARGE NEGATIVE DIVIDEND
+3
+
+//= MODULO WITH DIVISOR ZERO (ERROR)
+error: No division by zero
+error: No division by zero

@@ -1663,7 +1663,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     result = eval_ast(stmt, env=env)
                     if result is not None:
                         results.append(result)
-                
+
                 # Return all results as a list if there are multiple, or the single result
                 if len(results) == 0:
                     return None
@@ -1678,7 +1678,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     result = eval_ast(stmt, env=env)
                     if result is not None:
                         results.append(result)
-                
+
                 # Return all results as a list if there are multiple, or the single result
                 if len(results) == 0:
                     return None

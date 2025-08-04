@@ -194,6 +194,7 @@ Basic arithmetic
 (2 - 3);    // returns -1
 (50 * 100); // returns 5000
 (20 / 5);   // returns 4
+(5 % 2);    // modulo returns 1 (Euclidean style remainder)
 ```
 
 Function atoms can also have keynames declared inside of them like so:
@@ -1159,7 +1160,7 @@ Order matters when using `either` so keep that in mind.
 
 #### Inline if statement
 ```javascript!
-If $ready, "ready to go!";, Else "not ready yet!";
+If $ready, ("ready to go!"), Else ("not ready yet!");
 ```
 There are no ternaries. I personally find them very difficult to read, but I think this inline syntax is pretty compact all things considered.
 

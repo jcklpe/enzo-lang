@@ -102,7 +102,8 @@ def regenerate_combined_files():
             "pipeline",
             "copy-and-reference",
             "blueprints",
-            "destructuring"
+            "destructuring",
+            "conditional-flow"
     ]
 
     test_modules_dir = os.path.join(SCRIPT_DIR, "tests", "test-modules")

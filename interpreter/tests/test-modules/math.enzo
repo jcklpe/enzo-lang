@@ -24,3 +24,33 @@ $neg;                     // prints “-5”
 $negzero: -0;             // binds 0 (should not crash)
 $negzero;                 // prints 0 (should not crash)
 $weird: --5;              // error: double minus not allowed
+
+//= Modulo Basics
+(5%2); // prints 1
+5%3; // prints 2
+5%5; // prints 0
+50 % 5;  // prints 0
+8 % 2; // prints 0
+
+//= MODULO WITH NEGATIVES
+-5 % 3;     // 1
+5 % -3;     // 2
+-5 % -3;         // should return 1
+
+//= MODULO WITH ZERO DIVIDEND
+0 % 3;           // should return 0
+
+//= MODULO BY 1
+7 % 1;           // should return 0
+-7 % 1;          // should return 0
+
+//= MODULO BY -1
+7 % -1;          // should return 0
+-7 % -1;         // should return 0
+
+//= MODULO WITH LARGE NEGATIVE DIVIDEND
+-13 % 4;         // should return 3
+
+//= MODULO WITH DIVISOR ZERO (ERROR)
+5 % 0;           // should error: division by zero
+-5 % 0;          // should error: division by zero
