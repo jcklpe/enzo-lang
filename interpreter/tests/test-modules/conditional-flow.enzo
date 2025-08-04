@@ -595,14 +595,14 @@ $status-nested: "outer";
 
 If $status-nested is "outer", (
   If $status-nested, (
-​    "Nested condition true"; // should print
+    "Nested condition true"; // should print
   );
 );
 
 //= PIPELINE WITH INLINE FUNCTION RETURNING EMPTY (FALSY)
 empty-fn-pipeline: ();
 
-@empty-fn-pipeline then ($this) :> $pipeline-empty;
+empty-fn-pipeline() then ($this) :> $pipeline-empty;
 
 If not $pipeline-empty, (
   "Pipeline resulted in empty"; // should print

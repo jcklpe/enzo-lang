@@ -35,13 +35,11 @@ def parse_function_atom(parser):
             log_debug(f"[parse_function_atom] parsing statement at token: {parser.peek()} (parser.pos={parser.pos})")
             stmt = parser.parse_statement()
             from src.enzo_parser.ast_nodes import Binding, ParameterDeclaration
-            if isinstance(stmt, Binding):
-                local_vars.append(stmt)
-            elif isinstance(stmt, ParameterDeclaration):
+            if isinstance(stmt, ParameterDeclaration):
                 # Duplicate parameter name detection (raise error before any output or AST modification)
                 if stmt.name in param_names:
                     # Find the actual line containing the duplicate parameter
-                    # Look for the line that contains "param <name>:" where name matches stmt.name
+                    # Look for the line that contains "param <n>:" where name matches stmt.name
                     # We want the SECOND occurrence since that's the duplicate
                     src_lines = parser.src.splitlines()
                     code_line = None
@@ -67,6 +65,10 @@ def parse_function_atom(parser):
                 # Only add to param_names and params if not duplicate
                 param_names.add(stmt.name)
                 params.append((stmt.name, stmt.default_value))
+            elif isinstance(stmt, Binding):
+                # Variable bindings should be part of the function body AND tracked as local vars
+                local_vars.append(stmt)
+                body.append(stmt)
             else:
                 body.append(stmt)
             # Always consume all delimiters after every statement, including after return
