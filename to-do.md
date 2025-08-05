@@ -1,7 +1,7 @@
 - casting solutions?
-- implement computed index access stuff
+- immediate evaluation !()
+- storing anon functions to a list by reference @()
 - builtin functions
-- alter Blueprint variant additions to use "include" operator to be more consistent with declaration operator
 - is odd/even conditional?
 - implement classic algos
 - implement classic recursion tests

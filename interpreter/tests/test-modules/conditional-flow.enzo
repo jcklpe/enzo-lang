@@ -620,13 +620,6 @@ If $status-bp is StatusVariantBP.Unknown, (// error: undefined variable
   "Won't print";
 );
 
-//= IF CONDITION WITH NESTED LIST INDEX ACCESS
-$nested-list: [["zero", "one"], ["two", "three"]];
-
-If $nested-list.2.1 is "two", (
-  "Nested index matched 'two'"; // should print
-);
-
 //= Conditional pipelining
 $goblinoid: [
   $health: 30,
@@ -656,3 +649,10 @@ $goblinoid
 
 $goblinoid.health;  // should print 0
 $goblinoid.status;  // should print "dead"
+
+//= IF CONDITION WITH NESTED LIST INDEX ACCESS
+$nested-list: [["zero", "one"], ["two", "three"]];
+
+If $nested-list.2.1 is "two", (
+  "Nested index matched 'two'"; // should print
+);

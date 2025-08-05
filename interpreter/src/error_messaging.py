@@ -60,10 +60,10 @@ def error_message_list_property_not_found(prop):
     return f"error: list property not found: ${prop}"
 
 def error_message_index_must_be_number():
-    return "error: can't use text as index"
+    return "error: list index must be an integer"
 
 def error_message_index_must_be_integer():
-    return "error: index must be an integer"
+    return "error: list index must be an integer"
 
 def error_message_binding_to_list_index_out_of_range():
     return "error: list index out of range"

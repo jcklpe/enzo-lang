@@ -1619,7 +1619,7 @@ If $status-custom, (
   "Won't print initially";
 );
 
-Status variants: Loading, or Dead;
+Status variants include Loading, or Dead;
 
 $status-custom <: Status.Loading;
 
@@ -1868,13 +1868,6 @@ If $status-bp is StatusVariantBP.Unknown, (// error: undefined variable
   "Won't print";
 );
 
-//= IF CONDITION WITH NESTED LIST INDEX ACCESS
-$nested-list: [["zero", "one"], ["two", "three"]];
-
-If $nested-list.2.1 is "two", (
-  "Nested index matched 'two'"; // should print
-);
-
 //= Conditional pipelining
 $goblinoid: [
   $health: 30,
@@ -1904,3 +1897,160 @@ $goblinoid
 
 $goblinoid.health;  // should print 0
 $goblinoid.status;  // should print "dead"
+
+//= IF CONDITION WITH NESTED LIST INDEX ACCESS
+$nested-list: [["zero", "one"], ["two", "three"]];
+
+If $nested-list.2.1 is "two", (
+  "Nested index matched 'two'"; // should print
+);
+
+//= COMPUTED INDEX: BASIC ADDITION
+$list100: [10, 20, 30, 40];
+$x100: 2;
+$list100.($x100 + 1);        // prints 30 (index 3)
+
+//= COMPUTED INDEX: WITH LITERAL ARITHMETIC
+$list200: [100, 200, 300];
+$list200.(1 + 2);           // prints 300 (index 3)
+$list200.(2 * 1);           // prints 200 (index 2)
+
+//= COMPUTED INDEX: WITH NESTED EXPRESSIONS
+$a00: 1;
+$b00: 2;
+$list200.($a00 + $b00);         // prints 300 (index 3)
+$list200.($a00 + ($b00 * 1));   // prints 300 (index 3)
+
+//= COMPUTED INDEX: NEGATIVE AND ZERO
+$list300: [5, 10, 15];
+$list300.($a00 - 1);          // error: list index out of range (if $a = 1)
+$list300.(-1 + 2);          // prints 5 (index 1)
+$list300.(-2 + 4);          // prints 10 (index 2)
+$list300.(-1);              // error: list index out of range
+
+//= COMPUTED INDEX: OUT OF BOUNDS
+$list300.(4);               // error: list index out of range (list has 3 elements)
+$list300.($a00 + $b00 + 2);     // error: list index out of range
+
+//= COMPUTED INDEX: NON-INTEGER RESULT
+$list400: [9, 8, 7];
+$list400.(1.5);             // error: list index must be integer
+$list400.($a00 / 2);          // error: list index must be integer
+
+//= COMPUTED INDEX: INVALID EXPRESSION TYPE
+$list400.("hi");            // error: list index must be integer
+$list400.($list100);          // error: list index must be integer
+
+//= COMPUTED INDEX: USE IN ASSIGNMENT
+$list500: [10, 20, 30];
+$i00: 1;
+99 :> $list500.($i00 + 1);    // sets $list5.2 to 99
+$list500.2;                 // prints 99
+
+//= COMPUTED INDEX: USE IN PIPELINE
+$list500 then ($this.($i00 + 2)); // prints 30 (index 3)
+
+//= COMPUTED INDEX: INDEX BY FUNCTION RETURN (optional, if supported)
+idx-fn00: (return(2));
+$list500.(idx-fn00());         // prints 99 (index 2)
+
+//= COMPUTED INDEX: VARIABLE SHADOWING
+$j00: 3;
+$list500.($j00);               // prints 30 (index 3)
+
+//= COMPUTED INDEX: IN INTERPOLATION
+$msg00: "Element is <$list500.($i00 + 1);>";
+$msg00;                      // prints "Element is 99"
+
+//= LIST INTERPOLATION: BASICS
+$li1: [1, 2, 3];
+$li2: [4, 5];
+$li3: [<$li1>, <$li2>];
+$li3; // should return [1, 2, 3, 4, 5]
+
+//= LIST INTERPOLATION: PREPEND
+$li4: [10, 11, 12];
+[0, <$li4>] :> $li4;
+$li4;                         // should return [0, 10, 11, 12]
+
+//= LIST INTERPOLATION: APPEND
+$li5: ["a", "b"];
+$li5 <: [<$li5>, "c"];
+$li5;                         // should return ["a", "b", "c"]
+
+//= LIST INTERPOLATION: NESTED INTERPOLATION
+$li6: [1, 2];
+$li7: [3, 4];
+$li8: [<$li6>, [<$li7>]];     // should return [1, 2, [3, 4]]
+$li8;
+
+//= LIST INTERPOLATION: INSERTION
+$li9: [100, 200];
+$li10: [0, <$li9>, 300];
+$li10;                        // should return [0, 100, 200, 300]
+
+//= LIST INTERPOLATION: MULTIPLE INTERPOLATIONS IN ONE LIST
+$li11: [1, 2];
+$li12: [3, 4];
+$li13: [<$li11>, <$li12>, 5];
+$li13;                        // should return [1, 2, 3, 4, 5]
+
+//= LIST INTERPOLATION: EMPTY LISTS
+$li14: [];
+$li15: [<$li14>];
+$li15;                        // should return []
+
+//= LIST INTERPOLATION: EMPTY IN NON-EMPTY LIST
+$li16: [<$li14>, 99];
+$li16;                        // should return [99]
+
+//= LIST INTERPOLATION: SINGLE NON-LIST VALUE (should just insert value)
+$li17: [42];
+$li18: [<$li17>, 99];
+$li18;                        // should return [42, 99]
+
+//= LIST INTERPOLATION: INTERPOLATION OF NON-LIST VALUE (should error)
+$notalist-interp: 42;
+$li19: [<$notalist-interp>];         // should error: cannot interpolate non-list into a list
+
+//= LIST INTERPOLATION: NESTED LISTS (non-interpolated, for comparison)
+$li20: [1, 2];
+$li21: [3, 4];
+$li22: [$li20, $li21];
+$li22;                        // should return [[1, 2], [3, 4]]
+
+//= LIST INTERPOLATION: TRAILING/LEADING INTERPOLATION
+$li23: [5, 6];
+$li24: [<$li23>];
+$li24;                        // should return [5, 6]
+$li25: [<$li23>, ];
+$li25;                        // should return [5, 6]
+
+//= LIST INTERPOLATION: APPEND TO EMPTY LIST
+$li26: [];
+$li26 <: [<$li23>];
+$li26;                        // should return [5, 6]
+
+//= LIST INTERPOLATION: WITH TEXTS AND MIXED TYPES
+$li27: ["apple", "banana"];
+$li28: [1, <$li27>, "pear"];
+$li28;                        // should return [1, "apple", "banana", "pear"]
+
+//= LIST INTERPOLATION: MULTIPLE EMPTY LISTS
+$li29: [<$li14>, <$li14>];
+$li29;                        // should return []
+
+//= LIST INTERPOLATION: ERROR IF INTERPOLATING UNDEFINED VARIABLE
+$li30: [<$does_not_exist>];   // should error: undefined variable
+
+//= LIST INTERPOLATION: INTERPOLATING A BLUEPRINT INSTANCE (should insert as value)
+BP-example: <[foo: Number]>;
+$bp1: BP-example[$foo: 10];
+$li31: [<$bp1>];              // should error: cannot interpolate non-list into a list
+
+//= PIPELINE INTERPOLATE
+$li32: [1, 2, 3];
+$li33: [$li32 then ($this), 99]; // should return [[1, 2, 3], 99]
+$li33;
+$li34: [<$li32 then ($this)>, 99]; // should return [1, 2, 3, 99]
+$li34;

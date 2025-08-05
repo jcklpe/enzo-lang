@@ -34,7 +34,6 @@ error: cannot bind Text to Number
 5
 9
 3
-
 //= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
 []
 error: list index out of range
@@ -82,7 +81,6 @@ error: empty list with just a comma
 "oops"
 error: index applies to lists
     $notalist.1;
-
 //= BINDING MATH OPERATIONS ────────────────────────────────────────────────
 100
 5
@@ -99,39 +97,31 @@ error: index applies to lists
 0
 error: double minus not allowed
     $weird: --5;
-
 //= Modulo Basics
 1
 2
 0
 0
 0
-
 //= MODULO WITH NEGATIVES
 1
 2
 1
-
 //= MODULO WITH ZERO DIVIDEND
 0
-
 //= MODULO BY 1
 0
 0
-
 //= MODULO BY -1
 0
 0
-
 //= MODULO WITH LARGE NEGATIVE DIVIDEND
 3
-
 //= MODULO WITH DIVISOR ZERO (ERROR)
 error: No division by zero
     5 % 0;
 error: No division by zero
     -5 % 0;
-
 //= LIST MAPPING STUFF ───────────────────────────────────────────────────────────
 [$name: "Alice", $age: 30]
 "Alice"
@@ -191,7 +181,6 @@ error: excess leading comma
     $badList2: [ ,$foo: 1, $bar: 2];
 error: empty list with just a comma
     $badList3: [ ,];
-
 //= TEXT + INTERPOLATION ───────────────────────────────────────────────────
 "rebinding this text and "
 "this is text example 2"
@@ -222,7 +211,6 @@ error: parse error in interpolation
     "hello <$foo + >";
 error: parse error in interpolation
     "hello <<$foo>>";
-
 //= Empty function atom
 //= Function atom with just a single value
 6
@@ -251,12 +239,10 @@ error: parse error in interpolation
 4
 //= Nameless function: multi-line with no explicit return
 3
-
 //= Multi-line with params and default values
 12
 12
 12
-
 //= passing functions as references
 12
 9
@@ -268,7 +254,6 @@ error: expected argument is a number atom, not a text atom
 //= Named function with local variable
 11
 5
-
 //= Subtraction with empty default
 1
 -1
@@ -276,23 +261,19 @@ error: missing necessary params
     subtractor();
 error: missing necessary params
     $subtractor(4);
-
 //= List of functions invoked by index
 11
 20
-
 //= Named function, then function reference and direct invocation
 10
 6
 error: expected function reference (@) or function invocation ($)
     double;
-
 //= Higher-order function: passing function as argument and using default argument
 8
 14
 error: expected function reference (@) or function invocation ($)
     apply(double, 4);
-
 //= List with function member and self mutation
 10
 11
@@ -308,7 +289,6 @@ error: expected function reference (@) or function invocation ($)
 //= Duplicate param name error in function declaration
 error: duplicate parameter name '$x' in function definition
     param $x: 2;
-
 //= Empty function declaration and invocation
 //= Function with default param referencing previous param
 10
@@ -319,20 +299,15 @@ error: duplicate parameter name '$x' in function definition
 //= List function and interpolation with self behavior
 "Hi, my name is ralph."
 "I'm now spinning right."
-
 //= Functions as members of lists
 10
 21
-
 //= Function with numeric param name
 4
-
 //= Early exit
 99
-
 //= Function param name shadows outer variable
 1
-
 //= function atoms and pipes
 6
 11
@@ -349,336 +324,253 @@ error: duplicate parameter name '$x' in function definition
 20
 10
 12
-
 //= Multiline function atom
 10
 15
 20
 30
 40
-
 //= PIPELINE ERROR: SHADOWING $this IS DISALLOWED
 error: cannot declare variable '$this'
     $this: 7;
 //= PIPELINE NEGATIVE NUMBER HANDLING
 -10
 -15
-
 //= PIPELINE WITH TEXT INTERPOLATION
 "Hello, World!"
-
 //= PIPELINE WITH INTERPOLATION AND MATH
 "double of 5 is 10"
-
 //= PIPELINE WITH LIST MANIPULATION
 2
-
 //= PIPELINE NESTED LIST ACCESS
 30
-
 //= PIPELINE LIST PROPERTY
 15
 15
-
 //= PIPELINE ERROR NO FUNCTION ATOM
 error: pipeline expects function atom after `then`
     5 then 10;
-
 //= PIPELINE ERROR EMPTY FUNCTION ATOM
 //= Complex tests
 24
 25
 25
-
 //= Multi-line and params in named functions
 12
 15
-
 //= NAMED FUNCTION: referencing $this is an error
 error: can't use reserved $this keyname in named function declaration
     breaking2: (
-
 //= COPY BY DEFAULT: LISTS ───────────────────────────────────────────────────────────
 [1, 2, 3]
 [99, 2, 3]
 [1, 2, 3]
-
 //= COPY BY DEFAULT: NESTED LISTS ───────────────────────────────────────────────────
 [$inner: [99, 20]]
 [$inner: [10, 20]]
-
 //= VARIABLE REFERENCE WITH @ ───────────────────────────────────────────────────────
 [4, 99, 6]
 [4, 99, 6]
-
 //= REFERENCE TO VARIABLE (COPY VS EXPLICIT REFERENCE) ──────────────────────────────
 100
 200
 300
 300
-
 //= FUNCTION ARGUMENT REFERENCE VS COPY ──────────────────────────────────────────────
 [99, 2, 3]
 [1, 2, 3]
 [99, 2, 3]
 [99, 2, 3]
-
 //= REFERENCE VS COPY IN LIST OF LISTS ──────────────────────────────────────────────
 [$first: [99, 2], $second: [3, 4]]
 [$first: [1, 2], $second: [3, 4]]
 [$first: [1, 2], $second: [3, 88]]
 [$first: [1, 2], $second: [3, 88]]
-
 //= REFERENCE VS COPY IN FUNCTIONS ──────────────────────────────────────────────────
 11
 10
 11
 11
-
 //= COPY-BY-DEFAULT WITH FUNCTIONS ────────────────────────────────────────────
 [$bar: 1]
 [$bar: 99]
 1
-
 //= REFERENCE PASSING WITH @ ───────────────────────────────────────────────────
 [$bar: 1]
 [$bar: 42]
 42
-
 //= REFERENCE CAPTURE WITHIN A FUNCTION ────────────────────────────────────────
 10
 11
 12
 12
-
 //= COPY-BY-DEFAULT INSIDE A METHOD ─────────────────────────────────────────────
 20
 21
 20
-
 //= USING $this IN A PIPELINE ───────────────────────────────────────────────────
 [$health: 100, take-damage: <function ($amount) multiline=True>]
 [$health: 85, take-damage: <function ($amount) multiline=True>]
 85
-
 //= USING EXTERNAL FUNCTION + PIPELINE + @this ────────────────────────────────
 [$health: 100]
 100
-
 //= COPY-BY-DEFAULT FAILS TO MUTATE ─────────────────────────────────────────────
 [$health: 125]
 150
-
 //= SIMPLE BLUEPRINT INSTANTIATION ───────────────────────────────────────────
 [$health-points: 100, $position: [10, 10]]
 [$health-points: 100, $position: [10, 15]]
-
 //= BLUEPRINT WITH DEFAULTS ────────────────────────────────────────────────
 [$health-points: 100, $position: [0, 0]]
 [$health-points: 105, $position: [11, 15]]
 [$health-points: 100, $position: [10, 10]]
-
 //= BLUEPRINT WITH COMPLEX FIELDS AND FUNCTION ─────────────────────────────
 [$health-points: 100, $position: [10, 10], $attacks: [$bite: 50, $torch: 40], $status-effect: "poisoned"]
 [$health-points: 110, $position: [15, 10], $attacks: [$bite: 55, $torch: 35], $status-effect: "none"]
 90
 110
-
 //= BLUEPRINT COMPOSITION ──────────────────────────────────────────────────
 [10, 5, 0]
 [$position: [10, 5, 5], $wings: "true", $fly: <function ($z-position-movement) multiline=True>, $lives-near-water: "Text", $swim: <function ($x-position-movement, $y-position-movement) multiline=True>]
 5
 "true"
-
-
 //= BLUEPRINT COMPOSITION: CONFLICT ERROR ──────────────────────────────
 error: duplicate property 'x' in composed blueprints
     C: A and B;
-
 //= SIMPLE VARIANT GROUP (OPTIONS ONLY) ────────────────────────────────
 Magic-Type.Fire
 error: 'Plasma' not a valid Magic-Type
     $wizard-attacks.bad-spell: Magic-Type.Plasma;
-
 //= VARIANTS WITH BLUEPRINTS (SUM-OF-PRODUCTS) ─────────────────────────
 "heeheehee"
 "Manmeat for dinner!"
-
 //= VARIANT GROUPING WITH INLINE BLUEPRINTS ────────────────────────────
 "RARGH!!!"
-
-
 //= VARIANTS WITH SHARED BLUEPRINT FIELDS ──────────────────────────────
 "heeheehee"
 7
-
 //= USING VARIANTS AS FIELD VALUES IN ANOTHER BLUEPRINT ────────────────
 Magic-Type.Ice
 Magic-Type.Neutral
-
 //= SIMPLE NAMED DESTRUCTURING ─────────────────────────────
 "Todd"
 27
 "blue"
-
 //= NAMED DESTRUCTURING WITH RENAMING ────────────────────
 "Todd"
 27
 "blue"
-
 //= ALTERNATE DIRECTION DESTRUCTURING ────────────────────
 "Todd"
 27
 "blue"
-
 //= POSITIONAL DESTRUCTURING ─────────────────────────────
 1
 2
 3
-
 //= HYBRID NAMED+POSITIONAL DESTRUCTURING ────────────────
 5
 6
 7
-
 //= HYBRID NAMED+POSITIONAL WITH DIFFERENT ORDER ─────────
 5
 6
 7
-
 //= COPY BY VALUE: CHANGING DESTRUCTURED VARIABLE DOES NOT MUTATE ORIGINAL ──────
 "Ali"
 21
 "Mo"
 22
-
 //= RESTRUCTURING: WRITING BACK TO ORIGINAL ──────────────
 "Bea"
 40
 "Beatrix"
 41
-
 //= PARTIAL RESTRUCTURING ────────────────────────────────
 "Calvin"
 19
 "yellow"
-
 //= RESTRUCTURING WITH RENAMING ─────────────────────────
 5
 "green"
 "green"
-
 //= DESTRUCTURING BY REFERENCE: MUTATION PROPAGATES ─────
 "Dan"
 51
-
 //= DESTRUCTURING WITH RENAMING BY REFERENCE ─────────────
 "Denise"
-
 //= EDGE CASE: AMBIGUOUS DESTRUCTURE (SHOULD ERROR) ─────
 error: duplicate variable names in destructure
     $foo9, $foo9, $bar9: $hybrid9[];
-
 //= EDGE CASE: TOO MANY OR TOO FEW VARIABLES (SHOULD ERROR) ─────────────
 error: destructure count mismatch
     $a10, $b10, $c10, $d10: $example-list10[];
 1
 2
-
 //= DESTRUCTURING OF EMPTY LIST ────────────────────────
 error: destructure count mismatch
     $a11, $b11: $empty11[];
-
 //= NESTED DESTRUCTURING ──────────────────────────────
 5
 9
 2
-
 //= RESTRUCTURING NESTED LIST ─────────────────────────
 7
-
 //= SIMPLE IF TEST
 "Ready!"
-
 //= IF CONDITION NOT MET and not
 "this should print"
-
 //= ELSE TEST
 "Fallback triggered"
-
 //= NOT CONDITION FALSE
 "this should print"
-
 //= IS VALUE MATCH TRUE and False
 "Matched blue"
-
 //= IS TYPE MATCH TRUE
 "It's a number"
-
 //= IS TYPE MATCH FALSE
 //= IS EMPTY MATCH
 "Empty detected"
-
 //= LESS THAN TRUE and FALSE
 "Less than 10"
-
 //= GREATER THAN TRUE and FALSE
 "Greater than 10"
-
 //= AT MOST (<=) TRUE and FALSE
 "At most 10"
-
 //= AT LEAST (>=) TRUE and FALSE
 "At least 10"
-
 //= CONTAINS TRUE and FALSE
 "Contains 2"
-
 //= AND
 "Both conditions true"
-
 //= OR
 "At least one true"
-
 //= ELSE IF FIRST MATCH
 "First match"
-
 //= ELSE IF SECOND MATCH
 "Second match"
-
 //= ELSE IF FALLBACK MATCH
 "Fallback matched"
-
 //= MULTI-BRANCH SWITCH
 "B matched"
-
 //= MULTI-BRANCH WITH DEFAULT (Otherwise FALLBACK)
 "Fallback fruit"
-
 //= MULTI-BRANCH TYPE GUARD MATCHING
 "Big number"
-
 //= MULTI-BRANCH TYPE MATCH WITH VARIANT
 "Ice type matched"
-
 //= MULTI-BRANCH CONTAINS MATCH
 "Key found"
-
 //= MULTI-BRANCH COMPOUND LOGIC
 "Small number matched"
-
 //= MULTI-BRANCH LIST EXACT MATCH
 "Exact list matched"
-
 //= MULTI-BRANCH WITH VARIANT GROUP
 "Goblin matched"
-
 //= INLINE IF TRUE and FALSE
 "Go!"
 "Wait!"
-
-
-
 //= BOOLEAN EDGE CASE FALSE CONDITIONS
 "will print"
 "will print"
@@ -686,163 +578,117 @@ error: destructure count mismatch
 "will print"
 "will print"
 "will print"
-
 //= BOOLEAN EDGE CASE TRUE CONDITIONS
 "True variant group"
 "True variant value"
 "True text atom"
-
 //= Function Atom as condition
 "Will print"
 "Will print"
-
 //= IF WITH FUNCTION RETURNING EMPTY (FALSY)
 "Empty function result"
-
 //= IF WITH FUNCTION RETURNING NON-EMPTY (TRUTHY)
 "Non-empty function result"
-
 //= IF WITH VARIABLE SET TO EMPTY LIST THEN MUTATED TO TRUTHY LIST
 "List became truthy"
-
 //= IF WITH VARIABLE SET TO TEXT "0" (TRUTHY)
 "Text '0' is truthy"
-
 //= IF WITH VARIABLE SET TO NUMBER 0.0 (FALSY)
 "0.0 is falsy"
-
 //= IF WITH EMPTY BLUEPRINT INSTANCE (TRUTHY)
 "Empty blueprint is falsy!"
-
 //= IF WITH VARIABLE SET TO STATUS.FALSE THEN MUTATED TO CUSTOM STATUS (TRUTHY)
 "Custom status is truthy"
-
 //= MULTI-BRANCH MATCH WITH SECOND TRUTHY MATCH
 "Second matched"
-
 //= MULTI-BRANCH MATCH WITH MULTIPLE TRUTHY CONDITIONS, ONLY FIRST EXECUTES
 "At least 5 matched"
-
 //= MULTI-BRANCH MATCH WITH MULTIPLE TRUTHY CONDITIONS, ALL EXECUTE
 "At least 5 matched"
 "generic number should print"
-
 //= ERROR CASE: USING UNDEFINED VARIABLE IN IF
 error: undefined variable
     If $undefined-var, ( // error: undefined variable
-
 //= ERROR CASE: INVALID COMPARISON TYPE
 error: can't compare list with number
     If $list-contain is less than 10, (
-
 //= ERROR CASE: INVALID USE OF "CONTAINS" ON NON-LIST
 error: contains used on non-list
     If $non-list-val contains 1, (
-
 //= ERROR CASE: INVALID MULTI-BRANCH "or" WITHOUT PRECEDING IF
 error: `or` without preceding `If`
     or "value", ( // error: `or` without preceding `If`
-
 //= ERROR CASE: ELSE IF WITHOUT INITIAL IF
 error: `Else if` without preceding `If`
     Else if $color is "blue", ( // error: `Else if` without preceding `If`
-
 //= ERROR CASE: ELSE WITHOUT INITIAL IF
 error: `Else` without preceding `If`
     Else, ( // error: `Else` without preceding `If`
-
 //= BOOLEAN TEST: LIST WITH ALL FALSY ELEMENTS
 "All falsy elements in a list are falsy"
-
 //= BOOLEAN TEST: TEXT WITH WHITESPACE ONLY (TRUTHY)
 "Whitespace text is truthy"
-
 //= BOOLEAN TEST: VARIABLE WITH EMPTY BLUEPRINT VARIANT (TRUTHY)
 "Empty variant is truthy"
-
 //= BOOLEAN TEST: EMPTY PARAMETERIZED FUNCTION (FALSY)
 "Empty parameterized function is falsy"
-
 //= INLINE IF WITH VARIABLE SET TO NUMBER 1 (TRUTHY)
 "Number 1 is truthy"
-
 //= INLINE IF WITH EMPTY LIST (FALSY)
 "Empty list falsy"
-
 //= DESTRUCTURE IN IF CONDITION (Truthy)
 "Eve is over 21"
-
 //= DESTRUCTURING BY REFERENCE AND MUTATION IN CONTROL FLOW
 100
-
 //= MULTI-STAGE PIPELINE WITH CONDITIONAL STEP ERROR
 error: comparison word in pipeline
   $list-pipe
   then ($this contains 4) :> $contains-four;
-
 //= Has function and pipeline
 "List contains four"
-
 //= IF CONDITION WITH LIST INDEX ACCESS
 "Second index matched 'one'"
 "Third index is not 'one'"
-
 //= LIST MAPPING WITH CONTROL FLOW CONDITION
 "alice is active"
-
 //= LIST MAPPING AND PIPELINE INTO CONTROL FLOW
 "User active status: yes"
-
 //= BLUEPRINT DEFAULTS IN CONTROL FLOW
 "Hero at full health"
-
 //= ERROR: IF CONDITION ACCESSING INVALID LIST INDEX
 error: list index out of range
     If $bad-list50.4, ( // error: list index out of range
-
 //= ERROR: IF CONDITION ON UNDEFINED PROPERTY IN LIST
 error: list property not found: $age
     If $user-bad.age, ( // error: list property `$age` not found
-
 //= More destructuring stuff and conditionals stuff
 "Pass: positional destructure"
-
 //= multiple statements in an inline if
 "passing one statement from inline If"
 "passing a second one"
 5
 6
-
 //= IF WITH NESTED CONDITIONALS
 "Nested condition true"
-
 //= PIPELINE WITH INLINE FUNCTION RETURNING EMPTY (FALSY)
 "Pipeline resulted in empty"
-
 //= BOOLEAN TEST: NESTED LIST WITH TRUTHY AND FALSY ELEMENTS
 "Nested list considered truthy"
-
 //= ERROR: USING "is" WITH A VARIANT THAT DOES NOT EXIST
 error: undefined variable
     If $status-bp is StatusVariantBP.Unknown, (// error: undefined variable
+//= IF CONDITION WITH NESTED LIST INDEX ACCESS
+"Nested index matched 'two'"
 //= Conditional pipelining
 0
 "dead"
-
-//= IF CONDITION WITH NESTED LIST INDEX ACCESS
-"Nested index matched 'two'"
-
-//= COMPUTED INDEX: BASIC ADDITION
 30
-
 //= COMPUTED INDEX: WITH LITERAL ARITHMETIC
 300
 200
-
 //= COMPUTED INDEX: WITH NESTED EXPRESSIONS
 300
 300
-
 //= COMPUTED INDEX: NEGATIVE AND ZERO
 error: list index out of range
     $list300.($a00 - 1);
@@ -850,95 +696,69 @@ error: list index out of range
 10
 error: list index out of range
     $list300.(-1);
-
 //= COMPUTED INDEX: OUT OF BOUNDS
 error: list index out of range
     $list300.(4);
 error: list index out of range
     $list300.($a00 + $b00 + 2);
-
 //= COMPUTED INDEX: NON-INTEGER RESULT
 error: list index must be an integer
     $list400.(1.5);
 error: list index must be an integer
     $list400.($a00 / 2);
-
 //= COMPUTED INDEX: INVALID EXPRESSION TYPE
 error: can't use text as index
     $list400.("hi");
 error: list index must be an integer
     $list400.($list100);
-
 //= COMPUTED INDEX: USE IN ASSIGNMENT
 99
-
 //= COMPUTED INDEX: USE IN PIPELINE
 30
-
 //= COMPUTED INDEX: INDEX BY FUNCTION RETURN (optional, if supported)
 99
-
 //= COMPUTED INDEX: VARIABLE SHADOWING
 30
-
 //= COMPUTED INDEX: IN INTERPOLATION
 "Element is 99"
-
 //= LIST INTERPOLATION: BASICS
 [1, 2, 3, 4, 5]
-
 //= LIST INTERPOLATION: PREPEND
 [0, 10, 11, 12]
-
 //= LIST INTERPOLATION: APPEND
 ["a", "b", "c"]
-
 //= LIST INTERPOLATION: NESTED INTERPOLATION
 [1, 2, [3, 4]]
-
 //= LIST INTERPOLATION: INSERTION
 [0, 100, 200, 300]
-
 //= LIST INTERPOLATION: MULTIPLE INTERPOLATIONS IN ONE LIST
 [1, 2, 3, 4, 5]
-
 //= LIST INTERPOLATION: EMPTY LISTS
 []
-
 //= LIST INTERPOLATION: EMPTY IN NON-EMPTY LIST
 [99]
-
 //= LIST INTERPOLATION: SINGLE NON-LIST VALUE (should just insert value)
 [42, 99]
-
 //= LIST INTERPOLATION: INTERPOLATION OF NON-LIST VALUE (should error)
 error: cannot interpolate non-List into a List
     $li19: [<$notalist-interp>];
-
 //= LIST INTERPOLATION: NESTED LISTS (non-interpolated, for comparison)
 [[1, 2], [3, 4]]
-
 //= LIST INTERPOLATION: TRAILING/LEADING INTERPOLATION
 [5, 6]
 [5, 6]
-
 //= LIST INTERPOLATION: APPEND TO EMPTY LIST
 [5, 6]
-
 //= LIST INTERPOLATION: WITH TEXTS AND MIXED TYPES
 [1, "apple", "banana", "pear"]
-
 //= LIST INTERPOLATION: MULTIPLE EMPTY LISTS
 []
-
 //= LIST INTERPOLATION: ERROR IF INTERPOLATING UNDEFINED VARIABLE
 error: undefined variable
     $li30: [<$does_not_exist>];
-
 //= LIST INTERPOLATION: INTERPOLATING A BLUEPRINT INSTANCE (should insert as value)
 error: cannot interpolate non-List into a List
     $li31: [<$bp1>];
-
 //= PIPELINE INTERPOLATE
 [[1, 2, 3], 99]
 [1, 2, 3, 99]

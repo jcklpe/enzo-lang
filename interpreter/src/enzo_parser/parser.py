@@ -224,6 +224,13 @@ class Parser:
                     text_val = self.advance().value[1:-1]
                     debug_chain.append(f'."{text_val}"')  # DEBUG
                     base = ListIndex(base, TextAtom(text_val, code_line=code_line), code_line=code_line, is_property_access=False)
+                elif t and t.type == "LPAR":
+                    # Computed index: $list.($expression)
+                    self.advance()  # consume LPAR
+                    index_expr = self.parse_value_expression()
+                    self.expect("RPAR")  # consume RPAR
+                    debug_chain.append(f".(...)")  # DEBUG
+                    base = ListIndex(base, index_expr, code_line=code_line)
                 else:
                     # If not a valid index or property, break
                     break

@@ -11,9 +11,9 @@
 
 //= COMPUTED INDEX: NEGATIVE AND ZERO
 error: list index out of range
-    $list300.($a - 1);
+    $list300.($a00 - 1);
+5
 10
-15
 error: list index out of range
     $list300.(-1);
 
@@ -24,15 +24,15 @@ error: list index out of range
     $list300.($a00 + $b00 + 2);
 
 //= COMPUTED INDEX: NON-INTEGER RESULT
-error: list index must be integer
+error: list index must be an integer
     $list400.(1.5);
-error: list index must be integer
+error: list index must be an integer
     $list400.($a00 / 2);
 
 //= COMPUTED INDEX: INVALID EXPRESSION TYPE
-error: list index must be integer
+error: can't use text as index
     $list400.("hi");
-error: list index must be integer
+error: list index must be an integer
     $list400.($list100);
 
 //= COMPUTED INDEX: USE IN ASSIGNMENT
@@ -42,7 +42,7 @@ error: list index must be integer
 30
 
 //= COMPUTED INDEX: INDEX BY FUNCTION RETURN (optional, if supported)
-20
+99
 
 //= COMPUTED INDEX: VARIABLE SHADOWING
 30

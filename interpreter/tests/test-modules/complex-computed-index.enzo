@@ -16,9 +16,9 @@ $list200.($a00 + ($b00 * 1));   // prints 300 (index 3)
 
 //= COMPUTED INDEX: NEGATIVE AND ZERO
 $list300: [5, 10, 15];
-$list300.($a - 1);          // error: list index out of range (if $a = 1)
-$list300.(-1 + 2);          // prints 10 (index 1)
-$list300.(-2 + 4);          // prints 15 (index 2)
+$list300.($a00 - 1);          // error: list index out of range (if $a = 1)
+$list300.(-1 + 2);          // prints 5 (index 1)
+$list300.(-2 + 4);          // prints 10 (index 2)
 $list300.(-1);              // error: list index out of range
 
 //= COMPUTED INDEX: OUT OF BOUNDS
@@ -45,7 +45,7 @@ $list500 then ($this.($i00 + 2)); // prints 30 (index 3)
 
 //= COMPUTED INDEX: INDEX BY FUNCTION RETURN (optional, if supported)
 idx-fn00: (return(2));
-$list500.(idx-fn00());         // prints 20 (index 2)
+$list500.(idx-fn00());         // prints 99 (index 2)
 
 //= COMPUTED INDEX: VARIABLE SHADOWING
 $j00: 3;

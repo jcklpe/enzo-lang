@@ -20,7 +20,7 @@ error: list property not found: $someKey
 20
 //= REBINDING NESTED LISTS ───────────────────────────────────────────────
 100
-//= COMPLEX LIST + LIST INDEX/PROPERTY ACCESS ─────────────────────────
+//= COMPLEX LIST INDEX/PROPERTY ACCESS ─────────────────────────
 [$list-map: [$a: [100, 200], $b: "x"], $list-index: [[$foo: 1], [$foo: 2]]]
 100
 2

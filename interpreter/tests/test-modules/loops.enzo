@@ -33,8 +33,6 @@ Loop, (
 ); // prints odd numbers 1-9
 
 
-);
-
 //= SIMPLE LOOP: INCREMENT INSIDE, BREAKS AFTER 5
 $j-loop: 1;
 Loop, (

@@ -1052,11 +1052,11 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         raise EnzoTypeError(error_message_index_must_be_integer(), code_line=getattr(node, 'code_line', None))
                     idx = int(key)
                     return left.get_by_index(idx)
-                # Try key access (if it's a string)
+                # String values should be treated as invalid index types, not property access
                 elif isinstance(key, str):
-                    return left.get_by_key(key)
+                    raise EnzoTypeError(error_message_index_must_be_integer(), code_line=getattr(node, 'code_line', None))
                 else:
-                    raise EnzoTypeError(error_message_index_must_be_number(), code_line=getattr(node, 'code_line', None))
+                    raise EnzoTypeError(error_message_index_must_be_integer(), code_line=getattr(node, 'code_line', None))
             except IndexError:
                 raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=getattr(node, 'code_line', None))
             except KeyError:
@@ -1435,8 +1435,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
         # Legacy list handling and property access on non-EnzoList objects
         if isinstance(idx, str):
-            # String indexing should give "can't use text as index"
-            raise EnzoRuntimeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
+            # String indexing should give "list index must be an integer"
+            raise EnzoRuntimeError(error_message_index_must_be_integer(), code_line=t_code_line)
         if not isinstance(base, list):
             if isinstance(node.base, VarInvoke):
                 raise EnzoRuntimeError(error_message_index_applies_to_lists(), code_line=t_code_line)

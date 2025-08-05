@@ -104,7 +104,16 @@ def split_statements(lines):
         # Skip blank/comment lines unless already in a statement
         if not stripped and not buffer:
             continue
-        if stripped.strip().startswith('//=') and not buffer:
+        # IMPORTANT: Test section delimiters force statement breaks
+        if stripped.strip().startswith('//='):
+            if buffer:  # If we have a pending statement, close it first
+                stmts.append(buffer)
+                buffer = []
+                # Reset all depth counters for new test section
+                paren_depth = 0
+                brace_depth = 0
+                bracket_depth = 0
+                if_depth = 0
             stmts.append([stripped])
             continue
         if stripped.strip().startswith('//') and not buffer:
