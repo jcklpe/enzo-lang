@@ -123,9 +123,20 @@ class Parser:
         return BlueprintComposition(blueprints, code_line=self._get_code_line(self.tokens[self.pos-1]))
 
     def parse_variant_group(self, name):
-        """Parse variants: A, or B, or C syntax or complex variant definitions"""
+        """Parse variants: A, or B, or C syntax (declare new) or variants include A, or B syntax (extend existing)"""
         self.expect("VARIANTS")  # variants
-        self.expect("BIND")      # :
+
+        # Check if this is extension (include) or declaration (:)
+        is_extension = False
+        if self.peek() and self.peek().type == "INCLUDE":
+            is_extension = True
+            self.advance()  # consume include
+        elif self.peek() and self.peek().type == "BIND":
+            is_extension = False
+            self.advance()  # consume :
+        else:
+            raise EnzoParseError("Expected 'include' or ':' after 'variants'",
+                               code_line=self._get_code_line(self.peek()) if self.peek() else None)
 
         variants = []
 
@@ -147,7 +158,12 @@ class Parser:
             else:
                 break
 
-        return VariantGroup(name, variants, code_line=self._get_code_line(self.tokens[self.pos-1]))
+        # Create different AST nodes based on whether this is extension or declaration
+        if is_extension:
+            from src.enzo_parser.ast_nodes import VariantGroupExtension
+            return VariantGroupExtension(name, variants, code_line=self._get_code_line(self.tokens[self.pos-1]))
+        else:
+            return VariantGroup(name, variants, code_line=self._get_code_line(self.tokens[self.pos-1]))
 
     def parse_single_variant(self):
         """Parse a single variant which can be just a name or Name: <[...]>"""
@@ -365,6 +381,14 @@ class Parser:
                 node = SubNode(node, right)
         return node
 
+    def parse_pipeline_expression(self):
+        """Parse expressions that can appear in pipelines: terms and control flow statements."""
+        t = self.peek()
+        if t and t.type == "IF":
+            return self.parse_if_statement()
+        else:
+            return self.parse_term()
+
     def parse_pipeline(self):
         # Track the start of this pipeline statement for error context
         if self.pipeline_start_pos is None:
@@ -379,7 +403,7 @@ class Parser:
             else:
                 self.pipeline_start_pos = 0
 
-        node = self.parse_term()
+        node = self.parse_pipeline_expression()
         while self.peek() and self.peek().type == "THEN":
             self.advance()  # consume THEN
             t = self.peek()
@@ -388,7 +412,7 @@ class Parser:
             old_pipeline_flag = self.in_pipeline_function
             self.in_pipeline_function = True
             try:
-                right = self.parse_term()  # Parse the function atom after 'then'
+                right = self.parse_pipeline_expression()  # Parse expressions after 'then'
             finally:
                 self.in_pipeline_function = old_pipeline_flag
             from src.enzo_parser.ast_nodes import PipelineNode
@@ -573,10 +597,17 @@ class Parser:
             value = self.parse_value_expression()
             return BindOrRebind(expr1, value, code_line=code_line)
 
-        # Check for variant group: Name variants: ...
+        # Check for variant group: Name variants: ... or Name variants include ...
         if isinstance(expr1, VarInvoke) and self.peek() and self.peek().type == "VARIANTS":
             variant_group = self.parse_variant_group(expr1.name)
-            return Binding(expr1.name, variant_group, code_line=code_line)
+
+            # If it's an extension, return it directly as a statement
+            # If it's a declaration, wrap it in a Binding
+            from src.enzo_parser.ast_nodes import VariantGroupExtension
+            if isinstance(variant_group, VariantGroupExtension):
+                return variant_group
+            else:
+                return Binding(expr1.name, variant_group, code_line=code_line)
 
         # Variable binding: $x: ... or Blueprint definition: Name: <[...]>
         if isinstance(expr1, VarInvoke) and self.peek() and self.peek().type == "BIND":

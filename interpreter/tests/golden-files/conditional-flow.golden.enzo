@@ -229,3 +229,7 @@ error: undefined variable
 
 //= IF CONDITION WITH NESTED LIST INDEX ACCESS
 "Nested index matched 'two'"
+
+//= Conditional pipelining
+0
+"dead"

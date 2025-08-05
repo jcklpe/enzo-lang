@@ -206,6 +206,14 @@ class VariantGroup(ASTNode):
     def __repr__(self):
         return f"VariantGroup(name={self.name!r}, variants={self.variants!r})"
 
+class VariantGroupExtension(ASTNode):
+    def __init__(self, name, variants, code_line=None):
+        super().__init__(code_line)
+        self.name = name
+        self.variants = variants  # List of variant names to add to existing group
+    def __repr__(self):
+        return f"VariantGroupExtension(name={self.name!r}, variants={self.variants!r})"
+
 class VariantAccess(ASTNode):
     def __init__(self, variant_group_name, variant_name, code_line=None):
         super().__init__(code_line)

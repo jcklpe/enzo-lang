@@ -371,7 +371,7 @@ If $status-custom, (
   "Won't print initially";
 );
 
-Status variants: Loading, or Dead;
+Status variants include Loading, or Dead;
 
 $status-custom <: Status.Loading;
 
@@ -626,3 +626,33 @@ $nested-list: [["zero", "one"], ["two", "three"]];
 If $nested-list.2.1 is "two", (
   "Nested index matched 'two'"; // should print
 );
+
+//= Conditional pipelining
+$goblinoid: [
+  $health: 30,
+  $status: "alive"
+];
+
+take-damage1: (
+  param $target: ;
+  param $damage: 0;
+  $target.health - $damage :> $target.health;
+  return($target);
+);
+
+set-status: (
+  param $target: ;
+  param $status: "";
+  $status :> $target.status;
+  return($target)
+);
+
+$goblinoid
+  then take-damage1($this, 30)
+    then If $this.health is less than 1, (
+        set-status($this, "dead")
+    )
+  :> $goblinoid;
+
+$goblinoid.health;  // should print 0
+$goblinoid.status;  // should print "dead"

@@ -40,6 +40,7 @@ TOKEN_SPEC = [
     ("AND", r"\band\b"),            # \b for word boundaries
     ("OR", r"\bor\b"),              # \b for word boundaries
     ("VARIANTS", r"\bvariants\b"),  # \b for word boundaries
+    ("INCLUDE", r"\binclude\b"),    # \b for word boundaries
     ("LT", r"<"),
     ("GT", r">"),
     ("EQ_SINGLE", r"="),

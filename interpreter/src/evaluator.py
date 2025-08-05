@@ -1,7 +1,7 @@
 from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val, log_debug, EnzoList, deep_copy_enzo_value
 from collections import ChainMap
-from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, ModNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding, IfStatement, ComparisonExpression, LogicalExpression, NotExpression, ForLoop, WhileLoop, ListKeyValue, ListInterpolation
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, ModNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantGroupExtension, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding, IfStatement, ComparisonExpression, LogicalExpression, NotExpression, ForLoop, WhileLoop, ListKeyValue, ListInterpolation
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
 from src.error_messaging import (
     error_message_already_defined,
@@ -1138,7 +1138,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             fn = EnzoFunction(right_expr.params, right_expr.local_vars, right_expr.body, pipeline_env, getattr(right_expr, 'is_multiline', False))
             return invoke_function(fn, [], pipeline_env, self_obj=None)
         # For expressions that can potentially reference $this, evaluate in pipeline environment
-        elif isinstance(right_expr, (AddNode, SubNode, MulNode, DivNode, ModNode, VarInvoke, Invoke, TextAtom, ListIndex, ReferenceAtom)):
+        elif isinstance(right_expr, (AddNode, SubNode, MulNode, DivNode, ModNode, VarInvoke, Invoke, TextAtom, ListIndex, ReferenceAtom, IfStatement)):
             return eval_ast(right_expr, value_demand=True, env=pipeline_env)
         else:
             # For literals and other nodes that can't reference $this, this doesn't make sense
@@ -1556,6 +1556,40 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
         # Create a runtime variant group that validates variant access
         return EnzoVariantGroup(node.name, variant_names, group_blueprint)
+
+    if isinstance(node, VariantGroupExtension):
+        # VariantGroupExtension represents extending an existing variant group
+        group_name = node.name
+
+        # Check if the variant group exists
+        if group_name not in env:
+            raise EnzoRuntimeError(f"error: cannot extend undefined variant group '{group_name}'", code_line=getattr(node, 'code_line', None))
+
+        existing_group = env[group_name]
+        if not isinstance(existing_group, EnzoVariantGroup):
+            raise EnzoRuntimeError(f"error: '{group_name}' is not a variant group", code_line=getattr(node, 'code_line', None))
+
+        # Process new variants to add
+        new_variant_names = []
+        for variant in node.variants:
+            if isinstance(variant, tuple):
+                # Inline blueprint definition: (variant_name, blueprint_def)
+                variant_name, blueprint_def = variant
+                new_variant_names.append(variant_name)
+                env[variant_name] = blueprint_def
+            else:
+                # Simple variant name
+                new_variant_names.append(variant)
+
+        # Create extended variant group by merging with existing
+        all_variants = list(existing_group.variants) + new_variant_names
+        extended_group = EnzoVariantGroup(group_name, all_variants, existing_group.group_blueprint)
+
+        # Update the environment with the extended group
+        env[group_name] = extended_group
+
+        # Return None for extensions - they are side-effect operations
+        return None
 
     if isinstance(node, VariantAccess):
         # VariantAccess represents accessing a variant (e.g., Magic-Type.Fire)
