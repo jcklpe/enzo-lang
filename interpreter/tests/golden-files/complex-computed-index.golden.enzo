@@ -1,56 +1,51 @@
 //= COMPUTED INDEX: BASIC ADDITION
-$list100: [10, 20, 30, 40];
-$x100: 2;
-$list100.($x100 + 1);        // prints 30 (index 3)
+30
 
 //= COMPUTED INDEX: WITH LITERAL ARITHMETIC
-$list200: [100, 200, 300];
-$list200.(1 + 2);           // prints 300 (index 3)
-$list200.(2 * 1);           // prints 200 (index 2)
+300
+200
 
 //= COMPUTED INDEX: WITH NESTED EXPRESSIONS
-$a00: 1;
-$b00: 2;
-$list200.($a00 + $b00);         // prints 300 (index 3)
-$list200.($a00 + ($b00 * 1));   // prints 300 (index 3)
+300
+300
 
 //= COMPUTED INDEX: NEGATIVE AND ZERO
-$list300: [5, 10, 15];
-$list300.($a - 1);          // error: list index out of range (if $a = 1)
-$list300.(-1 + 2);          // prints 10 (index 1)
-$list300.(-2 + 4);          // prints 15 (index 2)
-$list300.(-1);              // error: list index out of range
+error: list index out of range
+    $list300.($a - 1);
+10
+15
+error: list index out of range
+    $list300.(-1);
 
 //= COMPUTED INDEX: OUT OF BOUNDS
-$list300.(4);               // error: list index out of range (list has 3 elements)
-$list300.($a00 + $b00 + 2);     // error: list index out of range
+error: list index out of range
+    $list300.(4);
+error: list index out of range
+    $list300.($a00 + $b00 + 2);
 
 //= COMPUTED INDEX: NON-INTEGER RESULT
-$list400: [9, 8, 7];
-$list400.(1.5);             // error: list index must be integer
-$list400.($a00 / 2);          // error: list index must be integer
+error: list index must be integer
+    $list400.(1.5);
+error: list index must be integer
+    $list400.($a00 / 2);
 
 //= COMPUTED INDEX: INVALID EXPRESSION TYPE
-$list400.("hi");            // error: list index must be integer
-$list400.($list100);          // error: list index must be integer
+error: list index must be integer
+    $list400.("hi");
+error: list index must be integer
+    $list400.($list100);
 
 //= COMPUTED INDEX: USE IN ASSIGNMENT
-$list500: [10, 20, 30];
-$i00: 1;
-99 :> $list500.($i00 + 1);    // sets $list5.2 to 99
-$list500.2;                 // prints 99
+99
 
 //= COMPUTED INDEX: USE IN PIPELINE
-$list500 then ($this.($i00 + 2)); // prints 30 (index 3)
+30
 
 //= COMPUTED INDEX: INDEX BY FUNCTION RETURN (optional, if supported)
-idx-fn00: (return(2));
-$list500.(idx-fn00());         // prints 20 (index 2)
+20
 
 //= COMPUTED INDEX: VARIABLE SHADOWING
-$j00: 3;
-$list500.($j00);               // prints 30 (index 3)
+30
 
 //= COMPUTED INDEX: IN INTERPOLATION
-$msg00: "Element is <$list500.($i00 + 1);>";
-$msg00;                      // prints "Element is 99"
+"Element is 99"
