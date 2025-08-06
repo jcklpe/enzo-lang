@@ -59,3 +59,126 @@ error: undefined variable
 //= ERROR: FOR LOOP WITH NON-ITERABLE
 error: `For` loop must be over a list
     For $item10 in 10, // error: `For` loop must be over a list
+
+//= WHILE LOOP WITH COMPLEX CONDITION
+"Counter: 1"
+"Counter: 2"
+"Counter: 3"
+"Counter: 4"
+"Counter: 5"
+False
+
+//= UNTIL LOOP: THE OPPOSITE OF WHILE
+"Count is 0"
+"Count is 1"
+"Count is 2"
+3
+
+//= UNTIL LOOP THAT NEVER RUNS
+10
+
+//= FOR LOOP: ITEM IS A COPY, NOT A REFERENCE
+"Item copy is now 11"
+"Item copy is now 21"
+"Item copy is now 31"
+[10, 20, 30]
+
+//= FOR LOOP: ITEM IS A REFERENCE
+"Item is now 11"
+"Item is now 21"
+"Item is now 31"
+[11, 21, 31]
+
+//= FOR LOOP: MUTATING THE ORIGINAL LIST (BY INDEX)
+[15, 25, 35]
+
+//= FOR LOOP OVER LIST OF LISTS
+"Inner list: [1, 2]"
+1
+"Inner list: ["a", "b"]"
+"a"
+
+//= FOR LOOP WITH DESTRUCTURING INSIDE
+"User Alice is 30 years old."
+"User Bob is 42 years old."
+
+//= USING RESTART-LOOP AND END-LOOP
+"Found 8, ending loop."
+12
+
+//= MODIFYING THE LIST WHILE ITERATING (APPENDING)
+"Item: 1"
+"Item: 2"
+"Item: 3"
+[1, 2, 3]
+
+//= MODIFYING AN UPCOMING ITEM
+"Current item: a"
+"Current item: b_mod"
+"Current item: c"
+["a", "b_mod", "c"]
+
+//= ITERATING OVER BLUEPRINT INSTANCES
+"Bork needs healing!"
+
+//= END-LOOP AFFECTS INNERMOST LOOP ONLY
+"Outer loop started"
+"Inner loop running"
+"ending inner loop"
+"Inner loop finished"
+
+//= RESTART-LOOP AFFECTS INNERMOST LOOP ONLY
+"Processing row: [1, 2]"
+"Cell: 1"
+"Cell: 2"
+"Processing row: [3, 4]"
+"Found 3, restarting inner loop";
+"Cell: 4"
+
+//= LOOP INSIDE A FUNCTION WITH A RETURN
+8
+False
+
+//= FOR LOOP (LIVE): DELETING AN ITEM BEHIND THE ITERATOR
+["a", "b", "c"]
+["b", "c"]
+
+//= FOR LOOP (LIVE): DELETING THE CURRENT ITEM AND SKIPPING THE NEXT
+["a", "b", "d"]
+["a", "c", "d"]
+
+//= FOR LOOP (LIVE): CLEARING THE LIST MID-ITERATION
+[10, 20]
+[]
+
+//= FOR @ITEM: MUTATING PROPERTIES OF BLUEPRINT INSTANCES
+30
+60
+
+//= FOR @ITEM: REBINDING AN ENTIRE ELEMENT TO A NEW INSTANCE
+[Player[$name: "Goblin", $hp: 30], Player[$name: "Super Orc", $hp: 100]]
+
+//= FOR @ITEM: ERROR ON TYPE-INCONSISTENT REBINDING
+error: cannot bind Text to Number
+        "should not work" :> $num_ref; // error: cannot bind Text to Number
+
+//= NESTED LOOPS: SHADOWING THE LOOP VARIABLE
+"Outer: 1"
+"Inner: a"
+"Inner: b"
+"Outer again: 1"
+"Outer: 2"
+"Inner: a"
+"Inner: b"
+"Outer again: 2"
+
+//= FOR LOOP OVER A LIST CONTAINING EMPTY/FALSY VALUES
+""
+False
+
+//= ERROR: USING `end-loop` IN A PIPELINE
+error: `end-loop;` inside a non-loop function atom
+        1 then (end-loop;); // error: `end-loop;` inside a non-loop function atom
+
+//= LOOPING OVER A REFERENCE TO A LIST
+["x", "y", "z"]

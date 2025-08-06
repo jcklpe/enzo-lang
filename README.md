@@ -1285,6 +1285,7 @@ Loop for $item in $item-list, (
     "this iteration has returned <$item> of <$item-list>";
 );
 ```
+Loops are "live iteration" style, meaning that as you loop through the list, any changes to the list will be immediate. You could hypothetically create an infinitely growing loop this way. Not sure if this is better or worse UX than the "snapshot" style, but it seems the most intuitive to me.
 
 ### Data flow
 Enzo provides a pair of dataflow operators,`then` and `$this` to thread a value through a sequence of standalone transformations without nesting or method chaining.

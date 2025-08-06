@@ -1,6 +1,4 @@
-### Built-in Functions
 
-```javascript!
 say();
 //builtin print function
 
@@ -33,19 +31,21 @@ users[0, 1, 2, 3, 4, 5, 6]
 
 
 
+count();
+//
 
-
-toggle()
+toggle();
 // like saying status = !status
 
 length();
 // find list length
 
-trim()
+trim();
 trim left right?
+
 find substring
 
-input() // for text adventure
+input(); // for text adventure
 
 absolute value?
 
@@ -57,6 +57,7 @@ random
 
 rounding
 
-$random (defaults   )
+$random (defaults 0-1 range, but can take params to set range  )
 
-```
+input();
+// used for capturing text input?
