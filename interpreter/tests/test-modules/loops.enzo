@@ -43,7 +43,7 @@ Loop, (
 
 //= Loop function atom shadowing
 $loop-temp: 0;
-$loop-temp;
+$loop-temp;  // prints 0
 Loop, (
     $loop-temp: 10;  // not an error because this is within a function atom and can shadow
     $loop-temp; // prints 10
@@ -197,7 +197,7 @@ $list-for-mutate; // prints [15, 25, 35] - original is mutated
 //= WHILE LOOP SHADOWING
 $iteration52: 0;
 $iteration52; // prints 0
-Loop while $iteration52 is at most 3, (
+Loop while $iteration52 is less than 3, (
     $local-var: 1;
     $local-var;  // prints 1 each loop
     $local-var + 1 :> $local-var;
@@ -208,7 +208,22 @@ Loop while $iteration52 is at most 3, (
 
 $iteration52; // prints 3
 
+//= While loop shadowing exception
 
+$iteration53: 0;
+$iteration53; // prints 0
+$local-var2: 0;
+$local-var2; // prints 0
+Loop while $iteration53 is less than 3, (
+    $local-var2: 1;
+    $local-var2;  // prints 1 each loop
+    $local-var2 + 1 :> $local-var2;
+    $local-var2; // prints 2 each loop
+    $iteration53 + 1 :> $iteration53;
+    $iteration53; // prints 1, 2, 3
+);
+$iteration52; // prints 3
+$local-var2; // prints 0
 
 //= FOR LOOP OVER LIST OF LISTS
 $list-of-lists: [[1, 2], ["a", "b"]];
@@ -428,3 +443,94 @@ Loop for $item in $ref-to-list, (
     [<$visited-ref-list>, $item] :> $visited-ref-list;
 );
 $visited-ref-list; // prints ["x", "y", "z"]
+
+
+
+
+
+
+
+
+//= WHILE LOOP WITH END-LOOP
+$counter45: 0;
+$counter45; // prints 0
+Loop while $counter45 is less than 10, (
+    $counter45 + 1 :> $counter45;
+    $counter45;
+    If $counter45 is 3, (end-loop;);
+);
+$counter45; // Should print 3
+
+//= WHILE LOOP WITH RESTART-LOOP
+$i-99: 0;
+$processed-99: 0;
+Loop while $i-99 is less than 5, (
+    $i-99 + 1 :> $i-99;
+    If $i-99 is 3, (restart-loop;); // Skip processing when i=3
+    $processed-99 + 1 :> $processed-99;
+    $processed-99;
+);
+$i-99; // print 5
+$processed-99; // Should print 4 (skipped when i=3)
+
+//= UNTIL LOOP WITH END-LOOP
+$value: 1;
+Loop until $value is 100, (
+    $value * 2 :> $value;
+    $value;
+    If $value is 16, (end-loop;);
+);
+$value; // Should print 16
+
+//= UNTIL LOOP WITH RESTART-LOOP
+$attempts: 0;
+$success: 0;
+Loop until $success is 3, (
+    $attempts + 1 :> $attempts;
+    If $attempts is 2, (restart-loop;); // Skip this attempt
+    $success + 1 :> $success;
+    $success;
+);
+$attempts;   // should print 4
+$success; // Should print 3
+
+//= FOR LOOP WITH END-LOOP
+$numbers: [1, 2, 3, 4, 5];
+Loop for $num in $numbers, (
+    $num;
+    If $num is 3, (end-loop;);
+);
+// Should print: 1, 2, 3
+
+//= FOR LOOP WITH RESTART-LOOP
+$items: [1, 2, 3, 4, 5];
+Loop for $item in $items, (
+    If $item is 3, (restart-loop;); // Skip 3
+    "Processing: <$item;>";
+);
+// Should print: "Processing: 1", "Processing: 2", "Processing: 4", "Processing: 5"
+
+//= FOR LOOP WITH REFERENCE AND END-LOOP
+$data: [10, 20, 30, 40];
+Loop for @ref in $data, (
+    $ref;
+    If $ref is 30, (end-loop;);
+);
+$data; // Should print [10, 20, 30, 40] (unchanged)
+
+//= WHILE LOOP WITH BOTH END-LOOP AND RESTART-LOOP
+$x-77: 0;
+$results-77: [];
+Loop while $x-77 is less than 10, (
+    $x-77 + 1 :> $x-77;
+    If $x-77 is 3, (restart-loop;); // Skip 3
+    If $x-77 is 7, (end-loop;);     // Stop at 7
+    $x-77 :> $results-77;
+);
+$results-77; // Should be [1, 2, 4, 5, 6, 7]
+
+//= FOR LOOP ERROR: END-LOOP IN NESTED FUNCTION
+$list-93: [1, 2, 3];
+Loop for $item in $list-93, (
+    (end-loop;); // error: `end-loop;` inside a non-loop function atom
+);

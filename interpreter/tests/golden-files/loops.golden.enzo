@@ -118,6 +118,21 @@ False
 3
 3
 
+//= While loop shadowing exception
+0
+0
+1
+2
+1
+1
+2
+2
+1
+2
+3
+3
+0
+
 
 //= FOR LOOP OVER LIST OF LISTS
 "Inner list: [1, 2]"
@@ -209,3 +224,42 @@ error: `end-loop;` inside a non-loop function atom
 
 //= LOOPING OVER A REFERENCE TO A LIST
 ["x", "y", "z"]
+
+//= WHILE LOOP WITH END-LOOP
+0
+1
+2
+3
+3
+
+//= WHILE LOOP WITH RESTART-LOOP
+5
+4
+
+//= UNTIL LOOP WITH RESTART-LOOP
+1
+2
+3
+4
+3
+
+//= FOR LOOP WITH END-LOOP
+1
+2
+3
+
+//= FOR LOOP WITH RESTART-LOOP
+"Processing: 1"
+"Processing: 2"
+"Processing: 4"
+"Processing: 5"
+
+//= FOR LOOP WITH REFERENCE AND END-LOOP
+[10, 20, 30, 40]
+
+//= WHILE LOOP WITH BOTH END-LOOP AND RESTART-LOOP
+[1, 2, 4, 5, 6, 7]
+
+//= FOR LOOP ERROR: END-LOOP IN NESTED FUNCTION
+error: `end-loop;` inside a non-loop function atom
+        (end-loop;); // error: `end-loop;` inside a non-loop function atom
