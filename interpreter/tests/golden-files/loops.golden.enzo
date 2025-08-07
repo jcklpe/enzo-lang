@@ -27,6 +27,19 @@
 11
 11
 
+//= Multi iteration loops with fresh shadow scope
+5
+1
+2
+1
+1
+2
+2
+1
+2
+3
+5
+
 //= Not a loop error
 error: `end-loop;` inside a non-loop function atom
         end-loop;
@@ -89,7 +102,7 @@ False
 "Item is now 31"
 [11, 21, 31]
 
-//= FOR LOOP: MUTATING THE ORIGINAL LIST (BY INDEX)
+//= WHILE LOOP MUTATING THE ORIGINAL LIST (BY INDEX)
 [15, 25, 35]
 
 //= FOR LOOP OVER LIST OF LISTS

@@ -60,6 +60,23 @@ Loop, (
 
 $loop-temp; // returns 11
 
+//= Multi iteration loops with fresh shadow scope
+$loop-iteration1: 0;
+
+Loop, (
+    $local-var: 1; // shadows the exterior local var
+    $local-var; // prints 1 each loop
+    $local-var + 1 :> $local-var;
+    $local-var; // prints 2 each loop
+    $loop-iteration1 + 1 :> $loop-iteration1;  // This would not shadow the exterior scope, so the value would be persistent
+    $loop-iteration1; // prints 1, 2, 3
+   If $loop-iteration1 is at least 3, (end-loop); //
+);
+
+$local-var; // prints 5, unchanged by loop shadowing
+
+
+
 //= Not a loop error
 (
     "this function atom is not a loop";
@@ -170,11 +187,19 @@ $list-for-copy2; // prints [11, 21, 31] - original list has changed
 $list-for-mutate: [10, 20, 30];
 $i-for: 1;
 Loop while $i-for is at most 3, (
-    $new-val: $list-for-mutate.$i-for + 5;
-    $new-val :> $list-for-mutate.$i-for;
+    $list-for-mutate.$i-for + 5 :> $list-for-mutate.$i-for;
     $i-for + 1 :> $i-for;
 );
+
+// Loop while $i-for is at most 3, (
+//     $new-val: $list-for-mutate.$i-for + 5;  // ← Problem line
+//     $new-val :> $list-for-mutate.$i-for;
+//     $i-for + 1 :> $i-for;
+// );
 $list-for-mutate; // prints [15, 25, 35] - original is mutated
+
+
+
 
 //= FOR LOOP OVER LIST OF LISTS
 $list-of-lists: [[1, 2], ["a", "b"]];

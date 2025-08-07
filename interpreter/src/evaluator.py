@@ -1778,11 +1778,18 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             max_iterations = 10000  # Safety limit
             iteration_count = 0
 
+            # Create a loop environment that allows shadowing but preserves outer scope
+            # Start with a copy of the outer environment
+            loop_env = env.copy()
+            # Track which variables were created in loop scope for shadowing behavior
+            loop_locals = set()
+
             while iteration_count < max_iterations:
                 try:
-                    # Execute loop body
+                    # Execute loop body in the loop environment
+                    # Use is_function_context=True to allow variable shadowing
                     for stmt in node.body:
-                        result = eval_ast(stmt, env=env)
+                        result = eval_ast(stmt, env=loop_env, is_function_context=True)
                         if result is not None:
                             results.append(result)
                 except EndLoopSignal:
