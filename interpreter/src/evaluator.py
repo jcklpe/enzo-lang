@@ -260,7 +260,7 @@ def _get_enzo_type(value):
         return type(value).__name__.lower()
 
 
-def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None, is_function_context=False):
+def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None, is_function_context=False, outer_env=None):
     if env is None:
         env = _env
     if node is None:
@@ -1152,7 +1152,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             raise EnzoRuntimeError("error: pipeline expects function atom after `then`", code_line=getattr(node, 'code_line', None))
     if isinstance(node, BindOrRebind):
         target = node.target
-        value = eval_ast(node.value, value_demand=True, env=env)
+        value = eval_ast(node.value, value_demand=True, env=env, outer_env=outer_env)
 
         # Handle reference vs copy semantics
         if isinstance(value, ReferenceWrapper):
@@ -1183,24 +1183,37 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # Assignment to variable
         if isinstance(target, str):
             name = target
-            if name not in env:
-                env[name] = actual_value
+            # For rebinding operations, prefer outer environment if available
+            target_env = outer_env if outer_env is not None else env
+
+            if name not in target_env:
+                target_env[name] = actual_value
+                # Also update current env if we're using outer_env for consistency
+                if outer_env is not None and env is not outer_env:
+                    env[name] = actual_value
                 return None
-            old_val = env[name]
+            old_val = target_env[name]
             if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(actual_value):
                 raise EnzoRuntimeError(error_message_cannot_bind(enzo_type(actual_value), enzo_type(old_val)), code_line=node.code_line)
-            env[name] = actual_value
+            target_env[name] = actual_value
+            # Also update current env if we're using outer_env for consistency
+            if outer_env is not None and env is not outer_env:
+                env[name] = actual_value
             return None
         # Assignment to variable via VarInvoke
         if isinstance(target, VarInvoke):
             name = target.name
             t_code_line = getattr(target, 'code_line', node.code_line)
-            if name not in env:
-                env[name] = actual_value
-                return None
-            old_val = env[name]
+            # For rebinding operations, prefer outer environment if available
+            target_env = outer_env if outer_env is not None else env
 
-            # Special case: if the target variable contains a ReferenceWrapper,
+            if name not in target_env:
+                target_env[name] = actual_value
+                # Also update current env if we're using outer_env for consistency
+                if outer_env is not None and env is not outer_env:
+                    env[name] = actual_value
+                return None
+            old_val = target_env[name]            # Special case: if the target variable contains a ReferenceWrapper,
             # we need to update the original referenced variable
             if isinstance(old_val, ReferenceWrapper):
                 # Get the target expression and environment from the reference
@@ -1262,7 +1275,10 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             # Normal variable assignment
             if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(actual_value):
                 raise EnzoRuntimeError(error_message_cannot_bind(enzo_type(actual_value), enzo_type(old_val)), code_line=t_code_line)
-            env[name] = actual_value
+            target_env[name] = actual_value
+            # Also update current env if we're using outer_env for consistency
+            if outer_env is not None and env is not outer_env:
+                env[name] = actual_value
             return None
         # Binding to list index
         if isinstance(target, ListIndex):
@@ -1788,8 +1804,9 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 try:
                     # Execute loop body in the loop environment
                     # Use is_function_context=True to allow variable shadowing
+                    # Pass outer_env so that rebinding operations can affect outer scope
                     for stmt in node.body:
-                        result = eval_ast(stmt, env=loop_env, is_function_context=True)
+                        result = eval_ast(stmt, env=loop_env, is_function_context=True, outer_env=env)
                         if result is not None:
                             results.append(result)
                 except EndLoopSignal:
