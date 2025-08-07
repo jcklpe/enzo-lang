@@ -1,16 +1,16 @@
 //= Basic loop: 1 time
 $loop-iteration: 0;
 Loop, (
-    "There have been <$loop-iteration> loop iterations";
     $loop-iteration + 1 :> $loop-iteration;
+    "There have been <$loop-iteration> loop iterations";
     end-loop;
 ); // prints one time
 
 //= Basic loop: 3 times
 $loop-iteration<: 0;
 Loop, (
-    "There have been <$loop-iteration> loop iterations";
     $loop-iteration + 1 :> $loop-iteration;
+    "There have been <$loop-iteration> loop iterations";
 
     If $loop-iteration is at least 3, (
         end-loop;
