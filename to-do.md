@@ -1,9 +1,9 @@
-- casting solutions?
+- implement recursion tests
 - immediate evaluation !()
 - storing anon functions to a list by reference @()
-- builtin functions
-- is odd/even conditional?
 - implement classic algos
-- implement classic recursion tests
+- builtin functions
+- casting solutions?
+- is odd/even conditional?
 - squaring operators?
 - inverse exponent?

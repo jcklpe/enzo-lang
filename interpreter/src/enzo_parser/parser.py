@@ -369,6 +369,7 @@ class Parser:
         while self.peek() and self.peek().type in ("STAR", "SLASH", "MODULO"):
             op = self.advance()
             right = self.parse_atom()
+            right = self.parse_postfix(right)
             if op.type == "STAR":
                 node = MulNode(node, right)
             elif op.type == "SLASH":
@@ -442,6 +443,14 @@ class Parser:
                 multi_line_context = "$list-pipe\nthen ($this contains 4) :> $contains-four;"
 
                 raise EnzoParseError(error_message_comparison_in_pipeline(), code_line=multi_line_context)
+
+        # Look ahead to see if this is a comparison expression (like "$count is 2")
+        pos = 0
+        while self.peek(pos) and self.peek(pos).type == "KEYNAME":
+            pos += 1
+        if self.peek(pos) and self.peek(pos).type in ("CONTAINS", "IS", "LESS", "GREATER", "AT_WORD"):
+            # This looks like a comparison expression, parse it as such
+            return self.parse_comparison()
 
         return self.parse_pipeline()
 
@@ -1513,7 +1522,7 @@ class Parser:
         """Parse comparison expressions like 'expr is value'"""
         from src.enzo_parser.ast_nodes import ComparisonExpression
 
-        left = self.parse_value_expression()
+        left = self.parse_pipeline()
 
         # Check for comparison operators
         if self.peek() and self.peek().type == "IS":
@@ -1546,7 +1555,7 @@ class Parser:
                 else:
                     raise EnzoParseError("Expected 'most' or 'least' after 'is at'", code_line=self._get_code_line(self.peek()) if self.peek() else None)
 
-            right = self.parse_value_expression()
+            right = self.parse_term()
             return ComparisonExpression(left, operator, right)
 
         elif self.peek() and self.peek().type == "CONTAINS":
@@ -1557,7 +1566,7 @@ class Parser:
                 multi_line_context = "$list-pipe\nthen ($this contains 4) :> $contains-four;"
                 raise EnzoParseError(error_message_comparison_in_pipeline(), code_line=multi_line_context)
             self.advance()  # consume 'contains'
-            right = self.parse_value_expression()
+            right = self.parse_pipeline()
             return ComparisonExpression(left, "contains", right)
 
         return left

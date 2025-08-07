@@ -1699,22 +1699,26 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             results = []
             any_executed = False
 
-            for condition, then_block in node.all_branches:
-                condition_result = eval_ast(condition, env=env)
-                if _is_truthy(condition_result):
-                    any_executed = True
-                    # Execute this branch and collect all results
-                    for stmt in then_block:
+            try:
+                for condition, then_block in node.all_branches:
+                    condition_result = eval_ast(condition, env=env)
+                    if _is_truthy(condition_result):
+                        any_executed = True
+                        # Execute this branch and collect all results
+                        for stmt in then_block:
+                            result = eval_ast(stmt, env=env)
+                            if result is not None:
+                                results.append(result)
+
+                # If no branches executed and there's an else block, execute it
+                if not any_executed and node.else_block:
+                    for stmt in node.else_block:
                         result = eval_ast(stmt, env=env)
                         if result is not None:
                             results.append(result)
-
-            # If no branches executed and there's an else block, execute it
-            if not any_executed and node.else_block:
-                for stmt in node.else_block:
-                    result = eval_ast(stmt, env=env)
-                    if result is not None:
-                        results.append(result)
+            except (EndLoopSignal, RestartLoopSignal):
+                # Re-raise loop control signals so they propagate to the loop
+                raise
 
             # Return all results as a list if there are multiple, or the single result
             if len(results) == 0:
@@ -1729,10 +1733,14 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             if _is_truthy(condition_result):
                 # Execute then block - collect all non-None results
                 results = []
-                for stmt in node.then_block:
-                    result = eval_ast(stmt, env=env)
-                    if result is not None:
-                        results.append(result)
+                try:
+                    for stmt in node.then_block:
+                        result = eval_ast(stmt, env=env)
+                        if result is not None:
+                            results.append(result)
+                except (EndLoopSignal, RestartLoopSignal):
+                    # Re-raise loop control signals so they propagate to the loop
+                    raise
 
                 # Return all results as a list if there are multiple, or the single result
                 if len(results) == 0:
@@ -1744,10 +1752,14 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             elif node.else_block:
                 # Execute else block - collect all non-None results
                 results = []
-                for stmt in node.else_block:
-                    result = eval_ast(stmt, env=env)
-                    if result is not None:
-                        results.append(result)
+                try:
+                    for stmt in node.else_block:
+                        result = eval_ast(stmt, env=env)
+                        if result is not None:
+                            results.append(result)
+                except (EndLoopSignal, RestartLoopSignal):
+                    # Re-raise loop control signals so they propagate to the loop
+                    raise
 
                 # Return all results as a list if there are multiple, or the single result
                 if len(results) == 0:
@@ -1773,12 +1785,13 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         result = eval_ast(stmt, env=env)
                         if result is not None:
                             results.append(result)
-                    iteration_count += 1
                 except EndLoopSignal:
                     break
                 except RestartLoopSignal:
+                    # Skip to next iteration without executing remaining body statements
                     iteration_count += 1
                     continue
+                iteration_count += 1
 
             if iteration_count >= max_iterations:
                 raise EnzoRuntimeError("Loop exceeded maximum iterations (possible infinite loop)", code_line=node.code_line)
@@ -1802,12 +1815,12 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         result = eval_ast(stmt, env=env)
                         if result is not None:
                             results.append(result)
-                    iteration_count += 1
                 except EndLoopSignal:
                     break
                 except RestartLoopSignal:
-                    iteration_count += 1
-                    continue
+                    # Skip to next iteration without executing remaining body statements
+                    pass
+                iteration_count += 1
 
             if iteration_count >= max_iterations:
                 raise EnzoRuntimeError("While loop exceeded maximum iterations (possible infinite loop)", code_line=node.code_line)
@@ -1831,12 +1844,12 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         result = eval_ast(stmt, env=env)
                         if result is not None:
                             results.append(result)
-                    iteration_count += 1
                 except EndLoopSignal:
                     break
                 except RestartLoopSignal:
-                    iteration_count += 1
-                    continue
+                    # Skip to next iteration without executing remaining body statements
+                    pass
+                iteration_count += 1
 
             if iteration_count >= max_iterations:
                 raise EnzoRuntimeError("Until loop exceeded maximum iterations (possible infinite loop)", code_line=node.code_line)
@@ -1895,7 +1908,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         raise RestartLoopSignal()
 
     if isinstance(node, ComparisonExpression):
-        left_val = eval_ast(node.left, env=env)
+        left_val = eval_ast(node.left, value_demand=True, env=env)
 
         # Special handling for type comparisons with 'is'
         if (node.operator == "is" and
@@ -1904,7 +1917,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             # Pass the type name directly instead of evaluating as a variable
             right_val = node.right.name
         else:
-            right_val = eval_ast(node.right, env=env)
+            right_val = eval_ast(node.right, value_demand=True, env=env)
 
         return _compare_values(left_val, node.operator, right_val)
 
