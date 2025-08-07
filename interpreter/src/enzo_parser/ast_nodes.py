@@ -307,21 +307,30 @@ class NotExpression(ASTNode):
     def __repr__(self):
         return f"NotExpression(operand={self.operand!r})"
 
-class ForLoop(ASTNode):
-    def __init__(self, variable, iterable, body, code_line=None):
+# Loop Control AST Nodes
+class LoopStatement(ASTNode):
+    def __init__(self, loop_type, body, condition=None, variable=None, iterable=None, is_reference=False, code_line=None):
         super().__init__(code_line)
-        self.variable = variable    # Variable name to bind each item to
-        self.iterable = iterable    # Expression that evaluates to a list/iterable
-        self.body = body           # List of statements to execute for each item
+        self.loop_type = loop_type      # "basic", "while", "until", "for"
+        self.body = body               # List of statements to execute in loop
+        self.condition = condition     # Condition for while/until loops
+        self.variable = variable       # Variable name for for loops
+        self.iterable = iterable      # Iterable expression for for loops
+        self.is_reference = is_reference  # True if @ syntax used (reference semantics)
 
     def __repr__(self):
-        return f"ForLoop(variable={self.variable!r}, iterable={self.iterable!r}, body={self.body!r})"
+        return f"LoopStatement(loop_type={self.loop_type!r}, body={self.body!r}, condition={self.condition!r}, variable={self.variable!r}, iterable={self.iterable!r}, is_reference={self.is_reference!r})"
 
-class WhileLoop(ASTNode):
-    def __init__(self, condition, body, code_line=None):
+class EndLoopStatement(ASTNode):
+    def __init__(self, code_line=None):
         super().__init__(code_line)
-        self.condition = condition  # Condition expression to evaluate
-        self.body = body           # List of statements to execute while true
 
     def __repr__(self):
-        return f"WhileLoop(condition={self.condition!r}, body={self.body!r})"
+        return "EndLoopStatement()"
+
+class RestartLoopStatement(ASTNode):
+    def __init__(self, code_line=None):
+        super().__init__(code_line)
+
+    def __repr__(self):
+        return "RestartLoopStatement()"

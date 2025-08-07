@@ -1,8 +1,15 @@
 from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val, log_debug, EnzoList, deep_copy_enzo_value
 from collections import ChainMap
-from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, ModNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantGroupExtension, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding, IfStatement, ComparisonExpression, LogicalExpression, NotExpression, ForLoop, WhileLoop, ListKeyValue, ListInterpolation
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, ModNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantGroupExtension, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding, IfStatement, ComparisonExpression, LogicalExpression, NotExpression, LoopStatement, EndLoopStatement, RestartLoopStatement, ListKeyValue, ListInterpolation
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
+
+# Loop control signals
+class EndLoopSignal(Exception):
+    pass
+
+class RestartLoopSignal(Exception):
+    pass
 from src.error_messaging import (
     error_message_already_defined,
     error_message_unknown_variable,
@@ -1751,58 +1758,141 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     return results
             return None
 
-    if isinstance(node, ForLoop):
-        # Evaluate the iterable
-        iterable_value = eval_ast(node.iterable, env=env)
+    if isinstance(node, LoopStatement):
+        # Handle different loop types
+        if node.loop_type == "basic":
+            # Basic infinite loop - only exits with end-loop
+            results = []
+            max_iterations = 10000  # Safety limit
+            iteration_count = 0
 
-        # Ensure it's iterable
-        if not isinstance(iterable_value, (list, EnzoList)):
-            from src.error_messaging import error_message_for_loop_non_iterable
-            raise EnzoRuntimeError(error_message_for_loop_non_iterable(), code_line=node.code_line)
+            while iteration_count < max_iterations:
+                try:
+                    # Execute loop body
+                    for stmt in node.body:
+                        result = eval_ast(stmt, env=env)
+                        if result is not None:
+                            results.append(result)
+                    iteration_count += 1
+                except EndLoopSignal:
+                    break
+                except RestartLoopSignal:
+                    iteration_count += 1
+                    continue
 
-        # Create a new scope for the loop variable
-        loop_env = env.copy()
-        results = []
+            if iteration_count >= max_iterations:
+                raise EnzoRuntimeError("Loop exceeded maximum iterations (possible infinite loop)", code_line=node.code_line)
+            return results
 
-        # Iterate through each item
-        for item in iterable_value:
-            # Bind the loop variable to the current item
-            loop_env[node.variable] = item
+        elif node.loop_type == "while":
+            # While loop - continues while condition is true
+            results = []
+            max_iterations = 10000  # Safety limit
+            iteration_count = 0
 
-            # Execute the loop body
-            for stmt in node.body:
-                result = eval_ast(stmt, env=loop_env)
-                if result is not None:
-                    results.append(result)
+            while iteration_count < max_iterations:
+                # Evaluate condition
+                condition_result = eval_ast(node.condition, env=env)
+                if not _is_truthy(condition_result):
+                    break
 
-        return results
+                try:
+                    # Execute loop body
+                    for stmt in node.body:
+                        result = eval_ast(stmt, env=env)
+                        if result is not None:
+                            results.append(result)
+                    iteration_count += 1
+                except EndLoopSignal:
+                    break
+                except RestartLoopSignal:
+                    iteration_count += 1
+                    continue
 
-    if isinstance(node, WhileLoop):
-        results = []
-        loop_count = 0
-        max_iterations = 10000  # Prevent infinite loops
+            if iteration_count >= max_iterations:
+                raise EnzoRuntimeError("While loop exceeded maximum iterations (possible infinite loop)", code_line=node.code_line)
+            return results
 
-        while loop_count < max_iterations:
-            # Evaluate condition
-            condition_result = eval_ast(node.condition, env=env)
+        elif node.loop_type == "until":
+            # Until loop - continues until condition becomes true
+            results = []
+            max_iterations = 10000  # Safety limit
+            iteration_count = 0
 
-            if not _is_truthy(condition_result):
-                break
+            while iteration_count < max_iterations:
+                # Evaluate condition (opposite of while)
+                condition_result = eval_ast(node.condition, env=env)
+                if _is_truthy(condition_result):
+                    break
 
-            # Execute the loop body
-            for stmt in node.body:
-                result = eval_ast(stmt, env=env)
-                if result is not None:
-                    results.append(result)
+                try:
+                    # Execute loop body
+                    for stmt in node.body:
+                        result = eval_ast(stmt, env=env)
+                        if result is not None:
+                            results.append(result)
+                    iteration_count += 1
+                except EndLoopSignal:
+                    break
+                except RestartLoopSignal:
+                    iteration_count += 1
+                    continue
 
-            loop_count += 1
+            if iteration_count >= max_iterations:
+                raise EnzoRuntimeError("Until loop exceeded maximum iterations (possible infinite loop)", code_line=node.code_line)
+            return results
 
-        if loop_count >= max_iterations:
-            raise EnzoRuntimeError("While loop exceeded maximum iterations (possible infinite loop)", code_line=node.code_line)
+        elif node.loop_type == "for":
+            # For loop - iterate over a list
+            # Evaluate the iterable
+            iterable_value = eval_ast(node.iterable, env=env)
 
-        return results
+            # Ensure it's iterable
+            if not isinstance(iterable_value, (list, EnzoList)):
+                raise EnzoRuntimeError("For loop must be over a list", code_line=node.code_line)
 
-        return result
+            results = []
+
+            # Create a copy of the list for iteration to handle modifications during iteration
+            if node.is_reference:
+                # Reference semantics - iterate over the original list
+                iteration_list = iterable_value
+            else:
+                # Copy semantics - iterate over a copy
+                iteration_list = deep_copy_enzo_value(iterable_value) if isinstance(iterable_value, EnzoList) else iterable_value[:]
+
+            # Create a new scope for the loop variable
+            loop_env = env.copy()
+
+            for i, item in enumerate(iteration_list):
+                try:
+                    if node.is_reference:
+                        # Reference semantics - bind to a reference of the original item
+                        loop_env[node.variable] = item  # This will be a reference
+                    else:
+                        # Copy semantics - bind to a copy of the item
+                        loop_env[node.variable] = deep_copy_enzo_value(item) if hasattr(item, '__dict__') else item
+
+                    # Execute the loop body
+                    for stmt in node.body:
+                        result = eval_ast(stmt, env=loop_env)
+                        if result is not None:
+                            results.append(result)
+
+                except EndLoopSignal:
+                    break
+                except RestartLoopSignal:
+                    continue
+
+            return results
+
+    if isinstance(node, EndLoopStatement):
+        # Raise signal to break out of nearest loop
+        raise EndLoopSignal()
+
+    if isinstance(node, RestartLoopStatement):
+        # Raise signal to restart nearest loop
+        raise RestartLoopSignal()
 
     if isinstance(node, ComparisonExpression):
         left_val = eval_ast(node.left, env=env)

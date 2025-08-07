@@ -1,0 +1,3 @@
+// Test condition evaluation
+$status: "ready";
+$status;

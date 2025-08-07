@@ -1,0 +1,6 @@
+// Debug If statement evaluation
+$status: "ready";
+$status;
+If $status, (
+    "Ready!";
+);
