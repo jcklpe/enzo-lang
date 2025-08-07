@@ -62,7 +62,8 @@ $loop-temp; // returns 11
 
 //= Multi iteration loops with fresh shadow scope
 $loop-iteration1: 0;
-
+$local-var: 5;
+$local-var; // prints 5
 Loop, (
     $local-var: 1; // shadows the exterior local var
     $local-var; // prints 1 each loop
@@ -183,7 +184,7 @@ Loop for @item in $list-for-copy2, (
 );
 $list-for-copy2; // prints [11, 21, 31] - original list has changed
 
-//= FOR LOOP: MUTATING THE ORIGINAL LIST (BY INDEX)
+//= WHILE LOOP MUTATING THE ORIGINAL LIST (BY INDEX)
 $list-for-mutate: [10, 20, 30];
 $i-for: 1;
 Loop while $i-for is at most 3, (
@@ -191,13 +192,21 @@ Loop while $i-for is at most 3, (
     $i-for + 1 :> $i-for;
 );
 
-// Loop while $i-for is at most 3, (
-//     $new-val: $list-for-mutate.$i-for + 5;  // ← Problem line
-//     $new-val :> $list-for-mutate.$i-for;
-//     $i-for + 1 :> $i-for;
-// );
 $list-for-mutate; // prints [15, 25, 35] - original is mutated
 
+//= WHILE LOOP SHADOWING
+$iteration52: 0;
+$iteration52; // prints 0
+Loop while $iteration52 is at most 3, (
+    $local-var: 1;
+    $local-var;  // prints 1 each loop
+    $local-var + 1 :> $local-var;
+    $local-var; // prints 2 each loop
+    $iteration52 + 1 :> $iteration52;
+    $iteration52; // prints 1, 2, 3
+);
+
+$iteration52; // prints 3
 
 
 
