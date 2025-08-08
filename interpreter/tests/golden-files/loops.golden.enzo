@@ -42,13 +42,13 @@
 
 //= Not a loop error
 error: `end-loop;` inside a non-loop function atom
-        end-loop;
+        end-loop; // error: `end-loop;` inside a non-loop function atom
 error: `restart-loop;` inside a non-loop function atom
-        restart-loop;
+        restart-loop; // error: `restart-loop;` inside a non-loop function atom
 
 //= ERROR: UNDECLARED VARIABLE USED INSIDE LOOP
 error: undefined variable
-      $undefVar-loop;
+      $undefVar-loop;      // error: undefined variable
 
 //= LOOP: PIPELINING IN LOOP BODY
 16
@@ -71,7 +71,7 @@ error: undefined variable
 
 //= ERROR: FOR LOOP WITH NON-ITERABLE
 error: `For` loop must be over a list
-    For $item10 in 10, // error: `For` loop must be over a list
+    Loop for $item10 in 10, ( // error: `for` loop must be over a list
 
 //= WHILE LOOP WITH COMPLEX CONDITION
 "Counter: 1"

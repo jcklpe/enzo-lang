@@ -1471,8 +1471,8 @@ class Parser:
         """Parse end-loop; statement"""
         from src.enzo_parser.ast_nodes import EndLoopStatement
 
-        self.advance()  # consume 'end-loop'
         code_line = self._get_code_line(self.peek()) if self.peek() else None
+        self.advance()  # consume 'end-loop'
 
         return EndLoopStatement(code_line=code_line)
 
@@ -1480,8 +1480,8 @@ class Parser:
         """Parse restart-loop; statement"""
         from src.enzo_parser.ast_nodes import RestartLoopStatement
 
-        self.advance()  # consume 'restart-loop'
         code_line = self._get_code_line(self.peek()) if self.peek() else None
+        self.advance()  # consume 'restart-loop'
 
         return RestartLoopStatement(code_line=code_line)
 
