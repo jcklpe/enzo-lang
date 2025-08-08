@@ -1915,9 +1915,12 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     break
 
                 try:
+                    # Create a fresh environment for each iteration to allow shadowing
+                    loop_env = env.copy()
+                    loop_locals = set()  # Track variables created in this iteration
                     # Execute loop body
                     for stmt in node.body:
-                        result = eval_ast(stmt, env=env, is_loop_context=True)
+                        result = eval_ast(stmt, env=loop_env, is_loop_context=True, is_function_context=True, outer_env=env, loop_locals=loop_locals)
                         if result is not None:
                             results.append(result)
                 except EndLoopSignal:
@@ -1944,9 +1947,12 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     break
 
                 try:
+                    # Create a fresh environment for each iteration to allow shadowing
+                    loop_env = env.copy()
+                    loop_locals = set()  # Track variables created in this iteration
                     # Execute loop body
                     for stmt in node.body:
-                        result = eval_ast(stmt, env=env, is_loop_context=True)
+                        result = eval_ast(stmt, env=loop_env, is_loop_context=True, is_function_context=True, outer_env=env, loop_locals=loop_locals)
                         if result is not None:
                             results.append(result)
                 except EndLoopSignal:
@@ -1984,6 +1990,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
             for i, item in enumerate(iteration_list):
                 try:
+                    # Create a fresh loop_locals set for each iteration
+                    loop_locals = set()
                     if node.is_reference:
                         # Reference semantics - bind to a reference of the original list element
                         # Store with $ prefix for proper variable access
@@ -1996,7 +2004,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
                     # Execute the loop body
                     for stmt in node.body:
-                        result = eval_ast(stmt, env=loop_env, is_loop_context=True)
+                        result = eval_ast(stmt, env=loop_env, is_loop_context=True, is_function_context=True, outer_env=env, loop_locals=loop_locals)
                         if result is not None:
                             results.append(result)
 
