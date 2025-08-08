@@ -98,8 +98,8 @@ Loop, (
 //= LOOP: PIPELINING IN LOOP BODY
 $p-loop: 1;
 Loop, (
-  $p-loop then ($this * 2) :> $p-loop;
-  If $p-loop is greater than 10, ( end-loop; );
+    $p-loop then ($this * 2) :> $p-loop;
+    If $p-loop is greater than 10, ( end-loop; );
 );
 $p-loop; // should print 16
 

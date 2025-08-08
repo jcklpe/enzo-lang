@@ -1918,7 +1918,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
             # Ensure it's iterable
             if not isinstance(iterable_value, (list, EnzoList)):
-                raise EnzoRuntimeError("For loop must be over a list", code_line=node.code_line)
+                raise EnzoRuntimeError("`For` loop must be over a list", code_line=node.code_line)
 
             results = []
 

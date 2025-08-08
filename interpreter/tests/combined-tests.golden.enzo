@@ -1,21 +1,21 @@
 //= INVOKING AN UNDEFINED VARIABLE
 error: undefined variable
-    $undefinedVar;
+	$undefinedVar;
 //= EMPTY BIND ────────────────────────────────────────────────────────────
 //= REDECLARING A VARIABLE (USING “:”) ERRORS ────────────────────────────
 error: $x already defined
-    $x: 10;
+	$x: 10;
 //= REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
 100
 error: cannot bind Text to Number
-    $x <: "hello";
+	$x <: "hello";
 //= FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
 7
 8
 error: cannot bind Text to Number
-    $z <: "oops";
+	$z <: "oops";
 error: $z already defined
-    $z : "oops";
+	$z : "oops";
 //= MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
 10
 20
@@ -24,7 +24,7 @@ error: $z already defined
 //= REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
 55
 error: cannot bind Text to Number
-    $newImplicit <: "oops";
+	$newImplicit <: "oops";
 "cool dude"
 //= MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
 3
@@ -38,10 +38,10 @@ error: cannot bind Text to Number
 //= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
 []
 error: list index out of range
-    $emptyListTest.1;
+	$emptyListTest.1;
 //= BIND EMPTY AND THEN FILL WITH LIST ────────────────────────────────────
 error: $empty-list already defined
-    $empty-list: 50;
+	$empty-list: 50;
 ["now not empty"]
 //= DECLARE LIST AND ACCESS ITEMS ────────────────────────────────────────
 "blue"
@@ -56,32 +56,32 @@ error: $empty-list already defined
 //= Out-of-bounds and weird list indices
 [1, 2, 3]
 error: list index out of range
-    $list.0;
+	$list.0;
 error: list index out of range
-    $list.4;
+	$list.4;
 error: list index out of range
-    $list.-1;
+	$list.-1;
 error: can't use text as index
-    $list."foo";
+	$list."foo";
 error: list index out of range
-    $list.1.1;
+	$list.1.1;
 //= List mutation
 [1, 2]
 [5, 2]
 error: list index out of range
-    $mutable.3 <: 9;
+	$mutable.3 <: 9;
 //= Trailing commas
 [1, 2, 3]
 error: double comma in list
-    $badList1-index: [1,,2];
+	$badList1-index: [1,,2];
 error: excess leading comma
-    $badList2-index: [,1,2];
+	$badList2-index: [,1,2];
 error: empty list with just a comma
-    $badList3-index: [,];
+	$badList3-index: [,];
 //= Various type errors
 "oops"
 error: index applies to lists
-    $notalist.1;
+	$notalist.1;
 
 //= BINDING MATH OPERATIONS ────────────────────────────────────────────────
 100
@@ -98,7 +98,7 @@ error: index applies to lists
 -10
 0
 error: double minus not allowed
-    $weird: --5;
+	$weird: --5;
 
 //= Modulo Basics
 1
@@ -128,9 +128,9 @@ error: double minus not allowed
 
 //= MODULO WITH DIVISOR ZERO (ERROR)
 error: No division by zero
-    5 % 0;
+	5 % 0;
 error: No division by zero
-    -5 % 0;
+	-5 % 0;
 
 //= LIST MAPPING STUFF ───────────────────────────────────────────────────────────
 [$name: "Alice", $age: 30]
@@ -147,7 +147,7 @@ error: No division by zero
 //= EMPTY LIST LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
 []
 error: list property not found: $someKey
-    $emptyListMap.someKey;
+	$emptyListMap.someKey;
 //= NESTED LIST + MIXED INDEX/PROPERTY ───────────────────────────────────────
 [$inner: [$val: 42, $arr: [10, 20]]]
 42
@@ -168,29 +168,29 @@ error: list property not found: $someKey
 //= List property errors
 [$foo: 1]
 error: list property not found: $bar
-    $list9.bar;
+	$list9.bar;
 1
 error: list property not found: $bar
-    $list9.foo.bar;
+	$list9.foo.bar;
 999
 error: list property not found: $someKey
-    $prim.someKey <: 5;
+	$prim.someKey <: 5;
 [$a: 1]
 1
 [$x: 1]
 99
 [$x: 99]
 error: list property not found: $y
-    $table-error.y <: 42;
+	$table-error.y <: 42;
 //= Valid trailing commas (should succeed)
 [$foo: 1, $bar: 2]
 //= invalid trailing commas (should error)
 error: extra comma in list
-    $badList1: [$foo: 1,, $bar: 2];
+	$badList1: [$foo: 1,, $bar: 2];
 error: excess leading comma
-    $badList2: [ ,$foo: 1, $bar: 2];
+	$badList2: [ ,$foo: 1, $bar: 2];
 error: empty list with just a comma
-    $badList3: [ ,];
+	$badList3: [ ,];
 
 //= TEXT + INTERPOLATION ───────────────────────────────────────────────────
 "rebinding this text and "
@@ -217,11 +217,11 @@ error: empty list with just a comma
 "foo\"bar\"baz"
 //= Interpolation errors
 error: parse error in interpolation
-    "text <bad syntax>";
+	"text <bad syntax>";
 error: parse error in interpolation
-    "hello <$foo + >";
+	"hello <$foo + >";
 error: parse error in interpolation
-    "hello <<$foo>>";
+	"hello <<$foo>>";
 
 //= Empty function atom
 //= Function atom with just a single value
@@ -261,9 +261,9 @@ error: parse error in interpolation
 12
 9
 error: too many args
-    adder(4, 5, 6);
+	adder(4, 5, 6);
 error: expected argument is a number atom, not a text atom
-    $adder("", 500);
+	$adder("", 500);
 305
 //= Named function with local variable
 11
@@ -273,9 +273,9 @@ error: expected argument is a number atom, not a text atom
 1
 -1
 error: missing necessary params
-    subtractor();
+	subtractor();
 error: missing necessary params
-    $subtractor(4);
+	$subtractor(4);
 
 //= List of functions invoked by index
 11
@@ -285,13 +285,13 @@ error: missing necessary params
 10
 6
 error: expected function reference (@) or function invocation ($)
-    double;
+	double;
 
 //= Higher-order function: passing function as argument and using default argument
 8
 14
 error: expected function reference (@) or function invocation ($)
-    apply(double, 4);
+	apply(double, 4);
 
 //= List with function member and self mutation
 10
@@ -307,7 +307,7 @@ error: expected function reference (@) or function invocation ($)
 27
 //= Duplicate param name error in function declaration
 error: duplicate parameter name '$x' in function definition
-    param $x: 2;
+	param $x: 2;
 
 //= Empty function declaration and invocation
 //= Function with default param referencing previous param
@@ -359,7 +359,7 @@ error: duplicate parameter name '$x' in function definition
 
 //= PIPELINE ERROR: SHADOWING $this IS DISALLOWED
 error: cannot declare variable '$this'
-    $this: 7;
+	$this: 7;
 //= PIPELINE NEGATIVE NUMBER HANDLING
 -10
 -15
@@ -382,7 +382,7 @@ error: cannot declare variable '$this'
 
 //= PIPELINE ERROR NO FUNCTION ATOM
 error: pipeline expects function atom after `then`
-    5 then 10;
+	5 then 10;
 
 //= PIPELINE ERROR EMPTY FUNCTION ATOM
 //= Complex tests
@@ -396,7 +396,7 @@ error: pipeline expects function atom after `then`
 
 //= NAMED FUNCTION: referencing $this is an error
 error: can't use reserved $this keyname in named function declaration
-    breaking2: (
+	breaking2: (
 
 //= COPY BY DEFAULT: LISTS ───────────────────────────────────────────────────────────
 [1, 2, 3]
@@ -493,12 +493,12 @@ error: can't use reserved $this keyname in named function declaration
 
 //= BLUEPRINT COMPOSITION: CONFLICT ERROR ──────────────────────────────
 error: duplicate property 'x' in composed blueprints
-    C: A and B;
+	C: A and B;
 
 //= SIMPLE VARIANT GROUP (OPTIONS ONLY) ────────────────────────────────
 Magic-Type.Fire
 error: 'Plasma' not a valid Magic-Type
-    $wizard-attacks.bad-spell: Magic-Type.Plasma;
+	$wizard-attacks.bad-spell: Magic-Type.Plasma;
 
 //= VARIANTS WITH BLUEPRINTS (SUM-OF-PRODUCTS) ─────────────────────────
 "heeheehee"
@@ -577,17 +577,17 @@ Magic-Type.Neutral
 
 //= EDGE CASE: AMBIGUOUS DESTRUCTURE (SHOULD ERROR) ─────
 error: duplicate variable names in destructure
-    $foo9, $foo9, $bar9: $hybrid9[];
+	$foo9, $foo9, $bar9: $hybrid9[];
 
 //= EDGE CASE: TOO MANY OR TOO FEW VARIABLES (SHOULD ERROR) ─────────────
 error: destructure count mismatch
-    $a10, $b10, $c10, $d10: $example-list10[];
+	$a10, $b10, $c10, $d10: $example-list10[];
 1
 2
 
 //= DESTRUCTURING OF EMPTY LIST ────────────────────────
 error: destructure count mismatch
-    $a11, $b11: $empty11[];
+	$a11, $b11: $empty11[];
 
 //= NESTED DESTRUCTURING ──────────────────────────────
 5
@@ -729,27 +729,27 @@ error: destructure count mismatch
 
 //= ERROR CASE: USING UNDEFINED VARIABLE IN IF
 error: undefined variable
-    If $undefined-var, ( // error: undefined variable
+	If $undefined-var, ( // error: undefined variable
 
 //= ERROR CASE: INVALID COMPARISON TYPE
 error: can't compare list with number
-    If $list-contain is less than 10, (
+	If $list-contain is less than 10, (
 
 //= ERROR CASE: INVALID USE OF "CONTAINS" ON NON-LIST
 error: contains used on non-list
-    If $non-list-val contains 1, (
+	If $non-list-val contains 1, (
 
 //= ERROR CASE: INVALID MULTI-BRANCH "or" WITHOUT PRECEDING IF
 error: `or` without preceding `If`
-    or "value", ( // error: `or` without preceding `If`
+	or "value", ( // error: `or` without preceding `If`
 
 //= ERROR CASE: ELSE IF WITHOUT INITIAL IF
 error: `Else if` without preceding `If`
-    Else if $color is "blue", ( // error: `Else if` without preceding `If`
+	Else if $color is "blue", ( // error: `Else if` without preceding `If`
 
 //= ERROR CASE: ELSE WITHOUT INITIAL IF
 error: `Else` without preceding `If`
-    Else, ( // error: `Else` without preceding `If`
+	Else, ( // error: `Else` without preceding `If`
 
 //= BOOLEAN TEST: LIST WITH ALL FALSY ELEMENTS
 "All falsy elements in a list are falsy"
@@ -777,8 +777,8 @@ error: `Else` without preceding `If`
 
 //= MULTI-STAGE PIPELINE WITH CONDITIONAL STEP ERROR
 error: comparison word in pipeline
-  $list-pipe
-  then ($this contains 4) :> $contains-four;
+	$list-pipe
+	then ($this contains 4) :> $contains-four;
 
 //= Has function and pipeline
 "List contains four"
@@ -798,11 +798,11 @@ error: comparison word in pipeline
 
 //= ERROR: IF CONDITION ACCESSING INVALID LIST INDEX
 error: list index out of range
-    If $bad-list50.4, ( // error: list index out of range
+	If $bad-list50.4, ( // error: list index out of range
 
 //= ERROR: IF CONDITION ON UNDEFINED PROPERTY IN LIST
 error: list property not found: $age
-    If $user-bad.age, ( // error: list property `$age` not found
+	If $user-bad.age, ( // error: list property `$age` not found
 
 //= More destructuring stuff and conditionals stuff
 "Pass: positional destructure"
@@ -824,7 +824,7 @@ error: list property not found: $age
 
 //= ERROR: USING "is" WITH A VARIANT THAT DOES NOT EXIST
 error: undefined variable
-    If $status-bp is StatusVariantBP.Unknown, (// error: undefined variable
+	If $status-bp is StatusVariantBP.Unknown, (// error: undefined variable
 //= Conditional pipelining
 0
 "dead"
@@ -845,29 +845,29 @@ error: undefined variable
 
 //= COMPUTED INDEX: NEGATIVE AND ZERO
 error: list index out of range
-    $list300.($a00 - 1);
+	$list300.($a00 - 1);
 5
 10
 error: list index out of range
-    $list300.(-1);
+	$list300.(-1);
 
 //= COMPUTED INDEX: OUT OF BOUNDS
 error: list index out of range
-    $list300.(4);
+	$list300.(4);
 error: list index out of range
-    $list300.($a00 + $b00 + 2);
+	$list300.($a00 + $b00 + 2);
 
 //= COMPUTED INDEX: NON-INTEGER RESULT
 error: list index must be an integer
-    $list400.(1.5);
+	$list400.(1.5);
 error: list index must be an integer
-    $list400.($a00 / 2);
+	$list400.($a00 / 2);
 
 //= COMPUTED INDEX: INVALID EXPRESSION TYPE
 error: can't use text as index
-    $list400.("hi");
+	$list400.("hi");
 error: list index must be an integer
-    $list400.($list100);
+	$list400.($list100);
 
 //= COMPUTED INDEX: USE IN ASSIGNMENT
 99
@@ -913,7 +913,7 @@ error: list index must be an integer
 
 //= LIST INTERPOLATION: INTERPOLATION OF NON-LIST VALUE (should error)
 error: cannot interpolate non-List into a List
-    $li19: [<$notalist-interp>];
+	$li19: [<$notalist-interp>];
 
 //= LIST INTERPOLATION: NESTED LISTS (non-interpolated, for comparison)
 [[1, 2], [3, 4]]
@@ -933,11 +933,11 @@ error: cannot interpolate non-List into a List
 
 //= LIST INTERPOLATION: ERROR IF INTERPOLATING UNDEFINED VARIABLE
 error: undefined variable
-    $li30: [<$does_not_exist>];
+	$li30: [<$does_not_exist>];
 
 //= LIST INTERPOLATION: INTERPOLATING A BLUEPRINT INSTANCE (should insert as value)
 error: cannot interpolate non-List into a List
-    $li31: [<$bp1>];
+	$li31: [<$bp1>];
 
 //= PIPELINE INTERPOLATE
 [[1, 2, 3], 99]

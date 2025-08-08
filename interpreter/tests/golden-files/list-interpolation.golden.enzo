@@ -27,7 +27,7 @@
 
 //= LIST INTERPOLATION: INTERPOLATION OF NON-LIST VALUE (should error)
 error: cannot interpolate non-List into a List
-    $li19: [<$notalist-interp>];
+	$li19: [<$notalist-interp>];
 
 //= LIST INTERPOLATION: NESTED LISTS (non-interpolated, for comparison)
 [[1, 2], [3, 4]]
@@ -47,11 +47,11 @@ error: cannot interpolate non-List into a List
 
 //= LIST INTERPOLATION: ERROR IF INTERPOLATING UNDEFINED VARIABLE
 error: undefined variable
-    $li30: [<$does_not_exist>];
+	$li30: [<$does_not_exist>];
 
 //= LIST INTERPOLATION: INTERPOLATING A BLUEPRINT INSTANCE (should insert as value)
 error: cannot interpolate non-List into a List
-    $li31: [<$bp1>];
+	$li31: [<$bp1>];
 
 //= PIPELINE INTERPOLATE
 [[1, 2, 3], 99]

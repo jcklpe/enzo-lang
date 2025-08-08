@@ -13,7 +13,7 @@
 //= EMPTY LIST LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
 []
 error: list property not found: $someKey
-    $emptyListMap.someKey;
+	$emptyListMap.someKey;
 //= NESTED LIST + MIXED INDEX/PROPERTY ───────────────────────────────────────
 [$inner: [$val: 42, $arr: [10, 20]]]
 42
@@ -34,26 +34,26 @@ error: list property not found: $someKey
 //= List property errors
 [$foo: 1]
 error: list property not found: $bar
-    $list9.bar;
+	$list9.bar;
 1
 error: list property not found: $bar
-    $list9.foo.bar;
+	$list9.foo.bar;
 999
 error: list property not found: $someKey
-    $prim.someKey <: 5;
+	$prim.someKey <: 5;
 [$a: 1]
 1
 [$x: 1]
 99
 [$x: 99]
 error: list property not found: $y
-    $table-error.y <: 42;
+	$table-error.y <: 42;
 //= Valid trailing commas (should succeed)
 [$foo: 1, $bar: 2]
 //= invalid trailing commas (should error)
 error: extra comma in list
-    $badList1: [$foo: 1,, $bar: 2];
+	$badList1: [$foo: 1,, $bar: 2];
 error: excess leading comma
-    $badList2: [ ,$foo: 1, $bar: 2];
+	$badList2: [ ,$foo: 1, $bar: 2];
 error: empty list with just a comma
-    $badList3: [ ,];
+	$badList3: [ ,];

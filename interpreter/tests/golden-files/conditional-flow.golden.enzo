@@ -130,27 +130,27 @@
 
 //= ERROR CASE: USING UNDEFINED VARIABLE IN IF
 error: undefined variable
-    If $undefined-var, ( // error: undefined variable
+	If $undefined-var, ( // error: undefined variable
 
 //= ERROR CASE: INVALID COMPARISON TYPE
 error: can't compare list with number
-    If $list-contain is less than 10, (
+	If $list-contain is less than 10, (
 
 //= ERROR CASE: INVALID USE OF "CONTAINS" ON NON-LIST
 error: contains used on non-list
-    If $non-list-val contains 1, (
+	If $non-list-val contains 1, (
 
 //= ERROR CASE: INVALID MULTI-BRANCH "or" WITHOUT PRECEDING IF
 error: `or` without preceding `If`
-    or "value", ( // error: `or` without preceding `If`
+	or "value", ( // error: `or` without preceding `If`
 
 //= ERROR CASE: ELSE IF WITHOUT INITIAL IF
 error: `Else if` without preceding `If`
-    Else if $color is "blue", ( // error: `Else if` without preceding `If`
+	Else if $color is "blue", ( // error: `Else if` without preceding `If`
 
 //= ERROR CASE: ELSE WITHOUT INITIAL IF
 error: `Else` without preceding `If`
-    Else, ( // error: `Else` without preceding `If`
+	Else, ( // error: `Else` without preceding `If`
 
 //= BOOLEAN TEST: LIST WITH ALL FALSY ELEMENTS
 "All falsy elements in a list are falsy"
@@ -178,8 +178,8 @@ error: `Else` without preceding `If`
 
 //= MULTI-STAGE PIPELINE WITH CONDITIONAL STEP ERROR
 error: comparison word in pipeline
-  $list-pipe
-  then ($this contains 4) :> $contains-four;
+	$list-pipe
+	then ($this contains 4) :> $contains-four;
 
 //= Has function and pipeline
 "List contains four"
@@ -199,11 +199,11 @@ error: comparison word in pipeline
 
 //= ERROR: IF CONDITION ACCESSING INVALID LIST INDEX
 error: list index out of range
-    If $bad-list50.4, ( // error: list index out of range
+	If $bad-list50.4, ( // error: list index out of range
 
 //= ERROR: IF CONDITION ON UNDEFINED PROPERTY IN LIST
 error: list property not found: $age
-    If $user-bad.age, ( // error: list property `$age` not found
+	If $user-bad.age, ( // error: list property `$age` not found
 
 //= More destructuring stuff and conditionals stuff
 "Pass: positional destructure"
@@ -225,7 +225,7 @@ error: list property not found: $age
 
 //= ERROR: USING "is" WITH A VARIANT THAT DOES NOT EXIST
 error: undefined variable
-    If $status-bp is StatusVariantBP.Unknown, (// error: undefined variable
+	If $status-bp is StatusVariantBP.Unknown, (// error: undefined variable
 //= Conditional pipelining
 0
 "dead"

@@ -1,10 +1,10 @@
 //= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
 []
 error: list index out of range
-    $emptyListTest.1;
+	$emptyListTest.1;
 //= BIND EMPTY AND THEN FILL WITH LIST ────────────────────────────────────
 error: $empty-list already defined
-    $empty-list: 50;
+	$empty-list: 50;
 ["now not empty"]
 //= DECLARE LIST AND ACCESS ITEMS ────────────────────────────────────────
 "blue"
@@ -19,29 +19,29 @@ error: $empty-list already defined
 //= Out-of-bounds and weird list indices
 [1, 2, 3]
 error: list index out of range
-    $list.0;
+	$list.0;
 error: list index out of range
-    $list.4;
+	$list.4;
 error: list index out of range
-    $list.-1;
+	$list.-1;
 error: can't use text as index
-    $list."foo";
+	$list."foo";
 error: list index out of range
-    $list.1.1;
+	$list.1.1;
 //= List mutation
 [1, 2]
 [5, 2]
 error: list index out of range
-    $mutable.3 <: 9;
+	$mutable.3 <: 9;
 //= Trailing commas
 [1, 2, 3]
 error: double comma in list
-    $badList1-index: [1,,2];
+	$badList1-index: [1,,2];
 error: excess leading comma
-    $badList2-index: [,1,2];
+	$badList2-index: [,1,2];
 error: empty list with just a comma
-    $badList3-index: [,];
+	$badList3-index: [,];
 //= Various type errors
 "oops"
 error: index applies to lists
-    $notalist.1;
+	$notalist.1;

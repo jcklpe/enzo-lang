@@ -22,12 +22,12 @@
 
 //= BLUEPRINT COMPOSITION: CONFLICT ERROR ──────────────────────────────
 error: duplicate property 'x' in composed blueprints
-    C: A and B;
+	C: A and B;
 
 //= SIMPLE VARIANT GROUP (OPTIONS ONLY) ────────────────────────────────
 Magic-Type.Fire
 error: 'Plasma' not a valid Magic-Type
-    $wizard-attacks.bad-spell: Magic-Type.Plasma;
+	$wizard-attacks.bad-spell: Magic-Type.Plasma;
 
 //= VARIANTS WITH BLUEPRINTS (SUM-OF-PRODUCTS) ─────────────────────────
 "heeheehee"
