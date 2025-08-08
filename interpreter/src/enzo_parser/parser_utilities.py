@@ -13,7 +13,7 @@ def get_code_line(src_lines, token, src):
     if hasattr(token, 'line') and token.line is not None:
         line_num = token.line
         if 1 <= line_num <= len(src_lines):
-            return src_lines[line_num - 1]
+            return src_lines[line_num - 1].strip()
 
     # If no line info, try to extract the line containing the token using start position
     if hasattr(token, 'start') and token.start is not None and src:
@@ -22,10 +22,10 @@ def get_code_line(src_lines, token, src):
         for line_num, line in enumerate(src_lines):
             line_end = current_pos + len(line) + 1  # +1 for newline
             if current_pos <= token.start < line_end:
-                return line
+                return line.strip()
             current_pos = line_end
 
-    return src_lines[0] if src_lines else src
+    return (src_lines[0].strip() if src_lines else src.strip()) if src_lines or src else ""
 
 def peek(tokens, pos):
     return tokens[pos] if pos < len(tokens) else None

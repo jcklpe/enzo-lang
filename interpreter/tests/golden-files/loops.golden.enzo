@@ -46,9 +46,11 @@ error: `end-loop;` inside a non-loop function atom
 error: `restart-loop;` inside a non-loop function atom
         restart-loop; // error: `restart-loop;` inside a non-loop function atom
 
+
 //= ERROR: UNDECLARED VARIABLE USED INSIDE LOOP
 error: undefined variable
-      $undefVar-loop;      // error: undefined variable
+        $undefVar-loop;      // error: undefined variable
+
 
 //= LOOP: PIPELINING IN LOOP BODY
 16

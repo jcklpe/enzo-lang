@@ -123,11 +123,11 @@ def error_message_with_code_line(msg, code_line):
     # Handle multi-line code_line by adding indentation to each line
     if '\n' in code_line:
         lines = code_line.split('\n')
-        indented_lines = ['  ' + line for line in lines]
+        indented_lines = ['        ' + line for line in lines]  # 8 spaces
         formatted_code = '\n'.join(indented_lines)
         return f"{msg}\n{formatted_code}"
     else:
-        return f"{msg}\n    {code_line}"
+        return f"{msg}\n        {code_line}"  # 8 spaces
 
 def error_message_double_comma_table():
     return "error: extra comma in list"

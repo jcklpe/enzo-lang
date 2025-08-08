@@ -91,8 +91,8 @@ $local-var; // prints 5, unchanged by loop shadowing
 
 //= ERROR: UNDECLARED VARIABLE USED INSIDE LOOP
 Loop, (
-  $undefVar-loop;      // error: undefined variable
-  end-loop;
+    $undefVar-loop;      // error: undefined variable
+    end-loop;
 );
 
 //= LOOP: PIPELINING IN LOOP BODY
