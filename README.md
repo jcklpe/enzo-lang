@@ -1287,6 +1287,27 @@ Loop for $item in $item-list, (
 ```
 Loops are "live iteration" style, meaning that as you loop through the list, any changes to the list will be immediate. You could hypothetically create an infinitely growing loop this way. Not sure if this is better or worse UX than the "snapshot" style, but it seems the most intuitive to me.
 
+
+Also when you define `$item` over the list you are iterating on, it is a copy, so any changes you make to the item will not change the item in the original list. See example here:
+```javascript!
+$list-for-copy: [10, 20, 30];
+Loop for $item in $list-for-copy, (
+  $item <: $item + 1; // Mutating the loop variable
+  "Item copy is now <$item>"; // prints 11, 21, 31
+);
+$list-for-copy; // prints [10, 20, 30] - original list is unaffected
+```
+
+ But if you want to mutate the item as you iterate you can use the `@` sigil to do like so:
+```javascript!
+$list-for-ref: [10, 20, 30];
+Loop for @item in $list-for-ref, (
+  $item <: $item + 1; // Mutating the original variable
+  "Item is now <$item>"; // prints 11, 21, 31
+);
+$list-for-ref; // prints [11, 21, 31] - original list has changed
+```
+
 ### Data flow
 Enzo provides a pair of dataflow operators,`then` and `$this` to thread a value through a sequence of standalone transformations without nesting or method chaining.
 

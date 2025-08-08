@@ -146,6 +146,29 @@ class ReferenceWrapper:
     def __repr__(self):
         return f"<reference to {self.expr}>"
 
+class ListElementReference:
+    """Reference wrapper for list elements in for loops with @ syntax."""
+    def __init__(self, source_list, index):
+        self.source_list = source_list  # The original list
+        self.index = index  # The index in the list
+
+    def get_value(self):
+        """Get the current value of the list element."""
+        if isinstance(self.source_list, EnzoList):
+            return self.source_list[self.index]
+        else:
+            return self.source_list[self.index]
+
+    def set_value(self, value):
+        """Set the value of the list element."""
+        if isinstance(self.source_list, EnzoList):
+            self.source_list[self.index] = value
+        else:
+            self.source_list[self.index] = value
+
+    def __repr__(self):
+        return f"<reference to list element {self.index}>"
+
 def invoke_function(fn, args, env, self_obj=None, is_loop_context=False):
     if not isinstance(fn, EnzoFunction):
         raise EnzoTypeError(error_message_not_a_function(fn), code_line=getattr(fn, 'code_line', None))
@@ -935,6 +958,18 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     return invoke_function(referenced_val, [], env, self_obj=None, is_loop_context=is_loop_context)
             return referenced_val
 
+        # Handle list element reference: return the current value of the list element
+        if isinstance(val, ListElementReference):
+            referenced_val = val.get_value()
+            # Check if the referenced value is a function
+            if isinstance(referenced_val, EnzoFunction):
+                # Auto-invoke functions when referenced with $ sigil in value_demand context
+                if value_demand:
+                    if not name.startswith('$'):
+                        raise EnzoRuntimeError("error: expected function reference (@) or function invocation ($)", code_line=node.code_line)
+                    return invoke_function(referenced_val, [], env, self_obj=None, is_loop_context=is_loop_context)
+            return referenced_val
+
         # Check if this is a function
         if isinstance(val, EnzoFunction):
             # Auto-invoke functions when referenced with $ sigil in value_demand context
@@ -1173,6 +1208,10 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 # For type checking, look at the referenced value
                 referenced_val = val.get_value()
                 return enzo_type(referenced_val)
+            if isinstance(val, ListElementReference):
+                # For type checking, look at the referenced value
+                referenced_val = val.get_value()
+                return enzo_type(referenced_val)
             if isinstance(val, (int, float)):
                 return "Number"
             if isinstance(val, str):
@@ -1302,6 +1341,15 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                             raise EnzoTypeError(error_message_index_applies_to_lists(), code_line=t_code_line)
                     else:
                         raise EnzoRuntimeError("Cannot assign to complex reference", code_line=t_code_line)
+
+            elif isinstance(old_val, ListElementReference):
+                # Special case: if the target variable contains a ListElementReference,
+                # we need to update the original list element
+                list_old_val = old_val.get_value()
+                if not isinstance(list_old_val, Empty) and enzo_type(list_old_val) != enzo_type(actual_value):
+                    raise EnzoRuntimeError(error_message_cannot_bind(enzo_type(actual_value), enzo_type(list_old_val)), code_line=node.code_line)
+                old_val.set_value(actual_value)
+                return None
 
             # Normal variable assignment
             if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(actual_value):
@@ -1937,11 +1985,14 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             for i, item in enumerate(iteration_list):
                 try:
                     if node.is_reference:
-                        # Reference semantics - bind to a reference of the original item
-                        loop_env[node.variable] = item  # This will be a reference
+                        # Reference semantics - bind to a reference of the original list element
+                        # Store with $ prefix for proper variable access
+                        var_name = f"${node.variable}" if not node.variable.startswith('$') else node.variable
+                        loop_env[var_name] = ListElementReference(iterable_value, i)
                     else:
                         # Copy semantics - bind to a copy of the item
-                        loop_env[node.variable] = deep_copy_enzo_value(item) if hasattr(item, '__dict__') else item
+                        var_name = f"${node.variable}" if not node.variable.startswith('$') else node.variable
+                        loop_env[var_name] = deep_copy_enzo_value(item) if hasattr(item, '__dict__') else item
 
                     # Execute the loop body
                     for stmt in node.body:
