@@ -33,7 +33,8 @@ from src.error_messaging import (
     error_message_too_many_args,
     error_message_arg_type_mismatch,
     error_message_missing_necessary_params,
-    error_message_cannot_reference_this_in_named_function
+    error_message_cannot_reference_this_in_named_function,
+    error_message_for_loop_non_iterable
 )
 import os
 
@@ -1918,7 +1919,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
             # Ensure it's iterable
             if not isinstance(iterable_value, (list, EnzoList)):
-                raise EnzoRuntimeError("`For` loop must be over a list", code_line=node.code_line)
+                raise EnzoRuntimeError(error_message_for_loop_non_iterable(), code_line=node.code_line)
 
             results = []
 
