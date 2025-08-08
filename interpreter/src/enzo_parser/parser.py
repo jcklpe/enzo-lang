@@ -1529,8 +1529,12 @@ class Parser:
             op_start = self.advance()  # consume 'is'
             operator = "is"
 
+            # Check for 'is not'
+            if self.peek() and self.peek().type == "NOT":
+                self.advance()  # consume 'not'
+                operator = "is not"
             # Check for compound operators like 'is less than'
-            if self.peek() and self.peek().type == "LESS":
+            elif self.peek() and self.peek().type == "LESS":
                 self.advance()  # consume 'less'
                 if self.peek() and self.peek().type == "THAN":
                     self.advance()  # consume 'than'

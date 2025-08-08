@@ -1800,15 +1800,13 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     if _is_truthy(condition_result):
                         any_executed = True
                         # Execute this branch and collect all results
-                        for stmt in then_block:
-                            result = eval_ast(stmt, env=env, is_loop_context=is_loop_context)
-                            if result is not None:
-                                results.append(result)
-
-                # If no branches executed and there's an else block, execute it
+                    for stmt in then_block:
+                        result = eval_ast(stmt, env=env, is_loop_context=is_loop_context, is_function_context=is_function_context, outer_env=outer_env, loop_locals=loop_locals)
+                        if result is not None:
+                            results.append(result)                # If no branches executed and there's an else block, execute it
                 if not any_executed and node.else_block:
                     for stmt in node.else_block:
-                        result = eval_ast(stmt, env=env, is_loop_context=is_loop_context)
+                        result = eval_ast(stmt, env=env, is_loop_context=is_loop_context, is_function_context=is_function_context, outer_env=outer_env, loop_locals=loop_locals)
                         if result is not None:
                             results.append(result)
             except (EndLoopSignal, RestartLoopSignal):
@@ -1830,7 +1828,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 results = []
                 try:
                     for stmt in node.then_block:
-                        result = eval_ast(stmt, env=env, is_loop_context=is_loop_context)
+                        result = eval_ast(stmt, env=env, is_loop_context=is_loop_context, is_function_context=is_function_context, outer_env=outer_env, loop_locals=loop_locals)
                         if result is not None:
                             results.append(result)
                 except (EndLoopSignal, RestartLoopSignal):
@@ -1849,7 +1847,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 results = []
                 try:
                     for stmt in node.else_block:
-                        result = eval_ast(stmt, env=env, is_loop_context=is_loop_context)
+                        result = eval_ast(stmt, env=env, is_loop_context=is_loop_context, is_function_context=is_function_context, outer_env=outer_env, loop_locals=loop_locals)
                         if result is not None:
                             results.append(result)
                 except (EndLoopSignal, RestartLoopSignal):
@@ -1920,7 +1918,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     loop_locals = set()  # Track variables created in this iteration
                     # Execute loop body
                     for stmt in node.body:
-                        result = eval_ast(stmt, env=loop_env, is_loop_context=True, is_function_context=True, outer_env=env, loop_locals=loop_locals)
+                        result = eval_ast(stmt, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
                         if result is not None:
                             results.append(result)
                 except EndLoopSignal:
@@ -1952,7 +1950,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     loop_locals = set()  # Track variables created in this iteration
                     # Execute loop body
                     for stmt in node.body:
-                        result = eval_ast(stmt, env=loop_env, is_loop_context=True, is_function_context=True, outer_env=env, loop_locals=loop_locals)
+                        result = eval_ast(stmt, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
                         if result is not None:
                             results.append(result)
                 except EndLoopSignal:
@@ -2032,8 +2030,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
     if isinstance(node, ComparisonExpression):
         left_val = eval_ast(node.left, value_demand=True, env=env)
 
-        # Special handling for type comparisons with 'is'
-        if (node.operator == "is" and
+        # Special handling for type comparisons with 'is' and 'is not'
+        if ((node.operator == "is" or node.operator == "is not") and
             isinstance(node.right, VarInvoke) and
             node.right.name in ["Number", "Text", "List", "Empty"]):
             # Pass the type name directly instead of evaluating as a variable
@@ -2202,6 +2200,20 @@ def _compare_values(left, operator, right):
                 return left is None or isinstance(left, Empty)
         # Value comparison
         return left == right
+    elif operator == "is not":
+        # Type and value comparison (opposite of "is")
+        if isinstance(right, str) and right in ["Number", "Text", "List", "Empty"]:
+            # Type checking
+            if right == "Number":
+                return not isinstance(left, (int, float))
+            elif right == "Text":
+                return not isinstance(left, str)
+            elif right == "List":
+                return not isinstance(left, (list, EnzoList))
+            elif right == "Empty":
+                return not (left is None or isinstance(left, Empty))
+        # Value comparison
+        return left != right
     elif operator == "is less than":
         if not (isinstance(left, (int, float)) and isinstance(right, (int, float))):
             from src.error_messaging import error_message_invalid_comparison_type

@@ -1,0 +1,80 @@
+//= RECURSION: CLASSIC FACTORIAL
+// Tests the basic recursive pattern: a base case and a recursive step.
+rec_factorial: (
+    param $n: ;
+    // 1. Base case to terminate recursion
+    If $n is at most 1, (
+        return(1);
+    );
+    // 2. Recursive step: call itself with a modified argument
+    return( $n * rec_factorial($n - 1) );
+);
+
+rec_factorial(5); // prints 120 (5 * 4 * 3 * 2 * 1)
+rec_factorial(1); // prints 1 (tests the base case directly)
+
+//= RECURSION: MUTUAL RECURSION FOR EVEN/ODD
+// Tests if two functions can call each other, proving they exist in the same scope.
+rec_is_even: (
+    param $n: ;
+    If $n is 0, ( return(True) );
+    return( rec_is_odd($n - 1) );
+);
+rec_is_odd: (
+    param $n: ;
+    If $n is 0, ( return(False) );
+    return( rec_is_even($n - 1) );
+);
+
+rec_is_even(10); // prints True
+rec_is_odd(7);   // prints True
+rec_is_even(5);  // prints False
+
+//= RECURSION: WITH LISTS AND DESTRUCTURING
+// Tests recursion on a data structure, using the rest operator.
+rec_sum: (
+    param $list: ;
+    // Base case: an empty list has a sum of 0
+    If not $list, ( return(0) );
+
+    // Recursive step: destructure the list and sum the head with the rest
+    $head, $tail[...] : $list[];
+    return( $head + rec_sum($tail) );
+);
+
+rec_sum([10, 20, 30, 40]); // prints 100
+rec_sum([]);               // prints 0
+
+//= RECURSION: SCOPE INTEGRITY WITH SHADOWING
+// Proves that each recursive call gets its own scope for parameters,
+// correctly shadowing the global variable.
+$rec_n: 100;
+rec_countdown: (
+    param $n: ; // This $n shadows the global $rec_n
+    $n; // prints the local parameter's value
+    If $n is greater than 0, (
+        rec_countdown($n - 1);
+    );
+);
+
+rec_countdown(3); // prints 3, then 2, then 1, then 0
+"Global n is still: <$rec_n>"; // prints "Global n is still: 100"
+
+//= RECURSION: WITH A NAMED ANONYMOUS REFERENCE
+// Tests that a function reference bound to a variable can call itself.
+$rec_anon_factorial: @(
+    param $n: ;
+    If $n is 0, ( return(1) );
+    // The function must use its own variable name to recurse
+    return( $n * $rec_anon_factorial($n - 1) );
+);
+
+$rec_anon_factorial(4); // prints 24
+
+//= RECURSION: STACK OVERFLOW PROTECTION
+// Tests the interpreter's ability to handle infinite recursion gracefully.
+rec_infinite: (
+    rec_infinite(); // This function will call itself forever
+);
+
+rec_infinite(); // error: Maximum recursion depth exceeded

@@ -1,0 +1,70 @@
+//= IMMEDIATE INVOCATION: BINDING VALUE VS. FUNCTION
+// This is the core test. It proves that `!` changes the type of the bound variable.
+$imm_func: (2 + 2);   // Stored as a Function object
+$imm_value: !(2 + 2); // Immediately evaluated and stored as a Number
+
+// Prove the type of $imm_func by using it as a function.
+If $imm_func is Function, (
+    "imm_func is a Function"; // Should print
+);
+$imm_func(); // Should print 4
+
+// Prove the type of $imm_value by using it as a number.
+If $imm_value is Number, (
+    "imm_value is a Number"; // Should print
+);
+$imm_value + 1; // Should print 5
+
+//= IMMEDIATE INVOCATION: REBINDING AND TYPE LOCKING
+$imm_result: ; // Initially empty
+$imm_result <: !(5 * 5); // Rebinds with a Number, locking the type
+$imm_result; // prints 25
+
+$imm_result <: !(10 - 4); // Rebinding with another Number is fine
+$imm_result; // prints 6
+
+$imm_result <: !("hello"); // error: cannot bind Text to Number
+
+//= IMMEDIATE INVOCATION: IN A LIST LITERAL
+// The contents are proven by how we use them later.
+$imm_list: [
+    10,
+    !(10 + 10), // Evaluated to 20 (Number)
+    (10 + 20)  // Stored as a Function
+];
+$imm_list.1;     // prints 10
+$imm_list.2;     // prints 20
+$imm_list.3();   // Invoke the stored function, prints 30
+
+//= IMMEDIATE INVOCATION: AS A FUNCTION ARGUMENT
+// The `!` forces evaluation *before* the value is passed to the function's parameter.
+imm_square: (
+    param $num: ;
+    return($num * $num);
+);
+
+imm_square( !(2 + 3) ); // The function receives the value 5, not the function atom. Prints 25
+
+//= IMMEDIATE INVOCATION: WITH MULTI-STATEMENT BODY
+// Proves that `!` works with complex function atoms and their scope does not leak.
+$imm_complex_value: !(
+    $imm_a: 100;
+    $imm_b: 50;
+    return($imm_a - $imm_b); // Using explicit return
+);
+$imm_complex_value; // prints 50
+$imm_a; // error: undefined variable
+
+//= IMMEDIATE INVOCATION: REDUNDANT BUT VALID USE
+// In contexts where demand-driven evaluation already applies, `!` is unnecessary but should still work.
+// 1. As a top-level statement
+!(3 * 3); // prints 9, same as (3*3)
+
+// 2. In string interpolation
+"Value is: <!(4+4)>"; // prints "Value is: 8", same as "<(4+4)>"
+
+//= ERROR CASE: `!` NOT FOLLOWED BY A FUNCTION ATOM
+$imm_bad: !5; // error: The `!` sigil for immediate invocation must be followed by a function atom `(...)`.
+
+//= ERROR CASE: SYNTAX ERROR INSIDE THE FUNCTION ATOM
+$imm_bad2: !($x + ); // error: parse error in function atom body

@@ -325,6 +325,19 @@ $value <: 5;                    // ✅ Type-consistent rebinding
 - **Clear intent**: Makes immediate evaluation explicit rather than context-dependent
 - **Flexibility**: Works with any function atom, from simple arithmetic to complex computations
 
+#### Variable shadowing
+Variable shadowing is when one variable temporarily overwrites another variable. So for instance:
+```javascript!
+$x: 0;  // this variable is in the global scope
+($temp: "function scoped"); // the $temp variable is in the function scope.
+$temp: 12; // This doesn't create an error because the temp scope hasn't leaked into the global scope
+(
+    $x: "a totally new variable that is within the function scope via shadowing";
+    $temp: "also shadowed";
+    // you can declare the $x and $temp here because they are scoped to the function and "shadow" the global scope. Any changes made to variables that are shadowing will not effect the exterior scope
+)
+```
+
 ### Empty variables (null, undefined)
 A variable can be created that is empty.
 ```javascript!
@@ -1288,7 +1301,7 @@ Loop for $item in $item-list, (
 Loops are "live iteration" style, meaning that as you loop through the list, any changes to the list will be immediate. You could hypothetically create an infinitely growing loop this way. Not sure if this is better or worse UX than the "snapshot" style, but it seems the most intuitive to me.
 
 
-Also when you define `$item` over the list you are iterating on, it is a copy, so any changes you make to the item will not change the item in the original list. See example here:
+Also when you define `$item` over the list you are iterating on, it as a copy (all variables are copy by value in Enzo), so any changes you make to the item will not change the item in the original list. See example here:
 ```javascript!
 $list-for-copy: [10, 20, 30];
 Loop for $item in $list-for-copy, (
@@ -1306,6 +1319,18 @@ Loop for @item in $list-for-ref, (
   "Item is now <$item>"; // prints 11, 21, 31
 );
 $list-for-ref; // prints [11, 21, 31] - original list has changed
+```
+
+Also important info: When a loop restarts, it starts with a fresh context. Here's an illustration of what that means:
+```javascript!
+$iteration: 0;
+Loop, (
+    $x: 0
+    $x + 1 :> $x;
+    $x; // prints 1
+    $iteration + 1 :> $iteration;
+    If $iteration is greater than 3, (end-loop);
+); // This loop will repeat 3 times, and each time it will print 1. The $x declaration won't be an error because each loop is a fresh context. If you want to have a variable persist between loops it must be declared exterior of the loop.
 ```
 
 ### Data flow
@@ -1390,10 +1415,3 @@ then $this.3;       // index into the result
 6. dataflow operators (`then`, `$this`)
 7. comparison operators (`is`, `not`, `is not`, `less than`, `greater than`, `at most`, `at least` )
 8. logical operators (`and`, `or`)
-
-## Desugaring catalogue
-| Sugar syntax                         | Core form after parse-rewrite               |
-| -------------------------------------- | --------------------------------------------- |
-| **Pipeline** `$v then foo($0,1)`     | `foo($v,1)`                                 |
-| **Inline if** `if cond, a, else b`   | `if cond then a else b end`                 |
-| **List destructure** `$x,$y : [1,2]` | `$tmp : [1,2]; $x : $tmp[0]; $y : $tmp[1];` |

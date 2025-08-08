@@ -1,0 +1,19 @@
+//= BASIC ASSIGNMENT: IF-TRUE PATH
+"adult"
+
+//= BASIC ASSIGNMENT: ELSE-FALSE PATH
+"minor"
+
+//= REBINDING AN EXISTING VARIABLE
+"teenager"
+
+//= TYPE CONSISTENCY ON REBINDING
+error: cannot bind Text to Number
+	$result-33 <: If False, (300), Else, ("error-type"); // error: cannot bind Text to Number
+
+//= NESTED INLINE CONDITIONALS IN ASSIGNMENT
+10
+
+//= INLINE IF: BODY IS A SCOPE AND DOES NOT LEAK
+"inner"
+"outer"

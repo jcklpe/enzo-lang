@@ -70,6 +70,8 @@ result = eval_ast(ast)
 ```
 
 ### Function Signatures to Remember
-
 - `eval_ast(node, env=None, value_demand=False, is_function_context=False, outer_env=None)`
 - `parse(code_string)` returns Program AST node
+
+# Misc
+- Enzo doesn't have boolean literals. Enzo does not have a dedicated boolean type. Enzo has custom types, with Blueprints for product types, and Blueprint variant groups for sum types/ sum of product types. True and False are built in blueprint variant groups. They are not a dedicated type in enzo.

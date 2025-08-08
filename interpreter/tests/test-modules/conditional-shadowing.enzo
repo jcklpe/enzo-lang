@@ -1,0 +1,56 @@
+//= SHADOWING: VARIABLE IN `If` BLOCK SHADOWS GLOBAL
+$cond-shadow-global: "global";
+If True, (
+    $cond-shadow-global: "if-shadow"; // This declares a NEW $cond-shadow-global, scoped only to this block.
+    "Inside If: <$cond-shadow-global>"; // Should print "if-shadow"
+);
+"Outside If: <$cond-shadow-global>"; // The global $cond-shadow-global is unaffected. Should print "global"
+
+//= REBINDING: MODIFYING GLOBAL VARIABLE FROM `If` BLOCK
+If True, (
+    $cond-shadow-global <: "shadowing it using rebind"; // This REBINDS the existing outer $cond-shadow-global. No shadowing.
+    "Inside If: <$cond-shadow-global>"; // Should print "shadowing it using rebind"
+);
+"Outside If: <$cond-shadow-global>"; // The global $cond-shadow-global was mutated.
+
+//= SCOPE LEAKAGE: VARIABLE DECLARED IN `If` IS UNDEFINED OUTSIDE
+If True, (
+    $z-local: "local-to-if"; // This $z-local only exists inside this block's scope.
+);
+$z-local; // error: undefined variable
+
+//= SCOPE ISOLATION: `If` AND `Else` BLOCKS HAVE SEPARATE SCOPES
+$scope-test: "global";
+If False, (
+    $scope-test: "if-branch"; // This block is not entered.
+    $if-var: 1;
+), Else, (
+    $scope-test: "else-branch"; // Shadows the global variable.
+    "In Else: <$scope-test>"; // Prints "else-branch"
+    $if-var; // error: undefined variable (was defined in a separate scope)
+);
+"Afterward: <$scope-test>"; // Global is untouched. Prints "global"
+
+//= SCOPE ISOLATION: `Else if` HAS ITS OWN ISOLATED SCOPE
+$level-scope: 1;
+If $level-scope is 0, (
+    $msg-scope: "Level 0";
+), Else if $level-scope is 1, (
+    $msg-scope: "Level 1"; // This shadows any outer $msg and is local to this block.
+    "In Else If: <$msg-scope>"; // Prints "Level 1"
+), Else, (
+    $msg-scope: "Other Level";
+);
+$msg-scope; // error: undefined variable (each $msg was local to its own conditional block)
+
+//= NESTED SHADOWING: INNER SCOPE SHADOWS OUTER SCOPE
+$nest-scope: "level 1";
+If True, (
+    $nest-scope: "level 2"; // Shadows "level 1"
+    If True, (
+        $nest-scope: "level 3"; // Shadows "level 2"
+        "Innermost scope: <$nest-scope>"; // Prints "level 3"
+    );
+    "Middle scope: <$nest-scope>"; // Prints "level 2", as inner scope has ended.
+);
+"Outermost scope: <$nest-scope>"; // Prints "level 1", as outer scopes have ended.
