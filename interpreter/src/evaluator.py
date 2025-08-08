@@ -260,7 +260,7 @@ def _get_enzo_type(value):
         return type(value).__name__.lower()
 
 
-def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None, is_function_context=False, outer_env=None):
+def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None, is_function_context=False, outer_env=None, loop_locals=None):
     if env is None:
         env = _env
     if node is None:
@@ -364,6 +364,11 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             actual_val = deep_copy_enzo_value(val)
 
         env[name] = actual_val
+
+        # Track this variable as a loop-local shadow if we're in a loop context
+        if loop_locals is not None:
+            loop_locals.add(name)
+
         # For variable bindings, also make accessible with/without $ prefix
         if name.startswith('$'):
             # Make $variable also accessible as bare name
@@ -1152,7 +1157,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             raise EnzoRuntimeError("error: pipeline expects function atom after `then`", code_line=getattr(node, 'code_line', None))
     if isinstance(node, BindOrRebind):
         target = node.target
-        value = eval_ast(node.value, value_demand=True, env=env, outer_env=outer_env)
+        value = eval_ast(node.value, value_demand=True, env=env, outer_env=outer_env, loop_locals=loop_locals)
 
         # Handle reference vs copy semantics
         if isinstance(value, ReferenceWrapper):
@@ -1183,34 +1188,59 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # Assignment to variable
         if isinstance(target, str):
             name = target
-            # For rebinding operations, prefer outer environment if available
-            target_env = outer_env if outer_env is not None else env
+            # For rebinding operations:
+            # - If variable was shadowed in this loop (in loop_locals), rebind in current env
+            # - If variable exists in outer_env and not shadowed, rebind in outer_env
+            # - Otherwise rebind in current env
+            if loop_locals is not None and name in loop_locals:
+                # Variable was shadowed in this loop - rebind in current env only
+                target_env = env
+                update_current_env = False
+            elif outer_env is not None and name in outer_env:
+                # Variable exists in outer scope and not shadowed - rebind there
+                target_env = outer_env
+                # Also update current env to maintain consistency
+                update_current_env = True
+            else:
+                # Variable doesn't exist in outer scope, or no outer scope - use current
+                target_env = env
+                update_current_env = False
 
             if name not in target_env:
                 target_env[name] = actual_value
-                # Also update current env if we're using outer_env for consistency
-                if outer_env is not None and env is not outer_env:
+                if update_current_env and env is not target_env:
                     env[name] = actual_value
                 return None
             old_val = target_env[name]
             if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(actual_value):
                 raise EnzoRuntimeError(error_message_cannot_bind(enzo_type(actual_value), enzo_type(old_val)), code_line=node.code_line)
             target_env[name] = actual_value
-            # Also update current env if we're using outer_env for consistency
-            if outer_env is not None and env is not outer_env:
+            # Also update current env to maintain consistency for reads
+            if update_current_env and env is not target_env:
                 env[name] = actual_value
             return None
         # Assignment to variable via VarInvoke
         if isinstance(target, VarInvoke):
             name = target.name
             t_code_line = getattr(target, 'code_line', node.code_line)
-            # For rebinding operations, prefer outer environment if available
-            target_env = outer_env if outer_env is not None else env
+            # For rebinding operations: same logic as string targets
+            if loop_locals is not None and name in loop_locals:
+                # Variable was shadowed in this loop - rebind in current env only
+                target_env = env
+                update_current_env = False
+            elif outer_env is not None and name in outer_env:
+                # Variable exists in outer scope and not shadowed - rebind there
+                target_env = outer_env
+                # Also update current env to maintain consistency
+                update_current_env = True
+            else:
+                # Variable doesn't exist in outer scope, or no outer scope - use current
+                target_env = env
+                update_current_env = False
 
             if name not in target_env:
                 target_env[name] = actual_value
-                # Also update current env if we're using outer_env for consistency
-                if outer_env is not None and env is not outer_env:
+                if update_current_env and env is not target_env:
                     env[name] = actual_value
                 return None
             old_val = target_env[name]            # Special case: if the target variable contains a ReferenceWrapper,
@@ -1276,8 +1306,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(actual_value):
                 raise EnzoRuntimeError(error_message_cannot_bind(enzo_type(actual_value), enzo_type(old_val)), code_line=t_code_line)
             target_env[name] = actual_value
-            # Also update current env if we're using outer_env for consistency
-            if outer_env is not None and env is not outer_env:
+            # Also update current env to maintain consistency for reads
+            if update_current_env and env is not target_env:
                 env[name] = actual_value
             return None
         # Binding to list index
@@ -1805,8 +1835,9 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     # Execute loop body in the loop environment
                     # Use is_function_context=True to allow variable shadowing
                     # Pass outer_env so that rebinding operations can affect outer scope
+                    # Pass loop_locals to track which variables are shadowed
                     for stmt in node.body:
-                        result = eval_ast(stmt, env=loop_env, is_function_context=True, outer_env=env)
+                        result = eval_ast(stmt, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals)
                         if result is not None:
                             results.append(result)
                 except EndLoopSignal:
