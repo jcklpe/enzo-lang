@@ -306,6 +306,7 @@ Demanded:
 Not demanded:
 - **Storage context:**
   - `$func: (2 * 2);` → stores function atom. The variable type of `$func` is Function.
+  - `$list-of-funcs: [(2*2), (4*4)]` → stores function atoms as items in the list. The variable type of `$list-of-funcs.1` and `$list-of-funcs.2` is Function.
 
 #### Forcing immediate evaluation with `!`
 Sometimes you want to force immediate evaluation in contexts where function atoms would normally be stored. Use the `!` sigil to override the default demand-driven behavior:
@@ -1364,7 +1365,7 @@ then select($this, ["id","email"]);
 $users then filter($this, "active") then sortBy($this, "lastName")then select($this, ["id","email"]):> $selected;
 ```
 
-While `:>` is usualy used to rebind values, it can also be used to declare and bind all in one move, which can be useful with pipeline operations so that you can keep a nice `function() then function() then function() :> $final-variable`
+While `:>` is usually used to rebind values, it can also be used to declare and bind all in one move, which can be useful with pipeline operations so that you can keep a nice `function() then function() then function() :> $final-variable`
 
 The use of the `$this` operator allows for flexibility in how the output of one function gets piped to the next
 

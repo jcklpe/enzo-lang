@@ -1,0 +1,36 @@
+//= IMMEDIATE INVOCATION: BINDING VALUE VS. FUNCTION
+"imm_func is a Function"
+4
+"imm_value is a Number"
+5
+
+//= IMMEDIATE INVOCATION: REBINDING AND TYPE LOCKING
+25
+6
+error: cannot bind Text to Number
+    $imm_result <: !("hello"); // error: cannot bind Text to Number
+
+//= IMMEDIATE INVOCATION: IN A LIST LITERAL
+10
+20
+30
+
+//= IMMEDIATE INVOCATION: AS A FUNCTION ARGUMENT
+25
+
+//= IMMEDIATE INVOCATION: WITH MULTI-STATEMENT BODY
+50
+error: undefined variable
+    $imm_a; // error: undefined variable
+
+//= IMMEDIATE INVOCATION: REDUNDANT BUT VALID USE
+9
+"Value is: 8"
+
+//= ERROR CASE: `!` NOT FOLLOWED BY A FUNCTION ATOM
+error: The `!` sigil for immediate invocation must be followed by a function atom `(...)`.
+    $imm_bad: !5; // error: The `!` sigil for immediate invocation must be followed by a function atom `(...)`.
+
+//= ERROR CASE: SYNTAX ERROR INSIDE THE FUNCTION ATOM
+error: parse error in function atom body
+    $imm_bad2: !($x + ); // error: parse error in function atom body

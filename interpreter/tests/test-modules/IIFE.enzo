@@ -39,7 +39,7 @@ $imm_list.3();   // Invoke the stored function, prints 30
 //= IMMEDIATE INVOCATION: AS A FUNCTION ARGUMENT
 // The `!` forces evaluation *before* the value is passed to the function's parameter.
 imm_square: (
-    param $num: ;
+    param $num: 0;
     return($num * $num);
 );
 

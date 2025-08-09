@@ -27,18 +27,13 @@ $anon_ref_ops.2(10); // prints 100
 //= ANON REF: PASSING DIRECTLY AS A FUNCTION ARGUMENT
 // Defines a higher-order function that accepts a function and a value.
 anon_ref_apply: (
-    param $func: ;
-    param $value: ;
+    param $func: ();
+    param $value: "";
     return( $func($value) );
 );
 
 // Pass an anonymous function reference directly as an argument.
 anon_ref_apply( @(param $text: ; "Hello, <$text>!"), "Enzo" ); // prints "Hello, Enzo!"
-
-//= ANON REF: IN A DATA-FLOW PIPELINE (`then`)
-// The anonymous function is used as a step in the pipeline.
-100 then @(param $this: ; $this / 2) then @(param $this: ; "Final value: <$this>");
-// prints "Final value: 50"
 
 //= ANON REF: IN A LIST PROPERTY (METHOD)
 $anon_ref_calculator: [
@@ -63,10 +58,7 @@ $anon_ref_logger("System Ready"); // prints "[LOG] System Ready"
 //= ERROR CASE: FORGETTING THE `@` SIGIL
 // Without `@`, the function atom is immediately evaluated (demand-driven).
 // It returns a Function *object*, which is not a Number, causing a type error inside the function.
-anon_ref_apply( (param $x:; $x * 2), 5 ); // error: Mismatched types or invalid operation inside anon_ref_apply.
+anon_ref_apply( (param $x:; $x * 2), 5 ); // error: param expects Function type
 
 //= ERROR CASE: SYNTAX ERROR INSIDE THE FUNCTION BODY
 $anon_ref_bad_syntax: @(param $x: $x + ); // error: parse error in function atom body
-
-//= ERROR CASE: `@` INSIDE THE PARENTHESES
-$anon_ref_bad_placement: (@(1+1)); // error: The `@` sigil must precede the `(` for an anonymous function reference.

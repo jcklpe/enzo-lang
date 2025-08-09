@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Debug end-loop behavior"""
+"""Debug simple end-loop case"""
 
 import sys
 sys.path.append('..')
@@ -11,23 +11,21 @@ _env.clear()
 _initialize_builtin_variants()
 
 test_code = '''
-$numbers: [1, 8];
-Loop for $num in $numbers, (
+Loop for $num in [8], (
     If $num is 8, (
-        "Found 8, ending loop.";
+        "Found 8!";
         end-loop;
     );
-    "Processing: <$num>";
 );
 '''
 
-print("Testing end-loop behavior...")
+print("Testing simple end-loop case...")
 print("=" * 50)
 
 try:
     ast = parse(test_code)
     result = eval_ast(ast)
-    print(f"Final result: {result}")
+    print(f"Result: {result}")
 
 except Exception as e:
     print(f"Error: {e}")

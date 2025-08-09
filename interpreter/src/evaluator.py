@@ -6,10 +6,12 @@ from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntim
 
 # Loop control signals
 class EndLoopSignal(Exception):
-    pass
+    def __init__(self, last_result=None):
+        self.last_result = last_result
 
 class RestartLoopSignal(Exception):
-    pass
+    def __init__(self, last_result=None):
+        self.last_result = last_result
 from src.error_messaging import (
     error_message_already_defined,
     error_message_unknown_variable,
@@ -250,6 +252,13 @@ def invoke_function(fn, args, env, self_obj=None, is_loop_context=False):
             res = eval_ast(stmt, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=is_loop_context)
     except ReturnSignal as ret:
         return ret.value
+    except (EndLoopSignal, RestartLoopSignal) as loop_signal:
+        # For loop control signals, return the last result before re-raising
+        # This ensures that expressions before end-loop/restart-loop are captured
+        if res is not None:
+            # Store the result for the calling loop to collect
+            loop_signal.last_result = res
+        raise
     return res
 
 
@@ -1809,8 +1818,15 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         result = eval_ast(stmt, env=env, is_loop_context=is_loop_context, is_function_context=is_function_context, outer_env=outer_env, loop_locals=loop_locals)
                         if result is not None:
                             results.append(result)
-            except (EndLoopSignal, RestartLoopSignal):
-                # Re-raise loop control signals so they propagate to the loop
+            except (EndLoopSignal, RestartLoopSignal) as signal:
+                # Collect any results that were accumulated before the signal, then re-raise
+                if results and hasattr(signal, 'last_result'):
+                    # If signal doesn't have a result yet, store our collected results
+                    if signal.last_result is None:
+                        signal.last_result = results[-1] if len(results) == 1 else results if results else None
+                elif results and not hasattr(signal, 'last_result'):
+                    # Add last_result attribute with our collected results
+                    signal.last_result = results[-1] if len(results) == 1 else results if results else None
                 raise
 
             # Return all results as a list if there are multiple, or the single result
@@ -1831,8 +1847,15 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         result = eval_ast(stmt, env=env, is_loop_context=is_loop_context, is_function_context=is_function_context, outer_env=outer_env, loop_locals=loop_locals)
                         if result is not None:
                             results.append(result)
-                except (EndLoopSignal, RestartLoopSignal):
-                    # Re-raise loop control signals so they propagate to the loop
+                except (EndLoopSignal, RestartLoopSignal) as signal:
+                    # Collect any results that were accumulated before the signal, then re-raise
+                    if results and hasattr(signal, 'last_result'):
+                        # If signal doesn't have a result yet, store our collected results
+                        if signal.last_result is None:
+                            signal.last_result = results[-1] if len(results) == 1 else results if results else None
+                    elif results and not hasattr(signal, 'last_result'):
+                        # Add last_result attribute with our collected results
+                        signal.last_result = results[-1] if len(results) == 1 else results if results else None
                     raise
 
                 # Return all results as a list if there are multiple, or the single result
@@ -1921,9 +1944,15 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         result = eval_ast(stmt, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
                         if result is not None:
                             results.append(result)
-                except EndLoopSignal:
+                except EndLoopSignal as signal:
+                    # Collect any result that was produced before end-loop
+                    if hasattr(signal, 'last_result') and signal.last_result is not None:
+                        results.append(signal.last_result)
                     break
-                except RestartLoopSignal:
+                except RestartLoopSignal as signal:
+                    # Collect any result that was produced before restart-loop
+                    if hasattr(signal, 'last_result') and signal.last_result is not None:
+                        results.append(signal.last_result)
                     # Skip to next iteration without executing remaining body statements
                     pass
                 iteration_count += 1
@@ -1953,9 +1982,15 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         result = eval_ast(stmt, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
                         if result is not None:
                             results.append(result)
-                except EndLoopSignal:
+                except EndLoopSignal as signal:
+                    # Collect any result that was produced before end-loop
+                    if hasattr(signal, 'last_result') and signal.last_result is not None:
+                        results.append(signal.last_result)
                     break
-                except RestartLoopSignal:
+                except RestartLoopSignal as signal:
+                    # Collect any result that was produced before restart-loop
+                    if hasattr(signal, 'last_result') and signal.last_result is not None:
+                        results.append(signal.last_result)
                     # Skip to next iteration without executing remaining body statements
                     pass
                 iteration_count += 1
@@ -2006,9 +2041,15 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         if result is not None:
                             results.append(result)
 
-                except EndLoopSignal:
+                except EndLoopSignal as signal:
+                    # Collect any result that was produced before end-loop
+                    if hasattr(signal, 'last_result') and signal.last_result is not None:
+                        results.append(signal.last_result)
                     break
-                except RestartLoopSignal:
+                except RestartLoopSignal as signal:
+                    # Collect any result that was produced before restart-loop
+                    if hasattr(signal, 'last_result') and signal.last_result is not None:
+                        results.append(signal.last_result)
                     continue
 
             return results
