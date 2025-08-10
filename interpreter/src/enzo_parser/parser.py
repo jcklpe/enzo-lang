@@ -544,9 +544,18 @@ class Parser:
             found_arrow_or_comma = False
             found_rbrack = False
             found_rebind_rightward = False
+            has_interpolation = False  # Track if we see list interpolation syntax
+
             while self.peek(pos) and pos < 30:  # Reasonable lookahead limit
                 token = self.peek(pos)
-                if token.type == "KEYNAME" and not found_keyname:
+
+                # Check for list interpolation: <$var>
+                if token.type == "LT" and self.peek(pos + 1) and self.peek(pos + 1).type == "KEYNAME":
+                    has_interpolation = True
+                    pos += 2  # Skip over the interpolation
+                    continue
+                elif token.type == "KEYNAME" and not found_keyname and not has_interpolation:
+                    # Only consider it a destructuring keyname if we haven't seen interpolation
                     found_keyname = True
                 elif token.type in ["COMMA", "ARROW"] and found_keyname:
                     found_arrow_or_comma = True
@@ -559,7 +568,8 @@ class Parser:
                     break  # End of statement
                 pos += 1
 
-            if found_rebind_rightward:
+            # Only treat as complex bracket destructuring if we found the pattern AND no interpolation
+            if found_rebind_rightward and not has_interpolation:
                 return self.parse_complex_bracket_destructuring()
 
         # --- Handle destructuring: $var1, $var2: source[] or $var1, $var2 -> $new: source[] ---
