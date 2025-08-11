@@ -487,8 +487,6 @@ Loop until $success is 3, (
 );
 $attempts;   // should print 4
 $success; // Should print 3
-$success;// extra print here added for debugging
-$success;// extra print here added for debugging
 
 //= FOR LOOP WITH END-LOOP
 $numbers: [1, 2, 3, 4, 5];
@@ -521,9 +519,9 @@ Loop while $x-77 is less than 10, (
     $x-77 + 1 :> $x-77;
     If $x-77 is 3, (restart-loop;); // Skip 3
     If $x-77 is 7, (end-loop;);     // Stop at 7
-    $x-77 :> $results-77;
+    [<$results-77>, $x-77] :> $results-77;
 );
-$results-77; // Should be [1, 2, 4, 5, 6, 7]
+$results-77; // Should be [1, 2, 4, 5, 6]
 
 //= FOR LOOP ERROR: END-LOOP IN NESTED FUNCTION
 $list-93: [1, 2, 3];

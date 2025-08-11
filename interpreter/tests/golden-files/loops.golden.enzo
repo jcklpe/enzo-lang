@@ -235,6 +235,10 @@ error: `end-loop;` inside a non-loop function atom
 3
 
 //= WHILE LOOP WITH RESTART-LOOP
+1
+2
+3
+4
 5
 4
 
@@ -264,10 +268,13 @@ error: `end-loop;` inside a non-loop function atom
 "Processing: 5"
 
 //= FOR LOOP WITH REFERENCE AND END-LOOP
+10
+20
+30
 [10, 20, 30, 40]
 
 //= WHILE LOOP WITH BOTH END-LOOP AND RESTART-LOOP
-[1, 2, 4, 5, 6, 7]
+[1, 2, 4, 5, 6]
 
 //= FOR LOOP ERROR: END-LOOP IN NESTED FUNCTION
 error: `end-loop;` inside a non-loop function atom
