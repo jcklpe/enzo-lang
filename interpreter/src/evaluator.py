@@ -245,11 +245,11 @@ def invoke_function(fn, args, env, self_obj=None, is_loop_context=False):
 
         # Execute local variables (bindings like $x: 5;)
         for local_var in getattr(fn, 'local_vars', []):
-            res = eval_ast(local_var, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=is_loop_context)
+            res = eval_ast(local_var, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=False)
 
         # Execute body statements (rebinds, returns, etc.)
         for stmt in fn.body:
-            res = eval_ast(stmt, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=is_loop_context)
+            res = eval_ast(stmt, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=False)
     except ReturnSignal as ret:
         return ret.value
     except (EndLoopSignal, RestartLoopSignal) as loop_signal:
@@ -1908,7 +1908,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     # Pass loop_locals to track which variables are shadowed
                     # Pass is_loop_context=True so end-loop/restart-loop work
                     for stmt in node.body:
-                        result = eval_ast(stmt, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
+                        result = eval_ast(stmt, value_demand=True, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
                         if result is not None:
                             # If the result is a list from a nested loop, flatten it
                             if isinstance(result, list) and isinstance(stmt, LoopStatement):
@@ -1951,7 +1951,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     loop_locals = set()  # Track variables created in this iteration
                     # Execute loop body
                     for stmt in node.body:
-                        result = eval_ast(stmt, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
+                        result = eval_ast(stmt, value_demand=True, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
                         if result is not None:
                             results.append(result)
                 except EndLoopSignal as signal:
@@ -1989,7 +1989,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     loop_locals = set()  # Track variables created in this iteration
                     # Execute loop body
                     for stmt in node.body:
-                        result = eval_ast(stmt, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
+                        result = eval_ast(stmt, value_demand=True, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
                         if result is not None:
                             results.append(result)
                 except EndLoopSignal as signal:
@@ -2048,7 +2048,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
                     # Execute the loop body
                     for stmt in node.body:
-                        result = eval_ast(stmt, env=loop_env, is_loop_context=True, is_function_context=True, outer_env=env, loop_locals=loop_locals)
+                        result = eval_ast(stmt, value_demand=True, env=loop_env, is_loop_context=True, is_function_context=True, outer_env=env, loop_locals=loop_locals)
                         if result is not None:
                             # If the result is a list from a nested loop, flatten it
                             if isinstance(result, list) and isinstance(stmt, LoopStatement):
