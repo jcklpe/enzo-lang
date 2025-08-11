@@ -2049,7 +2049,11 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     for stmt in node.body:
                         result = eval_ast(stmt, env=loop_env, is_loop_context=True, is_function_context=True, outer_env=env, loop_locals=loop_locals)
                         if result is not None:
-                            results.append(result)
+                            # If the result is a list from a nested loop, flatten it
+                            if isinstance(result, list) and isinstance(stmt, LoopStatement):
+                                results.extend(result)
+                            else:
+                                results.append(result)
 
                     # Move to next iteration
                     i += 1

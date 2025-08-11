@@ -176,7 +176,7 @@ False
 "Cell: 1"
 "Cell: 2"
 "Processing row: [3, 4]"
-"Found 3, restarting inner loop";
+"Found 3, restarting inner loop"
 "Cell: 4"
 
 //= LOOP INSIDE A FUNCTION WITH A RETURN
