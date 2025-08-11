@@ -2034,6 +2034,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     # Create a fresh loop_locals set for each iteration
                     loop_locals = set()
                     item = current_iterable[i]
+                    current_list_length = len(current_iterable)
 
                     if node.is_reference:
                         # Reference semantics - bind to a reference of the original list element
@@ -2055,8 +2056,49 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                             else:
                                 results.append(result)
 
-                    # Move to next iteration
-                    i += 1
+                    # After executing the loop body, check if the list was modified
+                    # Re-evaluate to get the updated list
+                    updated_iterable = eval_ast(node.iterable, env=env, is_loop_context=is_loop_context)
+
+                    # If the list length changed, we need to adjust our iteration strategy
+                    if len(updated_iterable) != current_list_length:
+                        # List was modified during iteration
+                        # For deletions behind the current position, we need to adjust our index
+                        # Find how many items were deleted before our current position
+                        items_deleted_before = current_list_length - len(updated_iterable)
+
+                        # If items were deleted and we can determine they were before our position,
+                        # adjust the index down. Otherwise, just move to the next logical position.
+                        if items_deleted_before > 0 and len(updated_iterable) > 0:
+                            # Check if our current item still exists in the list at or after our expected position
+                            if i < len(updated_iterable) and updated_iterable[i] == item:
+                                # Current item is still at the same index, continue normally
+                                i += 1
+                            elif i > 0 and i - 1 < len(updated_iterable) and updated_iterable[i - 1] == item:
+                                # Current item shifted back by one position
+                                # Don't increment i since we need to continue from the same position
+                                # The next item is now at index i in the shortened list
+                                pass
+                            else:
+                                # Try to find the current item in the updated list and continue from there
+                                found_position = None
+                                for idx, list_item in enumerate(updated_iterable):
+                                    if list_item == item:
+                                        found_position = idx
+                                        break
+
+                                if found_position is not None:
+                                    i = found_position + 1  # Move to next position after current item
+                                else:
+                                    # Current item was deleted, continue from current index
+                                    # (don't increment since items may have shifted)
+                                    pass
+                        else:
+                            # Normal case or items were added - just move to next position
+                            i += 1
+                    else:
+                        # List wasn't modified, normal increment
+                        i += 1
 
                 except EndLoopSignal as signal:
                     # Collect any result that was produced before end-loop

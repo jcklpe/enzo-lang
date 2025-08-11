@@ -596,7 +596,7 @@ add5(10);  // returns 15
 Destructuring lets you quickly break a list into separate variables, so you can work with each piece individually. Instead of accessing values with long property paths or indexes, destructuring gives you short, readable names for the things you need, making your code simpler and less error-prone.
 It’s especially handy when working with complex data structures or when you want to pull out just the relevant bits from a list.
 
-```javscript!
+```javascript!
 $person: [
   $name: "Todd",
   $age: 27,
@@ -1216,7 +1216,7 @@ $message: "There have been <$iteration> full iteration/s";
 Loop, (
     $iteration + 1 :> $iteration;
     $message;
-    If $iteration is more than 10, (
+    If $iteration is greater than 10, (
         end-loop;
     );
 ); // this will print 11 times then end.
@@ -1240,7 +1240,7 @@ Loop, (
         end-loop;
     );
 
-    If $iteration is more than 10, (
+    If $iteration is greater than 10, (
         $message: "Exceeded iteration count without finding <$target>";
         end-loop;
     );
