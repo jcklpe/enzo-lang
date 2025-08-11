@@ -1,5 +1,3 @@
-Thank you for the detailed examples and clarifications. Your intuition is correct: **the rule is fundamentally about line endings and statement boundaries**.
-
 ## **General Rule (Inferred from Your Tests)**
 
 ### **Rule:**

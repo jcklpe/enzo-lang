@@ -1,33 +1,33 @@
 //= SIMPLE BLUEPRINT INSTANTIATION ───────────────────────────────────────────
-[$health-points: 100, $position: [10, 10]]
-[$health-points: 100, $position: [10, 15]]
+SimpleGoblin[$health-points: 100, $position: [10, 10]]
+SimpleGoblin[$health-points: 100, $position: [10, 15]]
 
 //= BLUEPRINT WITH DEFAULTS ────────────────────────────────────────────────
-[$health-points: 100, $position: [0, 0]]
-[$health-points: 105, $position: [11, 15]]
-[$health-points: 100, $position: [10, 10]]
+GoblinDefaults[$health-points: 100, $position: [0, 0]]
+GoblinDefaults[$health-points: 105, $position: [11, 15]]
+GoblinDefaults[$health-points: 100, $position: [10, 10]]
 
 //= BLUEPRINT WITH COMPLEX FIELDS AND FUNCTION ─────────────────────────────
-[$health-points: 100, $position: [10, 10], $attacks: [$bite: 50, $torch: 40], $status-effect: "poisoned"]
-[$health-points: 110, $position: [15, 10], $attacks: [$bite: 55, $torch: 35], $status-effect: "none"]
+Goblin[$health-points: 100, $position: [10, 10], $attacks: [$bite: 50, $torch: 40], $status-effect: "poisoned"]
+Goblin[$health-points: 110, $position: [15, 10], $attacks: [$bite: 55, $torch: 35], $status-effect: "none"]
 90
 110
 
 //= BLUEPRINT COMPOSITION ──────────────────────────────────────────────────
 [10, 5, 0]
-[$position: [10, 5, 5], $wings: "true", $fly: <function ($z-position-movement) multiline=True>, $lives-near-water: "Text", $swim: <function ($x-position-movement, $y-position-movement) multiline=True>]
+Duck[$position: [10, 5, 5], $wings: "true", $fly: <function ($z-position-movement) multiline=True>, $lives-near-water: "Text", $swim: <function ($x-position-movement, $y-position-movement) multiline=True>]
 5
 "true"
 
 
 //= BLUEPRINT COMPOSITION: CONFLICT ERROR ──────────────────────────────
 error: duplicate property 'x' in composed blueprints
-    C: A and B;
+	C: A and B;
 
 //= SIMPLE VARIANT GROUP (OPTIONS ONLY) ────────────────────────────────
 Magic-Type.Fire
 error: 'Plasma' not a valid Magic-Type
-    $wizard-attacks.bad-spell: Magic-Type.Plasma;
+	$wizard-attacks.bad-spell: Magic-Type.Plasma;
 
 //= VARIANTS WITH BLUEPRINTS (SUM-OF-PRODUCTS) ─────────────────────────
 "heeheehee"

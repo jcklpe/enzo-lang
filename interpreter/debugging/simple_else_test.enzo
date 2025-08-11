@@ -1,0 +1,7 @@
+$status-else: "";
+
+If $status-else, (
+  "Won't print";
+), Else, (
+  "Fallback triggered";
+);

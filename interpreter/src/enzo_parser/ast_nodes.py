@@ -68,6 +68,13 @@ class ListKeyValue(ASTNode):
     def __repr__(self):
         return f"ListKeyValue(keyname={self.keyname!r}, value={self.value!r})"
 
+class ListInterpolation(ASTNode):
+    def __init__(self, expression, code_line=None):
+        super().__init__(code_line)
+        self.expression = expression
+    def __repr__(self):
+        return f"ListInterpolation(expression={self.expression!r})"
+
 class VarInvoke(ASTNode):
     def __init__(self, name, code_line=None):
         super().__init__(code_line)
@@ -106,6 +113,14 @@ class DivNode(ASTNode):
         self.right = right
     def __repr__(self):
         return f"DivNode(left={self.left!r}, right={self.right!r})"
+
+class ModNode(ASTNode):
+    def __init__(self, left, right, code_line=None):
+        super().__init__(code_line)
+        self.left = left
+        self.right = right
+    def __repr__(self):
+        return f"ModNode(left={self.left!r}, right={self.right!r})"
 
 class BindOrRebind(ASTNode):
     def __init__(self, target, value, code_line=None):
@@ -191,6 +206,14 @@ class VariantGroup(ASTNode):
     def __repr__(self):
         return f"VariantGroup(name={self.name!r}, variants={self.variants!r})"
 
+class VariantGroupExtension(ASTNode):
+    def __init__(self, name, variants, code_line=None):
+        super().__init__(code_line)
+        self.name = name
+        self.variants = variants  # List of variant names to add to existing group
+    def __repr__(self):
+        return f"VariantGroupExtension(name={self.name!r}, variants={self.variants!r})"
+
 class VariantAccess(ASTNode):
     def __init__(self, variant_group_name, variant_name, code_line=None):
         super().__init__(code_line)
@@ -241,7 +264,73 @@ class RestructuringBinding(ASTNode):
         self.new_var = new_var           # New variable name for the collection
         self.source_expr = source_expr    # Source expression to destructure from
         self.is_reference = is_reference  # Whether this is reference destructuring
+
     def __repr__(self):
         return f"RestructuringBinding(target_vars={self.target_vars!r}, new_var={self.new_var!r}, source_expr={self.source_expr!r}, is_reference={self.is_reference!r})"
 
-# ...add more as needed
+# Control Flow AST Nodes
+class IfStatement(ASTNode):
+    def __init__(self, condition, then_block, else_block=None, code_line=None):
+        super().__init__(code_line)
+        self.condition = condition       # Condition expression to evaluate
+        self.then_block = then_block     # List of statements to execute if true
+        self.else_block = else_block     # Optional else block (list of statements)
+
+    def __repr__(self):
+        return f"IfStatement(condition={self.condition!r}, then_block={self.then_block!r}, else_block={self.else_block!r})"
+
+class ComparisonExpression(ASTNode):
+    def __init__(self, left, operator, right, code_line=None):
+        super().__init__(code_line)
+        self.left = left          # Left operand
+        self.operator = operator  # Comparison operator ("is", "less than", etc.)
+        self.right = right        # Right operand
+
+    def __repr__(self):
+        return f"ComparisonExpression(left={self.left!r}, operator={self.operator!r}, right={self.right!r})"
+
+class LogicalExpression(ASTNode):
+    def __init__(self, left, operator, right, code_line=None):
+        super().__init__(code_line)
+        self.left = left          # Left operand
+        self.operator = operator  # Logical operator ("and", "or")
+        self.right = right        # Right operand
+
+    def __repr__(self):
+        return f"LogicalExpression(left={self.left!r}, operator={self.operator!r}, right={self.right!r})"
+
+class NotExpression(ASTNode):
+    def __init__(self, operand, code_line=None):
+        super().__init__(code_line)
+        self.operand = operand    # Expression to negate
+
+    def __repr__(self):
+        return f"NotExpression(operand={self.operand!r})"
+
+# Loop Control AST Nodes
+class LoopStatement(ASTNode):
+    def __init__(self, loop_type, body, condition=None, variable=None, iterable=None, is_reference=False, code_line=None):
+        super().__init__(code_line)
+        self.loop_type = loop_type      # "basic", "while", "until", "for"
+        self.body = body               # List of statements to execute in loop
+        self.condition = condition     # Condition for while/until loops
+        self.variable = variable       # Variable name for for loops
+        self.iterable = iterable      # Iterable expression for for loops
+        self.is_reference = is_reference  # True if @ syntax used (reference semantics)
+
+    def __repr__(self):
+        return f"LoopStatement(loop_type={self.loop_type!r}, body={self.body!r}, condition={self.condition!r}, variable={self.variable!r}, iterable={self.iterable!r}, is_reference={self.is_reference!r})"
+
+class EndLoopStatement(ASTNode):
+    def __init__(self, code_line=None):
+        super().__init__(code_line)
+
+    def __repr__(self):
+        return "EndLoopStatement()"
+
+class RestartLoopStatement(ASTNode):
+    def __init__(self, code_line=None):
+        super().__init__(code_line)
+
+    def __repr__(self):
+        return "RestartLoopStatement()"

@@ -1,0 +1,122 @@
+//= ANON REF: ASSIGNMENT TO A VARIABLE
+// The simplest use case: storing an anonymous function reference in a variable.
+$anon_ref_add_one: @(param $x: ; return($x + 1));
+
+// Prove it's a function by calling it.
+$anon_ref_add_one(5); // prints 6
+
+// Prove its type with a conditional check.
+If $anon_ref_add_one is Function, (
+    "Variable holds a function reference"; // Should print
+);
+
+//= ANON REF: STORING IN A LIST
+// A common use case for callbacks or strategies.
+$anon_ref_ops: [
+    @(param $n: ; $n * 2), // Doubler
+    @(param $n: ; $n * $n), // Squarer
+    "not-a-function"
+];
+
+// Invoke the first function from the list.
+$anon_ref_ops.1(10); // prints 20
+
+// Invoke the second function from the list.
+$anon_ref_ops.2(10); // prints 100
+
+//= ANON REF: PASSING DIRECTLY AS A FUNCTION ARGUMENT
+// Defines a higher-order function that accepts a function and a value.
+anon_ref_apply: (
+    param $func: ();
+    param $value: "";
+    return( $func($value) );
+);
+
+// Pass an anonymous function reference directly as an argument.
+anon_ref_apply( @(param $text: ; "Hello, <$text>!"), "Enzo" ); // prints "Hello, Enzo!"
+
+//= ANON REF: IN A LIST PROPERTY (METHOD)
+$anon_ref_calculator: [
+    $base: 10,
+    $op: @(param $x:; $x + $self.base)
+];
+
+$anon_ref_calculator.op(5); // Uses $self to access list properties. Prints 15
+
+//= ANON REF: NESTED ANONYMOUS REFERENCE
+// An anonymous function that *returns* another anonymous function reference.
+$anon_ref_creator: @(
+    param $prefix: ;
+    return( @(param $text:; "<$prefix> <$text>") );
+);
+
+// Call the outer function to get the inner function.
+$anon_ref_logger: $anon_ref_creator("[LOG]");
+// Call the inner function.
+$anon_ref_logger("System Ready"); // prints "[LOG] System Ready"
+
+//= ERROR CASE: FORGETTING THE `@` SIGIL
+// Without `@`, the function atom is immediately evaluated (demand-driven).
+// It returns a Function *object*, which is not a Number, causing a type error inside the function.
+anon_ref_apply( (param $x:; $x * 2), 5 ); // error: param expects Function type
+
+//= ERROR CASE: SYNTAX ERROR INSIDE THE FUNCTION BODY
+$anon_ref_bad_syntax: @(param $x: $x + ); // error: parse error in function atom body
+
+//= CLOSURE: BASIC FUNCTION FACTORY
+// Tests the primary closure pattern: a function-making function.
+clos_make_adder: (
+    param $add_by: ;
+    return( @(param $num: ; $num + $add_by) );
+);
+
+// Create two distinct closures with different captured environments.
+$clos_add2: clos_make_adder(2);
+$clos_add99: clos_make_adder(99);
+
+$clos_add2(10);   // prints 12
+$clos_add99(1);   // prints 100
+
+// the below have not yet be vetted
+//= CLOSURE: STATEFUL COUNTER (ENCAPSULATION)
+// Proves that a closure can be used to maintain a private, mutable state.
+clos_make_counter: (
+    $count: 0; // This variable is private to the closure's environment.
+    return( @(
+        $count + 1 :> $count; // Mutate the captured variable
+        return($count);
+    ) );
+);
+
+$clos_counter_A: clos_make_counter();
+$clos_counter_A(); // prints 1
+$clos_counter_A(); // prints 2
+
+$clos_counter_B: clos_make_counter(); // A completely separate counter
+$clos_counter_B(); // prints 1
+
+$clos_counter_A(); // prints 3 (A's state is independent of B's)
+
+//= CLOSURE: INTERACTION WITH GLOBAL SCOPE SHADOWING
+// Proves the closure uses the variable from its creation scope, not the global scope.
+$clos_shadow: "global";
+
+clos_creator: (
+    $clos_shadow: "captured"; // This is the variable that should be remembered.
+    return( @( return($clos_shadow) ) );
+);
+
+$clos_my_closure: clos_creator();
+"global" :> $clos_shadow; // Change the global variable *after* the closure is created.
+
+$clos_my_closure(); // prints "captured", proving it uses its remembered scope.
+
+//= CLOSURE: STORED IN A DATA STRUCTURE
+// Proves a closure maintains its scope even when stored in a list.
+$clos_list: [
+    clos_make_adder(10), // Store the closure in the list
+    clos_make_adder(-1)
+];
+
+$clos_list.1(5);  // prints 15
+$clos_list.2(5);  // prints 4

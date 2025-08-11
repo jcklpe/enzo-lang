@@ -36,9 +36,11 @@ TOKEN_SPEC = [
     ("STAR", r"\*"),
     ("COMMENT", r"//.*"),  # Move COMMENT before SLASH to match "//" properly
     ("SLASH", r"/"),
+    ("MODULO", r"%"),
     ("AND", r"\band\b"),            # \b for word boundaries
     ("OR", r"\bor\b"),              # \b for word boundaries
     ("VARIANTS", r"\bvariants\b"),  # \b for word boundaries
+    ("INCLUDE", r"\binclude\b"),    # \b for word boundaries
     ("LT", r"<"),
     ("GT", r">"),
     ("EQ_SINGLE", r"="),
@@ -48,6 +50,31 @@ TOKEN_SPEC = [
     ("RETURN", r"return"),  # Add RETURN keyword before KEYNAME
     ("THEN", r"then"),      # Add THEN keyword before KEYNAME
     ("PARAM", r"param"),    # Add PARAM keyword before KEYNAME
+    # Control flow keywords (must come before KEYNAME)
+    # Note: ELSE_IF must come before ELSE to match the longer pattern first
+    ("ELSE_IF", r"\bElse if\b"),
+    ("IF", r"\bIf\b"),
+    ("ELSE", r"\bElse\b"),
+    # Loop control keywords (must come before LOOP to match longer patterns first)
+    ("END_LOOP", r"\bend-loop\b"),
+    ("RESTART_LOOP", r"\brestart-loop\b"),
+    ("LOOP", r"\bLoop\b"),
+    ("WHILE", r"\bwhile\b"),
+    ("UNTIL", r"\buntil\b"),
+    ("FOR", r"\bfor\b"),
+    ("IN", r"\bin\b"),
+    ("END", r"\bend\b"),
+    ("NOT", r"\bnot\b"),
+    ("IS", r"\bis\b"),
+    ("LESS", r"\bless\b"),
+    ("THAN", r"\bthan\b"),
+    ("GREATER", r"\bgreater\b"),
+    ("AT_WORD", r"\bat\b"),         # "at" as a word (for "at most", "at least")
+    ("MOST", r"\bmost\b"),
+    ("LEAST", r"\bleast\b"),
+    ("CONTAINS", r"\bcontains\b"),
+    ("EITHER", r"\beither\b"),
+    ("OTHERWISE", r"\bOtherwise\b"),
     ("THIS", r"\$this"),    # Add $this as dedicated reserved token
     # Allow dashes in variable names after the first character for both $-prefixed and non-prefixed
     ("KEYNAME",      r"\$[a-zA-Z0-9_-]+|[a-zA-Z_][a-zA-Z0-9_-]*"),

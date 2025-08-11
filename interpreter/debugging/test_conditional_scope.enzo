@@ -1,0 +1,9 @@
+// Test: Should conditional function atoms have their own scope?
+$x: "global";
+
+If true, (
+  $x: "local";
+  $x;  // Should this print "local" or should $x be bound in global scope?
+);
+
+$x;  // Should this print "global" or "local"?

@@ -1,5 +1,5 @@
 //= INVOKING AN UNDEFINED VARIABLE
-$undefinedVar;      // error: undefined: $undefinedVar
+$undefinedVar;// error: undefined variable
 
 //= EMPTY BIND ────────────────────────────────────────────────────────────
 $x: ;
@@ -25,7 +25,7 @@ $Var123: 10;
 $Var123;                  // prints “10”
 $var-xyz: 20;
 $var-xyz;                 // prints “20”
-($Var123 + $var-xyz);       // prints “30”
+$Var123 + $var-xyz;       // prints “30”
 $var_xyz: 30;
 $var_xyz;                 // prints “30”
 
@@ -37,8 +37,8 @@ $dougie <: "cool dude";     // should not error.
 $dougie;                    // prints "cool dude".
 
 //= MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
-$u: 1; $v: 2; ($u + $v);    // prints “3”
-$apples:1;$bananas:2; ($apples+$bananas);       // prints 3
+$u: 1; $v: 2; $u + $v;    // prints “3”
+$apples:1;$bananas:2; $apples+$bananas;       // prints 3
 $apricot :  1 ; $boranges: 2;        // spacing should not break anything
 $boranges;
 

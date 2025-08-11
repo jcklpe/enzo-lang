@@ -1,0 +1,3 @@
+BP-example: <[foo: Number]>;
+$bp1: BP-example[$foo: 10];
+$li31: [<$bp1>];

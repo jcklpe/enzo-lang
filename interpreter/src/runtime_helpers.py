@@ -55,7 +55,11 @@ def log_debug(msg):
 def deep_copy_enzo_value(value):
     """Create a deep copy of an Enzo value (lists, tables, etc.)."""
     if isinstance(value, EnzoList):
-        new_list = EnzoList()
+        # Preserve the blueprint instance flag and name when copying
+        new_list = EnzoList(
+            is_blueprint_instance=getattr(value, '_is_blueprint_instance', False),
+            blueprint_name=getattr(value, '_blueprint_name', None)
+        )
         # Copy all elements
         for element in value._elements:
             new_list.append(deep_copy_enzo_value(element))
@@ -79,9 +83,11 @@ def deep_copy_enzo_value(value):
 class EnzoList:
     """Enhanced list that supports both indexed and keyed access."""
 
-    def __init__(self):
+    def __init__(self, is_blueprint_instance=False, blueprint_name=None):
         self._elements = []     # All elements in insertion order
         self._key_map = {}      # Maps key names to indices
+        self._is_blueprint_instance = is_blueprint_instance  # Track if this came from a blueprint
+        self._blueprint_name = blueprint_name  # Store blueprint name for proper printing
 
     def append(self, value):
         """Add an element with automatic index."""
@@ -197,4 +203,29 @@ class EnzoList:
             else:
                 items.append(format_val(element))
 
-        return f"[{', '.join(items)}]"
+        list_content = f"[{', '.join(items)}]"
+
+        # If this is a blueprint instance, prefix with blueprint name
+        if self._is_blueprint_instance and self._blueprint_name:
+            return f"{self._blueprint_name}{list_content}"
+        else:
+            return list_content
+
+    def __eq__(self, other):
+        """Check equality with another list or EnzoList."""
+        if isinstance(other, EnzoList):
+            # Compare elements and key mappings
+            return (self._elements == other._elements and
+                    self._key_map == other._key_map)
+        elif isinstance(other, list):
+            # Compare with regular Python list - only if no keys are set
+            if self._key_map:
+                return False  # EnzoList with keys can't equal plain list
+            return self._elements == other
+        return False
+
+    def __hash__(self):
+        """Make EnzoList hashable for use as dict keys."""
+        # Convert key_map to a frozenset of items for hashing
+        key_items = frozenset(self._key_map.items()) if self._key_map else frozenset()
+        return hash((tuple(self._elements), key_items))

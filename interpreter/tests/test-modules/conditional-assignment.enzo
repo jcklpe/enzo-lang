@@ -1,0 +1,44 @@
+//= BASIC ASSIGNMENT: IF-TRUE PATH
+// Assigns the result of the `If` block because the condition is true.
+$age-33: 21;
+$status-33: If $age-33 is at least 18, ("adult"), Else, ("minor");
+$status-33; // prints "adult"
+
+//= BASIC ASSIGNMENT: ELSE-FALSE PATH
+// Assigns the result of the `Else` block because the condition is false.
+$age-33 <: 16;
+$status-333: If $age-33 is at least 18, ("adult"), Else, ("minor");
+$status-333; // prints "minor"
+
+//= REBINDING AN EXISTING VARIABLE
+// The result of the conditional expression is used to rebind $status.
+$status-33 <: If $age-33 is at least 13, ("teenager"), Else, ("child");
+$status-33; // prints "teenager"
+
+//= TYPE CONSISTENCY ON REBINDING
+// The first assignment locks $result's type to Number. The second assignment
+// attempts to rebind it with a Text from the Else block, which should fail.
+$result-33: If True, (100), Else, (200);
+$result-33; // prints 100
+$result-33 <: If False, (300), Else, ("error-type"); // error: cannot bind Text to Number
+
+//= NESTED INLINE CONDITIONALS IN ASSIGNMENT
+// Tests that a nested conditional can resolve and its value be used by the outer conditional.
+$is-member: False;
+$cart-items: 2;
+$shipping-cost: If $is-member, (
+    0 // Free shipping for members
+), Else, (
+    If $cart-items is greater than 3, (
+        5 // Reduced shipping for large orders
+    ), Else, (
+        10 // Standard shipping
+    )
+);
+$shipping-cost; // prints 10
+
+//= INLINE IF: BODY IS A SCOPE AND DOES NOT LEAK
+$inline-test: "outer";
+$result-scope: If True, ( $inline-test: "inner"; $inline-test ), Else ( "never" );
+"Result of inline If: <$result-scope>"; // Prints "inner"
+"After inline If: <$inline-test>"; // Global is unaffected by the shadow. Prints "outer"

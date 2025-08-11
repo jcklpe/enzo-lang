@@ -1,8 +1,17 @@
 from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val, log_debug, EnzoList, deep_copy_enzo_value
 from collections import ChainMap
-from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, ModNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantGroupExtension, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding, IfStatement, ComparisonExpression, LogicalExpression, NotExpression, LoopStatement, EndLoopStatement, RestartLoopStatement, ListKeyValue, ListInterpolation
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
+
+# Loop control signals
+class EndLoopSignal(Exception):
+    def __init__(self, last_result=None):
+        self.last_result = last_result
+
+class RestartLoopSignal(Exception):
+    def __init__(self, last_result=None):
+        self.last_result = last_result
 from src.error_messaging import (
     error_message_already_defined,
     error_message_unknown_variable,
@@ -26,7 +35,8 @@ from src.error_messaging import (
     error_message_too_many_args,
     error_message_arg_type_mismatch,
     error_message_missing_necessary_params,
-    error_message_cannot_reference_this_in_named_function
+    error_message_cannot_reference_this_in_named_function,
+    error_message_for_loop_non_iterable
 )
 import os
 
@@ -57,6 +67,14 @@ class EnzoVariantInstance:
 
     def __repr__(self):
         return f"{self.group_name}.{self.variant_name}"
+
+    def __eq__(self, other):
+        if not isinstance(other, EnzoVariantInstance):
+            return False
+        return self.group_name == other.group_name and self.variant_name == other.variant_name
+
+    def __hash__(self):
+        return hash((self.group_name, self.variant_name))
 
 class EnzoVariantGroup:
     def __init__(self, name, variants, group_blueprint=None):
@@ -130,7 +148,30 @@ class ReferenceWrapper:
     def __repr__(self):
         return f"<reference to {self.expr}>"
 
-def invoke_function(fn, args, env, self_obj=None):
+class ListElementReference:
+    """Reference wrapper for list elements in for loops with @ syntax."""
+    def __init__(self, source_list, index):
+        self.source_list = source_list  # The original list
+        self.index = index  # The index in the list
+
+    def get_value(self):
+        """Get the current value of the list element."""
+        if isinstance(self.source_list, EnzoList):
+            return self.source_list[self.index]
+        else:
+            return self.source_list[self.index]
+
+    def set_value(self, value):
+        """Set the value of the list element."""
+        if isinstance(self.source_list, EnzoList):
+            self.source_list[self.index] = value
+        else:
+            self.source_list[self.index] = value
+
+    def __repr__(self):
+        return f"<reference to list element {self.index}>"
+
+def invoke_function(fn, args, env, self_obj=None, is_loop_context=False):
     if not isinstance(fn, EnzoFunction):
         raise EnzoTypeError(error_message_not_a_function(fn), code_line=getattr(fn, 'code_line', None))
 
@@ -174,7 +215,7 @@ def invoke_function(fn, args, env, self_obj=None):
             if default is None:
                 # This should never happen since we already checked required params above
                 raise EnzoRuntimeError(error_message_missing_necessary_params())
-            default_val = eval_ast(default, value_demand=True, env=ChainMap(call_env, env))
+            default_val = eval_ast(default, value_demand=True, env=ChainMap(call_env, env), is_loop_context=is_loop_context)
             # Default values are also copied
             call_env[param_name] = deep_copy_enzo_value(default_val)
 
@@ -192,11 +233,7 @@ def invoke_function(fn, args, env, self_obj=None):
     # For function execution, we need to allow local variables to shadow global ones
     # So we'll use a special binding context that doesn't check for global conflicts
 
-    # Check if multi-line function atom has explicit return
-    if getattr(fn, 'is_multiline', False):
-        has_return = any(isinstance(stmt, ReturnNode) for stmt in fn.body)
-        if not has_return:
-            raise EnzoRuntimeError(error_message_multiline_function_requires_return())
+    # Multi-line function atoms no longer require explicit returns - they return the last evaluated expression
 
     # Execute all statements in order: local_vars are bindings that appeared in the function body
     # and should be executed in the order they appeared relative to other statements
@@ -208,13 +245,20 @@ def invoke_function(fn, args, env, self_obj=None):
 
         # Execute local variables (bindings like $x: 5;)
         for local_var in getattr(fn, 'local_vars', []):
-            res = eval_ast(local_var, value_demand=True, env=combined_env, is_function_context=True)
+            res = eval_ast(local_var, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=False)
 
         # Execute body statements (rebinds, returns, etc.)
         for stmt in fn.body:
-            res = eval_ast(stmt, value_demand=True, env=combined_env, is_function_context=True)
+            res = eval_ast(stmt, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=False)
     except ReturnSignal as ret:
         return ret.value
+    except (EndLoopSignal, RestartLoopSignal) as loop_signal:
+        # For loop control signals, return the last result before re-raising
+        # This ensures that expressions before end-loop/restart-loop are captured
+        if res is not None:
+            # Store the result for the calling loop to collect
+            loop_signal.last_result = res
+        raise
     return res
 
 
@@ -249,7 +293,7 @@ def _get_enzo_type(value):
         return type(value).__name__.lower()
 
 
-def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None, is_function_context=False):
+def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None, is_function_context=False, outer_env=None, loop_locals=None, is_loop_context=False):
     if env is None:
         env = _env
     if node is None:
@@ -274,6 +318,21 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 else:
                     value = eval_ast(el.value, value_demand=True, env=env)
                 enzo_list.set_key(key, value)
+            elif isinstance(el, ListInterpolation):
+                # List interpolation: evaluate expression and expand if it's a list
+                interpolated_value = eval_ast(el.expression, value_demand=True, env=env)
+
+                if isinstance(interpolated_value, EnzoList):
+                    # Check if this is a blueprint instance - don't interpolate blueprint instances
+                    if getattr(interpolated_value, '_is_blueprint_instance', False):
+                        raise EnzoRuntimeError("error: cannot interpolate non-List into a List", code_line=getattr(el, 'code_line', None))
+
+                    # Expand the list contents into this list
+                    for item in interpolated_value._elements:
+                        enzo_list.append(item)
+                else:
+                    # Non-list value: raise error as per test expectations
+                    raise EnzoRuntimeError("error: cannot interpolate non-List into a List", code_line=getattr(el, 'code_line', None))
             else:
                 # Regular element - gets auto-indexed
                 if isinstance(el, FunctionAtom):
@@ -338,6 +397,11 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             actual_val = deep_copy_enzo_value(val)
 
         env[name] = actual_val
+
+        # Track this variable as a loop-local shadow if we're in a loop context
+        if loop_locals is not None:
+            loop_locals.add(name)
+
         # For variable bindings, also make accessible with/without $ prefix
         if name.startswith('$'):
             # Make $variable also accessible as bare name
@@ -682,8 +746,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         source_value = eval_ast(node.source_expr, value_demand=True, env=env)
 
         # Ensure source is iterable
-        if hasattr(source_value, 'elements'):  # EnzoList
-            items = source_value.elements
+        if isinstance(source_value, EnzoList):
+            items = source_value._elements
         elif isinstance(source_value, list):
             items = source_value
         elif isinstance(source_value, dict):
@@ -717,13 +781,13 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
     if isinstance(node, RestructuringBinding):
         # Handle restructuring: $var1, $var2 -> $new: source[]
-        
+
         # Special case: If new_var is None, this might be reverse assignment
         # Syntax: [$var1, $var2] :> $target[] should assign values TO target
         if node.new_var is None:
             # This is reverse assignment: write target_vars values to source_expr
             target_list = eval_ast(node.source_expr, value_demand=True, env=env)
-            
+
             # Create new list with current values of target_vars
             new_elements = []
             for var_name in node.target_vars:
@@ -731,7 +795,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     new_elements.append(env[var_name])
                 else:
                     new_elements.append(Empty())
-            
+
             # Replace the target list contents
             if hasattr(target_list, '_elements'):  # EnzoList
                 target_list._elements.clear()
@@ -753,7 +817,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         dollar_name = '$' + target_var
                         if dollar_name not in env:
                             env[dollar_name] = new_elements
-            
+
             return None
 
         # Regular restructuring logic (extraction)
@@ -900,7 +964,19 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 if value_demand:
                     if not name.startswith('$'):
                         raise EnzoRuntimeError("error: expected function reference (@) or function invocation ($)", code_line=node.code_line)
-                    return invoke_function(referenced_val, [], env, self_obj=None)
+                    return invoke_function(referenced_val, [], env, self_obj=None, is_loop_context=is_loop_context)
+            return referenced_val
+
+        # Handle list element reference: return the current value of the list element
+        if isinstance(val, ListElementReference):
+            referenced_val = val.get_value()
+            # Check if the referenced value is a function
+            if isinstance(referenced_val, EnzoFunction):
+                # Auto-invoke functions when referenced with $ sigil in value_demand context
+                if value_demand:
+                    if not name.startswith('$'):
+                        raise EnzoRuntimeError("error: expected function reference (@) or function invocation ($)", code_line=node.code_line)
+                    return invoke_function(referenced_val, [], env, self_obj=None, is_loop_context=is_loop_context)
             return referenced_val
 
         # Check if this is a function
@@ -910,7 +986,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 # Bare function names (without $ sigil) cannot be auto-invoked
                 if not name.startswith('$'):
                     raise EnzoRuntimeError("error: expected function reference (@) or function invocation ($)", code_line=node.code_line)
-                return invoke_function(val, [], env, self_obj=None)
+                return invoke_function(val, [], env, self_obj=None, is_loop_context=is_loop_context)
         return val
     if isinstance(node, FunctionRef):
         # Evaluate the expression to get the function object
@@ -970,27 +1046,41 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # Demand-value context: invoke
         if value_demand:
             fn = EnzoFunction(node.params, node.local_vars, node.body, env, getattr(node, 'is_multiline', False))
-            return invoke_function(fn, [], env, self_obj=None)
+            return invoke_function(fn, [], env, self_obj=None, is_loop_context=is_loop_context)
         else:
             return EnzoFunction(node.params, node.local_vars, node.body, env, getattr(node, 'is_multiline', False))
     if isinstance(node, AddNode):
-        left = eval_ast(node.left, value_demand=True, env=env)
-        right = eval_ast(node.right, value_demand=True, env=env)
+        left = eval_ast(node.left, value_demand=True, env=env, is_loop_context=is_loop_context)
+        right = eval_ast(node.right, value_demand=True, env=env, is_loop_context=is_loop_context)
         return left + right
     if isinstance(node, SubNode):
-        left = eval_ast(node.left, value_demand=True, env=env)
-        right = eval_ast(node.right, value_demand=True, env=env)
+        left = eval_ast(node.left, value_demand=True, env=env, is_loop_context=is_loop_context)
+        right = eval_ast(node.right, value_demand=True, env=env, is_loop_context=is_loop_context)
         return left - right
     if isinstance(node, MulNode):
-        left = eval_ast(node.left, value_demand=True, env=env)
-        right = eval_ast(node.right, value_demand=True, env=env)
+        left = eval_ast(node.left, value_demand=True, env=env, is_loop_context=is_loop_context)
+        right = eval_ast(node.right, value_demand=True, env=env, is_loop_context=is_loop_context)
         return left * right
     if isinstance(node, DivNode):
-        left = eval_ast(node.left, value_demand=True, env=env)
-        right = eval_ast(node.right, value_demand=True, env=env)
+        left = eval_ast(node.left, value_demand=True, env=env, is_loop_context=is_loop_context)
+        right = eval_ast(node.right, value_demand=True, env=env, is_loop_context=is_loop_context)
         return left / right
+    if isinstance(node, ModNode):
+        left = eval_ast(node.left, value_demand=True, env=env, is_loop_context=is_loop_context)
+        right = eval_ast(node.right, value_demand=True, env=env, is_loop_context=is_loop_context)
+
+        # Check for modulo by zero
+        if right == 0:
+            raise EnzoRuntimeError("error: No division by zero", code_line=getattr(node, 'code_line', None))
+
+        # Implement Euclidean modulo: result is always non-negative
+        # For Euclidean modulo: a = bq + r where 0 ≤ r < |b|
+        result = left % right
+        if result < 0:
+            result += abs(right)
+        return result
     if isinstance(node, Invoke):
-        left = eval_ast(node.func, value_demand=False, env=env)  # Get function object, don't invoke it yet
+        left = eval_ast(node.func, value_demand=False, env=env, is_loop_context=is_loop_context)  # Get function object, don't invoke it yet
 
         # If left is a ReferenceWrapper that refers to a function, dereference it
         if isinstance(left, ReferenceWrapper):
@@ -999,13 +1089,13 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # Evaluate arguments, but preserve ReferenceWrapper objects for function calls
         args = []
         for arg in node.args:
-            arg_result = eval_ast(arg, value_demand=False, env=env)  # Don't dereference yet
+            arg_result = eval_ast(arg, value_demand=False, env=env, is_loop_context=is_loop_context)  # Don't dereference yet
             if isinstance(arg_result, ReferenceWrapper):
                 # Keep the ReferenceWrapper for the function call
                 args.append(arg_result)
             else:
                 # For non-references, evaluate normally
-                args.append(eval_ast(arg, value_demand=True, env=env))
+                args.append(eval_ast(arg, value_demand=True, env=env, is_loop_context=is_loop_context))
 
         # EnzoList indexing and keyed access
         if isinstance(left, EnzoList):
@@ -1019,11 +1109,11 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         raise EnzoTypeError(error_message_index_must_be_integer(), code_line=getattr(node, 'code_line', None))
                     idx = int(key)
                     return left.get_by_index(idx)
-                # Try key access (if it's a string)
+                # String values should be treated as invalid index types, not property access
                 elif isinstance(key, str):
-                    return left.get_by_key(key)
+                    raise EnzoTypeError(error_message_index_must_be_integer(), code_line=getattr(node, 'code_line', None))
                 else:
-                    raise EnzoTypeError(error_message_index_must_be_number(), code_line=getattr(node, 'code_line', None))
+                    raise EnzoTypeError(error_message_index_must_be_integer(), code_line=getattr(node, 'code_line', None))
             except IndexError:
                 raise EnzoRuntimeError(error_message_list_index_out_of_range(), code_line=getattr(node, 'code_line', None))
             except KeyError:
@@ -1064,7 +1154,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             if isinstance(node.func, ListIndex) and getattr(node.func, 'is_property_access', False):
                 # This is a method invocation - get the base object for $self
                 self_obj = eval_ast(node.func.base, env=env)
-            return invoke_function(left, args, env, self_obj=self_obj)
+            return invoke_function(left, args, env, self_obj=self_obj, is_loop_context=is_loop_context)
         # Not a list or function
         raise EnzoTypeError(error_message_index_applies_to_lists(), code_line=getattr(node, 'code_line', None))
     if isinstance(node, Program):
@@ -1072,14 +1162,9 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         results = []
         for stmt in node.statements:
             if stmt is not None:
-                try:
-                    val = eval_ast(stmt, value_demand=True, env=env)
-                    if val is not None:
-                        results.append(val)
-                except Exception as e:
-                    # Format the error as string, as the test runner expects error output
-                    results.append(str(e))
-                    break  # Stop evaluating further statements after the first error
+                val = eval_ast(stmt, value_demand=True, env=env)
+                if val is not None:
+                    results.append(val)
         # Print each result on its own line (handled by CLI), or return as list for test runner
         return results
     if isinstance(node, list):
@@ -1108,16 +1193,16 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # If right side is a FunctionAtom, invoke it directly
         if isinstance(right_expr, FunctionAtom):
             fn = EnzoFunction(right_expr.params, right_expr.local_vars, right_expr.body, pipeline_env, getattr(right_expr, 'is_multiline', False))
-            return invoke_function(fn, [], pipeline_env, self_obj=None)
+            return invoke_function(fn, [], pipeline_env, self_obj=None, is_loop_context=False)
         # For expressions that can potentially reference $this, evaluate in pipeline environment
-        elif isinstance(right_expr, (AddNode, SubNode, MulNode, DivNode, VarInvoke, Invoke, TextAtom, ListIndex, ReferenceAtom)):
+        elif isinstance(right_expr, (AddNode, SubNode, MulNode, DivNode, ModNode, VarInvoke, Invoke, TextAtom, ListIndex, ReferenceAtom, IfStatement)):
             return eval_ast(right_expr, value_demand=True, env=pipeline_env)
         else:
             # For literals and other nodes that can't reference $this, this doesn't make sense
             raise EnzoRuntimeError("error: pipeline expects function atom after `then`", code_line=getattr(node, 'code_line', None))
     if isinstance(node, BindOrRebind):
         target = node.target
-        value = eval_ast(node.value, value_demand=True, env=env)
+        value = eval_ast(node.value, value_demand=True, env=env, outer_env=outer_env, loop_locals=loop_locals)
 
         # Handle reference vs copy semantics
         if isinstance(value, ReferenceWrapper):
@@ -1129,6 +1214,10 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
         def enzo_type(val):
             if isinstance(val, ReferenceWrapper):
+                # For type checking, look at the referenced value
+                referenced_val = val.get_value()
+                return enzo_type(referenced_val)
+            if isinstance(val, ListElementReference):
                 # For type checking, look at the referenced value
                 referenced_val = val.get_value()
                 return enzo_type(referenced_val)
@@ -1148,24 +1237,62 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # Assignment to variable
         if isinstance(target, str):
             name = target
-            if name not in env:
-                env[name] = actual_value
+            # For rebinding operations:
+            # - If variable was shadowed in this loop (in loop_locals), rebind in current env
+            # - If variable exists in outer_env and not shadowed, rebind in outer_env
+            # - Otherwise rebind in current env
+            if loop_locals is not None and name in loop_locals:
+                # Variable was shadowed in this loop - rebind in current env only
+                target_env = env
+                update_current_env = False
+            elif outer_env is not None and name in outer_env:
+                # Variable exists in outer scope and not shadowed - rebind there
+                target_env = outer_env
+                # Also update current env to maintain consistency
+                update_current_env = True
+            else:
+                # Variable doesn't exist in outer scope, or no outer scope - use current
+                target_env = env
+                update_current_env = False
+
+            if name not in target_env:
+                target_env[name] = actual_value
+                if update_current_env and env is not target_env:
+                    env[name] = actual_value
                 return None
-            old_val = env[name]
+            old_val = target_env[name]
             if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(actual_value):
                 raise EnzoRuntimeError(error_message_cannot_bind(enzo_type(actual_value), enzo_type(old_val)), code_line=node.code_line)
-            env[name] = actual_value
+            target_env[name] = actual_value
+            # Also update current env to maintain consistency for reads
+            if update_current_env and env is not target_env:
+                env[name] = actual_value
             return None
         # Assignment to variable via VarInvoke
         if isinstance(target, VarInvoke):
             name = target.name
             t_code_line = getattr(target, 'code_line', node.code_line)
-            if name not in env:
-                env[name] = actual_value
-                return None
-            old_val = env[name]
+            # For rebinding operations: same logic as string targets
+            if loop_locals is not None and name in loop_locals:
+                # Variable was shadowed in this loop - rebind in current env only
+                target_env = env
+                update_current_env = False
+            elif outer_env is not None and name in outer_env:
+                # Variable exists in outer scope and not shadowed - rebind there
+                target_env = outer_env
+                # Also update current env to maintain consistency
+                update_current_env = True
+            else:
+                # Variable doesn't exist in outer scope, or no outer scope - use current
+                target_env = env
+                update_current_env = False
 
-            # Special case: if the target variable contains a ReferenceWrapper,
+            if name not in target_env:
+                target_env[name] = actual_value
+                if update_current_env and env is not target_env:
+                    env[name] = actual_value
+                return None
+            old_val = target_env[name]            # Special case: if the target variable contains a ReferenceWrapper,
             # we need to update the original referenced variable
             if isinstance(old_val, ReferenceWrapper):
                 # Get the target expression and environment from the reference
@@ -1224,10 +1351,22 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     else:
                         raise EnzoRuntimeError("Cannot assign to complex reference", code_line=t_code_line)
 
+            elif isinstance(old_val, ListElementReference):
+                # Special case: if the target variable contains a ListElementReference,
+                # we need to update the original list element
+                list_old_val = old_val.get_value()
+                if not isinstance(list_old_val, Empty) and enzo_type(list_old_val) != enzo_type(actual_value):
+                    raise EnzoRuntimeError(error_message_cannot_bind(enzo_type(actual_value), enzo_type(list_old_val)), code_line=node.code_line)
+                old_val.set_value(actual_value)
+                return None
+
             # Normal variable assignment
             if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(actual_value):
                 raise EnzoRuntimeError(error_message_cannot_bind(enzo_type(actual_value), enzo_type(old_val)), code_line=t_code_line)
-            env[name] = actual_value
+            target_env[name] = actual_value
+            # Also update current env to maintain consistency for reads
+            if update_current_env and env is not target_env:
+                env[name] = actual_value
             return None
         # Binding to list index
         if isinstance(target, ListIndex):
@@ -1364,7 +1503,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     val = base.get_by_index(int(idx))
                     # Auto-invoke functions in value demand context
                     if value_demand and isinstance(val, EnzoFunction):
-                        return invoke_function(val, [], env, self_obj=None)
+                        return invoke_function(val, [], env, self_obj=None, is_loop_context=is_loop_context)
                     return val
                 elif isinstance(idx, str):
                     # Check if this is property access (.foo) or string indexing (."foo")
@@ -1373,7 +1512,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         val = base.get_by_key(idx)
                         # Auto-invoke functions in value demand context
                         if value_demand and isinstance(val, EnzoFunction):
-                            return invoke_function(val, [], env, self_obj=base)
+                            return invoke_function(val, [], env, self_obj=base, is_loop_context=is_loop_context)
                         return val
                     else:
                         # String indexing like ."foo" should error
@@ -1407,8 +1546,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
         # Legacy list handling and property access on non-EnzoList objects
         if isinstance(idx, str):
-            # String indexing should give "can't use text as index"
-            raise EnzoRuntimeError(error_message_cant_use_text_as_index(), code_line=t_code_line)
+            # String indexing should give "list index must be an integer"
+            raise EnzoRuntimeError(error_message_index_must_be_integer(), code_line=t_code_line)
         if not isinstance(base, list):
             if isinstance(node.base, VarInvoke):
                 raise EnzoRuntimeError(error_message_index_applies_to_lists(), code_line=t_code_line)
@@ -1418,7 +1557,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         val = base[idx - 1]
         # Auto-invoke functions in value demand context
         if value_demand and isinstance(val, EnzoFunction):
-            return invoke_function(val, [], env, self_obj=None)
+            return invoke_function(val, [], env, self_obj=None, is_loop_context=is_loop_context)
         return val
     if isinstance(node, ParameterDeclaration):
         raise EnzoRuntimeError(error_message_param_outside_function(), code_line=getattr(node, 'code_line', None))
@@ -1442,7 +1581,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             raise EnzoRuntimeError(f"error: '{blueprint_name}' is not a blueprint", code_line=getattr(node, 'code_line', None))
 
         # Create an instance by evaluating the field values and creating an EnzoList
-        instance = EnzoList()
+        instance = EnzoList(is_blueprint_instance=True, blueprint_name=blueprint_name)
 
         # Create a map of provided field values for efficient lookup
         provided_values = {}
@@ -1529,6 +1668,40 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # Create a runtime variant group that validates variant access
         return EnzoVariantGroup(node.name, variant_names, group_blueprint)
 
+    if isinstance(node, VariantGroupExtension):
+        # VariantGroupExtension represents extending an existing variant group
+        group_name = node.name
+
+        # Check if the variant group exists
+        if group_name not in env:
+            raise EnzoRuntimeError(f"error: cannot extend undefined variant group '{group_name}'", code_line=getattr(node, 'code_line', None))
+
+        existing_group = env[group_name]
+        if not isinstance(existing_group, EnzoVariantGroup):
+            raise EnzoRuntimeError(f"error: '{group_name}' is not a variant group", code_line=getattr(node, 'code_line', None))
+
+        # Process new variants to add
+        new_variant_names = []
+        for variant in node.variants:
+            if isinstance(variant, tuple):
+                # Inline blueprint definition: (variant_name, blueprint_def)
+                variant_name, blueprint_def = variant
+                new_variant_names.append(variant_name)
+                env[variant_name] = blueprint_def
+            else:
+                # Simple variant name
+                new_variant_names.append(variant)
+
+        # Create extended variant group by merging with existing
+        all_variants = list(existing_group.variants) + new_variant_names
+        extended_group = EnzoVariantGroup(group_name, all_variants, existing_group.group_blueprint)
+
+        # Update the environment with the extended group
+        env[group_name] = extended_group
+
+        # Return None for extensions - they are side-effect operations
+        return None
+
     if isinstance(node, VariantAccess):
         # VariantAccess represents accessing a variant (e.g., Magic-Type.Fire)
         variant_group_name = node.variant_group_name
@@ -1580,7 +1753,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             blueprints_to_compose.append(variant_blueprint)
 
         # Create an instance by combining all blueprints
-        instance = EnzoList()
+        instance = EnzoList(is_blueprint_instance=True, blueprint_name=variant_name)
 
         # Create a map of provided field values for efficient lookup
         provided_values = {}
@@ -1621,6 +1794,381 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 instance.set_key(key_with_prefix, default_value)
 
         return instance
+
+    # Control flow evaluation
+    if isinstance(node, IfStatement):
+        # Check if this is a non-exclusive multi-branch
+        if hasattr(node, 'is_non_exclusive_multi_branch') and node.is_non_exclusive_multi_branch:
+            # For non-exclusive multi-branch, evaluate all conditions and execute all matching ones
+            results = []
+            any_executed = False
+
+            try:
+                for condition, then_block in node.all_branches:
+                    condition_result = eval_ast(condition, env=env, is_loop_context=is_loop_context)
+                    if _is_truthy(condition_result):
+                        any_executed = True
+                        # Execute this branch and collect all results
+                    for stmt in then_block:
+                        result = eval_ast(stmt, env=env, is_loop_context=is_loop_context, is_function_context=is_function_context, outer_env=outer_env, loop_locals=loop_locals)
+                        if result is not None:
+                            results.append(result)                # If no branches executed and there's an else block, execute it
+                if not any_executed and node.else_block:
+                    for stmt in node.else_block:
+                        result = eval_ast(stmt, env=env, is_loop_context=is_loop_context, is_function_context=is_function_context, outer_env=outer_env, loop_locals=loop_locals)
+                        if result is not None:
+                            results.append(result)
+            except (EndLoopSignal, RestartLoopSignal) as signal:
+                # Collect any results that were accumulated before the signal, then re-raise
+                if results and hasattr(signal, 'last_result'):
+                    # If signal doesn't have a result yet, store our collected results
+                    if signal.last_result is None:
+                        signal.last_result = results[-1] if len(results) == 1 else results if results else None
+                elif results and not hasattr(signal, 'last_result'):
+                    # Add last_result attribute with our collected results
+                    signal.last_result = results[-1] if len(results) == 1 else results if results else None
+                raise
+
+            # Return all results as a list if there are multiple, or the single result
+            if len(results) == 0:
+                return None
+            elif len(results) == 1:
+                return results[0]
+            else:
+                return results
+        else:
+            # Regular exclusive if statement
+            condition_result = eval_ast(node.condition, env=env, is_loop_context=is_loop_context)
+            if _is_truthy(condition_result):
+                # Execute then block - collect all non-None results
+                results = []
+                try:
+                    for stmt in node.then_block:
+                        result = eval_ast(stmt, env=env, is_loop_context=is_loop_context, is_function_context=is_function_context, outer_env=outer_env, loop_locals=loop_locals)
+                        if result is not None:
+                            results.append(result)
+                except (EndLoopSignal, RestartLoopSignal) as signal:
+                    # Collect any results that were accumulated before the signal, then re-raise
+                    if results and hasattr(signal, 'last_result'):
+                        # If signal doesn't have a result yet, store our collected results
+                        if signal.last_result is None:
+                            signal.last_result = results[-1] if len(results) == 1 else results if results else None
+                    elif results and not hasattr(signal, 'last_result'):
+                        # Add last_result attribute with our collected results
+                        signal.last_result = results[-1] if len(results) == 1 else results if results else None
+                    raise
+
+                # Return all results as a list if there are multiple, or the single result
+                if len(results) == 0:
+                    return None
+                elif len(results) == 1:
+                    return results[0]
+                else:
+                    return results
+            elif node.else_block:
+                # Execute else block - collect all non-None results
+                results = []
+                try:
+                    for stmt in node.else_block:
+                        result = eval_ast(stmt, env=env, is_loop_context=is_loop_context, is_function_context=is_function_context, outer_env=outer_env, loop_locals=loop_locals)
+                        if result is not None:
+                            results.append(result)
+                except (EndLoopSignal, RestartLoopSignal):
+                    # Re-raise loop control signals so they propagate to the loop
+                    raise
+
+                # Return all results as a list if there are multiple, or the single result
+                if len(results) == 0:
+                    return None
+                elif len(results) == 1:
+                    return results[0]
+                else:
+                    return results
+            return None
+
+    if isinstance(node, LoopStatement):
+        # Handle different loop types
+        if node.loop_type == "basic":
+            # Basic infinite loop - only exits with end-loop
+            results = []
+            max_iterations = 10000  # Safety limit
+            iteration_count = 0
+
+            # Create a loop environment that allows shadowing but preserves outer scope
+            # Start with a copy of the outer environment
+            loop_env = env.copy()
+            # Track which variables were created in loop scope for shadowing behavior
+            loop_locals = set()
+
+            while iteration_count < max_iterations:
+                try:
+                    # Execute loop body in the loop environment
+                    # Use is_function_context=True to allow variable shadowing
+                    # Pass outer_env so that rebinding operations can affect outer scope
+                    # Pass loop_locals to track which variables are shadowed
+                    # Pass is_loop_context=True so end-loop/restart-loop work
+                    for stmt in node.body:
+                        result = eval_ast(stmt, value_demand=True, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
+                        if result is not None:
+                            # If the result is a list from a nested loop, flatten it
+                            if isinstance(result, list) and isinstance(stmt, LoopStatement):
+                                results.extend(result)
+                            else:
+                                results.append(result)
+                except EndLoopSignal as signal:
+                    # Collect any result that was produced before end-loop
+                    if hasattr(signal, 'last_result') and signal.last_result is not None:
+                        results.append(signal.last_result)
+                    break
+                except RestartLoopSignal as signal:
+                    # Collect any result that was produced before restart-loop
+                    if hasattr(signal, 'last_result') and signal.last_result is not None:
+                        results.append(signal.last_result)
+                    # Skip to next iteration without executing remaining body statements
+                    iteration_count += 1
+                    continue
+                iteration_count += 1
+
+            if iteration_count >= max_iterations:
+                raise EnzoRuntimeError("Loop exceeded maximum iterations (possible infinite loop)", code_line=node.code_line)
+            return results
+
+        elif node.loop_type == "while":
+            # While loop - continues while condition is true
+            results = []
+            max_iterations = 10000  # Safety limit
+            iteration_count = 0
+
+            while iteration_count < max_iterations:
+                # Evaluate condition
+                condition_result = eval_ast(node.condition, env=env, is_loop_context=is_loop_context)
+                if not _is_truthy(condition_result):
+                    break
+
+                try:
+                    # Create a fresh environment for each iteration to allow shadowing
+                    loop_env = env.copy()
+                    loop_locals = set()  # Track variables created in this iteration
+                    # Execute loop body
+                    for stmt in node.body:
+                        result = eval_ast(stmt, value_demand=True, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
+                        if result is not None:
+                            results.append(result)
+                except EndLoopSignal as signal:
+                    # Collect any result that was produced before end-loop
+                    if hasattr(signal, 'last_result') and signal.last_result is not None:
+                        results.append(signal.last_result)
+                    break
+                except RestartLoopSignal as signal:
+                    # Collect any result that was produced before restart-loop
+                    if hasattr(signal, 'last_result') and signal.last_result is not None:
+                        results.append(signal.last_result)
+                    # Skip to next iteration without executing remaining body statements
+                    pass
+                iteration_count += 1
+
+            if iteration_count >= max_iterations:
+                raise EnzoRuntimeError("While loop exceeded maximum iterations (possible infinite loop)", code_line=node.code_line)
+            return results
+
+        elif node.loop_type == "until":
+            # Until loop - continues until condition becomes true
+            results = []
+            max_iterations = 10000  # Safety limit
+            iteration_count = 0
+
+            while iteration_count < max_iterations:
+                # Evaluate condition (opposite of while)
+                condition_result = eval_ast(node.condition, env=env, is_loop_context=is_loop_context)
+                if _is_truthy(condition_result):
+                    break
+
+                try:
+                    # Create a fresh environment for each iteration to allow shadowing
+                    loop_env = env.copy()
+                    loop_locals = set()  # Track variables created in this iteration
+                    # Execute loop body
+                    for stmt in node.body:
+                        result = eval_ast(stmt, value_demand=True, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
+                        if result is not None:
+                            results.append(result)
+                except EndLoopSignal as signal:
+                    # Collect any result that was produced before end-loop
+                    if hasattr(signal, 'last_result') and signal.last_result is not None:
+                        results.append(signal.last_result)
+                    break
+                except RestartLoopSignal as signal:
+                    # Collect any result that was produced before restart-loop
+                    if hasattr(signal, 'last_result') and signal.last_result is not None:
+                        results.append(signal.last_result)
+                    # Skip to next iteration without executing remaining body statements
+                    pass
+                iteration_count += 1
+
+            if iteration_count >= max_iterations:
+                raise EnzoRuntimeError("Until loop exceeded maximum iterations (possible infinite loop)", code_line=node.code_line)
+            return results
+
+        elif node.loop_type == "for":
+            # For loop - iterate over a list
+            results = []
+
+            # Create a new scope for the loop variable
+            loop_env = env.copy()
+
+            i = 0
+            while True:
+                try:
+                    # Re-evaluate the iterable on each iteration for true live iteration
+                    # This allows modifications to the list variable to be immediately visible
+                    current_iterable = eval_ast(node.iterable, env=env, is_loop_context=is_loop_context)
+
+                    # Ensure it's iterable
+                    if not isinstance(current_iterable, (list, EnzoList)):
+                        raise EnzoRuntimeError(error_message_for_loop_non_iterable(), code_line=node.code_line)
+
+                    # Check if we've reached the end of the list
+                    if i >= len(current_iterable):
+                        break
+
+                    # Create a fresh loop_locals set for each iteration
+                    loop_locals = set()
+                    item = current_iterable[i]
+                    current_list_length = len(current_iterable)
+
+                    if node.is_reference:
+                        # Reference semantics - bind to a reference of the original list element
+                        # Store with $ prefix for proper variable access
+                        var_name = f"${node.variable}" if not node.variable.startswith('$') else node.variable
+                        loop_env[var_name] = ListElementReference(current_iterable, i)
+                    else:
+                        # Copy semantics - bind to a copy of the item
+                        var_name = f"${node.variable}" if not node.variable.startswith('$') else node.variable
+                        loop_env[var_name] = deep_copy_enzo_value(item) if hasattr(item, '__dict__') else item
+
+                    # Execute the loop body
+                    for stmt in node.body:
+                        result = eval_ast(stmt, value_demand=True, env=loop_env, is_loop_context=True, is_function_context=True, outer_env=env, loop_locals=loop_locals)
+                        if result is not None:
+                            # If the result is a list from a nested loop, flatten it
+                            if isinstance(result, list) and isinstance(stmt, LoopStatement):
+                                results.extend(result)
+                            else:
+                                results.append(result)
+
+                    # After executing the loop body, check if the list was modified
+                    # Re-evaluate to get the updated list
+                    updated_iterable = eval_ast(node.iterable, env=env, is_loop_context=is_loop_context)
+
+                    # If the list length changed, we need to adjust our iteration strategy
+                    if len(updated_iterable) != current_list_length:
+                        # List was modified during iteration
+                        # For deletions behind the current position, we need to adjust our index
+                        # Find how many items were deleted before our current position
+                        items_deleted_before = current_list_length - len(updated_iterable)
+
+                        # If items were deleted and we can determine they were before our position,
+                        # adjust the index down. Otherwise, just move to the next logical position.
+                        if items_deleted_before > 0 and len(updated_iterable) > 0:
+                            # First check if the current item was deleted entirely
+                            current_item_exists = False
+                            for list_item in updated_iterable:
+                                if list_item == item:
+                                    current_item_exists = True
+                                    break
+
+                            if not current_item_exists:
+                                # Current item was deleted - skip to the next index position
+                                # This effectively skips whatever item moved into the current position
+                                i += 1
+                            elif i < len(updated_iterable) and updated_iterable[i] == item:
+                                # Current item is still at the same index, continue normally
+                                i += 1
+                            elif i > 0 and i - 1 < len(updated_iterable) and updated_iterable[i - 1] == item:
+                                # Current item shifted back by one position
+                                # Don't increment i since we need to continue from the same position
+                                # The next item is now at index i in the shortened list
+                                pass
+                            else:
+                                # Try to find the current item in the updated list and continue from there
+                                found_position = None
+                                for idx, list_item in enumerate(updated_iterable):
+                                    if list_item == item:
+                                        found_position = idx
+                                        break
+
+                                if found_position is not None:
+                                    i = found_position + 1  # Move to next position after current item
+                                else:
+                                    # Current item was deleted, continue from current index
+                                    # (don't increment since items may have shifted)
+                                    pass
+                        else:
+                            # Normal case or items were added - just move to next position
+                            i += 1
+                    else:
+                        # List wasn't modified, normal increment
+                        i += 1
+
+                except EndLoopSignal as signal:
+                    # Collect any result that was produced before end-loop
+                    if hasattr(signal, 'last_result') and signal.last_result is not None:
+                        results.append(signal.last_result)
+                    break
+                except RestartLoopSignal as signal:
+                    # Collect any result that was produced before restart-loop
+                    if hasattr(signal, 'last_result') and signal.last_result is not None:
+                        results.append(signal.last_result)
+                    # Move to next iteration (restart current iteration)
+                    i += 1
+                    continue
+
+            return results
+
+    if isinstance(node, EndLoopStatement):
+        # If we're not in a loop context, this is an error
+        if not is_loop_context:
+            raise EnzoRuntimeError("error: `end-loop;` inside a non-loop function atom", code_line=node.code_line)
+        # Otherwise raise signal to break out of nearest loop
+        raise EndLoopSignal()
+
+    if isinstance(node, RestartLoopStatement):
+        # If we're not in a loop context, this is an error
+        if not is_loop_context:
+            raise EnzoRuntimeError("error: `restart-loop;` inside a non-loop function atom", code_line=node.code_line)
+        # Otherwise raise signal to restart nearest loop
+        raise RestartLoopSignal()
+
+    if isinstance(node, ComparisonExpression):
+        left_val = eval_ast(node.left, value_demand=True, env=env)
+
+        # Special handling for type comparisons with 'is' and 'is not'
+        if ((node.operator == "is" or node.operator == "is not") and
+            isinstance(node.right, VarInvoke) and
+            node.right.name in ["Number", "Text", "List", "Empty"]):
+            # Pass the type name directly instead of evaluating as a variable
+            right_val = node.right.name
+        else:
+            right_val = eval_ast(node.right, value_demand=True, env=env)
+
+        return _compare_values(left_val, node.operator, right_val)
+
+    if isinstance(node, LogicalExpression):
+        left_val = eval_ast(node.left, env=env)
+        if node.operator == "and":
+            if not _is_truthy(left_val):
+                return left_val  # Short-circuit
+            return eval_ast(node.right, env=env)
+        elif node.operator == "or":
+            if _is_truthy(left_val):
+                return left_val  # Short-circuit
+            return eval_ast(node.right, env=env)
+        else:
+            raise EnzoRuntimeError(f"Unknown logical operator: {node.operator}", code_line=code_line)
+
+    if isinstance(node, NotExpression):
+        operand_val = eval_ast(node.operand, env=env)
+        return not _is_truthy(operand_val)
 
     raise EnzoRuntimeError(error_message_unknown_node(node), code_line=getattr(node, 'code_line', None))
 
@@ -1694,4 +2242,127 @@ def _check_for_this_reference(node):
             if _check_for_this_reference(attr_value):
                 return True
 
+    return False
+
+def _is_truthy(value):
+    """Determine if a value is truthy in Enzo's boolean context"""
+    if value is None or isinstance(value, Empty):
+        return False
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value != 0
+    if isinstance(value, str):
+        return value != ""
+    if isinstance(value, list):
+        # A list is falsy if it's empty or contains only falsy values
+        if len(value) == 0:
+            return False
+        return any(_is_truthy(item) for item in value)
+    if isinstance(value, EnzoList):
+        # A list is falsy if it's empty or contains only falsy values
+        if len(value) == 0:
+            return False
+        return any(_is_truthy(item) for item in value)
+    if isinstance(value, EnzoVariantInstance):
+        # Check for specific falsy variants
+        if value.group_name == "False" or (value.group_name == "Status" and value.variant_name == "False"):
+            return False
+        return True
+    if isinstance(value, EnzoVariantGroup):
+        # A variant group is falsy only if it's the False group
+        if value.name == "False":
+            return False
+        return True
+    if isinstance(value, EnzoFunction):
+        # A function is truthy only if it has body statements and would return a truthy value
+        if not value.body:
+            return False  # Empty function is falsy
+
+        # Evaluate the function to check its return value
+        try:
+            # Create a temporary environment for function evaluation
+            temp_env = {}
+            result = None
+            for stmt in value.body:
+                result = eval_ast(stmt, env=temp_env)
+            # Function is truthy if its result is truthy
+            return _is_truthy(result) if result is not None else False
+        except:
+            # If evaluation fails, assume truthy (non-empty function)
+            return True
+    # Handle built-in False constant
+    if hasattr(value, '__class__') and value.__class__.__name__ == 'False':
+        return False
+    return bool(value)
+
+def _compare_values(left, operator, right):
+    """Compare two values using the given operator"""
+    if operator == "is":
+        # Type and value comparison
+        if isinstance(right, str) and right in ["Number", "Text", "List", "Empty"]:
+            # Type checking
+            if right == "Number":
+                return isinstance(left, (int, float))
+            elif right == "Text":
+                return isinstance(left, str)
+            elif right == "List":
+                return isinstance(left, (list, EnzoList))
+            elif right == "Empty":
+                return left is None or isinstance(left, Empty)
+        # Value comparison
+        return left == right
+    elif operator == "is not":
+        # Type and value comparison (opposite of "is")
+        if isinstance(right, str) and right in ["Number", "Text", "List", "Empty"]:
+            # Type checking
+            if right == "Number":
+                return not isinstance(left, (int, float))
+            elif right == "Text":
+                return not isinstance(left, str)
+            elif right == "List":
+                return not isinstance(left, (list, EnzoList))
+            elif right == "Empty":
+                return not (left is None or isinstance(left, Empty))
+        # Value comparison
+        return left != right
+    elif operator == "is less than":
+        if not (isinstance(left, (int, float)) and isinstance(right, (int, float))):
+            from src.error_messaging import error_message_invalid_comparison_type
+            raise EnzoRuntimeError(error_message_invalid_comparison_type())
+        return left < right
+    elif operator == "is greater than":
+        if not (isinstance(left, (int, float)) and isinstance(right, (int, float))):
+            from src.error_messaging import error_message_invalid_comparison_type
+            raise EnzoRuntimeError(error_message_invalid_comparison_type())
+        return left > right
+    elif operator == "is at most":
+        if not (isinstance(left, (int, float)) and isinstance(right, (int, float))):
+            from src.error_messaging import error_message_invalid_comparison_type
+            raise EnzoRuntimeError(error_message_invalid_comparison_type())
+        return left <= right
+    elif operator == "is at least":
+        if not (isinstance(left, (int, float)) and isinstance(right, (int, float))):
+            from src.error_messaging import error_message_invalid_comparison_type
+            raise EnzoRuntimeError(error_message_invalid_comparison_type())
+        return left >= right
+    elif operator == "contains":
+        if not isinstance(left, (list, EnzoList)):
+            from src.error_messaging import error_message_contains_non_list
+            raise EnzoRuntimeError(error_message_contains_non_list())
+        return _contains_value(left, right)
+    else:
+        raise EnzoRuntimeError(f"Unknown comparison operator: {operator}")
+
+def _contains_value(container, value):
+    """Check if container contains value"""
+    if isinstance(container, (list, EnzoList)):
+        if isinstance(container, EnzoList):
+            # Iterate through the EnzoList's elements
+            for item in container:
+                if item == value:
+                    return True
+            return False
+        else:
+            return value in container
     return False

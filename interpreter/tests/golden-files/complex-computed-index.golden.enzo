@@ -1,0 +1,51 @@
+//= COMPUTED INDEX: BASIC ADDITION
+30
+
+//= COMPUTED INDEX: WITH LITERAL ARITHMETIC
+300
+200
+
+//= COMPUTED INDEX: WITH NESTED EXPRESSIONS
+300
+300
+
+//= COMPUTED INDEX: NEGATIVE AND ZERO
+error: list index out of range
+	$list300.($a00 - 1);
+5
+10
+error: list index out of range
+	$list300.(-1);
+
+//= COMPUTED INDEX: OUT OF BOUNDS
+error: list index out of range
+	$list300.(4);
+error: list index out of range
+	$list300.($a00 + $b00 + 2);
+
+//= COMPUTED INDEX: NON-INTEGER RESULT
+error: list index must be an integer
+	$list400.(1.5);
+error: list index must be an integer
+	$list400.($a00 / 2);
+
+//= COMPUTED INDEX: INVALID EXPRESSION TYPE
+error: can't use text as index
+	$list400.("hi");
+error: list index must be an integer
+	$list400.($list100);
+
+//= COMPUTED INDEX: USE IN ASSIGNMENT
+99
+
+//= COMPUTED INDEX: USE IN PIPELINE
+30
+
+//= COMPUTED INDEX: INDEX BY FUNCTION RETURN (optional, if supported)
+99
+
+//= COMPUTED INDEX: VARIABLE SHADOWING
+30
+
+//= COMPUTED INDEX: IN INTERPOLATION
+"Element is 99"

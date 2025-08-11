@@ -1,4 +1,4 @@
-from src.enzo_parser.ast_nodes import ListAtom, ListKeyValue
+from src.enzo_parser.ast_nodes import ListAtom, ListKeyValue, ListInterpolation
 from src.error_handling import EnzoParseError
 from src.enzo_parser.parser_utilities import expect
 import re
@@ -38,8 +38,21 @@ def parse_list_atom(parser):
             raise EnzoParseError(error_message_unmatched_bracket(), code_line=None)
         if t.type == "SEMICOLON":
             from src.error_messaging import error_message_unmatched_bracket
-            raise EnzoParseError(error_message_unmatched_bracket(), code_line=parser._get_code_line(t))        # Check for key-value pair (keyname: value)
-        if t.type == "KEYNAME":
+            raise EnzoParseError(error_message_unmatched_bracket(), code_line=parser._get_code_line(t))        # Check for list interpolation syntax: <$variable>
+        if t.type == "LT":
+            # This is a list interpolation: <expression>
+            parser.advance()  # consume '<'
+            expression = parser.parse_value_expression()
+            # Expect '>' to close the interpolation
+            gt_token = parser.peek()
+            if gt_token and gt_token.type == "GT":
+                parser.advance()  # consume '>'
+                elements.append(ListInterpolation(expression, code_line=parser._get_code_line(t)))
+            else:
+                from src.error_messaging import error_message_unexpected_token
+                raise EnzoParseError(f"error: expected '>' to close list interpolation", code_line=parser._get_code_line(gt_token) if gt_token else None)
+        # Check for key-value pair (keyname: value)
+        elif t.type == "KEYNAME":
             # Look ahead to see if this is a key-value pair
             t2 = parser.tokens[parser.pos + 1] if parser.pos + 1 < len(parser.tokens) else None
             if t2 and t2.type == "BIND":

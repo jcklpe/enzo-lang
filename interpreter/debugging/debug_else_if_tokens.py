@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+
+# Add path for importing src modules
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SRC_PATH = os.path.join(SCRIPT_DIR, "..", "src")
+if SRC_PATH not in sys.path:
+    sys.path.insert(0, SRC_PATH)
+
+from src.enzo_parser.tokenizer import Tokenizer
+
+# Test the problematic sequence
+code = '''If $status-elseif is "first",
+  "First match";
+Else if $status-elseif is "second",
+  "Second match";
+end;'''
+
+print("Code:")
+print(code)
+print("\nTokens:")
+tokenizer = Tokenizer(code)
+tokens = tokenizer.tokenize()
+
+for i, token in enumerate(tokens):
+    if token.type != "WHITESPACE" and token.type != "NEWLINE":
+        print(f"{i:2d}: {token}")

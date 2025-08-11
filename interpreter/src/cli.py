@@ -13,7 +13,7 @@ from src.evaluator    import eval_ast
 from src.runtime_helpers import Table, format_val, log_debug
 
 # CRITICAL INFO: ALL ERROR HANDLING MUST BE USE THE CENTRALIZED error_handling.py MODULE
-from src.error_handling import InterpolationParseError, ReturnSignal, EnzoParseError
+from src.error_handling import InterpolationParseError, ReturnSignal, EnzoParseError, EnzoRuntimeError
 
 # CRITICAL INFO: ALL ERROR MESSAGING MUST BE USE THE CENTRALIZED error_messaging.py MODULE
 from src.error_messaging import format_parse_error, error_message_unterminated_interpolation, error_message_included_file_not_found, error_message_generic
@@ -27,25 +27,18 @@ def say(val):
     print(val)
 
 # All references to Enzo's 'number' atom are now 'number atom' or 'number_atom' in comments and user-facing messages.
-def print_enzo_error(msg):
-    # ANSI codes
-    RED = "\033[91m"
-    RESET = "\033[0m"
-    BLACK_BG = "\033[40m"
-    WHITE = "\033[97m"
+def print_enzo_error(msg, color="red"):
+    """Print error message with proper color formatting"""
 
-    # Split into lines
     lines = msg.split('\n')
-    if not lines:
-        print(RED + msg + RESET)
-        return
 
-    # First line: red (the error summary)
-    print(f"{RED}{lines[0]}{RESET}")  # Print to stdout, not stderr
-    # Remaining lines: treat as code block (if present)
-    for code_line in lines[1:]:
-        if code_line.strip():
-            print(f"{BLACK_BG}{WHITE}{code_line.rstrip()}{RESET}")
+    # First line (error description) in red
+    if lines:
+        print(color_error(lines[0]))
+
+        # Remaining lines (code context) with black background
+        for i, line in enumerate(lines[1:]):
+            print(color_code(line.rstrip()))
 
 def read_statement(stdin, interactive):
     buffer = []
@@ -104,12 +97,23 @@ def split_statements(lines):
     paren_depth = 0
     brace_depth = 0
     bracket_depth = 0
+    if_depth = 0  # Track control flow depth
+
     for line in lines:
         stripped = line.rstrip('\n')
         # Skip blank/comment lines unless already in a statement
         if not stripped and not buffer:
             continue
-        if stripped.strip().startswith('//=') and not buffer:
+        # IMPORTANT: Test section delimiters force statement breaks
+        if stripped.strip().startswith('//='):
+            if buffer:  # If we have a pending statement, close it first
+                stmts.append(buffer)
+                buffer = []
+                # Reset all depth counters for new test section
+                paren_depth = 0
+                brace_depth = 0
+                bracket_depth = 0
+                if_depth = 0
             stmts.append([stripped])
             continue
         if stripped.strip().startswith('//') and not buffer:
@@ -117,6 +121,19 @@ def split_statements(lines):
         # Update depths (but ignore characters in comments)
         comment_start = stripped.find('//')
         line_to_parse = stripped if comment_start == -1 else stripped[:comment_start]
+
+        # Track control flow keywords
+        import re
+        # Check for If/For/While keywords (must be whole words)
+        if re.search(r'\b(If|For|While)\b', line_to_parse):
+            if_depth += 1
+        # In new syntax, closing parenthesis followed by semicolon ends control flow
+        if re.search(r'\);\s*$', line_to_parse) and if_depth > 0:
+            if_depth = max(0, if_depth - 1)  # Prevent negative depth
+        # Keep old 'end' keyword support for backwards compatibility
+        if re.search(r'\bend\b', line_to_parse):
+            if_depth = max(0, if_depth - 1)  # Prevent negative depth
+
         for char in line_to_parse:
             if char == '(':
                 paren_depth += 1
@@ -133,7 +150,7 @@ def split_statements(lines):
         buffer.append(stripped)
         # Only break on semicolon if all depths are zero and semicolon is not in a comment
         has_semicolon = ';' in line_to_parse  # Only check semicolons outside of comments
-        if paren_depth <= 0 and brace_depth <= 0 and bracket_depth <= 0 and has_semicolon:
+        if paren_depth <= 0 and brace_depth <= 0 and bracket_depth <= 0 and if_depth <= 0 and has_semicolon:
             stmts.append(buffer)
             buffer = []
     if buffer:
@@ -155,9 +172,11 @@ def run_enzo_file(filename):
         # --- NEW: If this block is a list of single-line statements, process each line independently ---
         # BUT: Don't do this if the block starts with '(' (function atom) or other multi-line constructs
         # ALSO: Don't do this if any line contains 'then (' (pipeline with function atom)
+        # ALSO: Don't do this if the block contains control flow keywords (If, Else, end)
         if (all(';' in line for line in stmt_lines) and len(stmt_lines) > 1 and
             not any(line.strip().startswith(('(', '[', '{')) for line in stmt_lines) and
-            not any('then (' in line for line in stmt_lines)):
+            not any('then (' in line for line in stmt_lines) and
+            not any(any(keyword in line for keyword in ['If ', 'For ', 'While ', 'Else', 'end;', 'end']) for line in stmt_lines)):
             for line in stmt_lines:
                 line = line.strip()
                 if not line:
@@ -191,6 +210,10 @@ def run_enzo_file(filename):
                     msg = format_parse_error(e, src=line)
                     print_enzo_error(msg)
                     continue
+                except EnzoRuntimeError as e:
+                    msg = format_parse_error(e, src=line)
+                    print_enzo_error(msg)
+                    continue
                 except Exception as e:
                     msg = format_parse_error(e, src=line) if hasattr(e, 'code_line') or hasattr(e, 'line') or hasattr(e, 'column') else error_message_generic(str(e))
                     print_enzo_error(msg)
@@ -209,9 +232,30 @@ def run_enzo_file(filename):
         log_debug(f"[CLI] About to parse statement: {repr(statement)}")
 
         try:
-            result = eval_ast(parse(statement), value_demand=True)
-            if result is not None:
-                print(format_val(result))
+            # Use parse_program for multi-line statements, parse for single statements
+            if '\n' in statement or ';' in statement.rstrip(';'):
+                # Multi-line or multiple statements - use program parser
+                from src.enzo_parser.parser import parse_program
+                result = eval_ast(parse_program(statement), value_demand=True)
+                # If result is a list, print each non-None result on its own line
+                if isinstance(result, list):
+                    for item in result:
+                        if item is not None:
+                            # If the item is itself a list from a loop, print each element
+                            if isinstance(item, list):
+                                for sub_item in item:
+                                    if sub_item is not None:
+                                        print(format_val(sub_item))
+                            else:
+                                print(format_val(item))
+                else:
+                    if result is not None:
+                        print(format_val(result))
+            else:
+                # Single statement - use regular parser
+                result = eval_ast(parse(statement), value_demand=True)
+                if result is not None:
+                    print(format_val(result))
         except InterpolationParseError as e:
             msg = format_parse_error(e, src=statement)
             if "\n" in msg:
@@ -229,6 +273,10 @@ def run_enzo_file(filename):
                 print_enzo_error(msg)
             continue
         except EnzoParseError as e:
+            msg = format_parse_error(e, src=statement)
+            print_enzo_error(msg)
+            continue
+        except EnzoRuntimeError as e:
             msg = format_parse_error(e, src=statement)
             print_enzo_error(msg)
             continue
@@ -332,6 +380,14 @@ def main():
             else:
                 print(color_error(msg))
         except EnzoParseError as e:
+            msg = format_parse_error(e, src=line)
+            if "\n" in msg:
+                errline, context = msg.split("\n", 1)
+                print(color_error(errline))
+                print(color_code(context))
+            else:
+                print(color_error(msg))
+        except EnzoRuntimeError as e:
             msg = format_parse_error(e, src=line)
             if "\n" in msg:
                 errline, context = msg.split("\n", 1)

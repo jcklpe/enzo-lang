@@ -24,7 +24,7 @@
 
 //= PIPELINE ERROR: SHADOWING $this IS DISALLOWED
 error: cannot declare variable '$this'
-    $this: 7;
+	$this: 7;
 //= PIPELINE NEGATIVE NUMBER HANDLING
 -10
 -15
@@ -35,19 +35,19 @@ error: cannot declare variable '$this'
 //= PIPELINE WITH INTERPOLATION AND MATH
 "double of 5 is 10"
 
-//= PIPELINE WITH TABLE/LIST MANIPULATION
+//= PIPELINE WITH LIST MANIPULATION
 2
 
 //= PIPELINE NESTED LIST ACCESS
 30
 
-//= PIPELINE TABLE PROPERTY
+//= PIPELINE LIST PROPERTY
 15
 15
 
 //= PIPELINE ERROR NO FUNCTION ATOM
 error: pipeline expects function atom after `then`
-    5 then 10;
+	5 then 10;
 
 //= PIPELINE ERROR EMPTY FUNCTION ATOM
 //= Complex tests
@@ -61,4 +61,4 @@ error: pipeline expects function atom after `then`
 
 //= NAMED FUNCTION: referencing $this is an error
 error: can't use reserved $this keyname in named function declaration
-    breaking2: (
+	breaking2: (

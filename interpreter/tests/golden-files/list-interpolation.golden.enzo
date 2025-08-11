@@ -1,0 +1,58 @@
+//= LIST INTERPOLATION: BASICS
+[1, 2, 3, 4, 5]
+
+//= LIST INTERPOLATION: PREPEND
+[0, 10, 11, 12]
+
+//= LIST INTERPOLATION: APPEND
+["a", "b", "c"]
+
+//= LIST INTERPOLATION: NESTED INTERPOLATION
+[1, 2, [3, 4]]
+
+//= LIST INTERPOLATION: INSERTION
+[0, 100, 200, 300]
+
+//= LIST INTERPOLATION: MULTIPLE INTERPOLATIONS IN ONE LIST
+[1, 2, 3, 4, 5]
+
+//= LIST INTERPOLATION: EMPTY LISTS
+[]
+
+//= LIST INTERPOLATION: EMPTY IN NON-EMPTY LIST
+[99]
+
+//= LIST INTERPOLATION: SINGLE NON-LIST VALUE (should just insert value)
+[42, 99]
+
+//= LIST INTERPOLATION: INTERPOLATION OF NON-LIST VALUE (should error)
+error: cannot interpolate non-List into a List
+	$li19: [<$notalist-interp>];
+
+//= LIST INTERPOLATION: NESTED LISTS (non-interpolated, for comparison)
+[[1, 2], [3, 4]]
+
+//= LIST INTERPOLATION: TRAILING/LEADING INTERPOLATION
+[5, 6]
+[5, 6]
+
+//= LIST INTERPOLATION: APPEND TO EMPTY LIST
+[5, 6]
+
+//= LIST INTERPOLATION: WITH TEXTS AND MIXED TYPES
+[1, "apple", "banana", "pear"]
+
+//= LIST INTERPOLATION: MULTIPLE EMPTY LISTS
+[]
+
+//= LIST INTERPOLATION: ERROR IF INTERPOLATING UNDEFINED VARIABLE
+error: undefined variable
+	$li30: [<$does_not_exist>];
+
+//= LIST INTERPOLATION: INTERPOLATING A BLUEPRINT INSTANCE (should insert as value)
+error: cannot interpolate non-List into a List
+	$li31: [<$bp1>];
+
+//= PIPELINE INTERPOLATE
+[[1, 2, 3], 99]
+[1, 2, 3, 99]

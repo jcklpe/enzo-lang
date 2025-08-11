@@ -4,6 +4,7 @@ $person1: [
   $age1: 27,
   $favorite-color1: "blue"
 ];
+
 $name1, $age1, $favorite-color1: $person1[];
 $name1;            // prints "Todd"
 $age1;             // prints 27
@@ -126,6 +127,6 @@ $inner12.y12;           // prints 9
 $z12;                 // prints 2
 
 //= RESTRUCTURING NESTED LIST ─────────────────────────
-$inner12.x12 <: 7;
+$inner12.x <: 7;
 [$inner12, $z12] :> $outer12[];
 $outer12.1.x12;         // prints 7

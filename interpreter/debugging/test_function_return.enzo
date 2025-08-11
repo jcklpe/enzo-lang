@@ -1,0 +1,10 @@
+has1: (
+  param $list: ;
+  param $value: ;
+
+  If $list contains $value, (return(True)), Else, (return(False));
+);
+
+$test-list: [1, 2, 3];
+$result: has1($test-list, 2);
+$result;

@@ -1,1 +1,10 @@
+- add variable shadowing test for conditional statements
+- implement recursion tests
+- immediate evaluation !()
+- storing anon functions to a list by reference @()
+- implement classic algos
+- builtin functions
 - casting solutions?
+- is odd/even conditional?
+- squaring operators?
+- inverse exponent?

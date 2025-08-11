@@ -12,7 +12,7 @@ def error_message_already_defined(name):
 def error_message_unknown_variable(name):
     if not name.startswith("$"):
         name = f"${name}"
-    return f"unknown variable: {name}"
+    return f"error: undefined variable"
 
 def error_message_not_a_function(func):
     return f"{func} is not a function"
@@ -60,10 +60,10 @@ def error_message_list_property_not_found(prop):
     return f"error: list property not found: ${prop}"
 
 def error_message_index_must_be_number():
-    return "error: can't use text as index"
+    return "error: list index must be an integer"
 
 def error_message_index_must_be_integer():
-    return "error: index must be an integer"
+    return "error: list index must be an integer"
 
 def error_message_binding_to_list_index_out_of_range():
     return "error: list index out of range"
@@ -120,7 +120,14 @@ def format_parse_error(err, src=None):
 
 def error_message_with_code_line(msg, code_line):
     #Format an error message with the code line, no caret, for golden file compatibility.
-    return f"{msg}\n    {code_line}"
+    # Handle multi-line code_line by adding indentation to each line
+    if '\n' in code_line:
+        lines = code_line.split('\n')
+        indented_lines = ['\t' + line for line in lines]  # tab character
+        formatted_code = '\n'.join(indented_lines)
+        return f"{msg}\n{formatted_code}"
+    else:
+        return f"{msg}\n\t{code_line}"  # tab character
 
 def error_message_double_comma_table():
     return "error: extra comma in list"
@@ -163,3 +170,24 @@ def error_message_destructure_count_mismatch():
 
 def error_message_duplicate_variable_names():
     return "error: duplicate variable names in destructure"
+
+def error_message_for_loop_non_iterable():
+    return "error: `For` loop must be over a list"
+
+def error_message_invalid_comparison_type():
+    return "error: can't compare list with number"
+
+def error_message_contains_non_list():
+    return "error: contains used on non-list"
+
+def error_message_comparison_in_pipeline():
+    return "error: comparison word in pipeline"
+
+def error_message_or_without_if():
+    return "error: `or` without preceding `If`"
+
+def error_message_else_if_without_if():
+    return "error: `Else if` without preceding `If`"
+
+def error_message_else_without_if():
+    return "error: `Else` without preceding `If`"

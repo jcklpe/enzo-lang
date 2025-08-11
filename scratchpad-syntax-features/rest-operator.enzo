@@ -1,0 +1,70 @@
+// we've got spread operation handled with list interpolation but we needed a rest operator we could go with something like this:
+//= REST OPERATOR: BASIC DESTRUCTURING
+$numbers: [10, 20, 30, 40];
+$first, $second, $the-rest[...] : $numbers[];
+
+$first;       // prints 10
+$second;      // prints 20
+$the-rest;    // prints [30, 40]
+
+//= REST OPERATOR: CAPTURING ALL ITEMS
+$letters: ["a", "b", "c"];
+$all-letters[...] : $letters[];
+
+$all-letters; // prints ["a", "b", "c"]
+
+//= REST OPERATOR: WHEN THERE IS NO "REST"
+$short-list: [1, 2];
+$x, $y, $empty[...] : $short-list[];
+
+$x;          // prints 1
+$y;          // prints 2
+$empty;      // prints [] (an empty list, not an error)
+
+//= REST OPERATOR: WITH HYBRID (NAMED AND POSITIONAL) DESTRUCTURING
+$data: [100, $name: "Alice", 200, 300];
+$name, $first-num, $other-nums[...] : $data[];
+
+$name;        // prints "Alice" (by name)
+$first-num;   // prints 100 (first positional item)
+$other-nums;  // prints [200, 300] (the rest of the positional items)
+
+//= ERROR CASE: REST OPERATOR IS NOT THE LAST ELEMENT
+$list-error: [1, 2, 3, 4];
+$a, $b[...], $c : $list-error[]; // error: The rest operator `[...]` must be the final element in a destructuring assignment.
+
+//= REST IN FUNCTIONS: A SIMPLE AVERAGING FUNCTION
+average: (
+    param $numbers: [...] ; // Collect all arguments into a list called 'numbers'
+    $total: 0;
+    If not $numbers, ( return(0); ); // Handle case with no arguments
+
+    Loop for $n in $numbers, (
+        $total + $n :> $total;
+    );
+    return( $total / count($numbers) ); // Assumes a 'count' function
+);
+
+average(2, 4, 6);       // prints 4
+average(10, 20);        // prints 15
+average();              // prints 0
+
+//= REST IN FUNCTIONS: WITH FIXED AND VARIABLE ARGUMENTS
+format-log: (
+    param $level: ;
+    param $context: ;
+    param $details: [...] ; // Collect the rest of the arguments
+    "<$level> [<$context>] - Details: <$details>";
+);
+
+format-log("WARN", "Database", "Connection timed out", "Retrying in 5s");
+// prints: WARN [Database] - Details: ["Connection timed out", "Retrying in 5s"]
+
+format-log("INFO", "Login", "User 'jcklpe' authenticated successfully");
+// prints: INFO [Login] - Details: ["User 'jcklpe' authenticated successfully"]
+
+//= ERROR CASE: REST PARAMETER IS NOT THE LAST PARAMETER
+bad-function-def: (
+    param $details: [...] ;
+    param $level: ; // error: The rest parameter `[...]` must be the final parameter in a function definition.
+);

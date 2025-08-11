@@ -1,0 +1,31 @@
+//= ANON REF: ASSIGNMENT TO A VARIABLE
+6
+
+// Prove its type with a conditional check.
+"Variable holds a function reference"
+
+//= ANON REF: STORING IN A LIST
+20
+100
+
+//= ANON REF: PASSING DIRECTLY AS A FUNCTION ARGUMENT
+"Hello, Enzo!"
+
+//= ANON REF: IN A LIST PROPERTY (METHOD)
+$anon_ref_calculator: [
+    $base: 10,
+    $op: @(param $x:; $x + $self.base)
+];
+
+$anon_ref_calculator.op(5); // Uses $self to access list properties. Prints 15
+
+//= ANON REF: NESTED ANONYMOUS REFERENCE
+"[LOG] System Ready"
+
+//= ERROR CASE: FORGETTING THE `@` SIGIL
+error: param expects Function type
+    anon_ref_apply( (param $x:; $x * 2), 5 ); // error: param expects Function type
+
+//= ERROR CASE: SYNTAX ERROR INSIDE THE FUNCTION BODY
+error: parse error in function atom body
+    $anon_ref_bad_syntax: @(param $x: $x + ); // error: parse error in function atom body

@@ -2,13 +2,11 @@
 Higher order functions are first class citizens in Enzo and have dedicated syntax for their use.
 
 #### Filter
-
 ```javascript!
 filter $item is "dog" in $original-list :> $filtered-list;
 ```
 
 #### Transformation (map)
-
 ```javascript!
 $original-list: [1, 2, 3, 4, 5];
 

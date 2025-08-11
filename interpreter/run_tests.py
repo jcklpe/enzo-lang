@@ -93,7 +93,9 @@ def regenerate_combined_files():
 
     # Module order (can be customized as needed)
     modules = [
+
             "vars",
+
             "lists-indexing",
             "math",
             "lists-mapping",
@@ -101,7 +103,17 @@ def regenerate_combined_files():
             "functions",
             "pipeline",
             "copy-and-reference",
-            "blueprints"
+            "blueprints",
+            "destructuring",
+
+            "conditional-flow",
+            "complex-computed-index",
+            "list-interpolation",
+
+
+
+
+
     ]
 
     test_modules_dir = os.path.join(SCRIPT_DIR, "tests", "test-modules")

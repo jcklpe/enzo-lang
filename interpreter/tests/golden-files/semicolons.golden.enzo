@@ -1,25 +1,25 @@
 //= SEMICOLON STUFF!
 6
 error: missing semicolon
-    (6)
+	(6)
 12
 11
 11
 error: missing semicolon
-    ($semi + $colon)
+	($semi + $colon)
 12
 3
 3
 3
 3
 error: missing semicolon
-    ($x: 1; $y: 2 $x + $y;);
+	($x: 1; $y: 2 $x + $y;);
 error: missing semicolon
-    ($x: 1; $y: 2 $x + $y);
+	($x: 1; $y: 2 $x + $y);
 error: missing semicolon
-    ($x: 1; $y: 2; $x + $y;)
+	($x: 1; $y: 2; $x + $y;)
 error: missing semicolon
-    ($x: 1 $y: 2; $x + $y;);
+	($x: 1 $y: 2; $x + $y;);
 //= Multiline semi-colon checks
 4
 4
@@ -28,9 +28,9 @@ error: missing semicolon
 4
 4
 error: missing semicolon
-    return(($x + $y))
+	return(($x + $y))
 error: missing semicolon
-    ($x: 2
+	($x: 2
 //= Trailing commas and extra semi-colon errors
 error: missing semicolon
-    param $y: 2
+	param $y: 2

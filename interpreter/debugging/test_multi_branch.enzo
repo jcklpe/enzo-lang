@@ -1,0 +1,9 @@
+$switch-val: "B";
+
+If $switch-val either is "A", (
+  "A";),
+or is "B", (
+  "B matched";),
+or is "C", (
+  "C";
+);
