@@ -592,6 +592,7 @@ class Parser:
                 """Look ahead to determine if this is a destructuring pattern"""
                 pos = 1
                 found_comma = False
+                bracket_depth = 0
 
                 # First check if this is just a simple binding: $var: value
                 # If the next token is directly BIND, this is NOT destructuring
@@ -599,9 +600,15 @@ class Parser:
                     return False
 
                 # Scan ahead looking for comma followed by eventual colon or arrow
+                # But only count commas that are outside of brackets (not inside blueprint instantiations)
                 while self.peek(pos) and pos < 20:  # Reasonable lookahead limit
                     token = self.peek(pos)
-                    if token.type == "COMMA":
+                    if token.type == "LBRACK":
+                        bracket_depth += 1
+                    elif token.type == "RBRACK":
+                        bracket_depth -= 1
+                    elif token.type == "COMMA" and bracket_depth == 0:
+                        # Only count commas that are not inside brackets
                         found_comma = True
                     elif token.type == "BIND" and found_comma:
                         return True  # Found comma followed by colon

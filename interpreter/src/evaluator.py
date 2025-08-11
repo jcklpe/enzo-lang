@@ -1581,7 +1581,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             raise EnzoRuntimeError(f"error: '{blueprint_name}' is not a blueprint", code_line=getattr(node, 'code_line', None))
 
         # Create an instance by evaluating the field values and creating an EnzoList
-        instance = EnzoList(is_blueprint_instance=True)
+        instance = EnzoList(is_blueprint_instance=True, blueprint_name=blueprint_name)
 
         # Create a map of provided field values for efficient lookup
         provided_values = {}
@@ -1753,7 +1753,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             blueprints_to_compose.append(variant_blueprint)
 
         # Create an instance by combining all blueprints
-        instance = EnzoList(is_blueprint_instance=True)
+        instance = EnzoList(is_blueprint_instance=True, blueprint_name=variant_name)
 
         # Create a map of provided field values for efficient lookup
         provided_values = {}

@@ -55,8 +55,11 @@ def log_debug(msg):
 def deep_copy_enzo_value(value):
     """Create a deep copy of an Enzo value (lists, tables, etc.)."""
     if isinstance(value, EnzoList):
-        # Preserve the blueprint instance flag when copying
-        new_list = EnzoList(is_blueprint_instance=getattr(value, '_is_blueprint_instance', False))
+        # Preserve the blueprint instance flag and name when copying
+        new_list = EnzoList(
+            is_blueprint_instance=getattr(value, '_is_blueprint_instance', False),
+            blueprint_name=getattr(value, '_blueprint_name', None)
+        )
         # Copy all elements
         for element in value._elements:
             new_list.append(deep_copy_enzo_value(element))
@@ -80,10 +83,11 @@ def deep_copy_enzo_value(value):
 class EnzoList:
     """Enhanced list that supports both indexed and keyed access."""
 
-    def __init__(self, is_blueprint_instance=False):
+    def __init__(self, is_blueprint_instance=False, blueprint_name=None):
         self._elements = []     # All elements in insertion order
         self._key_map = {}      # Maps key names to indices
         self._is_blueprint_instance = is_blueprint_instance  # Track if this came from a blueprint
+        self._blueprint_name = blueprint_name  # Store blueprint name for proper printing
 
     def append(self, value):
         """Add an element with automatic index."""
@@ -199,7 +203,13 @@ class EnzoList:
             else:
                 items.append(format_val(element))
 
-        return f"[{', '.join(items)}]"
+        list_content = f"[{', '.join(items)}]"
+
+        # If this is a blueprint instance, prefix with blueprint name
+        if self._is_blueprint_instance and self._blueprint_name:
+            return f"{self._blueprint_name}{list_content}"
+        else:
+            return list_content
 
     def __eq__(self, other):
         """Check equality with another list or EnzoList."""
