@@ -546,22 +546,22 @@ class Parser:
             found_rebind_rightward = False
             has_interpolation = False  # Track if we see list interpolation syntax
             has_list_indexing = False  # Track if we see list indexing syntax
-            
+
             while self.peek(pos) and pos < 30:  # Reasonable lookahead limit
                 token = self.peek(pos)
-                
+
                 # Check for list interpolation: <$var>
                 if token.type == "LT" and self.peek(pos + 1) and self.peek(pos + 1).type == "KEYNAME":
                     has_interpolation = True
                     pos += 2  # Skip over the interpolation
                     continue
                 # Check for list indexing: $var.2 or $var.property
-                elif (token.type == "KEYNAME" and 
+                elif (token.type == "KEYNAME" and
                       self.peek(pos + 1) and self.peek(pos + 1).type == "DOT"):
                     has_list_indexing = True
                     # Skip ahead to after the dot expression
                     pos += 2
-                    while (self.peek(pos) and 
+                    while (self.peek(pos) and
                            self.peek(pos).type in ["NUMBER", "KEYNAME"]):
                         pos += 1
                     continue

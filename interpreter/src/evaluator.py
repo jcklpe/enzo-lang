@@ -2010,21 +2010,20 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
             results = []
 
-            # Create a copy of the list for iteration to handle modifications during iteration
-            if node.is_reference:
-                # Reference semantics - iterate over the original list
-                iteration_list = iterable_value
-            else:
-                # Copy semantics - iterate over a copy
-                iteration_list = deep_copy_enzo_value(iterable_value) if isinstance(iterable_value, EnzoList) else iterable_value[:]
+            # For live iteration, we always iterate over the original list
+            # This allows modifications during iteration to be immediately visible
+            iteration_list = iterable_value
 
             # Create a new scope for the loop variable
             loop_env = env.copy()
 
-            for i, item in enumerate(iteration_list):
+            i = 0
+            while i < len(iteration_list):
                 try:
                     # Create a fresh loop_locals set for each iteration
                     loop_locals = set()
+                    item = iteration_list[i]
+                    
                     if node.is_reference:
                         # Reference semantics - bind to a reference of the original list element
                         # Store with $ prefix for proper variable access
@@ -2041,6 +2040,9 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         if result is not None:
                             results.append(result)
 
+                    # Move to next iteration
+                    i += 1
+
                 except EndLoopSignal as signal:
                     # Collect any result that was produced before end-loop
                     if hasattr(signal, 'last_result') and signal.last_result is not None:
@@ -2050,6 +2052,8 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     # Collect any result that was produced before restart-loop
                     if hasattr(signal, 'last_result') and signal.last_result is not None:
                         results.append(signal.last_result)
+                    # Move to next iteration (restart current iteration)
+                    i += 1
                     continue
 
             return results

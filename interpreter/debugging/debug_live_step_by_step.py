@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Debug list indexing in list construction"""
+"""Debug live iteration step by step"""
 
 import sys
 sys.path.append('..')
@@ -10,26 +10,28 @@ from src.enzo_parser.parser import parse
 _env.clear()
 _initialize_builtin_variants()
 
-print("Testing list indexing in list construction...")
+print("Testing live iteration step by step...")
 print("=" * 50)
 
+# Simpler test - just append and see if it's picked up
 test_code = '''
-$list-delete-behind: ["a", "b", "c"];
-[$list-delete-behind.2, $list-delete-behind.3] :> $list-delete-behind;
-$list-delete-behind;
+$simple-list: [1, 2];
+Loop for $item in $simple-list, (
+    "Processing: <$item>";
+    If $item is 2, (
+        [<$simple-list>, 3] :> $simple-list;
+        "Added 3, list is now: <$simple-list>";
+    );
+);
 '''
 
 try:
-    print("Parsing code:")
+    print("Parsing and evaluating:")
     print(test_code)
     ast = parse(test_code)
-    print("✓ Parsing successful!")
-
-    print("\nEvaluating...")
     result = eval_ast(ast)
-    print("✓ Evaluation successful!")
-    print("Result:", result)
-
+    print("✓ Complete!")
+    
 except Exception as e:
     print("✗ Error:", e)
     import traceback
