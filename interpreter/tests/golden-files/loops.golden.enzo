@@ -238,6 +238,13 @@ error: `end-loop;` inside a non-loop function atom
 5
 4
 
+//= UNTIL LOOP WITH END-LOOP
+2
+4
+8
+16
+16
+
 //= UNTIL LOOP WITH RESTART-LOOP
 1
 2

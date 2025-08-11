@@ -1,0 +1,7 @@
+//= FOR LOOP WITH END-LOOP
+$numbers: [1, 2, 3, 4, 5];
+Loop for $num in $numbers, (
+    $num;
+    If $num is 3, (end-loop;);
+);
+// Should print: 1, 2, 3
