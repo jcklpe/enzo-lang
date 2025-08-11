@@ -2001,34 +2001,35 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
         elif node.loop_type == "for":
             # For loop - iterate over a list
-            # Evaluate the iterable
-            iterable_value = eval_ast(node.iterable, env=env, is_loop_context=is_loop_context)
-
-            # Ensure it's iterable
-            if not isinstance(iterable_value, (list, EnzoList)):
-                raise EnzoRuntimeError(error_message_for_loop_non_iterable(), code_line=node.code_line)
-
             results = []
-
-            # For live iteration, we always iterate over the original list
-            # This allows modifications during iteration to be immediately visible
-            iteration_list = iterable_value
 
             # Create a new scope for the loop variable
             loop_env = env.copy()
 
             i = 0
-            while i < len(iteration_list):
+            while True:
                 try:
+                    # Re-evaluate the iterable on each iteration for true live iteration
+                    # This allows modifications to the list variable to be immediately visible
+                    current_iterable = eval_ast(node.iterable, env=env, is_loop_context=is_loop_context)
+
+                    # Ensure it's iterable
+                    if not isinstance(current_iterable, (list, EnzoList)):
+                        raise EnzoRuntimeError(error_message_for_loop_non_iterable(), code_line=node.code_line)
+
+                    # Check if we've reached the end of the list
+                    if i >= len(current_iterable):
+                        break
+
                     # Create a fresh loop_locals set for each iteration
                     loop_locals = set()
-                    item = iteration_list[i]
-                    
+                    item = current_iterable[i]
+
                     if node.is_reference:
                         # Reference semantics - bind to a reference of the original list element
                         # Store with $ prefix for proper variable access
                         var_name = f"${node.variable}" if not node.variable.startswith('$') else node.variable
-                        loop_env[var_name] = ListElementReference(iterable_value, i)
+                        loop_env[var_name] = ListElementReference(current_iterable, i)
                     else:
                         # Copy semantics - bind to a copy of the item
                         var_name = f"${node.variable}" if not node.variable.startswith('$') else node.variable

@@ -31,7 +31,7 @@ try:
     ast = parse(test_code)
     result = eval_ast(ast)
     print("✓ Complete!")
-    
+
 except Exception as e:
     print("✗ Error:", e)
     import traceback
