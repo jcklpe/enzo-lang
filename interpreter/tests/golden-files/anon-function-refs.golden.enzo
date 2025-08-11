@@ -29,3 +29,7 @@ error: param expects Function type
 //= ERROR CASE: SYNTAX ERROR INSIDE THE FUNCTION BODY
 error: parse error in function atom body
     $anon_ref_bad_syntax: @(param $x: $x + ); // error: parse error in function atom body
+
+    //= CLOSURE: BASIC FUNCTION FACTORY
+12
+100

@@ -95,9 +95,9 @@ def regenerate_combined_files():
     modules = [
 
             "vars",
-
             "lists-indexing",
             "math",
+            "loops",
             "lists-mapping",
             "text",
             "functions",
@@ -105,12 +105,9 @@ def regenerate_combined_files():
             "copy-and-reference",
             "blueprints",
             "destructuring",
-
             "conditional-flow",
             "complex-computed-index",
             "list-interpolation",
-
-
 
 
 

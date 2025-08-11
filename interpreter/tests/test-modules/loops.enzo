@@ -468,13 +468,13 @@ $i-99; // print 5
 $processed-99; // Should print 4 (skipped when i=3)
 
 //= UNTIL LOOP WITH END-LOOP
-$value: 1;
-Loop until $value is 100, (
-    $value * 2 :> $value;
-    $value;
-    If $value is 16, (end-loop;);
+$value-loop: 1;
+Loop until $value-loop is 100, (
+    $value-loop * 2 :> $value-loop;
+    $value-loop;
+    If $value-loop is 16, (end-loop;);
 );
-$value; // Should print 16
+$value-loop; // Should print 16
 
 //= UNTIL LOOP WITH RESTART-LOOP
 $attempts: 0;
