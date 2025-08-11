@@ -4,7 +4,7 @@ But this makes me realize: I've basically created an exception to invoke in stor
 
 I've got a couple of ideas of how this could work:
 
-```
+```!
 @variable-name: 10; // stores the value, Number type, to @variable-name.
 !variable-name; // invokes the variable-name and returns value 10
 
