@@ -2070,8 +2070,18 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         # If items were deleted and we can determine they were before our position,
                         # adjust the index down. Otherwise, just move to the next logical position.
                         if items_deleted_before > 0 and len(updated_iterable) > 0:
-                            # Check if our current item still exists in the list at or after our expected position
-                            if i < len(updated_iterable) and updated_iterable[i] == item:
+                            # First check if the current item was deleted entirely
+                            current_item_exists = False
+                            for list_item in updated_iterable:
+                                if list_item == item:
+                                    current_item_exists = True
+                                    break
+
+                            if not current_item_exists:
+                                # Current item was deleted - skip to the next index position
+                                # This effectively skips whatever item moved into the current position
+                                i += 1
+                            elif i < len(updated_iterable) and updated_iterable[i] == item:
                                 # Current item is still at the same index, continue normally
                                 i += 1
                             elif i > 0 and i - 1 < len(updated_iterable) and updated_iterable[i - 1] == item:
