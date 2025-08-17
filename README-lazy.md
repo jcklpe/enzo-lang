@@ -98,7 +98,6 @@ Example of List atom bound to to a keyname:
 ```
 
 Example of a List making heavy use of keyname-atomvalue pairs:
-
 ```javascript!
 @list-example: [
     @property: "this is a value which is paired to the property",
@@ -126,13 +125,13 @@ You can access a specific item in the List via a numbered index like so:
 
 // Using a simple computed index
 @indexToFind: 2;
-@secondColor: @colors.@indexToFind;
+@secondColor: @colors.!indexToFind;
 // resolves to @colors.1 → "green"
 
 // More complex computed index requires a function atom:
-@fourthColor: @colors.(@indexToFind + 1);
+@fourthColor: @colors.(!indexToFind + 1);
 ```
-The numeric indexing of lists starts at 1.
+The numeric indexing of Lists starts at 1.
 
 #### Dot-Numeric vs. Property Access
 - **List property access** uses a “dot + identifier” (e.g. `@user.name`).
@@ -146,7 +145,7 @@ The numeric indexing of lists starts at 1.
 ];
 
 // To get "logout":
-@secondLog: @user.logs.2;    // → "logout"
+@secondLog: !user.logs.2;    // → "logout"
 ```
 
 ### Interpolation
@@ -156,15 +155,15 @@ Text interpolation allows you to insert dynamic values into Text:
 ```javascript!
 @name: "Bob";
 @favorite-color: "blue";
-@request-shirt: "Hi, my name is <@name>, can I get a <@favorite-color> shirt, please?";
-@request-shirt; // invokes "Hi, my name is Bob, can I get a blue shirt, please?"
+@request-shirt: "Hi, my name is <!name>, can I get a <!favorite-color> shirt, please?";
+!request-shirt; // invokes "Hi, my name is Bob, can I get a blue shirt, please?"
 
 // You can also run functions in interpolation (functions explained below)
 @number-example: 5;
 @number-example2: 3;
-@text-example: "the result of the two variables added together is <(@number-example + @number-example2;)>"
+@text-example: "the result of the two variables added together is <(!number-example + !number-example2;)>"
 
-@text-example; //returns the Text "the result of the two variables added together is 8"
+!text-example; //returns the Text "the result of the two variables added together is 8"
 ```
 
 #### List interpolation (spread/append/prepend)
