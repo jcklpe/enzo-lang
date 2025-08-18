@@ -28,20 +28,24 @@ Atoms are a basic unit of data value. Here are some examples of atoms, separated
 (2 * 2);
 ```
 
-Atoms can be bound to a keyname using the `:` operator. When binding the atomvalue to the keyname it is distinguished with the `@` sigil.
+### Variable reference versus invocation
+Atoms can be bound to a keyname using the `:` operator. A keyname + atomvalue is a variable.
+
+When binding the atomvalue to the keyname it is distinguished with the `@` sigil to indicate that this is a keyname reference.
 ```javascript!
 @keyname: atomvalue;
 ```
-A keyname + atomvalue is a variable.
+
 
 When you want to invoke the keyname to express that bound value you can do it like this:
 ```javascript!
 !keyname;
 ```
 
+### Atom types
 There are 4 types of atoms. These types are [static but inferred](https://www.perplexity.ai/search/plain-language-explanation-of-bIpK7TNKTtCK.Ao8RdeIuw).
 
-### Number atom
+#### Number atom
 A Number atom is any [real number](https://en.wikipedia.org/wiki/Real_number).
 
 ```javascript!
@@ -52,12 +56,13 @@ A Number atom is any [real number](https://en.wikipedia.org/wiki/Real_number).
 -300;
 ```
 
-Example of a Number atom bound a keyname:
+Example of a Number atom bound a keyname and invoked:
 ```javascript!
 @number-example: 888;
+!number-example; // returns the value of `888`
 ```
 
-### Text (string)
+#### Text (string)
 A Text atom is any sequence of characters enclosed in double quotes `"..."`.
 This includes letters, numbers, punctuation, spaces, emoji, or [any valid Unicode symbol](https://en.wikipedia.org/wiki/Unicode).
 
@@ -70,9 +75,10 @@ This includes letters, numbers, punctuation, spaces, emoji, or [any valid Unicod
 "line\nbreak"; // newlines and escape sequences allowed
 ```
 
-Example of Text atom bound a keyname:
+Example of Text atom bound a keyname and invoked:
 ```javascript!
 @text-example: "here is some text";
+!text-example; // returns the value of `"here is some text"`
 ```
 
 ### List (array/List/map/object/dict)
@@ -92,12 +98,13 @@ A List atom is an ordered sequence of values, either atoms, keynames referencing
 ];
 ```
 
-Example of List atom bound to to a keyname:
+Example of List atom bound to to a keyname and invoked:
 ```javascript!
 @list-example: ["here is some text", 666, @keyname-example];
+!list-example; // returns the value `["here is some text", 666, @keyname-example]`
 ```
 
-Example of a List making heavy use of keyname-atomvalue pairs:
+Example of a List making heavy use of nested keyname-atomvalue pairs:
 ```javascript!
 @list-example: [
     @property: "this is a value which is paired to the property",
@@ -125,11 +132,10 @@ You can access a specific item in the List via a numbered index like so:
 
 // Using a simple computed index
 @indexToFind: 2;
-@secondColor: @colors.!indexToFind;
-// resolves to @colors.1 → "green"
+!colors.!indexToFind;  // resolves to `!colors.2` → "green"
 
 // More complex computed index requires a function atom:
-@fourthColor: @colors.(!indexToFind + 1);
+!colors.(!indexToFind + 1); // resolves to `!colors.3` → "blue"
 ```
 The numeric indexing of Lists starts at 1.
 
@@ -145,7 +151,7 @@ The numeric indexing of Lists starts at 1.
 ];
 
 // To get "logout":
-@secondLog: !user.logs.2;    // → "logout"
+!user.logs.2;    // → "logout"
 ```
 
 ### Interpolation
@@ -174,8 +180,8 @@ Example of non-interpolated List composition:
 @list1: [1, 2, 3];
 @list2: [4, 5, 6];
 
-@list3: [@list1, @list2];
-@list3; // returns a nested List of `[[1, 2, 3], [4, 5, 6]]`
+@list3: [!list1, !list2];
+!list3; // returns a nested List of `[[1, 2, 3], [4, 5, 6]]`
 ```
 
 Example of interpolated List composition:
@@ -183,17 +189,17 @@ Example of interpolated List composition:
 @list1: [1, 2, 3];
 @list2: [4, 5, 6];
 
-@list3: [<@list1>, <@list2>];
-@list3; // returns a flat List of `[1, 2, 3, 4, 5, 6]`
+@list3: [<!list1>, <!list2>];
+!list3; // returns a flat List of `[1, 2, 3, 4, 5, 6]`
 
 // you can prepend or append items to a List using interpolation like so:
 //prepend
-[0, <@list1>] :> @list1;
-@list1; // returns a List of `[0, 1, 2, 3]`
+[0, <!list1>] :> @list1;
+!list1; // returns a List of `[0, 1, 2, 3]`
 
 //append
-@list1<: [<@list1>, "hot dog explosion"];
-@list1; // returns a List of `[0, 1, 2, 3, "hot dog explosion"]`
+@list1<: [<!list1>, "hot dog explosion"];
+!list1; // returns a List of `[0, 1, 2, 3, "hot dog explosion"]`
 ```
 
 ### Function (anonymous function/expression block)
@@ -212,8 +218,8 @@ Basic arithmetic
 
 Function atoms can also have keynames declared inside of them like so:
 ```javascript!
-(@x: 4; @y: 6; @x + @y); // returns 10
-(@x: 5, @y: 5; @x * @y); // commas can also be used to separate keyname binding declarations
+(@x: 4; @y: 6; !x + !y); // returns 10
+(@x: 5, @y: 5; !x * !y); // commas can also be used to separate keyname binding declarations
 ```
 
 Function atoms can also be multi-line:
@@ -221,7 +227,7 @@ Function atoms can also be multi-line:
 (
 @x: 100;
 @y: 100;
-return((@x + @y));
+return((!x + !y));
 ); // returns 200
 ```
 Single line function atoms do not require an explicit return. Multi-line function atoms never have implicit return. If you're running any kind of process you expect to have a return value then you will require an explicit return.
@@ -237,80 +243,27 @@ function-example: (
     param @argument2: 12;
     @example-variable: 666;
 
-    return(@argument1 + @argument2 + @example-variable);
+    return(!argument1 + !argument2 + !example-variable);
 );
 ```
 
-A named function is simply a nameless function bound to a keyname. We omit the @ on named functions to keep things more readable. All  of the following are valid:
+Functions are much more powerful when you assign them to a keyname, because you can pass in arguments to its parameters:
 ```javascript!
 @function1: (
     param @a: 4;
     @x: 5;
-    return((@x + @a));
+    return((!x + !a));
 );
-@function1;      // returns 9
-function1();     // returns 9
-@function1();    // returns 9
-@function1(5);   // returns 10
+!function1;      // returns 9
+!function1();     // returns 9
+!function1(5);   // returns 10
 
-function2: (@y: 2; @y + 3);
-@function2;      // returns 9
+function2: (@y: 2; !y + 3);
+!function2;      // returns 9
 function2();     // returns 9
-@function2();    // returns 9
-@function2(5);   // returns 10
+!function2();    // returns 9
+!function2(5);   // returns 10
 ```
-
-#### Expression Context Rules
-**Enzo allows arithmetic and single expressions to appear in most contexts without requiring function atom parentheses:**
-
-```javascript!
-// ✅ Bare expressions work in these contexts:
-@result: @x + @y;               // assignment
-@x + 1 :> @x;                   // rebinding
-5 + 3;                          // top-level statement
-"Value: <@x + 1>";              // string interpolation
-```
-
-**Function atom parentheses are required for:**
-```javascript!
-// Multi-statement blocks need function atoms for scoping
-(@temp: @x + 1; @temp * 2);     // local variables and complex logic
-
-// Storing expressions as function atoms
-@func: (2 * 2);                 // stores function atom
-```
-
-This design reduces paren noise while maintaining the power of function atoms for complex logic and explicit scoping.
-
-#### Demand-driven function evaluation
-In Enzo, parentheses always create a function atom.
-
-If a function atom appears in a context that requires its value immediately (such as a top-level statement, an arithmetic operation, string interpolation, or as a value in a return statement), it is immediately invoked.
-If a function atom is being bound to a keyname as a variable, stored in a List, or passed as an argument to a function that expects a function, it is stored as a function object and only invoked when called.
-This is called demand-driven function atom evaluation.
-
-Demanded:
-- **Explicit invocation:**
-  - `@func();` → evaluates function when invoked.
-- **Top-level context:**
-  - `(2 * 2);` at the top level of a file or entered into the CLI directly → evaluates function returning 4.
-- **Arithmetic context:**
-  - `@result: (x + y) * 2;` → evaluates function, then multiplies. The variable type of `@result` is Number.
-- **Function argument context:**
-  - `test-func((2 + 2), (3 + 3));` → evaluates both function atoms, passes values 4 and 6 to the function parameters
-- **Conditional context:**
-  - `If (@iteration + 1) is less than 20` → evaluates function, then compares the result to 20.
-- **Complex numeric index context:**
-  - `@item-list.(@iteration + 1)` → evaluates function, then uses the resulting number as the index for the List.
-- **String interpolation:**
-  - `"Value: <(x + y)>"` → evaluates function for interpolation
-- **Immediate invocation sigil context:**
-  - `@func-value: !(2 * 2);` → Immediately evaluates the function and assigns 4 to `@func-value`. The variable type of `@func-value` is Number.
-
-Not demanded:
-- **Storage context:**
-  - `@func: (2 * 2);` → stores function atom. The variable type of `@func` is Function.
-  - `@list-of-funcs: [(2*2), (4*4)]` → stores function atoms as items in the List. The variable type of `@list-of-funcs.1` and `@list-of-funcs.2` is Function.
 
 #### Forcing immediate evaluation with `!`
 Sometimes you want to force immediate evaluation in contexts where function atoms would normally be stored. Use the `!` sigil to override the default demand-driven behavior:
@@ -318,12 +271,36 @@ Sometimes you want to force immediate evaluation in contexts where function atom
 ```javascript!
 // Without !: stores function atom
 @func: (2 * 2);                 // Variable type: Function
-@func();                         // Call later → returns 4
+!func();                         // Call later → returns 4
 
 // With !: forces immediate evaluation
 @value: !(2 * 2);               // Variable type: Number, value: 4
 @value <: 5;                    // ✅ Type-consistent rebinding
 ```
+
+#### Expression Context Rules
+**Enzo allows arithmetic and single expressions to appear in most contexts without requiring function atom parentheses:**
+
+```javascript!
+// ✅ Bare expressions work in these contexts:
+@result: !x + !y;               // assignment
+!x + 1 :> @x;                   // rebinding
+5 + 3;                          // top-level statement
+"Value: <!x + 1>";              // string interpolation
+```
+
+**Function atom parentheses are required for:**
+```javascript!
+// Multi-statement blocks need function atoms for scoping
+(@temp: !x + 1; !temp * 2);     // local variables and complex logic
+
+// Storing expressions as function atoms
+@func: (2 * 2);                 // stores function atom
+```
+
+This design reduces paren noise while maintaining the power of function atoms for complex logic and explicit scoping.
+
+
 
 **Key benefits:**
 - **Type consistency**: Enables rebinding variables with computed values
