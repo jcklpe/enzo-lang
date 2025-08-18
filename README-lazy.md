@@ -1,12 +1,12 @@
 # enzo-lang
 
-![image](https://hackmd.io/_uploads/BJTFqAWVex.png)
+$[image](https://hackmd.io/_uploads/BJTFqAWVex.png)
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jcklpe/enzo-lang/blob/master/interpreter/demo.ipynb)
+[$[Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jcklpe/enzo-lang/blob/master/interpreter/demo.ipynb)
 
 Code is the ultimate user interface. It is the final user interface on which all other user interfaces are built. So I think it’s interesting to explore this space as a UX designer.
 
-Originally this started as a fantasy sketch of what I thought a nice language syntax would look like. As I was learning programming stuff, I'd get frustrated or find a particular way of doing things ugly or confusing, so I'd creatively vent by writing this document and it helped me understand the programming concepts for the real language I was learning. I had no intention of implementing it, but now I am!
+Originally this started as a fantasy sketch of what I thought a nice language syntax would look like. As I was learning programming stuff, I'd get frustrated or find a particular way of doing things ugly or confusing, so I'd creatively vent by writing this document and it helped me understand the programming concepts for the real language I was learning. I had no intention of implementing it, but now I am$
 
 I'm def interested in feedback but also understand that this is basically just a kid drawing pictures of racecars and wishing he was Batman. I'm doing this for my own enjoyment and to help me better understand programming, and I make no pretense that this language is going to ever be used in the real world, or is superior to existing languages in any fashion, aesthetic or otherwise. This is more of an art project.
 
@@ -39,7 +39,7 @@ When binding the atomvalue to the keyname it is distinguished with the `@` sigil
 
 When you want to invoke the keyname to express that bound value you can do it like this:
 ```javascript!
-!keyname;
+$keyname;
 ```
 
 ### Atom types
@@ -59,7 +59,7 @@ A Number atom is any [real number](https://en.wikipedia.org/wiki/Real_number).
 Example of a Number atom bound a keyname and invoked:
 ```javascript!
 @number-example: 888;
-!number-example; // returns the value of `888`
+$number-example; // returns the value of `888`
 ```
 
 #### Text (string)
@@ -78,7 +78,7 @@ This includes letters, numbers, punctuation, spaces, emoji, or [any valid Unicod
 Example of Text atom bound a keyname and invoked:
 ```javascript!
 @text-example: "here is some text";
-!text-example; // returns the value of `"here is some text"`
+$text-example; // returns the value of `"here is some text"`
 ```
 
 ### List (array/List/map/object/dict)
@@ -101,7 +101,7 @@ A List atom is an ordered sequence of values, either atoms, keynames referencing
 Example of List atom bound to to a keyname and invoked:
 ```javascript!
 @list-example: ["here is some text", 666, @keyname-example];
-!list-example; // returns the value `["here is some text", 666, @keyname-example]`
+$list-example; // returns the value `["here is some text", 666, @keyname-example]`
 ```
 
 Example of a List making heavy use of nested keyname-atomvalue pairs:
@@ -113,13 +113,13 @@ Example of a List making heavy use of nested keyname-atomvalue pairs:
         @property4: [
             @property: "second layer of a nested List",
             @property2: "lists are basically the same as maps or objects in other languages"],
-            exampleFunction: (
+            @exampleFunction: (
             return("this is what a List function (method) looks like");
             ),
             @property3: [
                 @property: "third layer of a nested List",
                 @property2: "you can nest lists as deeply as you want",
-                @property3:"this property value could be invoked using '@list-example.property4.property3'"]
+                @property3:"this property value could be invoked using '$list-example.property4.property3'"]
 ];
 ```
 
@@ -132,10 +132,10 @@ You can access a specific item in the List via a numbered index like so:
 
 // Using a simple computed index
 @indexToFind: 2;
-!colors.!indexToFind;  // resolves to `!colors.2` → "green"
+$colors.$indexToFind;  // resolves to `$colors.2` → "green"
 
 // More complex computed index requires a function atom:
-!colors.(!indexToFind + 1); // resolves to `!colors.3` → "blue"
+$colors.($indexToFind + 1); // resolves to `$colors.3` → "blue"
 ```
 The numeric indexing of Lists starts at 1.
 
@@ -151,7 +151,7 @@ The numeric indexing of Lists starts at 1.
 ];
 
 // To get "logout":
-!user.logs.2;    // → "logout"
+$user.logs.2;    // → "logout"
 ```
 
 ### Interpolation
@@ -161,15 +161,15 @@ Text interpolation allows you to insert dynamic values into Text:
 ```javascript!
 @name: "Bob";
 @favorite-color: "blue";
-@request-shirt: "Hi, my name is <!name>, can I get a <!favorite-color> shirt, please?";
-!request-shirt; // invokes "Hi, my name is Bob, can I get a blue shirt, please?"
+@request-shirt: "Hi, my name is <$name>, can I get a <$favorite-color> shirt, please?";
+$request-shirt; // invokes "Hi, my name is Bob, can I get a blue shirt, please?"
 
 // You can also run functions in interpolation (functions explained below)
 @number-example: 5;
 @number-example2: 3;
-@text-example: "the result of the two variables added together is <(!number-example + !number-example2;)>"
+@text-example: "the result of the two variables added together is <($number-example + $number-example2;)>"
 
-!text-example; //returns the Text "the result of the two variables added together is 8"
+$text-example; //returns the Text "the result of the two variables added together is 8"
 ```
 
 #### List interpolation (spread/append/prepend)
@@ -180,8 +180,8 @@ Example of non-interpolated List composition:
 @list1: [1, 2, 3];
 @list2: [4, 5, 6];
 
-@list3: [!list1, !list2];
-!list3; // returns a nested List of `[[1, 2, 3], [4, 5, 6]]`
+@list3: [$list1, $list2];
+$list3; // returns a nested List of `[[1, 2, 3], [4, 5, 6]]`
 ```
 
 Example of interpolated List composition:
@@ -189,17 +189,17 @@ Example of interpolated List composition:
 @list1: [1, 2, 3];
 @list2: [4, 5, 6];
 
-@list3: [<!list1>, <!list2>];
-!list3; // returns a flat List of `[1, 2, 3, 4, 5, 6]`
+@list3: [<$list1>, <$list2>];
+$list3; // returns a flat List of `[1, 2, 3, 4, 5, 6]`
 
 // you can prepend or append items to a List using interpolation like so:
 //prepend
-[0, <!list1>] :> @list1;
-!list1; // returns a List of `[0, 1, 2, 3]`
+[0, <$list1>] :> @list1;
+$list1; // returns a List of `[0, 1, 2, 3]`
 
 //append
-@list1<: [<!list1>, "hot dog explosion"];
-!list1; // returns a List of `[0, 1, 2, 3, "hot dog explosion"]`
+@list1<: [<$list1>, "hot dog explosion"];
+$list1; // returns a List of `[0, 1, 2, 3, "hot dog explosion"]`
 ```
 
 ### Function (anonymous function/expression block)
@@ -218,8 +218,8 @@ Basic arithmetic
 
 Function atoms can also have keynames declared inside of them like so:
 ```javascript!
-(@x: 4; @y: 6; !x + !y); // returns 10
-(@x: 5, @y: 5; !x * !y); // commas can also be used to separate keyname binding declarations
+(@x: 4; @y: 6; $x + $y); // returns 10
+(@x: 5, @y: 5; $x * $y); // commas can also be used to separate keyname binding declarations
 ```
 
 Function atoms can also be multi-line:
@@ -227,7 +227,7 @@ Function atoms can also be multi-line:
 (
 @x: 100;
 @y: 100;
-return((!x + !y));
+return($x + $y);
 ); // returns 200
 ```
 Single line function atoms do not require an explicit return. Multi-line function atoms never have implicit return. If you're running any kind of process you expect to have a return value then you will require an explicit return.
@@ -243,7 +243,7 @@ function-example: (
     param @argument2: 12;
     @example-variable: 666;
 
-    return(!argument1 + !argument2 + !example-variable);
+    return($argument1 + $argument2 + $example-variable);
 );
 ```
 
@@ -252,60 +252,56 @@ Functions are much more powerful when you assign them to a keyname, because you 
 @function1: (
     param @a: 4;
     @x: 5;
-    return((!x + !a));
+    return(($x + $a));
 );
-!function1;      // returns 9
-!function1();     // returns 9
-!function1(5);   // returns 10
+$function1;      // returns 9, just uses the default parameters, or throws error if there are no defaults
+$function1();     // returns 9, just uses the default parameters, or throws error if there are no defaults
+$function1(5);   // returns 10, used `5` as an argument for the parameter
 
-function2: (@y: 2; !y + 3);
-!function2;      // returns 9
-function2();     // returns 9
-!function2();    // returns 9
-!function2(5);   // returns 10
+function2: (@y: 2; $y + 3);
+$function2;      // returns 5
+$function2();    // returns 5
+$function2(5);   // returns 8
 ```
 
-#### Forcing immediate evaluation with `!`
-Sometimes you want to force immediate evaluation in contexts where function atoms would normally be stored. Use the `!` sigil to override the default demand-driven behavior:
+#### Forcing immediate evaluation with `$`
+Sometimes you want to force immediate evaluation in contexts where function atoms would normally be stored. Use the `$` sigil to immediately invoke the function atom.
 
 ```javascript!
-// Without !: stores function atom
+// Without $: stores function atom
 @func: (2 * 2);                 // Variable type: Function
-!func();                         // Call later → returns 4
+$func();                         // Call later → returns 4
 
-// With !: forces immediate evaluation
-@value: !(2 * 2);               // Variable type: Number, value: 4
+// With $: forces immediate evaluation
+@value: $(2 * 2);               // Variable type: Number, value: 4
 @value <: 5;                    // ✅ Type-consistent rebinding
 ```
+**Key benefits:**
+- **Type consistency**: Enables rebinding variables with computed values
+- **Clear intent**: Makes immediate evaluation explicit rather than context-dependent
+- **Flexibility**: Works with any function atom, from simple arithmetic to complex computations
 
 #### Expression Context Rules
 **Enzo allows arithmetic and single expressions to appear in most contexts without requiring function atom parentheses:**
 
 ```javascript!
 // ✅ Bare expressions work in these contexts:
-@result: !x + !y;               // assignment
-!x + 1 :> @x;                   // rebinding
+@result: $x + $y;               // assignment
+$x + 1 :> @x;                   // rebinding
 5 + 3;                          // top-level statement
-"Value: <!x + 1>";              // string interpolation
+"Value: <$x + 1>";              // string interpolation
 ```
 
 **Function atom parentheses are required for:**
 ```javascript!
 // Multi-statement blocks need function atoms for scoping
-(@temp: !x + 1; !temp * 2);     // local variables and complex logic
+(@temp: $x + 1; $temp * 2);     // local variables and complex logic
 
 // Storing expressions as function atoms
 @func: (2 * 2);                 // stores function atom
 ```
 
 This design reduces paren noise while maintaining the power of function atoms for complex logic and explicit scoping.
-
-
-
-**Key benefits:**
-- **Type consistency**: Enables rebinding variables with computed values
-- **Clear intent**: Makes immediate evaluation explicit rather than context-dependent
-- **Flexibility**: Works with any function atom, from simple arithmetic to complex computations
 
 #### Variable shadowing
 Variable shadowing is when one variable temporarily overwrites another variable. So for instance:
@@ -317,7 +313,7 @@ Variable shadowing is when one variable temporarily overwrites another variable.
     @x: "a totally new variable that is within the function scope via shadowing";
     @temp: "also shadowed";
     // you can declare the @x and @temp here because they are scoped to the function and "shadow" the global scope. Any changes made to variables that are shadowing will not effect the exterior scope
-)
+);
 ```
 
 ### Empty variables (null, undefined)
@@ -339,138 +335,125 @@ When a variable has already been declared, but it's value is reasigned it can be
 ### Filling empty values
 When an empty variable is initially created, it has no type. The first non-empty value bound to it locks it into that type.
 ```javascript!
-@x: ;
-// @x has no value or type
+@x: ; // `@x` has no value or type
 
-@x <: 5;
-// @x now has a value of 5 and a type of Number.
+@x <: 5; // `@x` now has a value of 5 and a type of Number.
 
 @x <: 6 // totally fine to rebind this variable with a new Number value.
-@x <: "five"
-// ❌ error: cannot bind Text to a Number type variable
+@x <: "five" // ❌ error: cannot bind Text to a Number type variable
 ```
 
 ## Variable Invocation
 Default case:
 ```javascript!
 @text-example: "here is some text";
-@text-example;
+$text-example;
 //returns "here is some text"
 ```
 
 All variables are passed by copy/value
 ```javascript!
 @text-example: "here is some text";
-@text-example2: @text-example;
-@text-example2; // returns "here is some text"
+@text-example2: $text-example;
+$text-example2; // returns "here is some text"
 
 // This is also true of Lists (unlike Javascript)
 @list-example: [@property1: 4, @property2: 4];
-@example: @list-example.property1;
+@example: $list-example.property1;  // this binds the value of $list-example.property1 to example at time of bind.
 @list-example.property1 <: 5;
-@example;   // returns 4
+$example;   // returns 4
 ```
 
 ## Function invocation
 ```javascript!
-function-example: (
+@function-example: (
     param @first-number: 1;
     param @second-number: 1;
     @third-number: 1;
-    return((@first-number + @second-number + @third-number));
+    return($first-number + $second-number + $third-number);
     );
 
-// You can invoke a function in three equal ways:
-function-example(); //returns 3
-@function-example; //returns 3
-@function-example(); //returns 3
+// You can invoke a function with or without parens. Without parens will just use default values for params and if there are none it will result in an error:
+$function-example;      //returns 3
+$function-example();    //returns 3
 
-// You can invoke a function and pass it arguments in 2 ways:
-function-example(10, 9);//returns 20
-@function-example(10, 9);//returns 20
+// Example with arguments passed to the parameters.
+$function-example(10, 9);     //returns 20
 
-function-example2: (
+@function-example2: (
     @first-number: 5;
     param @second-number: ;
-    param @third-number: Number: ;
+    param @third-number: Number;  // If you don't want to give a default but you still want to lock the type of a parameter you can use an explicit declaration of type like so.
 
-    return((@first-number * @second-number / @third-number));
+    return($first-number * $second-number / $third-number));
 )
 
-// arguments can be bound to parameters either by order
-function-example2(1, 2);
-// returns 2.5
+// arguments can be bound to parameters either by order:
+$function-example2(1, 2);    // returns 2.5
 
 // or by named binding
-function-example2(@third-number<: 2, @second-number<: 3);
-// returns 7.5
+$function-example2(@third-number<: 2, @second-number<: 3);   // returns 7.5
 
-function-example2();
-// returns error, due to missing arguments
+$function-example2();     // returns error, due to missing arguments
 ```
 
 Functions like all other variables are also passed by copy/value:
 ```javascript!
 @global-var: 5;
-function-example: (
-    return(@global-var);
+@function-example: (
+    return($global-var);
 );
-@example: function-example();
-@example; // returns 5
+@example: $function-example();
+$example; // returns 5
 @global-var<: 6;
-@example; // returns 5;
+$example; // still returns 5;
 ```
 
 Example of function invocation passed as an argument for another function's parameter:
 ```javascript!
 @campfire-status: "unlit";
 
-get-campfire-status: (
-    return(@campfire-status);
+@get-campfire-status: (
+    return($campfire-status);
 );
 
-announce: (
+@announce: (
     param @status-value:"";
-    "campfire: <@status-value>";
+    "campfire: <$status-value>";
 );
 
-announce(get-campfire-status());
+$announce($get-campfire-status());
 // Expected output: "campfire: unlit"
 
 @campfire-status <: "lit";
 
-announcer(get-campfire-status());
-// Expected output: "campfire: lit"
+$announcer($get-campfire-status());    // Expected output: "campfire: lit"
 ```
 
 Function atoms can be saved to a keyname like any other atomvalue, even keynames in lists, and they can also be invoked pretty much the same way from the List as any other item:
 ```javascript!
 @dog: [
     @name: "Ralph",
-    speak: (
-        return("yo, my name is <@self.name>");
+    @speak: (
+        return("yo, my name is <$self.name>");
     ),
-    play-dead: (
+    @play-dead: (
         param @assailant: "";
-        return("ah! I was murdered by <@assailant>!");
+        return("ah$ I was murdered by <$assailant>$");
     ),
 ];
 
-@dog.name;
-//returns "Ralph"
+$dog.name;                  //returns "Ralph"
+$@dog.speak();              // returns "yo, my name is Ralph"
 
-@dog.speak();
-// returns "yo, my name is Ralph"
-
-@dog.play-dead("Tom");
-//returns "ah! I was murdered by Tom!"
+$dog.play-dead("Tom");      //returns "ah$ I was murdered by Tom$"
 
 //piping the return value into a function
-toLowerCase(@dog.name);
+$toLowerCase($dog.name);
 //returns "ralph"
 
-toLowerCase(@dog.play-dead("Jerry"));
-// returns "ah! i was murdered by jerry!"
+$toLowerCase($dog.play-dead("Jerry"));
+// returns "ah$ i was murdered by jerry$"
 ```
 
 Example of invoking a List function and also passing an additional function as a parameter:
@@ -480,23 +463,22 @@ Example of invoking a List function and also passing an additional function as a
         @bark: (
             param @status: ;
             param @message: ;
-            If @status is "loud", (
-                return( toUpper(@message) );
+            If $status is "loud", (
+                return( $toUpper($message) );
             );
             Else, (
-                return( toLower(@message) );
+                return( $toLower($message) );
             );
         );
     ]
 ];
 
-getCurrentStatus: (
+@getCurrentStatus: (
     return("loud");
 );
 
 // Invocation: property access via dot notation and function invocation via prefix (nested) style.
-@animal.dog.bark(getCurrentStatus(), "Bark Bark");
-// returns BARK BARK
+$animal.dog.bark($getCurrentStatus(), "Bark Bark");    // returns BARK BARK
 ```
 
 ## Invocation versus reference
@@ -508,30 +490,30 @@ Enzo distinguishes **invoking** a variable or function (by value/copy) from **re
 
 Unlike most languages where functions are referenced by omitting the parentheses, function name with no sigil or parens is always an error:
 ```javascript!
-function-name; // this is always an error!
+function-name; // this is always an error$
 ```
 
 Example of this in action for simple variables:
 ```javascript!
 @referenced-value: 8;
 @referring-variable: @referenced-value;
-@referring-variable;  // returns 8
+$referring-variable;  // returns 8
 @referenced-value<: 9;
-@referring-variable;  // returns 9
+$referring-variable;  // returns 9
 @referring-variable<: 10;
-@referenced-value;  // returns 10
+$referenced-value;  // returns 10
 ```
 
 Example of this in action for function reference:
 ```javascript!
 // 1) Define a function
-increment: (
+@increment: (
   param @number: ;
-  return(@number + 1);
+  return($number + 1);
 );
 
 // 2) Call it directly:
-@total: increment(5);
+@total: $increment(5);
 // 6 is now bound to @total
 
 // 3) Bind a function reference to a keyname:
@@ -539,37 +521,37 @@ increment: (
 // ✓ @op now holds the function object
 
 // 4) Call via your @-bound alias:
-@result: @op(10);
+@result: $op(10);
 // 11 bound to @result
 
 // 5) Higher-order usage:
-applyTwice: (
+@applyTwice: (
   param @function:();      // expects a function object
   param @value: 1;          // default value of 1 tells it to expect a Number
-  return(@function(@function(@value)));
+  return($function($function($value)));
 );
 
 // Pass the function **reference** with `@`:
-@twice: applyTwice(@increment, 7);
+@twice: $applyTwice(@increment, 7);
 // 9 bound to @twice
 ```
 
-You can also use `@()` to create references to nameless functions:
+Nameless function atoms are by default references unless explicitly invoked with the `$` sigil:
 ```javascript!
-@funcs-list: [@(param @x:; @x + 1), @(param @x:; @x * 2)];
-processCustomers(@customers, @(
+@funcs-list: [(param @x:; $x + 1), (param @x:; $x * 2)];
+$processCustomers($customers, (
     param @customer: ;
-    "Email: <@customer.email>";
+    "Email: <$customer.email>";
 ));
 ```
 
 ### Using a reference for partial application
 Sometimes you want to make a new function that is like an existing function but more constrained. Let's say the function take 2 arguments, but you want to make a new one where the second argument is always the same, and only the first one can be customized. You can do this with a feature called "partial application":
 ```javascript!
-add: (param a: , param b: ; a + b);
-add5: @add( , 5);
+@add: (param @a: , param @b: ; $a + $b);
+@add5: @add( , 5);
 
-add5(10);  // returns 15
+$add5(10);  // returns 15
 ```
 
 
@@ -585,24 +567,24 @@ It’s especially handy when working with complex data structures or when you wa
 ];
 
 // the List can be destructured by name
-@name, @age, @favorite-color -> @shirt-color: @person[];
+@name, @age, @favorite-color -> @shirt-color: $person[];
 // the -> operator allows for the renaming of the @favorite-color variable to @shirt-color.
 
 //or alternatively in the other direction:
-@person[] :> @name, @age, @favorite-color -> @shirt-color;
+$person[] :> @name, @age, @favorite-color -> @shirt-color;
 
 // or it can be destructured by List position:
 @example-list: [1, 2, 3];
-@x, @y, @z: @example-list[];
-// @x = 1, @y = 2, @z = 3
+@x, @y, @z: $example-list[];
+// `@x` = 1, `@y` = 2, `@z` = 3
 
 // But lists can have both named and positional elements which means that you can also destructure by both name and then position
 @person: [5, @foo: 6, 7];
-@foo, @bar, @baz: @person[];
-// @foo = 6 (by name), @bar = 5 (first position), @baz = 7 (second remaining position)
+@foo, @bar, @baz: $person[];
+// `@foo` = 6 (by name), @bar = 5 (first position), @baz = 7 (second remaining position)
 // Users are encouraged to align their named destructuring with their positional destructuring for the sake of clarity:
 @person: [5, @foo: 6, 7];
-@bar, @foo, @baz: @person[];
+@bar, @foo, @baz: $person[];
 ```
 Destructuring, like all variable declaration and rebinding in Enzo, is copy by value.
 If you want to "restructure" values back to the original List they were derived from you can do so like this:
@@ -612,14 +594,14 @@ If you want to "restructure" values back to the original List they were derived 
 28 :> @age;
 @shirt-color <: "green";
 
-@person[]<: [@name];
+@person[]<: [$name];
 @person.name; // returns "Jason"
 
-[@age, @shirt-color -> @favorite-color] :> @person[];
+[$age, $shirt-color -> $favorite-color] :> @person[];
 ```
 
 If you want to destructure by reference (meaning you want changes to the destructured variables to automatically propagate to the original List being destructured) then you need to use the `@` sigil when destructuring. This makes restructuring unnecessary but means all changes to the destructured variables will effect the original:
-```javscript!
+```javscript$
 @person : [
   @name: "Todd",
   @age: 27,
@@ -656,7 +638,6 @@ Goblin: <[
 ```
 
 A blueprint can also be defined with default values:
-
 ```javascript!
 Goblin: <[
     health-points: 100,
@@ -684,10 +665,10 @@ Goblin: <[
     status-effect: Text,
 ]>;
 
-take-damage: (
+@take-damage: (
     param @target: ;              // expects a target of the damage
     param @damage: 0;
-    @target.health-points - @damage :> @target.health-points;
+    $target.health-points - $damage :> @target.health-points;
     return(@target);              // returns target so it can be used in further pipelines
 );
 
@@ -698,7 +679,7 @@ take-damage: (
         @bite: 50,
         @torch: 40,
     ],
-    status-effect: "poisoned"
+    @status-effect: "poisoned"
 ];
 
 @goblin-2: Goblin[
@@ -708,10 +689,10 @@ take-damage: (
         @bite: 55,
         @torch: 35,
     ],
-    status-effect: "none"
+    @status-effect: "none"
 ];
 
-@goblin-1 then take-damage(@this, 10) :> @goblin-1; // @goblin-1 takes damage and is returned by the function with it's health points decreased by 10. @goblin-2 still has 110 health. Two things coming from the same blueprint.
+$goblin-1 then take-damage($this, 10) :> @goblin-1; // `@goblin-1` takes damage and is returned by the function with it's health points decreased by 10. @goblin-2 still has 110 health. Two things coming from the same blueprint.
 ```
 
 #### Composing blueprints together
@@ -724,20 +705,20 @@ Animal: <[
 
 Flying-Animal: <[
     @wings: "true",
-    fly: (
+    @fly: (
         param @z-position-movement: Number;
-        @self.position.3 + @z-position-movement :> @self.position.3;
+        $self.position.3 + $z-position-movement :> @self.position.3;
         return(@self);
     )
 ]>;
 
 Swimming-Animal: <[
     @lives-near-water: Text,
-    swim: (
+    @swim: (
         param @x-position-movement: Number;
         param @y-position-movement: Number;
-        @self.position.1 + @x-position-movement :> @self.position.1;
-        @self.position.2 + @y-position-movement :> @self.position.2;
+        $self.position.1 + $x-position-movement :> @self.position.1;
+        $self.position.2 + $y-position-movement :> @self.position.2;
         return(@self);
     )
 ]>;
@@ -792,7 +773,7 @@ Orc: <[
     health: Number,
     position: [Number, Number],
     shout: (
-        return("Manmeat for dinner!");
+        return("Manmeat for dinner$");
     )
 ]>;
 
@@ -800,7 +781,7 @@ Troll: <[
     health: Number,
     position: [Number, Number],
     bellow: (
-        return("RARGH!!!");
+        return("RARGH$$$");
     )
 ]>;
 
@@ -832,14 +813,14 @@ Monster variants:
         health: Number,
         position: [Number, Number],
         shout: (
-            return("Manmeat for dinner!");
+            return("Manmeat for dinner$");
         )
     ]>,
     or Troll: <[
         health: Number,
         position: [Number, Number],
         bellow: (
-            return("RARGH!!!");
+            return("RARGH$$$");
         )
     ]>;
 
@@ -859,12 +840,12 @@ Monster variants:
     ]>,
     or Orc: <[
         shout: (
-            return("Manmeat for dinner!");
+            return("Manmeat for dinner$");
         )
     ]>,
     or Troll: <[
         bellow: (
-            return("RARGH!!!");
+            return("RARGH$$$");
         )
     ]>;
 // Goblin, Orc, and Troll all share the Monster qualities defined in the Monster Blueprint
@@ -930,7 +911,7 @@ Examples of “false” conditions:
 @hacky2: Status.False; // Built in variant group explained below.
 ```
 
-The built in blueprint variant groups `True`, `False`, and `Status` (with builtin members `Status.True`, and `Status.False`) are provided out of the box. These are provided for the sake of readability, they're not a proper separate "Boolean type" as found in many other languages. They can be extended by the user, such as adding things like `Status.Loading`, `Status.Dead`or what have you.`False` and `Status.False` are the only variant group or variant values which return false in a truth condition context. Kinda hacky? ...True!
+The built in blueprint variant groups `True`, `False`, and `Status` (with builtin members `Status.True`, and `Status.False`) are provided out of the box. These are provided for the sake of readability, they're not a proper separate "Boolean type" as found in many other languages. They can be extended by the user, such as adding things like `Status.Loading`, `Status.Dead`or what have you.`False` and `Status.False` are the only variant group or variant values which return false in a truth condition context. Kinda hacky? ...True$
 
 Comparisons and functions do not automatically return a boolean type, but functions may return True or False by convention.
 
@@ -939,7 +920,7 @@ Comparisons and functions do not automatically return a boolean type, but functi
 ```javascript!
 @fav-color: "blue";
 
-If @fav-color, (
+If $fav-color, (
     "I have a favorite color and it is: <@fav-color>.";
 );
 ```
@@ -947,8 +928,8 @@ If @fav-color, (
 #### Else
 Else provides a fallback for if the If condition is not met.
 ```javascript!
-If @status is "red alert", (
-    "Panic!!!";
+If $status is "red alert", (
+    "Panic$$$";
 ),
 Else, (
     "Nothing to worry about";
@@ -958,11 +939,11 @@ Else, (
 #### Else if
 If you want to chain several if statements in a row, but only have the subsequent ones fire if the prior one fails you can use `Else if`.
 ```javascript!
-If @status is "red alert",(
-    "DANGER!";
+If $status is "red alert",(
+    "DANGER$";
 );
-Else if @status is "yellow alert", (
-  "warning!";
+Else if $status is "yellow alert", (
+  "warning$";
 );
 Else, (
     "Probably not a big deal";
@@ -975,13 +956,13 @@ Add in `not` to test for false condition values instead of true condition values
 ```javascript!
 @fav-color: "blue";
 
-If not @fav-color, (
+If not $fav-color, (
     "I have no favorite color yet."; // this will not run
 );
 
 "" :> @fav-color;
 
-If not @fav-color, (
+If not $fav-color, (
     "I have no favorite color yet."; // this will now run
 );
 ```
@@ -990,7 +971,7 @@ Pair `If`, `is`, and `not` and you can now create a comparison context that reso
 ```javascript!
 @status: "red alert";
 
-If @status is not "red alert", (
+If $status is not "red alert", (
     "Everything is probably fine."; // this won't fire
 );
 ```
@@ -1003,7 +984,7 @@ Rather than just testing to see if a value resolves to a true/false value, you c
 ```javascript!
 @fav-color: "blue";
 
-If @fav-color is "blue", (
+If $fav-color is "blue", (
     "fav color is blue";
 );
 ```
@@ -1016,23 +997,23 @@ If @fav-color is "blue", (
 Most of our examples have been value matches. It's just "does this variable match this value":
 
 ```javascript!
-If @x is 42, (
-    "It's the answer!";
+If $x is 42, (
+    "It's the answer$";
 );
 ```
 
 ###### Type match
 ```javascript!
-If @x is Number, (
-    "It's a number!";
+If $x is Number, (
+    "It's a number$";
 );
 
-If @x is Empty, (
+If $x is Empty, (
     "Nothing to see here";
 );
 
-If @x is Monster.Goblin, (
-    "It's a goblin!";
+If $x is Monster.Goblin, (
+    "It's a goblin$";
 );
 ```
 
@@ -1042,7 +1023,7 @@ If @x is Monster.Goblin, (
 ```javascript!
 @temperature: 98;
 
-If @temperature is less than 50, (
+If $temperature is less than 50, (
     "getting kind of chilly in here";
 );
 ```
@@ -1053,7 +1034,7 @@ If @temperature is less than 50, (
 ```javascript!
 @temperature: 98;
 
-If @temperature is greater than 88, (
+If $temperature is greater than 88, (
     "getting kind of warm in here";
 );
 ```
@@ -1064,7 +1045,7 @@ If @temperature is greater than 88, (
 ```javascript!
 @temperature: 98;
 
-If @temperature is at most 120, (
+If $temperature is at most 120, (
     "I can survive this heat";
 );
 ```
@@ -1075,7 +1056,7 @@ If @temperature is at most 120, (
 ```javascript!
 @temperature: 98;
 
-If @temperature is at least 20, (
+If $temperature is at least 20, (
     "I can survive this coolness";
 );
 ```
@@ -1086,14 +1067,14 @@ If @temperature is at least 20, (
 ```javascript!
 @list-example: [1, 2, 3];
 
-If @list-example contains 3, (
+If $list-example contains 3, (
     "this List contains a 3.";
 );
 
 @list-example2: [@name: "John", @age: 50];
 
-If @list-example2 contains "John", (
-    "Hi John!";
+If $list-example2 contains "John", (
+    "Hi John$";
 );
 ```
 
@@ -1106,13 +1087,13 @@ Condition combiners allow you to set several conditions together.
 @status : "red alert";
 @temp: 75;
 
-If @status is "red alert" and @temp is 95, (
-    "It's getting really hot in the engine room!"; // this logic will not fire
+If $status is "red alert" and $temp is 95, (
+    "It's getting really hot in the engine room$"; // this logic will not fire
 );
 
 @temp <: 95;
-If @status is "red alert" and @temperature is 95, (
-    "It's getting really hot in the engine room!"; // this logic will now fire
+If $status is "red alert" and $temperature is 95, (
+    "It's getting really hot in the engine room$"; // this logic will now fire
 );
 ```
 
@@ -1122,8 +1103,8 @@ If @status is "red alert" and @temperature is 95, (
 ```javascript!
 @status: "red alert";
 
-If @status is "red alert" or "orange alert", (
-    "stuff is looking bad!";
+If $status is "red alert" or "orange alert", (
+    "stuff is looking bad$";
 );
 ```
 
@@ -1133,11 +1114,11 @@ Multi-branch checks let you test one value against several conditions in a row.
 ```javascript!
 @colors: ["blue", "green", "yellow"];
 
-If @colors contains "yellow", (
-    "There's a yellow in the mix!";  // This will fire
+If $colors contains "yellow", (
+    "There's a yellow in the mix$";  // This will fire
 ),
 or is ["blue", "green", "yellow"], (
-    "It matches the specific color set!"; // This will also fire
+    "It matches the specific color set$"; // This will also fire
 );
 Otherwise,
     "All other cases failed"; (
@@ -1149,11 +1130,11 @@ If you want to make it so only the first case that matches fires, then you need 
 ```javascript!
 @colors: ["blue", "green", "yellow"];
 
-If @colors either contains "yellow", (
-    "There's a yellow in the mix!";  // This will fire
+If $colors either contains "yellow", (
+    "There's a yellow in the mix$";  // This will fire
 ),
 or is ["blue", "green", "yellow"], (
-    "It matches the specific color set!"; // This will also fire
+    "It matches the specific color set$"; // This will also fire
 );
 Otherwise, (
     "All other cases failed";
@@ -1164,7 +1145,7 @@ Order matters when using `either` so keep that in mind.
 
 #### Inline if statement
 ```javascript!
-If @ready, ("ready to go!"), Else ("not ready yet!");
+If $ready, ("ready to go$"), Else ("not ready yet$");
 ```
 There are no ternaries. I personally find them very difficult to read, but I think this inline syntax is pretty compact all things considered.
 
@@ -1182,10 +1163,10 @@ Loop, (
 You can end a loop by writing `end-loop;`.
 ```javascript!
 @iteration: 0;
-@message: "There have been <@iteration> full iteration/s";
+@message: "There have been <$iteration> full iteration/s";
 Loop, (
-    @iteration + 1 :> @iteration;
-    @message;
+    $iteration + 1 :> @iteration;
+    $message;
     end-loop;
 ); // This will iterate once, print the message and then end.
 ```
@@ -1193,11 +1174,11 @@ Loop, (
 You can use conditional flow stuff to end based on conditions.
 ```javascript!
 @iteration: 0;
-@message: "There have been <@iteration> full iteration/s";
+@message: "There have been <$iteration> full iteration/s";
 Loop, (
-    @iteration + 1 :> @iteration;
-    @message;
-    If @iteration is greater than 10, (
+    $iteration + 1 :> @iteration;
+    $message;
+    If $iteration is greater than 10, (
         end-loop;
     );
 ); // this will print 11 times then end.
@@ -1212,21 +1193,21 @@ This allows you to create more complex loops that can end loop in multiple ways.
 @message: "";
 
 Loop, (
-    @iteration + 1 :> @iteration;
-    @current: @item-list.@iteration;
+    $iteration + 1 :> @iteration;
+    @current: $item-list.$iteration;
 
-    If @current is @target, (
+    If $current is $target, (
         @found <: true;
-        @message: "Found <@target> at iteration <@iteration>";
+        @message: "Found <$target> at iteration <$iteration>";
         end-loop;
     );
 
-    If @iteration is greater than 10, (
-        @message: "Exceeded iteration count without finding <@target>";
+    If $iteration is greater than 10, (
+        @message: "Exceeded iteration count without finding <$target>";
         end-loop;
     );
 );
-@message;   // Returns "Found 10 at iteration 6"
+$message;   // Returns "Found 10 at iteration 6"
 ```
 
 #### Restarting a loop (continue)
@@ -1236,16 +1217,23 @@ When the interpreter encounters `restart-loop;`, it stops executing the current 
 ```javascript!
 @item-list: [1, 2, 3, 4, 5];
 @evens: [];
-Loop for @item in @item-list, (
-    If (@item % 2) is 1, (   // If @item is odd
+@index: 1;
+Loop, (
+    If $index is greater than $item-list.length, (
+        end-loop;
+    );
+    @item: $item-list.$index;
+    If ($item % 2) is 1, (   // If @item is odd
+        $index + 1 :> @index;
         restart-loop;
     );
     // This code only runs for even Numbers
-    [<@evens;>, @item] :> @evens;
+    [<$evens>, $item] :> @evens;
+    $index + 1 :> @index;
 );
-@evens;  // [2, 4]
+$evens;  // [2, 4]
 ```
-In this example, whenever @item is odd, restart-loop; causes the loop to immediately start the next iteration, so only even Numbers are added to @evens.
+In this example, whenever @item is odd, `restart-loop;` causes the loop to immediately start the next iteration, so only even Numbers are added to @evens.
 
 #### Conditional loop flow
 To have a little more readable and less boilerplate there's also a couple of loop subtypes that put their loop conditions up front. You can still use `end-loop;` to end the loop early, or `restart-loop;` to restart it early.
@@ -1254,10 +1242,10 @@ To have a little more readable and less boilerplate there's also a couple of loo
 A loop that continues for as long as a condition holds true.
 ```javascript!
 @iteration: 0;
-@message: "There have been <@iteration> full iteration/s";
-Loop while @iteration is less than 10, (
-    @iteration + 1 :> @iteration;
-    @message;
+@message: "There have been <$iteration> full iteration/s";
+Loop while $iteration is less than 10, (
+    $iteration + 1 :> @iteration;
+    $message;
  ); // this will print 10 times
 ```
 
@@ -1265,10 +1253,10 @@ Loop while @iteration is less than 10, (
 The opposite of a while loop, loops until a condition is not true.
 ```javascript!
 @iteration: 0;
-@message: "There have been <@iteration> full iteration/s";
-Loop until @iteration is more than 10, (
-    @iteration + 1 :> @iteration;
-    @message;
+@message: "There have been <$iteration> full iteration/s";
+Loop until $iteration is more than 10, (
+    $iteration + 1 :> @iteration;
+    $message;
 ); // this will print 10 times
 ```
 
@@ -1276,31 +1264,30 @@ Loop until @iteration is more than 10, (
 Loops through a List:
 ```javascript!
 @item-list: [1, 2, 3, 4, 5];
-Loop for @item in @item-list, (
-    "this iteration has returned <@item> of <@item-list>";
+Loop for $item in $item-list, (
+    "this iteration has returned <$item> of <$item-list>";
 );
 ```
 Loops are "live iteration" style, meaning that as you loop through the List, any changes to the List will be immediate. You could hypothetically create an infinitely growing loop this way. Not sure if this is better or worse UX than the "snapshot" style, but it seems the most intuitive to me.
 
-
-Also when you define `@item` over the List you are iterating on, it as a copy (all variables are copy by value in Enzo), so any changes you make to the item will not change the item in the original List. See example here:
+Also when you define `$item` over the List you are iterating on, it as a copy (all variables are copy by value in Enzo), so any changes you make to the item will not change the item in the original List. See example here:
 ```javascript!
 @list-for-copy: [10, 20, 30];
-Loop for @item in @list-for-copy, (
-  @item <: @item + 1; // Mutating the loop variable
-  "Item copy is now <@item>"; // prints 11, 21, 31
+Loop for $item in $list-for-copy, (
+  @item <: $item + 1; // Mutating the loop variable
+  "Item copy is now <$item>"; // prints 11, 21, 31
 );
-@list-for-copy; // prints [10, 20, 30] - original List is unaffected
+$list-for-copy; // prints [10, 20, 30] - original List is unaffected
 ```
 
  But if you want to mutate the item as you iterate you can use the `@` sigil to do like so:
 ```javascript!
 @list-for-ref: [10, 20, 30];
-Loop for @item in @list-for-ref, (
-  @item <: @item + 1; // Mutating the original variable
-  "Item is now <@item>"; // prints 11, 21, 31
+Loop for @item in $list-for-ref, (
+  @item <: $item + 1; // Mutating the original variable
+  "Item is now <$item>"; // prints 11, 21, 31
 );
-@list-for-ref; // prints [11, 21, 31] - original List has changed
+$list-for-ref; // prints [11, 21, 31] - original List has changed
 ```
 
 Also important info: When a loop restarts, it starts with a fresh context. Here's an illustration of what that means:
@@ -1308,71 +1295,70 @@ Also important info: When a loop restarts, it starts with a fresh context. Here'
 @iteration: 0;
 Loop, (
     @x: 0
-    @x + 1 :> @x;
-    @x; // prints 1
-    @iteration + 1 :> @iteration;
-    If @iteration is greater than 3, (end-loop);
+    $x + 1 :> @x;
+    $x; // prints 1
+    $iteration + 1 :> @iteration;
+    If $iteration is greater than 3, (end-loop);
 ); // This loop will repeat 3 times, and each time it will print 1. The @x declaration won't be an error because each loop is a fresh context. If you want to have a variable persist between loops it must be declared exterior of the loop.
 ```
 
 ### Data flow
-Enzo provides a pair of dataflow operators,`then` and `@this` to thread a value through a sequence of standalone transformations without nesting or method chaining.
+Enzo provides a pair of dataflow operators,`then` and `$this` to thread a value through a sequence of standalone transformations without nesting or method chaining.
 
 Simple example using function atoms:
 ```javascript!
-100 then (@this + 1); // returns 101
-10 then (@this + @this); // returns 20
-1 then (@this + 1) then (@this * 3) // returns 6
+100 then ($this + 1); // returns 101
+10 then ($this + $this); // returns 20
+1 then ($this + 1) then ($this * 3) // returns 6
 ```
 
 More complex example using named functions:
 
 ```javascript!
 // Step-by-step pipeline
-@selected: @users then filter(@this, "active") then sortBy(@this, "last-name")then select(@this, ["id","email"]);
+@selected: $users then $filter($this, "active") then $sortBy($this, "last-name")then $select($this, ["id","email"]);
 
 // Exactly equivalent to:
-@selected: select(sortBy(filter(@users, "active"),"lastName"),["id","email"]);
+@selected: $select($sortBy($filter($users, "active"),"lastName"),["id","email"]);
 
 
 // You can even us line breaks to keep things more readable:
-@selected: @users
-then filter(@this, "active")
-then sortBy(@this, "lastName")
-then select(@this, ["id","email"]);
+@selected: $users
+then $filter($this, "active")
+then $sortBy($this, "lastName")
+then $select($this, ["id","email"]);
 
 
 // or use a "left to right" binding to keep the value going purely from left to right
-@users then filter(@this, "active") then sortBy(@this, "lastName")then select(@this, ["id","email"]):> @selected;
+$users then $filter($this, "active") then $sortBy($this, "lastName")then $select($this, ["id","email"]):> @selected;
 ```
 
 While `:>` is usually used to rebind values, it can also be used to declare and bind all in one move, which can be useful with pipeline operations so that you can keep a nice `function() then function() then function() :> @final-variable`
 
-The use of the `@this` operator allows for flexibility in how the output of one function gets piped to the next
+The use of the `$this` operator allows for flexibility in how the output of one function gets piped to the next
 
 ```javascript!
 // move-in(@house, @pet)
 // teach (@pet,  @command)
 // reward(@pet,  @treat)
 
-@dog
-then move-in(@home, @this)       // dog goes in *second* position
-then teach(@this, "sit")        // dog again in 1st position of teach
-then reward(@this, "rawhide chew")
+$dog
+then $move-in($home, $this)       // dog goes in *second* position
+then $teach($this, "sit")        // dog again in 1st position of teach
+then $reward($this, "rawhide chew")
 :> @goodDog;
 ```
 
 You can also use pipeline operators on Lists:
-
 ```javascript!
 @colors: ["red", "green", "blue", "yellow"];
 
-@colors
-then @this.3;       // index into the result
+$colors
+then $toUppercase($this.3);       // index into the result
 // → "BLUE"
 ```
 
-**IMPORTANT NOTE:** `@this` is completely unrelated to the `this` keyword found in other languages like javascript. Do not confuse the two. Enzo uses `@self` for that purpose.
+**IMPORTANT NOTE:** `$this` is completely unrelated to the `this` keyword found in other languages like javascript. Do not confuse the two. Enzo uses `@self` for that purpose.
 
 ##### Why use `then` pipeline?
 - No nesting. Keeps your code flat and readable.
@@ -1394,6 +1380,6 @@ then @this.3;       // index into the result
 3. multiplication and division ( `*`, `/` )
 4. addition, subtraction (`+`, `-`)
 5. variable declaration and binding ( `:` `<:` `:>`)
-6. dataflow operators (`then`, `@this`)
+6. dataflow operators (`then`, `$this`)
 7. comparison operators (`is`, `not`, `is not`, `less than`, `greater than`, `at most`, `at least` )
 8. logical operators (`and`, `or`)
