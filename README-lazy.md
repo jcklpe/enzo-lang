@@ -252,7 +252,7 @@ Functions are much more powerful when you assign them to a keyname, because you 
 @function1: (
     param @a: 4;
     @x: 5;
-    return(($x + $a));
+    return($x + $a);
 );
 $function1;      // returns 9, just uses the default parameters, or throws error if there are no defaults
 $function1();     // returns 9, just uses the default parameters, or throws error if there are no defaults

@@ -1,2 +1,0 @@
-apply: (param $fn:(); param $v: ; return($fn($v)));
-apply((param $x:; $x+1), 10);  // passes a function, returns 11
