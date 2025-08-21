@@ -13,7 +13,7 @@
 -10
 0
 error: double minus not allowed
-	$weird: --5;
+	@weird: --5;
 
 //= Modulo Basics
 1

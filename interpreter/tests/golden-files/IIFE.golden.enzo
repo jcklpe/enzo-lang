@@ -8,7 +8,7 @@
 25
 6
 error: cannot bind Text to Number
-    $imm_result <: !("hello"); // error: cannot bind Text to Number
+    @imm_result <: !("hello"); // error: cannot bind Text to Number
 
 //= IMMEDIATE INVOCATION: IN A LIST LITERAL
 10
@@ -27,10 +27,6 @@ error: undefined variable
 9
 "Value is: 8"
 
-//= ERROR CASE: `!` NOT FOLLOWED BY A FUNCTION ATOM
-error: The `!` sigil for immediate invocation must be followed by a function atom `(...)`.
-    $imm_bad: !5; // error: The `!` sigil for immediate invocation must be followed by a function atom `(...)`.
-
 //= ERROR CASE: SYNTAX ERROR INSIDE THE FUNCTION ATOM
 error: parse error in function atom body
-    $imm_bad2: !($x + ); // error: parse error in function atom body
+    @imm_bad2: !($x + ); // error: parse error in function atom body

@@ -13,13 +13,13 @@ error: missing semicolon
 3
 3
 error: missing semicolon
-	($x: 1; $y: 2 $x + $y;);
+	(@x: 1; @y: 2 $x + $y;);
 error: missing semicolon
-	($x: 1; $y: 2 $x + $y);
+	(@x: 1; @y: 2 $x + $y);
 error: missing semicolon
-	($x: 1; $y: 2; $x + $y;)
+	(@x: 1; @y: 2; $x + $y;)
 error: missing semicolon
-	($x: 1 $y: 2; $x + $y;);
+	(@x: 1 @y: 2; $x + $y;);
 //= Multiline semi-colon checks
 4
 4
@@ -30,7 +30,7 @@ error: missing semicolon
 error: missing semicolon
 	return(($x + $y))
 error: missing semicolon
-	($x: 2
+	(@x: 2
 //= Trailing commas and extra semi-colon errors
 error: missing semicolon
-	param $y: 2
+	param @y: 2

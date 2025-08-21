@@ -200,11 +200,11 @@ False
 60
 
 //= FOR @ITEM: REBINDING AN ENTIRE ELEMENT TO A NEW INSTANCE
-[Player[$name: "Goblin", $hp: 30], Player[$name: "Super Orc", $hp: 100]]
+[Player[@name: "Goblin", @hp: 30], Player[@name: "Super Orc", @hp: 100]]
 
 //= FOR @ITEM: ERROR ON TYPE-INCONSISTENT REBINDING
 error: cannot bind Text to Number
-	"should not work" :> $num_ref; // error: cannot bind Text to Number
+	"should not work" :> @num_ref; // error: cannot bind Text to Number
 
 //= NESTED LOOPS: SHADOWING THE LOOP VARIABLE
 "Outer: 1"

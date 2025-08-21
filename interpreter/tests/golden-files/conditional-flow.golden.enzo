@@ -179,7 +179,7 @@ error: `Else` without preceding `If`
 //= MULTI-STAGE PIPELINE WITH CONDITIONAL STEP ERROR
 error: comparison word in pipeline
 	$list-pipe
-	then ($this contains 4) :> $contains-four;
+	then ($this contains 4) :> @contains-four;
 
 //= Has function and pipeline
 "List contains four"
@@ -202,8 +202,8 @@ error: list index out of range
 	If $bad-list50.4, ( // error: list index out of range
 
 //= ERROR: IF CONDITION ON UNDEFINED PROPERTY IN LIST
-error: list property not found: $age
-	If $user-bad.age, ( // error: list property `$age` not found
+error: list property not found: @age
+	If $user-bad.age, ( // error: list property `@age` not found
 
 //= More destructuring stuff and conditionals stuff
 "Pass: positional destructure"

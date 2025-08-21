@@ -81,8 +81,8 @@ error: expected function reference (@) or function invocation ($)
 17
 27
 //= Duplicate param name error in function declaration
-error: duplicate parameter name '$x' in function definition
-	param $x: 2;
+error: duplicate parameter name '@x' in function definition
+	param @x: 2;
 
 //= Empty function declaration and invocation
 //= Function with default param referencing previous param
