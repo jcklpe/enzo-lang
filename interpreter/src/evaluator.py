@@ -402,14 +402,16 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         if loop_locals is not None:
             loop_locals.add(name)
 
-        # For variable bindings, also make accessible with/without $ prefix
+        # For variable bindings, ensure compatibility between @variable and $variable naming
+        # In the new paradigm: @variable stores as 'variable', $variable accesses 'variable'
         if name.startswith('$'):
-            # Make $variable also accessible as bare name
+            # Legacy $variable: value syntax - make accessible as both $variable and variable
             bare_name = name[1:]  # Remove the $ prefix
             if bare_name not in env:  # Don't overwrite existing bare variable
                 env[bare_name] = actual_val
         else:
-            # Make bare variable also accessible with $ prefix
+            # New @variable: value syntax - variable stored without $ prefix
+            # Make accessible with $ prefix for backward compatibility if needed
             dollar_name = '$' + name
             if dollar_name not in env:  # Don't overwrite existing $variable
                 env[dollar_name] = actual_val
@@ -951,9 +953,18 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
     if isinstance(node, VarInvoke):
         name = node.name
-        if name not in env:
-            raise EnzoRuntimeError(error_message_unknown_variable(name), code_line=node.code_line)
-        val = env[name]
+
+        # In the new @/$ paradigm: $variable looks up 'variable' (without $)
+        lookup_name = name[1:] if name.startswith('$') else name
+
+        if lookup_name not in env:
+            # Also try the original name for backward compatibility
+            if name not in env:
+                raise EnzoRuntimeError(error_message_unknown_variable(name), code_line=node.code_line)
+            else:
+                lookup_name = name
+
+        val = env[lookup_name]
 
         # Handle reference wrapper: return the current value of the reference
         if isinstance(val, ReferenceWrapper):
@@ -1237,6 +1248,17 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # Assignment to variable
         if isinstance(target, str):
             name = target
+        elif isinstance(target, ReferenceAtom):
+            # Handle @variable <: value syntax
+            if isinstance(target.target, VarInvoke):
+                name = target.target.name
+            else:
+                raise EnzoRuntimeError(f"Cannot bind to target: {target}", code_line=getattr(node, 'code_line', None))
+        else:
+            # For other cases, continue with existing logic
+            name = None
+
+        if name is not None:
             # For rebinding operations:
             # - If variable was shadowed in this loop (in loop_locals), rebind in current env
             # - If variable exists in outer_env and not shadowed, rebind in outer_env

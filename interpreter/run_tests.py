@@ -73,8 +73,12 @@ def color_diff_symbol_line(line):
     return line
 
 def normalize_output(text):
-    # Strip trailing whitespace from each line, remove trailing blank lines
-    lines = [line.rstrip() for line in text.splitlines()]
+    # Strip trailing whitespace from each line, but preserve comments
+    lines = []
+    for line in text.splitlines():
+        # Only strip whitespace (spaces, tabs), not comments
+        stripped = line.rstrip(' \t')
+        lines.append(stripped)
     # Remove trailing blank lines
     while lines and lines[-1] == "":
         lines.pop()
@@ -82,11 +86,16 @@ def normalize_output(text):
     return "\n".join(lines) + "\n"
 
 def normalize_block_lines(lines):
-    # Remove trailing whitespace from each line and strip trailing blank lines
-    lines = [line.rstrip() for line in lines]
-    while lines and lines[-1] == "":
-        lines.pop()
-    return lines
+    # Strip trailing whitespace from each line but preserve comments
+    normalized_lines = []
+    for line in lines:
+        # Only strip whitespace (spaces, tabs), not comments
+        stripped = line.rstrip(' \t')
+        normalized_lines.append(stripped)
+    # Remove trailing blank lines
+    while normalized_lines and normalized_lines[-1] == "":
+        normalized_lines.pop()
+    return normalized_lines
 
 def regenerate_combined_files():
     #Regenerate combined-tests.enzo and combined-tests.golden.enzo from individual modules

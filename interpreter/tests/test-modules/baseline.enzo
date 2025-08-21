@@ -2,9 +2,9 @@
 "this is some text";
 5;
 [1, 2, 3];
-[$key: 1];
+[@key: 1];
 (1 + 2);
 
 //= More complex nested atoms
-["text", 5, [5, 4], [$key: "value"]];
-[$key: "value", $key2: 5, $key3: [4, 5], $key4: [$key5: "value"]];
+["text", 5, [5, 4], [@key: "value"]];
+[@key: "value", @key2: 5, @key3: [4, 5], @key4: [@key5: "value"]];

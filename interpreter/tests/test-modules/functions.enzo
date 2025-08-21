@@ -5,14 +5,14 @@
 (6);  // prints 6
 
 //= Function atom with single variable and implicit return
-($foo: 99; $foo); // prints 99
+(@foo: 99; $foo); // prints 99
 
 //= Nested function atoms
-(($x: 2; $y: 3; $x * $y);); // prints 6
-(($x: 3; $y: 3; $x * $y)); // prints 9
+((@x: 2; @y: 3; $x * $y);); // prints 6
+((@x: 3; @y: 3; $x * $y)); // prints 9
 //= Function atom one liner with implicit return
-($x: 3, $y: 2; $x + $y);   // prints 5
-($x: 3; $y: 3; $x + $y);   // prints 6
+(@x: 3, @y: 2; $x + $y);   // prints 5
+(@x: 3; @y: 3; $x + $y);   // prints 6
 // (both commas and semicolons work for breaking up variables in single line statements)
 
 //= Function with only a return statement (multi-line)
@@ -22,23 +22,23 @@
 
 //= Multiline function atom with explicit return
 (
-$x: 100;
-$y: 100;
+@x: 100;
+@y: 100;
 return(($x + $y));
 
 ); // prints 200
 
 //= Multiline function atom with explicit return 2
-($x: 101;
-$y: 100;
+(@x: 101;
+@y: 100;
 return(($x + $y));); // prints 201
 
 //= Multiline nested function atoms
 (
-    $a: 10;
-    $b: 20;
+    @a: 10;
+    @b: 20;
     return((
-        $c: 2;
+        @c: 2;
         return(($a + $b + $c));
     ));
 ); // prints 32
@@ -53,15 +53,15 @@ $times2;       // prints 4
 $times2();       // prints 4
 
 //= Nameless function: multi-line with no explicit return
-($x: 1;
- $y: 2;
+(@x: 1;
+ @y: 2;
  $x + $y;
 ); // prints 3
 
 //= Multi-line with params and default values
 adder: (
-param $x: 6; // these are default values
-param $y: 6;
+param @x: 6; // these are default values
+param @y: 6;
 return(($y + $x));
 );
 
@@ -70,7 +70,7 @@ $adder();                      // prints 12
 $adder;                      // prints 12
 
 //= passing functions as references
-$referenced-function: @adder;  // does not invoke adder function just saves it to another variable as a reference
+@referenced-function: @adder;  // does not invoke adder function just saves it to another variable as a reference
 $referenced-function();        // prints 12
 adder(4, 5);                   // prints 9
 adder(4, 5, 6);                // error: too many args
@@ -79,8 +79,8 @@ $referenced-function(300, 5);    // prints 305
 
 //= Named function with local variable
 adder-plus-1: (
-    param $x: 6;
-    param $y: 4;
+    param @x: 6;
+    param @y: 4;
     $z: 1;
     return($x + $y + $z);
 );
@@ -89,9 +89,9 @@ adder-plus-1();    // prints 11
 adder-plus-1(2, 2);   // prints 5
 
 //= Subtraction with empty default
-$subtractor: (
-    param $x: ;
-    param $y: ;
+@subtractor: (
+    param @x: ;
+    param @y: ;
     return($x - $y);
 );
 
@@ -101,13 +101,13 @@ subtractor();        // error: missing necessary params
 
 $subtractor(4);   //error: missing necessary params
 //= List of functions invoked by index
-$funs: [(param $x: ; $x + 1;), (param $x: ; $x * 2;)];
+@funs: [(param @x: ; $x + 1;), (param @x: ; $x * 2;)];
 $funs.1(10);              // → 11
 $funs.2(10);              // → 20
 
 //= Named function, then function reference and direct invocation
-double: (param $x: 2; $x * 2);
-$ref: @double;       // should NOT invoke — should just bind the function object
+double: (param @x: 2; $x * 2);
+@ref: @double;       // should NOT invoke — should just bind the function object
 $ref(5);             // → 10
 
 // Direct invocation should work too:
@@ -117,8 +117,8 @@ double(3);           // → 6
 double;              // error: expected function reference (@) or function invocation ($)
 //= Higher-order function: passing function as argument and using default argument
 apply: (
-    param $function-arg:;
-    param $value: 7;
+    param @function-arg:;
+    param @value: 7;
     return($function-arg($value));
 );
 
@@ -128,10 +128,10 @@ apply(@double);      // → 14 (default $val: 7)
 apply(double, 4);    // error: expected function reference (@) or function invocation ($)
 
 //= List with function member and self mutation
-$counter: [
-    $count: 10,
+@counter: [
+    @count: 10,
     increment: (
-        $self.count + 1 :> $self.count;
+        $self.count + 1 :> @self.count;
         return($self.count);
     )
 ];
@@ -142,21 +142,21 @@ $counter.count;      // → 12
 @counter.increment;        // function doesn't invoke, just returns the counter.increment function as a reference.
 
 //= List of functions: referencing as variables
-$list-reference: [
-    $add-one: (
-        param $x: 10;
+@list-reference: [
+    @add-one: (
+        param @x: 10;
         return($x + 1);
     )
 ];
-$referencing-function: @list-reference.add-one;      // should be a function reference, not invoked
+@referencing-function: @list-reference.add-one;      // should be a function reference, not invoked
 $referencing-function();              // → 11
 $referencing-function(5);             // → 6
 
 //= Nested function: inner function shadows param
 outer: (
-    param $x: 10;
+    param @x: 10;
     inner: (
-        param $y: 5;
+        param @y: 5;
         return(($x + $y));
     );
     return($inner(7));
@@ -166,8 +166,8 @@ outer(20);           // → 27
 
 //= Duplicate param name error in function declaration
 duplicate-params: (
-    param $x: 1;
-    param $x: 2; // error: duplicate parameter name '$x' in function definition
+    param @x: 1;
+    param @x: 2; // error: duplicate parameter name '@x' in function definition
     return($x);
 );
 
@@ -177,8 +177,8 @@ empty-fn();     // returns empty.
 
 //= Function with default param referencing previous param
 sum-default: (
-    param $a: 5;
-    param $b: $a;
+    param @a: 5;
+    param @b: $a;
     return(($a + $b));
 );
 sum-default();            // → 10
@@ -186,18 +186,18 @@ sum-default(2);           // → 4
 sum-default(2, 10);       // → 12
 
 //= List with a list of functions as a property
-$calc: [
-    $ops: [(param $x: ; $x + 1;), (param $x: ; $x * 2;)]
+@calc: [
+    @ops: [(param @x: ; $x + 1;), (param @x: ; $x * 2;)]
 ];
 $calc.ops.2(4);           // → 8
 
 //= List function and interpolation with self behavior
-$doggie: [
-    $name: "ralph",
-    $age: 50,
-    $speak: ("Hi, my name is <$self.name>."),
-    $roll-over: (
-        param $direction: "left";
+@doggie: [
+    @name: "ralph",
+    @age: 50,
+    @speak: ("Hi, my name is <$self.name>."),
+    @roll-over: (
+        param @direction: "left";
         return ("I'm now spinning <$direction>.");
     )
 ];
@@ -205,30 +205,30 @@ $doggie.speak();              // prints "Hi, my name is ralph."
 $doggie.roll-over("right");   // prints "I'm now spinning right."
 
 //= Functions as members of lists
-$weird-member: 20;
-$weird-list: [1, 2, ($x: 9; $x + 1;), ($weird-member + 1)];
+@weird-member: 20;
+@weird-list: [1, 2, (@x: 9; $x + 1;), ($weird-member + 1)];
 $weird-list.3; // prints 10
 $weird-list.4; // prints 21
 
 //= Function with numeric param name
 number-name-param: (
-    param $123: 4;
+    param @123: 4;
     return($123);
 );
 number-name-param();    // prints 4
 
 //= Early exit
 early-exit: (
-    $a: 99;
+    @a: 99;
     return($a);
-    $a<: 1; // should not execute
+    @a<: 1; // should not execute
 );
 early-exit(); // should return 99
 
 //= Function param name shadows outer variable
-$whatever: 42;
+@whatever: 42;
 shadow: (
-    param $whatever: 1;
+    param @whatever: 1;
     return($whatever);
 );
 shadow();    // prints 1 not 42

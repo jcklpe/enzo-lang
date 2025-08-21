@@ -39,7 +39,22 @@ from src.error_handling import (
     EnzoRuntimeError, EnzoTypeError, EnzoParseError,
     ReturnSignal, EndLoopSignal, RestartLoopSignal
 )
+
+# Tokenizer imports
+from src.enzo_parser.tokenizer import Tokenizer
+# Usage: tokenizer = Tokenizer(code_string); tokens = tokenizer.tokenize()
 ```
+
+## Debugging Script Guidelines
+### Import Setup for Debug Scripts
+```python
+#!/usr/bin/env python3
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Now you can import from src.*
+```
+
 ### Common Import Patterns
 
 ### Key Module Exports
@@ -47,7 +62,15 @@ from src.error_handling import (
 - `src.evaluator`: exports `eval_ast()` function and `_env` (global environment)
 - `src.enzo_parser.parser`: exports `parse()` function
 - `src.enzo_parser.ast_nodes`: exports all AST node classes
+- `src.enzo_parser.tokenizer`: exports `Tokenizer` class (not a function!)
 - `src.error_handling`: exports all error classes and signal classes
+
+### Important Debug Script Rules
+- ALWAYS run from interpreter directory: `cd /Users/aslan/work/enzo-lang/interpreter`
+- ALWAYS use `poetry run python` for executing scripts, not just `python`
+- ALWAYS check existing scripts in debugging/ folder before creating new ones
+- For imports: tokenizer uses `Tokenizer` class, not `tokenize()` function
+- Reset environment with `_env.clear()` for clean testing
 
 ### Debugging Setup
 

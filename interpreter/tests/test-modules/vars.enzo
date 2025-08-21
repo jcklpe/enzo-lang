@@ -1,51 +1,51 @@
 //= INVOKING AN UNDEFINED VARIABLE
-$undefinedVar;// error: undefined variable
+$undefinedVar;
 
 //= EMPTY BIND ────────────────────────────────────────────────────────────
-$x: ;
+@x: ;
 
-//= REDECLARING A VARIABLE (USING “:”) ERRORS ────────────────────────────
-$x: 10;             // error $x has already been declared
+//= REDECLARING A VARIABLE (USING ":") ERRORS ────────────────────────────
+@x: 10;             // error @x has already been declared
 
-//= REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
-$x <: 100;
+//= REBINDING WITH "<:" AND INVOKING ───────────────────────────────────────
+@x <: 100;
 $x;                 // prints 100
-$x <: "hello";      // error: cannot bind Text to Number
+@x <: "hello";      // error: cannot bind Text to Number
 
 //= FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
-$z: 7;       // binds 7
+@z: 7;       // binds 7
 $z;         // prints 7
-$z <: 8;            // rebind OK, z now 8
+@z <: 8;            // rebind OK, z now 8
 $z;             // prints 8
-$z <: "oops";       // error: cannot bind Text to Number
-$z : "oops";       // error: $z already defined
+@z <: "oops";       // error: cannot bind Text to Number
+@z : "oops";       // error: @z already defined
 
 //= MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
-$Var123: 10;
-$Var123;                  // prints “10”
-$var-xyz: 20;
-$var-xyz;                 // prints “20”
-$Var123 + $var-xyz;       // prints “30”
-$var_xyz: 30;
-$var_xyz;                 // prints “30”
+@Var123: 10;
+$Var123;                  // prints "10"
+@var-xyz: 20;
+$var-xyz;                 // prints "20"
+$Var123 + $var-xyz;       // prints "30"
+@var_xyz: 30;
+$var_xyz;                 // prints "30"
 
-//= REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
-55 :> $newImplicit;
-$newImplicit;               // prints “55”
-$newImplicit <: "oops";     // error: cannot bind Text to Number
-$dougie <: "cool dude";     // should not error.
-$dougie;                    // prints "cool dude".
+//= REBINDING WITH ":>" IMPLICITLY BINDS IF NEEDED ────────────────────────
+55 :> @newImplicit;
+$newImplicit;               // prints "55"
+@newImplicit <: "oops";     // error: cannot bind Text to Number
+@dougie <: "cool dude";     // should not error.
+$dougie;                    // prints "cool dude"
 
 //= MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
-$u: 1; $v: 2; $u + $v;    // prints “3”
-$apples:1;$bananas:2; $apples+$bananas;       // prints 3
-$apricot :  1 ; $boranges: 2;        // spacing should not break anything
+@u: 1; @v: 2; $u + $v;    // prints "3"
+@apples:1;@bananas:2; $apples+$bananas;       // prints 3
+@apricot :  1 ; @boranges: 2;        // spacing should not break anything
 $boranges;
 
 //= Var naming
-$123abc: 5;
+@123abc: 5;
 $123abc; // prints 5
-$_: 9;
+@_: 9;
 $_; // prints 9
-$-foo: 3;
+@-foo: 3;
 $-foo;        // prints 3

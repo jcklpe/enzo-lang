@@ -3,19 +3,19 @@ error: undefined variable
 	$undefinedVar;
 //= EMPTY BIND ────────────────────────────────────────────────────────────
 //= REDECLARING A VARIABLE (USING “:”) ERRORS ────────────────────────────
-error: $x already defined
-	$x: 10;
+error: @x already defined
+	@x: 10;
 //= REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
 100
 error: cannot bind Text to Number
-	$x <: "hello";
+	@x <: "hello";
 //= FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
 7
 8
 error: cannot bind Text to Number
-	$z <: "oops";
-error: $z already defined
-	$z : "oops";
+	@z <: "oops";
+error: @z already defined
+	@z : "oops";
 //= MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
 10
 20
@@ -24,7 +24,7 @@ error: $z already defined
 //= REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
 55
 error: cannot bind Text to Number
-	$newImplicit <: "oops";
+	@newImplicit <: "oops";
 "cool dude"
 //= MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
 3
@@ -491,7 +491,7 @@ error: empty list with just a comma
 3
 "Sum=10 Prod=21"
 //= COMPOUND INTERPOLATION WITH LIST ACCESS ────────────────────────
-[$greeting: "hi", $nums: [2, 4]]
+[@greeting: "hi", @nums: [2, 4]]
 "hi! The nums are:2, and 4"
 //= Unicode and weird strings
 "π≈3.14"

@@ -1,46 +1,46 @@
 //= TEXT + INTERPOLATION ───────────────────────────────────────────────────
-$text-example: ;
-$text-example <: "rebinding this text and ";
+@text-example: ;
+@text-example <: "rebinding this text and ";
 $text-example;
-$text-example2: "this is text example 2";
+@text-example2: "this is text example 2";
 $text-example2;
 
 "just a plain text";   // prints “just a plain text”
 
 "<$text-example; $text-example2;>";   // prints “rebinding this text and this is text example 2”
-$math1-interp: 100;
+@math1-interp: 100;
 $math1-interp;
-$math2-interp: 5;
+@math2-interp: 5;
 $math2-interp;
 "<$math1-interp;> plus <$math2-interp;> is: <($math1-interp + $math2-interp);>";           // prints “100 plus 5 is: 105”
 
 //= NOW THAT $colors & $i ARE DEFINED, INTERPOLATE A STRING THAT USES THEM ─
-$index-interp: 2;
+@index-interp: 2;
 $index-interp;
-$colors-interp: ["red", "purple", "green", "silver"];
+@colors-interp: ["red", "purple", "green", "silver"];
 $colors-interp;
-$text-about-colors-list: "color <$index-interp;> is <$colors-interp.$index-interp;>";
+@text-about-colors-list: "color <$index-interp;> is <$colors-interp.$index-interp;>";
 $text-about-colors-list;   // prints “color 2 is purple
 
 //= COMPLEX MATH INTERPOLATION ● MULTIPLE EXPRESSIONS ───────────────────
-$x <: 7;
+@x <: 7;
 $x;
-$y <: 3;
+@y <: 3;
 $y;
 "Sum=<($x + $y);> Prod=<($x * $y);>";   // prints “Sum=10 Prod=21”
 
 //= COMPOUND INTERPOLATION WITH LIST ACCESS ────────────────────────
-$myList-text: [$greeting: "hi", $nums: [2, 4]];
+@myList-text: [@greeting: "hi", @nums: [2, 4]];
 $myList-text;
 "<$myList-text.greeting;>! The nums are:<$myList-text.nums.1;>, and <$myList-text.nums.2;>";
                          // prints “hi! The nums are: 2,4”
 
 //= Unicode and weird strings
-$str: "π≈3.14";
+@str: "π≈3.14";
 $str;                   // prints π≈3.14
-$esc: "foo\nbar";       // binds foo\nbar
+@esc: "foo\nbar";       // binds foo\nbar
 $esc;
-$esc2: "foo\"bar\"baz";
+@esc2: "foo\"bar\"baz";
 $esc2;                  // prints foo"bar"baz
 
 //= Interpolation errors

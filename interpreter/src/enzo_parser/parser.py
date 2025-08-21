@@ -304,6 +304,7 @@ class Parser:
         return base
 
     def parse_atom(self):
+        from src.enzo_parser.ast_nodes import VarInvoke
         t = self.peek()
         if not t:
             raise EnzoParseError(error_message_unexpected_token(t), code_line=self._get_code_line(t))
@@ -328,9 +329,25 @@ class Parser:
             node = VarInvoke(self.advance().value, code_line=code_line)
         elif t.type == "AT":
             self.advance()
-            # Parse the expression after @, which could be a simple variable or property access
-            expr = self.parse_value_expression()
-            node = ReferenceAtom(expr, code_line=code_line)
+            # Handle special case: @123abc becomes @-prefixed variable with NUMBER_TOKEN + KEYNAME
+            if (self.peek() and self.peek().type == "NUMBER_TOKEN" and
+                self.peek(1) and self.peek(1).type == "KEYNAME"):
+                # Concatenate number and identifier: @123abc -> variable name "123abc"
+                number_part = self.advance().value
+                name_part = self.advance().value
+                var_name = number_part + name_part
+                node = ReferenceAtom(VarInvoke(var_name, code_line=code_line), code_line=code_line)
+            elif (self.peek() and self.peek().type == "MINUS" and
+                  self.peek(1) and self.peek(1).type == "KEYNAME"):
+                # Handle @-foo -> variable name "-foo"
+                self.advance()  # consume MINUS
+                name_part = self.advance().value
+                var_name = "-" + name_part
+                node = ReferenceAtom(VarInvoke(var_name, code_line=code_line), code_line=code_line)
+            else:
+                # Parse the expression after @, which could be a simple variable or property access
+                expr = self.parse_value_expression()
+                node = ReferenceAtom(expr, code_line=code_line)
         elif t.type == "LPAR":
             # ALL parentheses create function atoms according to the language spec
             node = self.parse_function_atom()
@@ -638,6 +655,11 @@ class Parser:
         expr1 = self.parse_value_expression()
         # Assignment: <:
         if self.peek() and self.peek().type == "REBIND_LEFTWARD":
+            # Check if trying to rebind to $variable (not allowed in new paradigm)
+            if isinstance(expr1, VarInvoke):
+                from src.error_messaging import error_message_dollar_in_rebind
+                raise EnzoParseError(error_message_dollar_in_rebind(), code_line=code_line)
+
             self.advance()  # consume REBIND_LEFTWARD
             value = self.parse_value_expression()
             return BindOrRebind(expr1, value, code_line=code_line)
@@ -654,18 +676,31 @@ class Parser:
             else:
                 return Binding(expr1.name, variant_group, code_line=code_line)
 
-        # Variable binding: $x: ... or Blueprint definition: Name: <[...]>
-        if isinstance(expr1, VarInvoke) and self.peek() and self.peek().type == "BIND":
+        # Variable binding: @x: ... or $x: ... or Blueprint definition: Name: <[...]>
+        if ((isinstance(expr1, VarInvoke) or isinstance(expr1, ReferenceAtom)) and
+            self.peek() and self.peek().type == "BIND"):
             self.advance()  # consume BIND
+
+            # Get the variable name - handle both @variable and $variable
+            if isinstance(expr1, ReferenceAtom):
+                # For @variable, extract the variable name from the target
+                if isinstance(expr1.target, VarInvoke):
+                    var_name = expr1.target.name
+                else:
+                    raise EnzoParseError(f"Invalid reference binding target: {expr1.target}", code_line=code_line)
+            else:
+                # For $variable - this is no longer allowed in the new paradigm
+                from src.error_messaging import error_message_dollar_in_assignment
+                raise EnzoParseError(error_message_dollar_in_assignment(), code_line=code_line)
 
             # Check if this is a blueprint definition: Name: <[...]>
             if self.peek() and self.peek().type == "BLUEPRINT_START":
                 blueprint_def = self.parse_blueprint_definition()
-                return Binding(expr1.name, blueprint_def, code_line=code_line)
+                return Binding(var_name, blueprint_def, code_line=code_line)
 
-            # Support empty bind: $x: ;
+            # Support empty bind: @x: ; or $x: ;
             if self.peek() and self.peek().type == "SEMICOLON":
-                return Binding(expr1.name, None, code_line=code_line)
+                return Binding(var_name, None, code_line=code_line)
 
             # Check if this is a blueprint composition: Name and OtherName
             # Parse the value expression
@@ -677,12 +712,12 @@ class Parser:
                 if isinstance(value, VarInvoke):
                     first_blueprint = value.name
                     composition = self.parse_blueprint_composition(first_blueprint)
-                    return Binding(expr1.name, composition, code_line=code_line)
+                    return Binding(var_name, composition, code_line=code_line)
 
             # If the value is a FunctionAtom, mark it as named
             if isinstance(value, FunctionAtom):
                 value.is_named = True
-            return Binding(expr1.name, value, code_line=code_line)
+            return Binding(var_name, value, code_line=code_line)
 
         # Property binding: $list.property: ... (binding to list/object properties)
         if isinstance(expr1, ListIndex) and getattr(expr1, 'is_property_access', False) and self.peek() and self.peek().type == "BIND":
@@ -712,15 +747,26 @@ class Parser:
         if self.peek() and self.peek().type == "REBIND_RIGHTWARD":
             self.advance()
             expr2 = self.parse_value_expression()
-            if isinstance(expr1, VarInvoke) and isinstance(expr2, VarInvoke):
-                # $var1 :> $var2 means: bind value of $var1 to $var2
-                return BindOrRebind(expr2, expr1, code_line=code_line)
+
+            # Handle @variable syntax in :> expressions
+            if isinstance(expr2, ReferenceAtom) and isinstance(expr2.target, VarInvoke):
+                target_expr = expr2.target  # Extract VarInvoke from ReferenceAtom
+            elif isinstance(expr2, VarInvoke):
+                # $variable is not allowed in rebind context in new paradigm
+                from src.error_messaging import error_message_dollar_in_rebind
+                raise EnzoParseError(error_message_dollar_in_rebind(), code_line=code_line)
+            else:
+                target_expr = None
+
+            if isinstance(expr1, VarInvoke) and target_expr:
+                # expr1 :> @variable or expr1 :> $variable
+                return BindOrRebind(target_expr, expr1, code_line=code_line)
             elif isinstance(expr1, VarInvoke):
                 # expr1 :> target (where target can be VarInvoke, ListIndex)
-                return BindOrRebind(expr2, expr1, code_line=code_line)
-            elif isinstance(expr2, (VarInvoke, ListIndex)):
-                # expr :> target (where target can be VarInvoke, ListIndex)
-                return BindOrRebind(expr2, expr1, code_line=code_line)
+                return BindOrRebind(target_expr or expr2, expr1, code_line=code_line)
+            elif target_expr or isinstance(expr2, (VarInvoke, ListIndex)):
+                # expr :> target (where target can be VarInvoke, ListIndex, or @variable)
+                return BindOrRebind(target_expr or expr2, expr1, code_line=code_line)
             else:
                 raise EnzoParseError(":> must have a variable on one side", code_line=code_line)
 

@@ -1,87 +1,87 @@
 //= INVOKING AN UNDEFINED VARIABLE
-$undefinedVar;// error: undefined variable
+$undefinedVar;
 
 //= EMPTY BIND ────────────────────────────────────────────────────────────
-$x: ;
+@x: ;
 
-//= REDECLARING A VARIABLE (USING “:”) ERRORS ────────────────────────────
-$x: 10;             // error $x has already been declared
+//= REDECLARING A VARIABLE (USING ":") ERRORS ────────────────────────────
+@x: 10;             // error @x has already been declared
 
-//= REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
-$x <: 100;
+//= REBINDING WITH "<:" AND INVOKING ───────────────────────────────────────
+@x <: 100;
 $x;                 // prints 100
-$x <: "hello";      // error: cannot bind Text to Number
+@x <: "hello";      // error: cannot bind Text to Number
 
 //= FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
-$z: 7;       // binds 7
+@z: 7;       // binds 7
 $z;         // prints 7
-$z <: 8;            // rebind OK, z now 8
+@z <: 8;            // rebind OK, z now 8
 $z;             // prints 8
-$z <: "oops";       // error: cannot bind Text to Number
-$z : "oops";       // error: $z already defined
+@z <: "oops";       // error: cannot bind Text to Number
+@z : "oops";       // error: @z already defined
 
 //= MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
-$Var123: 10;
-$Var123;                  // prints “10”
-$var-xyz: 20;
-$var-xyz;                 // prints “20”
-$Var123 + $var-xyz;       // prints “30”
-$var_xyz: 30;
-$var_xyz;                 // prints “30”
+@Var123: 10;
+$Var123;                  // prints "10"
+@var-xyz: 20;
+$var-xyz;                 // prints "20"
+$Var123 + $var-xyz;       // prints "30"
+@var_xyz: 30;
+$var_xyz;                 // prints "30"
 
-//= REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
-55 :> $newImplicit;
-$newImplicit;               // prints “55”
-$newImplicit <: "oops";     // error: cannot bind Text to Number
-$dougie <: "cool dude";     // should not error.
-$dougie;                    // prints "cool dude".
+//= REBINDING WITH ":>" IMPLICITLY BINDS IF NEEDED ────────────────────────
+55 :> @newImplicit;
+$newImplicit;               // prints "55"
+@newImplicit <: "oops";     // error: cannot bind Text to Number
+@dougie <: "cool dude";     // should not error.
+$dougie;                    // prints "cool dude"
 
 //= MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
-$u: 1; $v: 2; $u + $v;    // prints “3”
-$apples:1;$bananas:2; $apples+$bananas;       // prints 3
-$apricot :  1 ; $boranges: 2;        // spacing should not break anything
+@u: 1; @v: 2; $u + $v;    // prints "3"
+@apples:1;@bananas:2; $apples+$bananas;       // prints 3
+@apricot :  1 ; @boranges: 2;        // spacing should not break anything
 $boranges;
 
 //= Var naming
-$123abc: 5;
+@123abc: 5;
 $123abc; // prints 5
-$_: 9;
+@_: 9;
 $_; // prints 9
-$-foo: 3;
+@-foo: 3;
 $-foo;        // prints 3
 
 //= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
-$emptyListTest: []; // binds []
+@emptyListTest: []; // binds []
 $emptyListTest;    // prints “[]”
 $emptyListTest.1;  // error: list index out of range
 
 //= BIND EMPTY AND THEN FILL WITH LIST ────────────────────────────────────
-$empty-list: ;
-$empty-list: 50;    //error: $empty-list already defined
-$empty-list<: ["now not empty"];  //bind contents to list
+@empty-list: ;
+@empty-list: 50;    //error: @empty-list already defined
+@empty-list<: ["now not empty"];  //bind contents to list
 $empty-list;       // prints “["now not empty"]”
 
 //= DECLARE LIST AND ACCESS ITEMS ────────────────────────────────────────
-$colors: ["red", "green", "blue", "yellow"]; // binds list
+@colors: ["red", "green", "blue", "yellow"]; // binds list
 $colors.3;         // prints “blue”
-$i: 2;             // binds 2
+@i: 2;             // binds 2
 $colors.$i;        // prints “green”
 
 //= NESTED LISTS WITH INDEXING ────────────────────────────────────────────
-$nestedList: [[1, 2], [3, 4]];
+@nestedList: [[1, 2], [3, 4]];
 $nestedList.2.1;   // prints “3”
 
 //= MIXED LIST‐INSIDE‐LIST ● INDEX VS ATTR ──────────────────────────────
-$mix: [$lst: ["a", "b", "c"]];  //binds list
+@mix: [@lst: ["a", "b", "c"]];  //binds list
 $mix.lst.2;                // prints “b”
 
 //= LIST OF LISTS + INDEX OF LIST ────────────────────────────────────
-$lol-index: [[$x: 5], [$x: 7]];  // binds list
-$lol-index;                 // prints “[[$x: 5], [$x: 7]]”
+@lol-index: [[@x: 5], [@x: 7]];  // binds list
+$lol-index;                 // prints “[[@x: 5], [@x: 7]]”
 $lol-index.2.x;             // prints “7”
 
 //= Out-of-bounds and weird list indices
-$list: [1,2,3];     // binds list
+@list: [1,2,3];     // binds list
 $list;
 $list.0;            // error: list index out of range
 $list.4;            // error: list index out of range
@@ -90,52 +90,52 @@ $list."foo";        // error: can't use text as index or keyname
 $list.1.1;          // error: list index out of range
 
 //= List mutation
-$mutable: [1,2];
+@mutable: [1,2];
 $mutable;
-$mutable.1 <: 5;        // updates first element to 5
+@mutable.1 <: 5;        // updates first element to 5
 $mutable;               // prints [5, 2]
-$mutable.3 <: 9;        // error: list index out of range
+@mutable.3 <: 9;        // error: list index out of range
 
 //= Trailing commas
 // These are fine
-$goodList-index: [1, 2, 3,]; // binds list
+@goodList-index: [1, 2, 3,]; // binds list
 $goodList-index;              // prints  [1, 2, 3]
 // these should error
-$badList1-index: [1,,2];                        // error: remove one comma
-$badList2-index: [,1,2];                        // error: leading comma
-$badList3-index: [,];                           // error: just comma
+@badList1-index: [1,,2];                        // error: remove one comma
+@badList2-index: [,1,2];                        // error: leading comma
+@badList3-index: [,];                           // error: just comma
 
 //= Various type errors
-$notalist: "oops";
+@notalist: "oops";
 $notalist;
 $notalist.1;                              // index applies to lists
 
 //= BINDING MATH OPERATIONS ────────────────────────────────────────────────
-$math1: 100;    // binds 100
+@math1: 100;    // binds 100
 $math1;            // prints 100
-$math2: (3 + 2);          // binds a function atom
+@math2: (3 + 2);          // binds a function atom
 $math2; // prints 5
 ($math1 + $math2);            // prints 105
 
 //= ARITHMETIC PRECEDENCE CHECK ─────────────────────────────────────────────
-$precedence-check: (2 + 3 * 4);      // binds a function atom
+@precedence-check: (2 + 3 * 4);      // binds a function atom
 $precedence-check;                 // prints 14
 
-$precedence-check2: ((2 + 3) * 4);    // binds a function atom
+@precedence-check2: ((2 + 3) * 4);    // binds a function atom
 $precedence-check2;                 // prints 20
 
 //= PARENTHESIZED EXPRESSIONS AS STAND‐ALONE ─────────────────────────────
 (10 + 5);                 // prints “15”
 
 //= LARGE NUMBERS + NEGATIVE NUMBERS ────────────────────────────────────
-$big: 1234567890;         // binds “1234567890”
+@big: 1234567890;         // binds “1234567890”
 $big;                     // prints “1234567890”
-$neg: -5;                 // binds “-5”
+@neg: -5;                 // binds “-5”
 $neg;                     // prints “-5”
 ($neg * 2);                 // prints “-10”
-$negzero: -0;             // binds 0 (should not crash)
+@negzero: -0;             // binds 0 (should not crash)
 $negzero;                 // prints 0 (should not crash)
-$weird: --5;              // error: double minus not allowed
+@weird: --5;              // error: double minus not allowed
 
 //= Modulo Basics
 (5%2); // prints 1
@@ -168,17 +168,17 @@ $weird: --5;              // error: double minus not allowed
 -5 % 0;          // should error: division by zero
 
 //= Basic loop: 1 time
-$loop-iteration: 0;
+@loop-iteration: 0;
 Loop, (
-    $loop-iteration + 1 :> $loop-iteration;
+    $loop-iteration + 1 :> @loop-iteration;
     "There have been <$loop-iteration> loop iterations";
     end-loop;
 ); // prints one time
 
 //= Basic loop: 3 times
-$loop-iteration<: 0;
+@loop-iteration<: 0;
 Loop, (
-    $loop-iteration + 1 :> $loop-iteration;
+    $loop-iteration + 1 :> @loop-iteration;
     "There have been <$loop-iteration> loop iterations";
 
     If $loop-iteration is at least 3, (
@@ -187,9 +187,9 @@ Loop, (
 ); // prints 3 times
 
 //= LOOP WITH SKIP ON CONDITION
-$loop-iteration<: 0;
+@loop-iteration<: 0;
 Loop, (
-    $loop-iteration + 1 :> $loop-iteration;
+    $loop-iteration + 1 :> @loop-iteration;
     If ($loop-iteration % 2) is 0, (
         // silent on even numbers
         restart-loop;
@@ -203,18 +203,18 @@ Loop, (
 
 
 //= SIMPLE LOOP: INCREMENT INSIDE, BREAKS AFTER 5
-$j-loop: 1;
+@j-loop: 1;
 Loop, (
   $j-loop;             // should print 1, 2, 3, 4, 5
   If $j-loop is 5, ( end-loop; );
-  $j-loop + 1 :> $j-loop;
+  $j-loop + 1 :> @j-loop;
 );
 
 //= Loop function atom shadowing
-$loop-temp: 0;
+@loop-temp: 0;
 $loop-temp;  // prints 0
 Loop, (
-    $loop-temp: 10;  // not an error because this is within a function atom and can shadow
+    @loop-temp: 10;  // not an error because this is within a function atom and can shadow
     $loop-temp; // prints 10
     end-loop;
 );
@@ -222,7 +222,7 @@ Loop, (
 $loop-temp; // prints 0 because outer variable remains unchanged by declaration.
 
 Loop, (
-    $loop-temp<: 11;  // this should rebind the outer variable, there is no shadowing here
+    @loop-temp<: 11;  // this should rebind the outer variable, there is no shadowing here
     $loop-temp; // prints 11
     end-loop;
 );
@@ -230,15 +230,15 @@ Loop, (
 $loop-temp; // returns 11
 
 //= Multi iteration loops with fresh shadow scope
-$loop-iteration1: 0;
-$local-var: 5;
+@loop-iteration1: 0;
+@local-var: 5;
 $local-var; // prints 5
 Loop, (
-    $local-var: 1; // shadows the exterior local var
+    @local-var: 1; // shadows the exterior local var
     $local-var; // prints 1 each loop
-    $local-var + 1 :> $local-var;
+    $local-var + 1 :> @local-var;
     $local-var; // prints 2 each loop
-    $loop-iteration1 + 1 :> $loop-iteration1;  // This would not shadow the exterior scope, so the value would be persistent
+    $loop-iteration1 + 1 :> @loop-iteration1;  // This would not shadow the exterior scope, so the value would be persistent
     $loop-iteration1; // prints 1, 2, 3
    If $loop-iteration1 is at least 3, (end-loop); //
 );
@@ -265,38 +265,38 @@ Loop, (
 );
 
 //= LOOP: PIPELINING IN LOOP BODY
-$p-loop: 1;
+@p-loop: 1;
 Loop, (
-    $p-loop then ($this * 2) :> $p-loop;
+    $p-loop then ($this * 2) :> @p-loop;
     If $p-loop is greater than 10, ( end-loop; );
 );
 $p-loop; // should print 16
 
 //= WHILE LOOP SIMPLE
-$count-while: 1;
+@count-while: 1;
 Loop while $count-while is less than 3, (
   $count-while;
-  $count-while <: $count-while + 1;
+  @count-while <: $count-while + 1;
 );
 $count-while; // prints 3
 
 //= WHILE LOOP NEVER ENTERED (INITIAL CONDITION FALSE)
-$count-never: 5;
+@count-never: 5;
 Loop while $count-never is less than 0, (
   "Never prints";
-  $count-never <: $count-never - 1;
+  @count-never <: $count-never - 1;
 );
 
 $count-never; // prints 5, unchanged
 
 //= SIMPLE FOR LOOP
-$list-for: [1,2,3];
+@list-for: [1,2,3];
 Loop for $item in $list-for, (
   "Item: <$item>"; // prints each item
 );
 
 //= FOR LOOP WITH EMPTY LIST (NEVER ENTERED)
-$empty-list-for: [];
+@empty-list-for: [];
 Loop for $item in $empty-list-for, (
   "Never prints";
 );
@@ -304,74 +304,74 @@ Loop for $item in $empty-list-for, (
 $empty-list-for; // prints []
 
 //= ERROR: FOR LOOP WITH NON-ITERABLE
-$item10: 5;
+@item10: 5;
 Loop for $item10 in 10, ( // error: `for` loop must be over a list
   "Won't print";
 );
 
 //= WHILE LOOP WITH COMPLEX CONDITION
-$active-while: True;
-$counter-while: 0;
+@active-while: True;
+@counter-while: 0;
 Loop while $active-while and $counter-while is less than 5, (
-    $counter-while + 1 :> $counter-while;
+    $counter-while + 1 :> @counter-while;
     "Counter: <$counter-while>"; // prints 1, 2, 3, 4, 5
 
     If $counter-while is 5, (
-        False :> $active-while;
+        False :> @active-while;
     );
 );
 $active-while; // should print False
 
 //= UNTIL LOOP: THE OPPOSITE OF WHILE
-$count-until: 0;
+@count-until: 0;
 Loop until $count-until is 3, (
   "Count is <$count-until>"; // prints for 0, 1, 2
-  $count-until + 1 :> $count-until;
+  $count-until + 1 :> @count-until;
 );
 $count-until; // should print 3
 
 //= UNTIL LOOP THAT NEVER RUNS
-$never-run-until: 10;
+@never-run-until: 10;
 Loop until $never-run-until is greater than 5, (
     "This should not execute";
 );
 $never-run-until; // prints 10, unchanged
 
 //= FOR LOOP: ITEM IS A COPY, NOT A REFERENCE
-$list-for-copy: [10, 20, 30];
+@list-for-copy: [10, 20, 30];
 Loop for $item in $list-for-copy, (
-  $item <: $item + 1; // Mutating the loop variable
+  @item <: $item + 1; // Mutating the loop variable
   "Item copy is now <$item>"; // prints 11, 21, 31
 );
 $list-for-copy; // prints [10, 20, 30] - original list is unaffected
 
 //= FOR LOOP: ITEM IS A REFERENCE
-$list-for-copy2: [10, 20, 30];
+@list-for-copy2: [10, 20, 30];
 Loop for @item in $list-for-copy2, (
-  $item <: $item + 1; // Mutating the original variable
+  @item <: $item + 1; // Mutating the original variable
   "Item is now <$item>"; // prints 11, 21, 31
 );
 $list-for-copy2; // prints [11, 21, 31] - original list has changed
 
 //= WHILE LOOP MUTATING THE ORIGINAL LIST (BY INDEX)
-$list-for-mutate: [10, 20, 30];
-$i-for: 1;
+@list-for-mutate: [10, 20, 30];
+@i-for: 1;
 Loop while $i-for is at most 3, (
-    $list-for-mutate.$i-for + 5 :> $list-for-mutate.$i-for;
-    $i-for + 1 :> $i-for;
+    $list-for-mutate.$i-for + 5 :> @list-for-mutate.$i-for;
+    $i-for + 1 :> @i-for;
 );
 
 $list-for-mutate; // prints [15, 25, 35] - original is mutated
 
 //= WHILE LOOP SHADOWING
-$iteration52: 0;
+@iteration52: 0;
 $iteration52; // prints 0
 Loop while $iteration52 is less than 3, (
-    $local-var: 1;
+    @local-var: 1;
     $local-var;  // prints 1 each loop
-    $local-var + 1 :> $local-var;
+    $local-var + 1 :> @local-var;
     $local-var; // prints 2 each loop
-    $iteration52 + 1 :> $iteration52;
+    $iteration52 + 1 :> @iteration52;
     $iteration52; // prints 1, 2, 3
 );
 
@@ -379,41 +379,41 @@ $iteration52; // prints 3
 
 //= While loop shadowing exception
 
-$iteration53: 0;
+@iteration53: 0;
 $iteration53; // prints 0
-$local-var2: 0;
+@local-var2: 0;
 $local-var2; // prints 0
 Loop while $iteration53 is less than 3, (
-    $local-var2: 1;
+    @local-var2: 1;
     $local-var2;  // prints 1 each loop
-    $local-var2 + 1 :> $local-var2;
+    $local-var2 + 1 :> @local-var2;
     $local-var2; // prints 2 each loop
-    $iteration53 + 1 :> $iteration53;
+    $iteration53 + 1 :> @iteration53;
     $iteration53; // prints 1, 2, 3
 );
 $iteration52; // prints 3
 $local-var2; // prints 0
 
 //= FOR LOOP OVER LIST OF LISTS
-$list-of-lists: [[1, 2], ["a", "b"]];
+@list-of-lists: [[1, 2], ["a", "b"]];
 Loop for $inner in $list-of-lists, (
     "Inner list: <$inner>"; // prints [1, 2] then ["a", "b"]
     $inner.1; // prints 1, then "a"
 );
 
 //= FOR LOOP WITH DESTRUCTURING INSIDE
-$people: [
-    [$name: "Alice", $age: 30],
-    [$name: "Bob", $age: 42]
+@people: [
+    [@name: "Alice", @age: 30],
+    [@name: "Bob", @age: 42]
 ];
 Loop for $person in $people, (
-    $name, $age: $person[];
+    @name, @age: $person[];
     "User <$name> is <$age> years old."; // prints for Alice, then Bob
 );
 
 //= USING RESTART-LOOP AND END-LOOP
-$numbers-for: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-$sum-for: 0;
+@numbers-for: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+@sum-for: 0;
 Loop for $num in $numbers-for, (
     If $num is 8, (
         "Found 8, ending loop.";
@@ -423,38 +423,38 @@ Loop for $num in $numbers-for, (
         // skip odd numbers
         restart-loop;
     );
-    $sum-for + $num :> $sum-for; // only adds even numbers
+    $sum-for + $num :> @sum-for; // only adds even numbers
 );
 $sum-for; // should be 2 + 4 + 6 = 12
 
 //= MODIFYING THE LIST WHILE ITERATING (APPENDING)
-$dynamic-list: [1, 2];
-$iterations-dynamic: 0;
+@dynamic-list: [1, 2];
+@iterations-dynamic: 0;
 Loop for $item in $dynamic-list, (
     "Item: <$item>"; // should print 1, 2, 3
-    $iterations-dynamic + 1 :> $iterations-dynamic;
+    $iterations-dynamic + 1 :> @iterations-dynamic;
     If $item is 2, (
-        [<$dynamic-list>, 3] :> $dynamic-list; // append to the list
+        [<$dynamic-list>, 3] :> @dynamic-list; // append to the list
     );
     If $iterations-dynamic is 3, ( end-loop; ); // safety break
 );
 $dynamic-list; // should be [1, 2, 3]
 
 //= MODIFYING AN UPCOMING ITEM
-$items-live: ["a", "b", "c"];
+@items-live: ["a", "b", "c"];
 Loop for $item in $items-live, (
   "Current item: <$item>"; // prints "a", then "b_mod", then "c"
   If $item is "a", (
-    "b_mod" :> $items-live.2; // Modify the next item in the list
+    "b_mod" :> @items-live.2; // Modify the next item in the list
   );
 );
 $items-live; // prints ["a", "b_mod", "c"]
 
 //= ITERATING OVER BLUEPRINT INSTANCES
 Player: <[ name: Text, hp: Number ]>;
-$players: [
-    Player[$name: "Zork", $hp: 100],
-    Player[$name: "Bork", $hp: 85]
+@players: [
+    Player[@name: "Zork", @hp: 100],
+    Player[@name: "Bork", @hp: 85]
 ];
 Loop for $p in $players, (
     If $p.hp is less than 100, (
@@ -465,10 +465,10 @@ Loop for $p in $players, (
 //= END-LOOP AFFECTS INNERMOST LOOP ONLY
 Loop, (
     "Outer loop started";
-    $inner-count: 0;
+    @inner-count: 0;
     Loop, (
         "Inner loop running";
-        $inner-count + 1 :> $inner-count;
+        $inner-count + 1 :> @inner-count;
         If $inner-count is 1, (
                 "ending inner loop";
                 end-loop; // should only end the inner loop
@@ -480,7 +480,7 @@ Loop, (
 );
 
 //= RESTART-LOOP AFFECTS INNERMOST LOOP ONLY
-$matrix: [[1, 2], [3, 4]];
+@matrix: [[1, 2], [3, 4]];
 Loop for $row in $matrix, (
     "Processing row: <$row>";
     Loop for $cell in $row, (
@@ -494,7 +494,7 @@ Loop for $row in $matrix, (
 
 //= LOOP INSIDE A FUNCTION WITH A RETURN
 find-first-even: (
-    param $list: ;
+    param @list: ;
     Loop for $item in $list, (
         If ($item % 2) is 0, (
             return($item); // should exit the loop AND the function
@@ -506,55 +506,55 @@ find-first-even([1, 3, 5, 8, 9]); // prints 8
 find-first-even([1, 3, 5, 7, 9]); // prints False
 
 //= FOR LOOP (LIVE): DELETING AN ITEM BEHIND THE ITERATOR
-$list-delete-behind: ["a", "b", "c"];
-$visited-behind: [];
+@list-delete-behind: ["a", "b", "c"];
+@visited-behind: [];
 Loop for $item in $list-delete-behind, (
   // When $item is "b", we delete "a". The list becomes ["b", "c"].
   // The iterator's next position is index 3, which is now "c".
   // This behavior can be surprising but is consistent with a live index.
   If $item is "b", (
-      [$list-delete-behind.2, $list-delete-behind.3] :> $list-delete-behind;
+      [$list-delete-behind.2, $list-delete-behind.3] :> @list-delete-behind;
   );
-  [<$visited-behind>, $item] :> $visited-behind;
+  [<$visited-behind>, $item] :> @visited-behind;
 );
 $visited-behind; // Should print ["a", "b", "c"]
 $list-delete-behind; // Should print ["b", "c"]
 
 //= FOR LOOP (LIVE): DELETING THE CURRENT ITEM AND SKIPPING THE NEXT
-$list-delete-current: ["a", "b", "c", "d"];
-$visited-current: [];
+@list-delete-current: ["a", "b", "c", "d"];
+@visited-current: [];
 Loop for $item in $list-delete-current, (
-    [<$visited-current>, $item] :> $visited-current;
+    [<$visited-current>, $item] :> @visited-current;
     If $item is "b", (
         // List becomes ["a", "c", "d"]. The iterator was at index 2.
         // For the next iteration, it moves to index 3. The item at index 3 is now "d".
         // The value "c" is effectively skipped. This is a critical behavior to define.
-        [$list-delete-current.1, $list-delete-current.3, $list-delete-current.4] :> $list-delete-current;
+        [$list-delete-current.1, $list-delete-current.3, $list-delete-current.4] :> @list-delete-current;
     );
 );
 $visited-current; // prints ["a", "b", "d"]
 $list-delete-current; // prints ["a", "c", "d"]
 
 //= FOR LOOP (LIVE): CLEARING THE LIST MID-ITERATION
-$list-clearing: [10, 20, 30, 40];
-$visited-clearing: [];
+@list-clearing: [10, 20, 30, 40];
+@visited-clearing: [];
 Loop for $item in $list-clearing, (
-    [<$visited-clearing>, $item] :> $visited-clearing;
+    [<$visited-clearing>, $item] :> @visited-clearing;
     If $item is 20, (
-        [] :> $list-clearing; // Clear the list
+        [] :> @list-clearing; // Clear the list
     );
 );
 $visited-clearing; // prints [10, 20]. The loop terminates as the list is now empty.
 $list-clearing; // prints []
 
 //= FOR @ITEM: MUTATING PROPERTIES OF BLUEPRINT INSTANCES
-$monsters55: [
-    Player[$name: "Goblin", $hp: 20],
-    Player[$name: "Orc", $hp: 50]
+@monsters55: [
+    Player[@name: "Goblin", @hp: 20],
+    Player[@name: "Orc", @hp: 50]
 ];
 Loop for @monster in $monsters55, (
     // Rebind the hp property of the original monster in the list
-    $monster.hp + 10 :> $monster.hp;
+    $monster.hp + 10 :> @monster.hp;
 );
 $monsters55.1.hp; // prints 30
 $monsters55.2.hp; // prints 60
@@ -563,22 +563,22 @@ $monsters55.2.hp; // prints 60
 Loop for @monster_ref in $monsters55, (
     // Replace the Orc with a brand new, full-health Player
     If $monster_ref.name is "Orc", (
-        Player[$name: "Super Orc", $hp: 100] :> $monster_ref;
+        Player[@name: "Super Orc", @hp: 100] :> @monster_ref;
     );
 );
-$monsters55; // prints [Player[$name: "Goblin", $hp: 30], Player[$name: "Super Orc", $hp: 100]]
+$monsters55; // prints [Player[@name: "Goblin", @hp: 30], Player[@name: "Super Orc", @hp: 100]]
 
 //= FOR @ITEM: ERROR ON TYPE-INCONSISTENT REBINDING
-$typed_list: [10, 20];
+@typed_list: [10, 20];
 Loop for @num_ref in $typed_list, (
     If $num_ref is 20, (
-        "should not work" :> $num_ref; // error: cannot bind Text to Number
+        "should not work" :> @num_ref; // error: cannot bind Text to Number
     );
 );
 
 //= NESTED LOOPS: SHADOWING THE LOOP VARIABLE
-$outer-list: [1, 2];
-$inner-list: ["a", "b"];
+@outer-list: [1, 2];
+@inner-list: ["a", "b"];
 Loop for $item in $outer-list, (
   "Outer: <$item>";
   Loop for $item in $inner-list, (
@@ -589,11 +589,11 @@ Loop for $item in $outer-list, (
 );
 
 //= FOR LOOP OVER A LIST CONTAINING EMPTY/FALSY VALUES
-$mixed-falsy-list: [1, "", 3, False, 5];
-$visited-falsy: [];
+@mixed-falsy-list: [1, "", 3, False, 5];
+@visited-falsy: [];
 Loop for $val in $mixed-falsy-list, (
   // The loop should visit every element, regardless of its truthiness
-  [<$visited-falsy>, $val] :> $visited-falsy;
+  [<$visited-falsy>, $val] :> @visited-falsy;
 );
 $visited-falsy.2; // should be "" (empty string)
 $visited-falsy.4; // should be False
@@ -605,60 +605,60 @@ Loop, (
 );
 
 //= LOOPING OVER A REFERENCE TO A LIST
-$original-list-ref: ["x", "y", "z"];
-$ref-to-list: @original-list-ref;
-$visited-ref-list: [];
+@original-list-ref: ["x", "y", "z"];
+@ref-to-list: @original-list-ref;
+@visited-ref-list: [];
 // This should behave identically to looping over the original
 Loop for $item in $ref-to-list, (
-    [<$visited-ref-list>, $item] :> $visited-ref-list;
+    [<$visited-ref-list>, $item] :> @visited-ref-list;
 );
 $visited-ref-list; // prints ["x", "y", "z"]
 
 //= WHILE LOOP WITH END-LOOP
-$counter45: 0;
+@counter45: 0;
 $counter45; // prints 0
 Loop while $counter45 is less than 10, (
-    $counter45 + 1 :> $counter45;
+    $counter45 + 1 :> @counter45;
     $counter45;
     If $counter45 is 3, (end-loop;);
 );
 $counter45; // Should print 3
 
 //= WHILE LOOP WITH RESTART-LOOP
-$i-99: 0;
-$processed-99: 0;
+@i-99: 0;
+@processed-99: 0;
 Loop while $i-99 is less than 5, (
-    $i-99 + 1 :> $i-99;
+    $i-99 + 1 :> @i-99;
     If $i-99 is 3, (restart-loop;); // Skip processing when i=3
-    $processed-99 + 1 :> $processed-99;
+    $processed-99 + 1 :> @processed-99;
     $processed-99;
 );
 $i-99; // print 5
 $processed-99; // Should print 4 (skipped when i=3)
 
 //= UNTIL LOOP WITH END-LOOP
-$value-loop: 1;
+@value-loop: 1;
 Loop until $value-loop is 100, (
-    $value-loop * 2 :> $value-loop;
+    $value-loop * 2 :> @value-loop;
     $value-loop;
     If $value-loop is 16, (end-loop;);
 );
 $value-loop; // Should print 16
 
 //= UNTIL LOOP WITH RESTART-LOOP
-$attempts: 0;
-$success: 0;
+@attempts: 0;
+@success: 0;
 Loop until $success is 3, (
-    $attempts + 1 :> $attempts;
+    $attempts + 1 :> @attempts;
     If $attempts is 2, (restart-loop;); // Skip this attempt
-    $success + 1 :> $success;
+    $success + 1 :> @success;
     $success;
 );
 $attempts;   // should print 4
 $success; // Should print 3
 
 //= FOR LOOP WITH END-LOOP
-$numbers: [1, 2, 3, 4, 5];
+@numbers: [1, 2, 3, 4, 5];
 Loop for $num in $numbers, (
     $num;
     If $num is 3, (end-loop;);
@@ -666,7 +666,7 @@ Loop for $num in $numbers, (
 // Should print: 1, 2, 3
 
 //= FOR LOOP WITH RESTART-LOOP
-$items: [1, 2, 3, 4, 5];
+@items: [1, 2, 3, 4, 5];
 Loop for $item in $items, (
     If $item is 3, (restart-loop;); // Skip 3
     "Processing: <$item;>";
@@ -674,7 +674,7 @@ Loop for $item in $items, (
 // Should print: "Processing: 1", "Processing: 2", "Processing: 4", "Processing: 5"
 
 //= FOR LOOP WITH REFERENCE AND END-LOOP
-$data: [10, 20, 30, 40];
+@data: [10, 20, 30, 40];
 Loop for @ref in $data, (
     $ref;
     If $ref is 30, (end-loop;);
@@ -682,51 +682,51 @@ Loop for @ref in $data, (
 $data; // Should print [10, 20, 30, 40] (unchanged)
 
 //= WHILE LOOP WITH BOTH END-LOOP AND RESTART-LOOP
-$x-77: 0;
-$results-77: [];
+@x-77: 0;
+@results-77: [];
 Loop while $x-77 is less than 10, (
-    $x-77 + 1 :> $x-77;
+    $x-77 + 1 :> @x-77;
     If $x-77 is 3, (restart-loop;); // Skip 3
     If $x-77 is 7, (end-loop;);     // Stop at 7
-    [<$results-77>, $x-77] :> $results-77;
+    [<$results-77>, $x-77] :> @results-77;
 );
 $results-77; // Should be [1, 2, 4, 5, 6]
 
 //= FOR LOOP ERROR: END-LOOP IN NESTED FUNCTION
-$list-93: [1, 2, 3];
+@list-93: [1, 2, 3];
 Loop for $item in $list-93, (
     (end-loop;); // error: `end-loop;` inside a non-loop function atom
 );
 
 //= LIST MAPPING STUFF ───────────────────────────────────────────────────────────
-$list-map: [$name: "Alice", $age: 30];
-$list-map;             // binds “[$name: "Alice", $age: 30]”
+@list-map: [@name: "Alice", @age: 30];
+$list-map;             // binds “[@name: "Alice", @age: 30]”
 $list-map.name;        // prints “Alice”
 $list-map.age;         // prints “30”
 
 //= REBINDING LIST PROPERTIES ────────────────────────────────────────────
-$list-map.name <: "Bob";
+@list-map.name <: "Bob";
 $list-map.name;        // prints “Bob”
-$list-map;             // prints “[$name: "Bob", $age: 30]”
+$list-map;             // prints “[@name: "Bob", @age: 30]”
 
 //= ANOTHER LIST + PROPERTY REBIND ───────────────────────────────────────
-$list-map2: [$foo: 42, $bar: "hello"];
+@list-map2: [@foo: 42, @bar: "hello"];
 $list-map2;
 $list-map2.bar;        // prints “hello”
-$list-map2.foo <: 100;
+@list-map2.foo <: 100;
 $list-map2.foo;
-$list-map2;            // prints “[$foo: 100, $bar: "hello"]”
+$list-map2;            // prints “[@foo: 100, @bar: "hello"]”
 
 //= EMPTY LIST LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
-$emptyListMap: [];
+@emptyListMap: [];
 $emptyListMap;            // prints “[]”
-$emptyListMap.someKey;    // error: Keyname '$someKey' does not exist on this list
+$emptyListMap.someKey;    // error: Keyname '@someKey' does not exist on this list
 
 //= NESTED LIST + MIXED INDEX/PROPERTY ───────────────────────────────────────
-$nestedListMap: [
-    $inner: [
-        $val: 42,
-        $arr: [10, 20]
+@nestedListMap: [
+    @inner: [
+        @val: 42,
+        @arr: [10, 20]
 ]
 ];
 $nestedListMap;
@@ -734,103 +734,103 @@ $nestedListMap.inner.val;     // prints “42”
 $nestedListMap.inner.arr.2;   // prints “20”
 
 //= REBINDING NESTED LISTS ───────────────────────────────────────────────
-$nestedListMap.inner.val <: 100;
+@nestedListMap.inner.val <: 100;
 $nestedListMap.inner.val;     // prints “100”
 
 //= COMPLEX LIST INDEX/PROPERTY ACCESS ─────────────────────────
-$complex: [
-    $list-map: [$a: [100, 200], $b: "x"],
-    $list-index: [[$foo: 1], [$foo: 2]]
+@complex: [
+    @list-map: [@a: [100, 200], @b: "x"],
+    @list-index: [[@foo: 1], [@foo: 2]]
 ];
-$complex;           // prints [$list-map: [$a: [100, 200], $b: "x"], $list-index: [[$foo: 1], [$foo: 2]]]
+$complex;           // prints [@list-map: [@a: [100, 200], @b: "x"], @list-index: [[@foo: 1], [@foo: 2]]]
 $complex.list-map.a.1;    // prints “100”
 $complex.list-index.2.foo;  // prints “2”
 
 //= LIST OF LISTS + INDEX OF LIST ─────────────────────────────────────
-$lol: [$first: [1, 2], $second: [3, 4]];
+@lol: [@first: [1, 2], @second: [3, 4]];
 $lol;
 $lol.first.2;         // prints “2”
 $lol.second;          // prints “[ 3, 4]”
 
 //= MORE LIST WEIRDNESS
-$deep-list: [$x: [$y: [$z: 7]]];
-$deep-list;            // prints [$x: [$y: [$z: 7]]]
+@deep-list: [@x: [@y: [@z: 7]]];
+$deep-list;            // prints [@x: [@y: [@z: 7]]]
 $deep-list.x.y.z; // prints 7
 
 //= List property errors
-$list9: [$foo: 1];
-$list9;                // prints [$foo: 1]
-$list9.bar;         // error: list property '$bar' not found
+@list9: [@foo: 1];
+$list9;                // prints [@foo: 1]
+$list9.bar;         // error: list property '@bar' not found
 $list9.1;           // prints 1
 $list9.foo.bar;     // error: list property '$bar' not found
 
-$prim: 999;
+@prim: 999;
 $prim;                      // prints 999;
-$prim.someKey <: 5;       // error: list property '$someKey' not found
+@prim.someKey <: 5;       // error: list property '@someKey' not found
 
-$myList: [$a: 1];
-$myList;                    // prints [$a: 1]
+@myList: [@a: 1];
+$myList;                    // prints [@a: 1]
 $myList.1;                 // prints 1
 
-$table-error: [$x: 1];
-$table-error;                   // prints [$x: 1]
-$table-error.x <: 99;           // rebinds 99 to $table-error.x
+@table-error: [@x: 1];
+$table-error;                   // prints [@x: 1]
+@table-error.x <: 99;           // rebinds 99 to @table-error.x
 $table-error.x;                 // prints 99
-$table-error;                   // prints [$x: 99]
-$table-error.y <: 42;           // error: list property '$y' not found
+@table-error;                   // prints [@x: 99]
+@table-error.y <: 42;           // error: list property '@y' not found
 
 //= Valid trailing commas (should succeed)
-$goodList: [$foo: 1, $bar: 2,];
+@goodList: [@foo: 1, @bar: 2,];
 $goodList;
 
 //= invalid trailing commas (should error)
-$badList1: [$foo: 1,, $bar: 2];
-$badList2: [ ,$foo: 1, $bar: 2];
-$badList3: [ ,];
+@badList1: [@foo: 1,, @bar: 2];
+@badList2: [ ,@foo: 1, @bar: 2];
+@badList3: [ ,];
 
 //= TEXT + INTERPOLATION ───────────────────────────────────────────────────
-$text-example: ;
-$text-example <: "rebinding this text and ";
+@text-example: ;
+@text-example <: "rebinding this text and ";
 $text-example;
-$text-example2: "this is text example 2";
+@text-example2: "this is text example 2";
 $text-example2;
 
 "just a plain text";   // prints “just a plain text”
 
 "<$text-example; $text-example2;>";   // prints “rebinding this text and this is text example 2”
-$math1-interp: 100;
+@math1-interp: 100;
 $math1-interp;
-$math2-interp: 5;
+@math2-interp: 5;
 $math2-interp;
 "<$math1-interp;> plus <$math2-interp;> is: <($math1-interp + $math2-interp);>";           // prints “100 plus 5 is: 105”
 
 //= NOW THAT $colors & $i ARE DEFINED, INTERPOLATE A STRING THAT USES THEM ─
-$index-interp: 2;
+@index-interp: 2;
 $index-interp;
-$colors-interp: ["red", "purple", "green", "silver"];
+@colors-interp: ["red", "purple", "green", "silver"];
 $colors-interp;
-$text-about-colors-list: "color <$index-interp;> is <$colors-interp.$index-interp;>";
+@text-about-colors-list: "color <$index-interp;> is <$colors-interp.$index-interp;>";
 $text-about-colors-list;   // prints “color 2 is purple
 
 //= COMPLEX MATH INTERPOLATION ● MULTIPLE EXPRESSIONS ───────────────────
-$x <: 7;
+@x <: 7;
 $x;
-$y <: 3;
+@y <: 3;
 $y;
 "Sum=<($x + $y);> Prod=<($x * $y);>";   // prints “Sum=10 Prod=21”
 
 //= COMPOUND INTERPOLATION WITH LIST ACCESS ────────────────────────
-$myList-text: [$greeting: "hi", $nums: [2, 4]];
+@myList-text: [@greeting: "hi", @nums: [2, 4]];
 $myList-text;
 "<$myList-text.greeting;>! The nums are:<$myList-text.nums.1;>, and <$myList-text.nums.2;>";
                          // prints “hi! The nums are: 2,4”
 
 //= Unicode and weird strings
-$str: "π≈3.14";
+@str: "π≈3.14";
 $str;                   // prints π≈3.14
-$esc: "foo\nbar";       // binds foo\nbar
+@esc: "foo\nbar";       // binds foo\nbar
 $esc;
-$esc2: "foo\"bar\"baz";
+@esc2: "foo\"bar\"baz";
 $esc2;                  // prints foo"bar"baz
 
 //= Interpolation errors
@@ -845,14 +845,14 @@ $esc2;                  // prints foo"bar"baz
 (6);  // prints 6
 
 //= Function atom with single variable and implicit return
-($foo: 99; $foo); // prints 99
+(@foo: 99; $foo); // prints 99
 
 //= Nested function atoms
-(($x: 2; $y: 3; $x * $y);); // prints 6
-(($x: 3; $y: 3; $x * $y)); // prints 9
+((@x: 2; @y: 3; $x * $y);); // prints 6
+((@x: 3; @y: 3; $x * $y)); // prints 9
 //= Function atom one liner with implicit return
-($x: 3, $y: 2; $x + $y);   // prints 5
-($x: 3; $y: 3; $x + $y);   // prints 6
+(@x: 3, @y: 2; $x + $y);   // prints 5
+(@x: 3; @y: 3; $x + $y);   // prints 6
 // (both commas and semicolons work for breaking up variables in single line statements)
 
 //= Function with only a return statement (multi-line)
@@ -862,23 +862,23 @@ $esc2;                  // prints foo"bar"baz
 
 //= Multiline function atom with explicit return
 (
-$x: 100;
-$y: 100;
+@x: 100;
+@y: 100;
 return(($x + $y));
 
 ); // prints 200
 
 //= Multiline function atom with explicit return 2
-($x: 101;
-$y: 100;
+(@x: 101;
+@y: 100;
 return(($x + $y));); // prints 201
 
 //= Multiline nested function atoms
 (
-    $a: 10;
-    $b: 20;
+    @a: 10;
+    @b: 20;
     return((
-        $c: 2;
+        @c: 2;
         return(($a + $b + $c));
     ));
 ); // prints 32
@@ -893,15 +893,15 @@ $times2;       // prints 4
 $times2();       // prints 4
 
 //= Nameless function: multi-line with no explicit return
-($x: 1;
- $y: 2;
+(@x: 1;
+ @y: 2;
  $x + $y;
 ); // prints 3
 
 //= Multi-line with params and default values
 adder: (
-param $x: 6; // these are default values
-param $y: 6;
+param @x: 6; // these are default values
+param @y: 6;
 return(($y + $x));
 );
 
@@ -910,7 +910,7 @@ $adder();                      // prints 12
 $adder;                      // prints 12
 
 //= passing functions as references
-$referenced-function: @adder;  // does not invoke adder function just saves it to another variable as a reference
+@referenced-function: @adder;  // does not invoke adder function just saves it to another variable as a reference
 $referenced-function();        // prints 12
 adder(4, 5);                   // prints 9
 adder(4, 5, 6);                // error: too many args
@@ -919,8 +919,8 @@ $referenced-function(300, 5);    // prints 305
 
 //= Named function with local variable
 adder-plus-1: (
-    param $x: 6;
-    param $y: 4;
+    param @x: 6;
+    param @y: 4;
     $z: 1;
     return($x + $y + $z);
 );
@@ -929,9 +929,9 @@ adder-plus-1();    // prints 11
 adder-plus-1(2, 2);   // prints 5
 
 //= Subtraction with empty default
-$subtractor: (
-    param $x: ;
-    param $y: ;
+@subtractor: (
+    param @x: ;
+    param @y: ;
     return($x - $y);
 );
 
@@ -941,13 +941,13 @@ subtractor();        // error: missing necessary params
 
 $subtractor(4);   //error: missing necessary params
 //= List of functions invoked by index
-$funs: [(param $x: ; $x + 1;), (param $x: ; $x * 2;)];
+@funs: [(param @x: ; $x + 1;), (param @x: ; $x * 2;)];
 $funs.1(10);              // → 11
 $funs.2(10);              // → 20
 
 //= Named function, then function reference and direct invocation
-double: (param $x: 2; $x * 2);
-$ref: @double;       // should NOT invoke — should just bind the function object
+double: (param @x: 2; $x * 2);
+@ref: @double;       // should NOT invoke — should just bind the function object
 $ref(5);             // → 10
 
 // Direct invocation should work too:
@@ -957,8 +957,8 @@ double(3);           // → 6
 double;              // error: expected function reference (@) or function invocation ($)
 //= Higher-order function: passing function as argument and using default argument
 apply: (
-    param $function-arg:;
-    param $value: 7;
+    param @function-arg:;
+    param @value: 7;
     return($function-arg($value));
 );
 
@@ -968,10 +968,10 @@ apply(@double);      // → 14 (default $val: 7)
 apply(double, 4);    // error: expected function reference (@) or function invocation ($)
 
 //= List with function member and self mutation
-$counter: [
-    $count: 10,
+@counter: [
+    @count: 10,
     increment: (
-        $self.count + 1 :> $self.count;
+        $self.count + 1 :> @self.count;
         return($self.count);
     )
 ];
@@ -982,21 +982,21 @@ $counter.count;      // → 12
 @counter.increment;        // function doesn't invoke, just returns the counter.increment function as a reference.
 
 //= List of functions: referencing as variables
-$list-reference: [
-    $add-one: (
-        param $x: 10;
+@list-reference: [
+    @add-one: (
+        param @x: 10;
         return($x + 1);
     )
 ];
-$referencing-function: @list-reference.add-one;      // should be a function reference, not invoked
+@referencing-function: @list-reference.add-one;      // should be a function reference, not invoked
 $referencing-function();              // → 11
 $referencing-function(5);             // → 6
 
 //= Nested function: inner function shadows param
 outer: (
-    param $x: 10;
+    param @x: 10;
     inner: (
-        param $y: 5;
+        param @y: 5;
         return(($x + $y));
     );
     return($inner(7));
@@ -1006,8 +1006,8 @@ outer(20);           // → 27
 
 //= Duplicate param name error in function declaration
 duplicate-params: (
-    param $x: 1;
-    param $x: 2; // error: duplicate parameter name '$x' in function definition
+    param @x: 1;
+    param @x: 2; // error: duplicate parameter name '@x' in function definition
     return($x);
 );
 
@@ -1017,8 +1017,8 @@ empty-fn();     // returns empty.
 
 //= Function with default param referencing previous param
 sum-default: (
-    param $a: 5;
-    param $b: $a;
+    param @a: 5;
+    param @b: $a;
     return(($a + $b));
 );
 sum-default();            // → 10
@@ -1026,18 +1026,18 @@ sum-default(2);           // → 4
 sum-default(2, 10);       // → 12
 
 //= List with a list of functions as a property
-$calc: [
-    $ops: [(param $x: ; $x + 1;), (param $x: ; $x * 2;)]
+@calc: [
+    @ops: [(param @x: ; $x + 1;), (param @x: ; $x * 2;)]
 ];
 $calc.ops.2(4);           // → 8
 
 //= List function and interpolation with self behavior
-$doggie: [
-    $name: "ralph",
-    $age: 50,
-    $speak: ("Hi, my name is <$self.name>."),
-    $roll-over: (
-        param $direction: "left";
+@doggie: [
+    @name: "ralph",
+    @age: 50,
+    @speak: ("Hi, my name is <$self.name>."),
+    @roll-over: (
+        param @direction: "left";
         return ("I'm now spinning <$direction>.");
     )
 ];
@@ -1045,37 +1045,37 @@ $doggie.speak();              // prints "Hi, my name is ralph."
 $doggie.roll-over("right");   // prints "I'm now spinning right."
 
 //= Functions as members of lists
-$weird-member: 20;
-$weird-list: [1, 2, ($x: 9; $x + 1;), ($weird-member + 1)];
+@weird-member: 20;
+@weird-list: [1, 2, (@x: 9; $x + 1;), ($weird-member + 1)];
 $weird-list.3; // prints 10
 $weird-list.4; // prints 21
 
 //= Function with numeric param name
 number-name-param: (
-    param $123: 4;
+    param @123: 4;
     return($123);
 );
 number-name-param();    // prints 4
 
 //= Early exit
 early-exit: (
-    $a: 99;
+    @a: 99;
     return($a);
-    $a<: 1; // should not execute
+    @a<: 1; // should not execute
 );
 early-exit(); // should return 99
 
 //= Function param name shadows outer variable
-$whatever: 42;
+@whatever: 42;
 shadow: (
-    param $whatever: 1;
+    param @whatever: 1;
     return($whatever);
 );
 shadow();    // prints 1 not 42
 
 //= function atoms and pipes
 // Single-line anonymous function returns 6
-($x: 1, $y: 5; $x + $y); // → 6
+(@x: 1, @y: 5; $x + $y); // → 6
 
 // simple addition
 10 then ($this + 1); // returns 11
@@ -1084,27 +1084,27 @@ shadow();    // prints 1 not 42
 (6); then ($this + 6); // → 12
 
 // function atom with local var
-6 then ($y: 10; $this + $y); // → 16
+6 then (@y: 10; $this + $y); // → 16
 
 // function atom with multiple local var
-6 then ($y: 10; $z: 4; $this + $y + $z); // → 20
-6 then ($y: 4, $z: 5; $this + $y + $z); // → 15
+6 then (@y: 10; @z: 4; $this + $y + $z); // → 20
+6 then (@y: 4, @z: 5; $this + $y + $z); // → 15
 
 // $this passed to local var
-10 then ($n: $this; $n * 2); // should return 20
-10 then ($this :> $n; $n * 3); // should return 30
+10 then (@n: $this; $n * 2); // should return 20
+10 then ($this :> @n; $n * 3); // should return 30
 
 // Global variable
-$global-pipe-var: 10;
+@global-pipe-var: 10;
 $global-pipe-var;
 10 then ($this * $global-pipe-var); // should return 100
-$global-pipe-var<:5;
+@global-pipe-var<:5;
 $global-pipe-var;
 10 then ($this * $global-pipe-var); // should return 50
 10 then ($this + $global-pipe-var) then ($this + $global-pipe-var); // should return 20
 
 // Pipeline with value feeding into function
-($z: 5; $z); then ($y: 5; $this + $y); // → 10
+(@z: 5; $z); then (@y: 5; $this + $y); // → 10
 
 // pipeline for multiple function atoms
 10 then ($this + 1) then ($this + 1); // returns 12
@@ -1114,37 +1114,37 @@ $global-pipe-var;
     return($this);
 ); // returns 10
 
-10 then ($x: 5;
-$x + $this :> $sum;
+10 then (@x: 5;
+$x + $this :> @sum;
 return($sum);); // returns 15
 
 10 then (
-    $y: 6;
-    $x: 4;
+    @y: 6;
+    @x: 4;
     return(($this + $x + $y));
 ); // returns 20
 
 10 then (
-    $y: 6;
-    $x: 4;
+    @y: 6;
+    @x: 4;
     return(($this + $x + $y));
 ) then (
-    $y: 6;
-    $x: 4;
+    @y: 6;
+    @x: 4;
     return(($this + $x + $y));
 ); // returns 30
 
-10 then ($y: 6; $x: 4; $this + $x + $y) then (
-    $y: 16;
-    $x: 4;
+10 then (@y: 6; @x: 4; $this + $x + $y) then (
+    @y: 16;
+    @x: 4;
     return(($this + $x + $y));
 ); // returns 40
 
 //= PIPELINE ERROR: SHADOWING $this IS DISALLOWED
 10 then (
-    $this: 7;
+    @this: 7;
     return($this * 2);
-); // error: cannot declare variable '$this'
+); // error: cannot declare variable '@this'
 
 //= PIPELINE NEGATIVE NUMBER HANDLING
 -5 then ($this * 2); // returns -10
@@ -1163,8 +1163,8 @@ return($sum);); // returns 15
 [[1,2],[3,4]] then ($this.2.1 * 10); // returns 30
 
 //= PIPELINE LIST PROPERTY
-[$val: 10] then ($this.val + 5); // returns 15
-[$val: 5, $val2: 10] then ($this.val + $this.val2); // returns 15
+[@val: 10] then ($this.val + 5); // returns 15
+[@val: 5, @val2: 10] then ($this.val + $this.val2); // returns 15
 
 //= PIPELINE ERROR NO FUNCTION ATOM
 5 then 10; // error: pipeline expects function atom after `then`
@@ -1175,112 +1175,112 @@ return($sum);); // returns 15
 //= Complex tests
 // multiline function atom, nested function invocation in return
 10 then (
- $this + 1 :> $num;
- $incremented: ($num + 1);
+ $this + 1 :> @num;
+ @incremented: ($num + 1);
  return(($incremented * 2));
 ); // should return 24
 
 // PIPELINE INDEXED LIST ACCESS USING INTERMEDIATE CALCULATION
-[10,20,30] then ($index: 2; $this.$index + 5); // returns 25
+[10,20,30] then (@index: 2; $this.$index + 5); // returns 25
 
 // Recursive transformation
-$recursed-list: [10,20,30];
-$recursed-list then ($index: 2; $this.$index + 5 :> $recursed-list.$index);
+@recursed-list: [10,20,30];
+$recursed-list then (@index: 2; $this.$index + 5 :> @recursed-list.$index);
 $recursed-list.2;// returns 25
 
 //= Multi-line and params in named functions
 10 then ($this + 2); // Explicit, clear, always works
 // or, for named functions:
 adder-pipes: (
-    param $x: ;
-    param $y: ;
+    param @x: ;
+    param @y: ;
     return($x + $y);
 );
 10 then adder-pipes($this, 5); // Clear: pass piped value as first arg
 
 //= NAMED FUNCTION: referencing $this is an error
 breaking2: (
-    param $x: ;
-    param $y: ;
+    param @x: ;
+    param @y: ;
     return($x + $y + $this); // error: can't use reserved $this keyname in named function declaration
 );
 
 //= COPY BY DEFAULT: LISTS ───────────────────────────────────────────────────────────
-$original: [1, 2, 3];
+@original: [1, 2, 3];
 $original;  // print [1, 2, 3]
-$copy: $original;        // creates a copy of the list
-$copy.1 <: 99;
+@copy: $original;        // creates a copy of the list
+@copy.1 <: 99;
 $copy;                   // prints [99, 2, 3]
 $original;               // prints [1, 2, 3] original unaffected
 
 //= COPY BY DEFAULT: NESTED LISTS ───────────────────────────────────────────────────
-$nested-original: [$inner: [10, 20]];
-$nested-copy: $nested-original;
-$nested-copy.inner.1 <: 99;
-$nested-copy;            // prints [$inner: [99, 20]]
-$nested-original;        // prints [$inner: [10, 20]] original unaffected
+@nested-original: [@inner: [10, 20]];
+@nested-copy: $nested-original;
+@nested-copy.inner.1 <: 99;
+$nested-copy;            // prints [@inner: [99, 20]]
+$nested-original;        // prints [@inner: [10, 20]] original unaffected
 
 //= VARIABLE REFERENCE WITH @ ───────────────────────────────────────────────────────
-$original-list: [4, 5, 6];
-$reference-list: @original-list;   // stores a reference explicitly
-$reference-list.2 <: 99;
+@original-list: [4, 5, 6];
+@reference-list: @original-list;   // stores a reference explicitly
+@reference-list.2 <: 99;
 $reference-list;        // prints [4, 99, 6]
 $original-list;         // prints [4, 99, 6] original affected due to reference
 
 //= REFERENCE TO VARIABLE (COPY VS EXPLICIT REFERENCE) ──────────────────────────────
-$x-ref: 100;
-$y-ref: $x-ref;                 // copy by default
-$y-ref <: 200;
+@x-ref: 100;
+@y-ref: $x-ref;                 // copy by default
+@y-ref <: 200;
 $x-ref;                     // prints 100 (original unaffected)
 $y-ref;                     // prints 200
 
-$ref-x: @x-ref;            // explicit reference
-$ref-x <: 300;
+@ref-x: @x-ref;            // explicit reference
+@ref-x <: 300;
 $ref-x;                 // prints 300
 $x-ref;                     // prints 300 (original affected due to reference)
 
 //= FUNCTION ARGUMENT REFERENCE VS COPY ──────────────────────────────────────────────
 modify-list: (
-    param $lst: ;
-    $lst.1 <: 99;
+    param @lst: ;
+    @lst.1 <: 99;
     return($lst);
 );
 
-$test-list: [1,2,3];
+@test-list: [1,2,3];
 modify-list($test-list);   // returns [99,2,3] but does not mutate original
 $test-list;                // prints [1,2,3] original unaffected
 
 modify-list-ref: (
-    param $lst-ref: ;
-    $lst-ref.1 <: 99;
+    param @lst-ref: ;
+    @lst-ref.1 <: 99;
     return($lst-ref);
 );
 
-$test-list-ref: [1,2,3];
+@test-list-ref: [1,2,3];
 modify-list-ref(@test-list-ref);  // returns [99,2,3] and mutates original
 $test-list-ref;                    // prints [99,2,3] original affected
 
 //= REFERENCE VS COPY IN LIST OF LISTS ──────────────────────────────────────────────
-$list-container: [
-    $first: [1,2],
-    $second: [3,4]
+@list-container: [
+    @first: [1,2],
+    @second: [3,4]
 ];
 
-$copy-container: $list-container;        // copy container
-$copy-container.first.1 <: 99;
-$copy-container;         // prints [$first: [99,2], $second: [3,4]]
-$list-container;         // prints [$first: [1,2], $second: [3,4]] original unaffected
+@copy-container: $list-container;        // copy container
+@copy-container.first.1 <: 99;
+$copy-container;         // prints [@first: [99,2], @second: [3,4]]
+$list-container;         // prints [@first: [1,2], @second: [3,4]] original unaffected
 
-$ref-container: @list-container;        // reference container
-$ref-container.second.2 <: 88;
-$ref-container;          // prints [$first: [1,2], $second: [3,88]]
-$list-container;         // prints [$first: [1,2], $second: [3,88]] original affected
+@ref-container: @list-container;        // reference container
+@ref-container.second.2 <: 88;
+$ref-container;          // prints [@first: [1,2], @second: [3,88]]
+$list-container;         // prints [@first: [1,2], @second: [3,88]] original affected
 
 //= REFERENCE VS COPY IN FUNCTIONS ──────────────────────────────────────────────────
-$number: 10;
+@number: 10;
 copy-increment: (
-    param $num: ;
-    $num + 1 :> $num;
+    param @num: ;
+    $num + 1 :> @num;
     return($num);
 );
 
@@ -1288,8 +1288,8 @@ copy-increment($number); // returns 11
 $number;                 // prints 10 original unaffected
 
 ref-increment: (
-    param $num: ;
-    $num + 1 :> $num;
+    param @num: ;
+    $num + 1 :> @num;
     return($num);
 );
 
@@ -1297,37 +1297,37 @@ ref-increment(@number); // returns 11
 $number;                 // prints 11 original affected
 
 //= COPY-BY-DEFAULT WITH FUNCTIONS ────────────────────────────────────────────
-$foo-ref1: [$bar: 1];
+@foo-ref1: [@bar: 1];
 $foo-ref1;
 
 mutate-bar: (
-    param $target: ;
-    $target.bar <: 99;
+    param @target: ;
+    @target.bar <: 99;
     return($target);
 );
 
 // No @ — $foo is copied into the function
-$foo-ref1 then mutate-bar($this);   // prints [$bar: 99]
+$foo-ref1 then mutate-bar($this);   // prints [@bar: 99]
 $foo-ref1.bar;                      // still prints 1 — original not mutated
 
 //= REFERENCE PASSING WITH @ ───────────────────────────────────────────────────
-$foo-ref2: [$bar: 1];
+@foo-ref2: [@bar: 1];
 $foo-ref2;
 
 mutate-bar2: (
-    param $target: ;
-    $target.bar <: 42;
+    param @target: ;
+    @target.bar <: 42;
     return($target);
 );
 
-$foo-ref2 then mutate-bar2(@this);  // prints [$bar: 42]
+$foo-ref2 then mutate-bar2(@this);  // prints [@bar: 42]
 $foo-ref2.bar;                      // prints 42 — original WAS mutated
 
 //= REFERENCE CAPTURE WITHIN A FUNCTION ────────────────────────────────────────
-$counter-ref: [
-    $count: 10,
+@counter-ref: [
+    @count: 10,
     increment: (
-        $self.count + 1 :> $self.count;
+        $self.count + 1 :> @self.count;
         return($self.count);
     )
 ];
@@ -1337,11 +1337,11 @@ $counter-ref.increment();       // → 12
 $counter-ref.count;             // → 12
 
 //= COPY-BY-DEFAULT INSIDE A METHOD ─────────────────────────────────────────────
-$counter2: [
-    $count: 20,
+@counter2: [
+    @count: 20,
     increment: (
-        $copy: $self;
-        $copy.count + 1 :> $copy.count;
+        @copy: $self;
+        $copy.count + 1 :> @copy.count;
         return($copy.count);
     )
 ];
@@ -1350,33 +1350,33 @@ $counter2.increment();       // → 21
 $counter2.count;             // → still 20 — copy mutated, not self
 
 //= USING $this IN A PIPELINE ───────────────────────────────────────────────────
-$goblin-ref: [
-    $health: 100,
+@goblin-ref: [
+    @health: 100,
     take-damage: (
-        param $amount: 10;
-        $self.health - $amount :> $self.health;
+        param @amount: 10;
+        $self.health - $amount :> @self.health;
         return($self);
     )
 ];
-$goblin-ref;                   // → [$health: 100]
-$goblin-ref.take-damage(15);   // → [$health: 85]
+$goblin-ref;                   // → [@health: 100]
+$goblin-ref.take-damage(15);   // → [@health: 85]
 $goblin-ref.health;            // → 85
 
 //= USING EXTERNAL FUNCTION + PIPELINE + @this ────────────────────────────────
 take-damage: (
-    param $target: ;
-    param $amount: 5;
-    $target.health - $amount :> $target.health;
+    param @target: ;
+    param @amount: 5;
+    $target.health - $amount :> @target.health;
     return($target);
 );
 
-$orc-ref: [$health: 120];
-$orc-ref then take-damage(@this, 20);  // → [$health: 100]
+@orc-ref: [@health: 120];
+$orc-ref then take-damage(@this, 20);  // → [@health: 100]
 $orc-ref.health;                        // → 100
 
 //= COPY-BY-DEFAULT FAILS TO MUTATE ─────────────────────────────────────────────
-$orc-ref2: [$health: 150];
-$orc-ref2 then take-damage($this, 25);  // → [$health: 125]
+@orc-ref2: [@health: 150];
+$orc-ref2 then take-damage($this, 25);  // → [@health: 125]
 $orc-ref2.health;                       // → 150 — original not mutated
 
 //= SIMPLE BLUEPRINT INSTANTIATION ───────────────────────────────────────────
@@ -1645,136 +1645,136 @@ $normg: Goblin4.Normal-Goblin[$health: 10, $position: [0,0]];
 $normg.elemental-type;    // prints Magic-Type.Neutral
 
 //= SIMPLE NAMED DESTRUCTURING ─────────────────────────────
-$person1: [
-  $name1: "Todd",
-  $age1: 27,
-  $favorite-color1: "blue"
+@person1: [
+  @name1: "Todd",
+  @age1: 27,
+  @favorite-color1: "blue"
 ];
 
-$name1, $age1, $favorite-color1: $person1[];
+@name1, @age1, @favorite-color1: $person1[];
 $name1;            // prints "Todd"
 $age1;             // prints 27
 $favorite-color1;  // prints "blue"
 
 //= NAMED DESTRUCTURING WITH RENAMING ────────────────────
-$person2: [
-  $name2: "Todd",
-  $age2: 27,
-  $favorite-color2: "blue"
+@person2: [
+  @name2: "Todd",
+  @age2: 27,
+  @favorite-color2: "blue"
 ];
-$name2, $age2, $favorite-color2 -> $shirt-color: $person2[];
+@name2, @age2, @favorite-color2 -> @shirt-color: $person2[];
 $name2;           // prints "Todd"
 $age2;            // prints 27
 $shirt-color;     // prints "blue"
 
 //= ALTERNATE DIRECTION DESTRUCTURING ────────────────────
-$person3: [
-  $name3: "Todd",
-  $age3: 27,
-  $favorite-color3: "blue"
+@person3: [
+  @name3: "Todd",
+  @age3: 27,
+  @favorite-color3: "blue"
 ];
-$person3[] :> $name3, $age3, $favorite-color3;
+$person3[] :> @name3, @age3, @favorite-color3;
 $name3;              // prints "Todd"
 $age3;               // prints 27
 $favorite-color3;    // prints "blue"
 
 //= POSITIONAL DESTRUCTURING ─────────────────────────────
-$example-list1: [1, 2, 3];
-$x-destruct, $y-destruct, $z-destruct: $example-list1[];
+@example-list1: [1, 2, 3];
+@x-destruct, @y-destruct, @z-destruct: $example-list1[];
 $x-destruct;               // prints 1
 $y-destruct;               // prints 2
 $z-destruct;               // prints 3
 
 //= HYBRID NAMED+POSITIONAL DESTRUCTURING ────────────────
-$person4: [5, $foo4: 6, 7];
-$foo4, $bar4, $baz4: $person4[];
+@person4: [5, @foo4: 6, 7];
+@foo4, @bar4, @baz4: $person4[];
 $foo4;             // prints 6   (by name)
 $bar4;             // prints 5   (first position)
 $baz4;             // prints 7   (second position)
 
 //= HYBRID NAMED+POSITIONAL WITH DIFFERENT ORDER ─────────
-$person5: [5, $foo5: 6, 7];
-$bar5, $foo5, $baz5: $person5[];
+@person5: [5, @foo5: 6, 7];
+@bar5, @foo5, @baz5: $person5[];
 $bar5;            // prints 5   (first position)
 $foo5;            // prints 6   (by name)
 $baz5;            // prints 7   (second position)
 
 //= COPY BY VALUE: CHANGING DESTRUCTURED VARIABLE DOES NOT MUTATE ORIGINAL ──────
-$person6: [$name6: "Ali", $age6: 21];
-$name6, $age6: $person6[];
-"Mo" :> $name6;
-22 :> $age6;
+@person6: [@name6: "Ali", @age6: 21];
+@name6, @age6: $person6[];
+"Mo" :> @name6;
+22 :> @age6;
 $person6.name6;     // prints "Ali"
 $person6.age6;      // prints 21
 $name6;            // prints "Mo"
 $age6;             // prints 22
 
 //= RESTRUCTURING: WRITING BACK TO ORIGINAL ──────────────
-$person7: [$name7: "Bea", $age7: 40];
-$name7, $age7: $person7[];
-"Beatrix" :> $name7;
-$age7<: 41;
+@person7: [@name7: "Bea", @age7: 40];
+@name7, @age7: $person7[];
+"Beatrix" :> @name7;
+@age7<: 41;
 $person7.name7;     // prints "Bea"
 $person7.age7;      // prints 40
-$person7[] <: [$name7, $age7];
+@person7[] <: [$name7, $age7];
 $person7.name7;     // prints "Beatrix"
 $person7.age7;      // prints 41
 
 //= PARTIAL RESTRUCTURING ────────────────────────────────
-$person16: [$name16: "Cal", $age16: 19, $color16: "yellow"];
-$name16, $age16, $color16: $person16[];
-"Calvin" :> $name16;
-$person16[] <: [$name16];
+@person16: [@name16: "Cal", @age16: 19, @color16: "yellow"];
+@name16, @age16, @color16: $person16[];
+"Calvin" :> @name16;
+@person16[] <: [$name16];
 $person16.name16;     // prints "Calvin"
 $person16.age16;      // prints 19 (unchanged)
 $person16.color16;    // prints "yellow"
 
 //= RESTRUCTURING WITH RENAMING ─────────────────────────
-$person17: [$age17: 5, $color17: "green"];
-$person17[] :> $age17, $color17 -> $fav-color17;
+@person17: [@age17: 5, @color17: "green"];
+$person17[] :> @age17, @color17 -> @fav-color17;
 $age17;               // returns 5
 $fav-color17;         // returns "green"
-[$age17, $fav-color17 -> $color17]:> $person17[];
+[$age17, $fav-color17 -> $color17]:> @person17[];
 $person17.color17;    // prints "green"
 
 //= DESTRUCTURING BY REFERENCE: MUTATION PROPAGATES ─────
-$person8: [$name8: "Dana", $age8: 50];
-@person8[] :> $name8, $age8;
-"Dan" :> $name8;
-51 :> $age8;
+@person8: [@name8: "Dana", @age8: 50];
+@person8[] :> @name8, @age8;
+"Dan" :> @name8;
+51 :> @age8;
 $person8.name8;     // prints "Dan"
 $person8.age8;      // prints 51
 
 //= DESTRUCTURING WITH RENAMING BY REFERENCE ─────────────
-@person8[] :> $n8, $a8;
-"Denise" :> $n8;
+@person8[] :> @n8, @a8;
+"Denise" :> @n8;
 $person8.name8;     // prints "Denise"
 
 //= EDGE CASE: AMBIGUOUS DESTRUCTURE (SHOULD ERROR) ─────
-$hybrid9: [10, $foo9: 20, 30];
-$foo9, $foo9, $bar9: $hybrid9[]; // error: duplicate variable names in destructure
+@hybrid9: [10, @foo9: 20, 30];
+@foo9, @foo9, @bar9: $hybrid9[]; // error: duplicate variable names in destructure
 
 //= EDGE CASE: TOO MANY OR TOO FEW VARIABLES (SHOULD ERROR) ─────────────
-$example-list10: [1, 2, 3];
-$a10, $b10, $c10, $d10: $example-list10[]; // error: destructure count mismatch
-$x10, $y10: $example-list10[]; // this should work and should only destructure the first two list entires by positional index
+@example-list10: [1, 2, 3];
+@a10, @b10, @c10, @d10: $example-list10[]; // error: destructure count mismatch
+@x10, @y10: $example-list10[]; // this should work and should only destructure the first two list entires by positional index
 $x10; // returns 1
 $y10; // returns 2
 
 //= DESTRUCTURING OF EMPTY LIST ────────────────────────
-$empty11: [];
-$a11, $b11: $empty11[]; // error: destructure count mismatch
+@empty11: [];
+@a11, @b11: $empty11[]; // error: destructure count mismatch
 
 //= NESTED DESTRUCTURING ──────────────────────────────
-$outer12: [ [$x12: 5, $y12: 9], 2 ];
-$inner12, $z12: $outer12[];
+@outer12: [ [@x12: 5, @y12: 9], 2 ];
+@inner12, @z12: $outer12[];
 $inner12.x12;           // prints 5
 $inner12.y12;           // prints 9
 $z12;                 // prints 2
 
 //= RESTRUCTURING NESTED LIST ─────────────────────────
-$inner12.x <: 7;
-[$inner12, $z12] :> $outer12[];
+@inner12.x <: 7;
+[$inner12, $z12] :> @outer12[];
 $outer12.1.x12;         // prints 7
 
 //= SIMPLE IF TEST
@@ -2494,94 +2494,94 @@ $msg00: "Element is <$list500.($i00 + 1);>";
 $msg00;                      // prints "Element is 99"
 
 //= LIST INTERPOLATION: BASICS
-$li1: [1, 2, 3];
-$li2: [4, 5];
-$li3: [<$li1>, <$li2>];
+@li1: [1, 2, 3];
+@li2: [4, 5];
+@li3: [<$li1>, <$li2>];
 $li3; // should return [1, 2, 3, 4, 5]
 
 //= LIST INTERPOLATION: PREPEND
-$li4: [10, 11, 12];
-[0, <$li4>] :> $li4;
+@li4: [10, 11, 12];
+[0, <$li4>] :> @li4;
 $li4;                         // should return [0, 10, 11, 12]
 
 //= LIST INTERPOLATION: APPEND
-$li5: ["a", "b"];
-$li5 <: [<$li5>, "c"];
+@li5: ["a", "b"];
+@li5 <: [<$li5>, "c"];
 $li5;                         // should return ["a", "b", "c"]
 
 //= LIST INTERPOLATION: NESTED INTERPOLATION
-$li6: [1, 2];
-$li7: [3, 4];
-$li8: [<$li6>, [<$li7>]];     // should return [1, 2, [3, 4]]
+@li6: [1, 2];
+@li7: [3, 4];
+@li8: [<$li6>, [<$li7>]];     // should return [1, 2, [3, 4]]
 $li8;
 
 //= LIST INTERPOLATION: INSERTION
-$li9: [100, 200];
-$li10: [0, <$li9>, 300];
+@li9: [100, 200];
+@li10: [0, <$li9>, 300];
 $li10;                        // should return [0, 100, 200, 300]
 
 //= LIST INTERPOLATION: MULTIPLE INTERPOLATIONS IN ONE LIST
-$li11: [1, 2];
-$li12: [3, 4];
-$li13: [<$li11>, <$li12>, 5];
+@li11: [1, 2];
+@li12: [3, 4];
+@li13: [<$li11>, <$li12>, 5];
 $li13;                        // should return [1, 2, 3, 4, 5]
 
 //= LIST INTERPOLATION: EMPTY LISTS
-$li14: [];
-$li15: [<$li14>];
+@li14: [];
+@li15: [<$li14>];
 $li15;                        // should return []
 
 //= LIST INTERPOLATION: EMPTY IN NON-EMPTY LIST
-$li16: [<$li14>, 99];
+@li16: [<$li14>, 99];
 $li16;                        // should return [99]
 
 //= LIST INTERPOLATION: SINGLE NON-LIST VALUE (should just insert value)
-$li17: [42];
-$li18: [<$li17>, 99];
+@li17: [42];
+@li18: [<$li17>, 99];
 $li18;                        // should return [42, 99]
 
 //= LIST INTERPOLATION: INTERPOLATION OF NON-LIST VALUE (should error)
-$notalist-interp: 42;
-$li19: [<$notalist-interp>];         // should error: cannot interpolate non-list into a list
+@notalist-interp: 42;
+@li19: [<$notalist-interp>];         // should error: cannot interpolate non-list into a list
 
 //= LIST INTERPOLATION: NESTED LISTS (non-interpolated, for comparison)
-$li20: [1, 2];
-$li21: [3, 4];
-$li22: [$li20, $li21];
+@li20: [1, 2];
+@li21: [3, 4];
+@li22: [$li20, $li21];
 $li22;                        // should return [[1, 2], [3, 4]]
 
 //= LIST INTERPOLATION: TRAILING/LEADING INTERPOLATION
-$li23: [5, 6];
-$li24: [<$li23>];
+@li23: [5, 6];
+@li24: [<$li23>];
 $li24;                        // should return [5, 6]
-$li25: [<$li23>, ];
+@li25: [<$li23>, ];
 $li25;                        // should return [5, 6]
 
 //= LIST INTERPOLATION: APPEND TO EMPTY LIST
-$li26: [];
-$li26 <: [<$li23>];
+@li26: [];
+@li26 <: [<$li23>];
 $li26;                        // should return [5, 6]
 
 //= LIST INTERPOLATION: WITH TEXTS AND MIXED TYPES
-$li27: ["apple", "banana"];
-$li28: [1, <$li27>, "pear"];
+@li27: ["apple", "banana"];
+@li28: [1, <$li27>, "pear"];
 $li28;                        // should return [1, "apple", "banana", "pear"]
 
 //= LIST INTERPOLATION: MULTIPLE EMPTY LISTS
-$li29: [<$li14>, <$li14>];
+@li29: [<$li14>, <$li14>];
 $li29;                        // should return []
 
 //= LIST INTERPOLATION: ERROR IF INTERPOLATING UNDEFINED VARIABLE
-$li30: [<$does_not_exist>];   // should error: undefined variable
+@li30: [<$does_not_exist>];   // should error: undefined variable
 
 //= LIST INTERPOLATION: INTERPOLATING A BLUEPRINT INSTANCE (should insert as value)
 BP-example: <[foo: Number]>;
-$bp1: BP-example[$foo: 10];
-$li31: [<$bp1>];              // should error: cannot interpolate non-list into a list
+@bp1: BP-example[@foo: 10];
+@li31: [<$bp1>];              // should error: cannot interpolate non-list into a list
 
 //= PIPELINE INTERPOLATE
-$li32: [1, 2, 3];
-$li33: [$li32 then ($this), 99]; // should return [[1, 2, 3], 99]
+@li32: [1, 2, 3];
+@li33: [$li32 then ($this), 99]; // should return [[1, 2, 3], 99]
 $li33;
-$li34: [<$li32 then ($this)>, 99]; // should return [1, 2, 3, 99]
+@li34: [<$li32 then ($this)>, 99]; // should return [1, 2, 3, 99]
 $li34;

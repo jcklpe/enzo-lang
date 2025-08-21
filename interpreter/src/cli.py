@@ -178,10 +178,11 @@ def run_enzo_file(filename):
             not any('then (' in line for line in stmt_lines) and
             not any(any(keyword in line for keyword in ['If ', 'For ', 'While ', 'Else', 'end;', 'end']) for line in stmt_lines)):
             for line in stmt_lines:
+                original_line = line.strip()  # Preserve original line with comments
                 line = line.strip()
                 if not line:
                     continue
-                # Strip inline comments (for code lines only)
+                # Strip inline comments (for code lines only) for processing
                 if '//' in line:
                     line = line.split('//', 1)[0].rstrip()
                 if not line:
@@ -191,7 +192,7 @@ def run_enzo_file(filename):
                     if result is not None:
                         print(format_val(result))
                 except InterpolationParseError as e:
-                    msg = format_parse_error(e, src=line)
+                    msg = format_parse_error(e, src=original_line)  # Use original line with comments
                     if "\n" in msg:
                         errline, context = msg.split("\n", 1)
                         print_enzo_error(errline + "\n" + context)
@@ -199,29 +200,26 @@ def run_enzo_file(filename):
                         print_enzo_error(msg)
                     continue
                 except EnzoParseError as e:
-                    msg = format_parse_error(e, src=line)
+                    msg = format_parse_error(e, src=original_line)  # Use original line with comments
                     if "\n" in msg:
                         errline, context = msg.split("\n", 1)
                         print_enzo_error(errline + "\n" + context)
                     else:
                         print_enzo_error(msg)
-                    continue
-                except EnzoParseError as e:
-                    msg = format_parse_error(e, src=line)
-                    print_enzo_error(msg)
                     continue
                 except EnzoRuntimeError as e:
-                    msg = format_parse_error(e, src=line)
+                    msg = format_parse_error(e, src=original_line)  # Use original line with comments
                     print_enzo_error(msg)
                     continue
                 except Exception as e:
-                    msg = format_parse_error(e, src=line) if hasattr(e, 'code_line') or hasattr(e, 'line') or hasattr(e, 'column') else error_message_generic(str(e))
+                    msg = format_parse_error(e, src=original_line) if hasattr(e, 'code_line') or hasattr(e, 'line') or hasattr(e, 'column') else error_message_generic(str(e))  # Use original line with comments
                     print_enzo_error(msg)
                     continue
             continue  # move to next block after processing all lines
         # Strip inline comments only for single-line statements
         # Multi-line statements (like function atoms) should not have comments stripped
         # since the tokenizer handles them properly
+        original_statement = statement  # Preserve original statement with comments
         is_multiline = '\n' in statement
         if not is_multiline and '//' in statement:
             statement = statement.split('//', 1)[0].rstrip()
@@ -257,7 +255,7 @@ def run_enzo_file(filename):
                 if result is not None:
                     print(format_val(result))
         except InterpolationParseError as e:
-            msg = format_parse_error(e, src=statement)
+            msg = format_parse_error(e, src=original_statement)  # Use original statement with comments
             if "\n" in msg:
                 errline, context = msg.split("\n", 1)
                 print_enzo_error(errline + "\n" + context)
@@ -265,7 +263,7 @@ def run_enzo_file(filename):
                 print_enzo_error(msg)
             continue
         except EnzoParseError as e:
-            msg = format_parse_error(e, src=statement)
+            msg = format_parse_error(e, src=original_statement)  # Use original statement with comments
             if "\n" in msg:
                 errline, context = msg.split("\n", 1)
                 print_enzo_error(errline + "\n" + context)
@@ -273,15 +271,15 @@ def run_enzo_file(filename):
                 print_enzo_error(msg)
             continue
         except EnzoParseError as e:
-            msg = format_parse_error(e, src=statement)
+            msg = format_parse_error(e, src=original_statement)  # Use original statement with comments
             print_enzo_error(msg)
             continue
         except EnzoRuntimeError as e:
-            msg = format_parse_error(e, src=statement)
+            msg = format_parse_error(e, src=original_statement)  # Use original statement with comments
             print_enzo_error(msg)
             continue
         except Exception as e:
-            msg = format_parse_error(e, src=statement) if hasattr(e, 'code_line') or hasattr(e, 'line') or hasattr(e, 'column') else error_message_generic(str(e))
+            msg = format_parse_error(e, src=original_statement) if hasattr(e, 'code_line') or hasattr(e, 'line') or hasattr(e, 'column') else error_message_generic(str(e))  # Use original statement with comments
             print_enzo_error(msg)
             continue
 
@@ -346,6 +344,7 @@ def main():
         if line.startswith("//"):
             continue
         # Strip inline comments (for code lines only)
+        original_line = line  # Preserve original line with comments
         if "//" in line:
             line = line.split("//", 1)[0].rstrip()
         if not line:
@@ -370,17 +369,9 @@ def main():
                         print(result)
         except InterpolationParseError:
             print(color_error(error_message_unterminated_interpolation()))
-            print(color_code("    " + line))
+            print(color_code("    " + original_line))  # Use original line with comments
         except EnzoParseError as e:
-            msg = format_parse_error(e, src=line)
-            if "\n" in msg:
-                errline, context = msg.split("\n", 1)
-                print(color_error(errline))
-                print(color_code(context))
-            else:
-                print(color_error(msg))
-        except EnzoParseError as e:
-            msg = format_parse_error(e, src=line)
+            msg = format_parse_error(e, src=original_line)  # Use original line with comments
             if "\n" in msg:
                 errline, context = msg.split("\n", 1)
                 print(color_error(errline))
@@ -388,7 +379,7 @@ def main():
             else:
                 print(color_error(msg))
         except EnzoRuntimeError as e:
-            msg = format_parse_error(e, src=line)
+            msg = format_parse_error(e, src=original_line)  # Use original line with comments
             if "\n" in msg:
                 errline, context = msg.split("\n", 1)
                 print(color_error(errline))
@@ -399,9 +390,9 @@ def main():
             print(ret.value)
         except Exception as e:
             # Use centralized error messaging for all errors (including runtime/type errors)
-            msg = format_parse_error(e, src=line) if hasattr(e, 'code_line') or hasattr(e, 'line') or hasattr(e, 'column') else error_message_generic(str(e))
+            msg = format_parse_error(e, src=original_line) if hasattr(e, 'code_line') or hasattr(e, 'line') or hasattr(e, 'column') else error_message_generic(str(e))  # Use original line with comments
             print(color_error(msg))
-            print(color_code("    " + line))
+            print(color_code("    " + original_line))  # Use original line with comments
         # — CRITICAL FIX: after error or success, **continue the loop**
         # Don't break; keep processing all input!
 

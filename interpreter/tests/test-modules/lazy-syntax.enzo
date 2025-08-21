@@ -1,0 +1,5 @@
+//= use of invocation in a storage context
+$lazy-var: 0; // error: cannot use `$` in assignment context
+@lazy-var2: 0;
+$lazy-var2 <: 50; // error: cannot use `$` in rebind context
+50 :> $lazy-var2; // error: cannot use `$` in rebind context

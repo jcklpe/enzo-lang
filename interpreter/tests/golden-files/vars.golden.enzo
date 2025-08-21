@@ -3,19 +3,19 @@ error: undefined variable
 	$undefinedVar;
 //= EMPTY BIND ────────────────────────────────────────────────────────────
 //= REDECLARING A VARIABLE (USING “:”) ERRORS ────────────────────────────
-error: $x already defined
-	$x: 10;
+error: @x already defined
+	@x: 10;
 //= REBINDING WITH “<:” AND INVOKING ───────────────────────────────────────
 100
 error: cannot bind Text to Number
-	$x <: "hello";
+	@x <: "hello";
 //= FULL BIND UPFRONT LOCKING TYPE ──────────────────────────────────────────
 7
 8
 error: cannot bind Text to Number
-	$z <: "oops";
-error: $z already defined
-	$z : "oops";
+	@z <: "oops";
+error: @z already defined
+	@z : "oops";
 //= MIXED‐CASE VARIABLE NAMES ───────────────────────────────────────────
 10
 20
@@ -24,7 +24,7 @@ error: $z already defined
 //= REBINDING WITH “:>” IMPLICITLY BINDS IF NEEDED ────────────────────────
 55
 error: cannot bind Text to Number
-	$newImplicit <: "oops";
+	@newImplicit <: "oops";
 "cool dude"
 //= MULTIPLE ASSIGNMENTS ON ONE LINE ────────────────────────────────────
 3

@@ -1,29 +1,29 @@
 //= BINDING MATH OPERATIONS ────────────────────────────────────────────────
-$math1: 100;    // binds 100
+@math1: 100;    // binds 100
 $math1;            // prints 100
-$math2: (3 + 2);          // binds a function atom
+@math2: (3 + 2);          // binds a function atom
 $math2; // prints 5
 ($math1 + $math2);            // prints 105
 
 //= ARITHMETIC PRECEDENCE CHECK ─────────────────────────────────────────────
-$precedence-check: (2 + 3 * 4);      // binds a function atom
+@precedence-check: (2 + 3 * 4);      // binds a function atom
 $precedence-check;                 // prints 14
 
-$precedence-check2: ((2 + 3) * 4);    // binds a function atom
+@precedence-check2: ((2 + 3) * 4);    // binds a function atom
 $precedence-check2;                 // prints 20
 
 //= PARENTHESIZED EXPRESSIONS AS STAND‐ALONE ─────────────────────────────
 (10 + 5);                 // prints “15”
 
 //= LARGE NUMBERS + NEGATIVE NUMBERS ────────────────────────────────────
-$big: 1234567890;         // binds “1234567890”
+@big: 1234567890;         // binds “1234567890”
 $big;                     // prints “1234567890”
-$neg: -5;                 // binds “-5”
+@neg: -5;                 // binds “-5”
 $neg;                     // prints “-5”
 ($neg * 2);                 // prints “-10”
-$negzero: -0;             // binds 0 (should not crash)
+@negzero: -0;             // binds 0 (should not crash)
 $negzero;                 // prints 0 (should not crash)
-$weird: --5;              // error: double minus not allowed
+@weird: --5;              // error: double minus not allowed
 
 //= Modulo Basics
 (5%2); // prints 1

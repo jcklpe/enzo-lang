@@ -1,6 +1,6 @@
 //= SEMICOLON STUFF!
-$semi: 5;
-$colon: 6;
+@semi: 5;
+@colon: 6;
 (6); // returns 6
 (6) // error: missing semicolon
 (12); // returns 12
@@ -10,55 +10,55 @@ $colon: 6;
 $semi;
 ($semi + $colon)
 then ($this + 1); // returns 12. This should not error because there is a valid thing on the next line that connects to the previous statement
-($x: 1; $y: 2; $x + $y;); // returns 3
-($x: 1, $y: 2; $x + $y;); // returns 3
-($x: 1, $y: 2; $x + $y);  // returns 3
-($x: 1; $y: 2; $x + $y);  // returns 3
-($x: 1; $y: 2 $x + $y;);  // error: missing semicolon
-($x: 1; $y: 2 $x + $y);   // error: missing semicolon
-($x: 1; $y: 2; $x + $y;)  // error: missing semicolon
-($x: 1 $y: 2; $x + $y;);  // error: missing semicolon
+(@x: 1; @y: 2; $x + $y;); // returns 3
+(@x: 1, @y: 2; $x + $y;); // returns 3
+(@x: 1, @y: 2; $x + $y);  // returns 3
+(@x: 1; @y: 2; $x + $y);  // returns 3
+(@x: 1; @y: 2 $x + $y;);  // error: missing semicolon
+(@x: 1; @y: 2 $x + $y);   // error: missing semicolon
+(@x: 1; @y: 2; $x + $y;)  // error: missing semicolon
+(@x: 1 @y: 2; $x + $y;);  // error: missing semicolon
 
 //= Multiline semi-colon checks
-($x: 2;
-$y: 2;
+(@x: 2;
+@y: 2;
 return(($x + $y;))); // returns 4
-($x: 2;
-$y: 2;
+(@x: 2;
+@y: 2;
 return(($x + $y;););); // returns 4
-($x: 2;
-$y: 2;
+(@x: 2;
+@y: 2;
 return(($x + $y););); // returns 4
-($x: 2;
-$y: 2;
+(@x: 2;
+@y: 2;
 return(($x + $y));); // returns 4
-($x: 2;
-$y: 2;
+(@x: 2;
+@y: 2;
 return(($x + $y))); // returns 4
-($x: 2,
-$y: 2;
+(@x: 2,
+@y: 2;
 return(($x + $y)); // returns 4
 );
-($x: 2;
-$y: 2;
+(@x: 2;
+@y: 2;
 return(($x + $y)) //error: missing semicolon
 );
-($x: 2 //error: missing semicolon
-$y: 2;
+(@x: 2 //error: missing semicolon
+@y: 2;
 return(($x + $y));
 );
 
 /// trying to figure out ambiguous stuff?
 //= Multiline semi-colon checks
-($x: 2;
-$y: 2;
-$z: $x + $y; 4 + 4;
+(@x: 2;
+@y: 2;
+@z: $x + $y; 4 + 4;
 return($z)); // returns 4
 
 //= Trailing commas and extra semi-colon errors
 trailing-comma: (
-    param $x: 1, // this should not error. Blocks of variables can be declared with commas
-    param $y: 2  // error: missing semicolon
+    param @x: 1, // this should not error. Blocks of variables can be declared with commas
+    param @y: 2  // error: missing semicolon
     return($x + $y);
 );
 trailing-comma();

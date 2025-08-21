@@ -1,15 +1,15 @@
 //= Basic loop: 1 time
-$loop-iteration: 0;
+@loop-iteration: 0;
 Loop, (
-    $loop-iteration + 1 :> $loop-iteration;
+    $loop-iteration + 1 :> @loop-iteration;
     "There have been <$loop-iteration> loop iterations";
     end-loop;
 ); // prints one time
 
 //= Basic loop: 3 times
-$loop-iteration<: 0;
+@loop-iteration<: 0;
 Loop, (
-    $loop-iteration + 1 :> $loop-iteration;
+    $loop-iteration + 1 :> @loop-iteration;
     "There have been <$loop-iteration> loop iterations";
 
     If $loop-iteration is at least 3, (
@@ -18,9 +18,9 @@ Loop, (
 ); // prints 3 times
 
 //= LOOP WITH SKIP ON CONDITION
-$loop-iteration<: 0;
+@loop-iteration<: 0;
 Loop, (
-    $loop-iteration + 1 :> $loop-iteration;
+    $loop-iteration + 1 :> @loop-iteration;
     If ($loop-iteration % 2) is 0, (
         // silent on even numbers
         restart-loop;
@@ -34,18 +34,18 @@ Loop, (
 
 
 //= SIMPLE LOOP: INCREMENT INSIDE, BREAKS AFTER 5
-$j-loop: 1;
+@j-loop: 1;
 Loop, (
   $j-loop;             // should print 1, 2, 3, 4, 5
   If $j-loop is 5, ( end-loop; );
-  $j-loop + 1 :> $j-loop;
+  $j-loop + 1 :> @j-loop;
 );
 
 //= Loop function atom shadowing
-$loop-temp: 0;
+@loop-temp: 0;
 $loop-temp;  // prints 0
 Loop, (
-    $loop-temp: 10;  // not an error because this is within a function atom and can shadow
+    @loop-temp: 10;  // not an error because this is within a function atom and can shadow
     $loop-temp; // prints 10
     end-loop;
 );
@@ -53,7 +53,7 @@ Loop, (
 $loop-temp; // prints 0 because outer variable remains unchanged by declaration.
 
 Loop, (
-    $loop-temp<: 11;  // this should rebind the outer variable, there is no shadowing here
+    @loop-temp<: 11;  // this should rebind the outer variable, there is no shadowing here
     $loop-temp; // prints 11
     end-loop;
 );
@@ -61,15 +61,15 @@ Loop, (
 $loop-temp; // returns 11
 
 //= Multi iteration loops with fresh shadow scope
-$loop-iteration1: 0;
-$local-var: 5;
+@loop-iteration1: 0;
+@local-var: 5;
 $local-var; // prints 5
 Loop, (
-    $local-var: 1; // shadows the exterior local var
+    @local-var: 1; // shadows the exterior local var
     $local-var; // prints 1 each loop
-    $local-var + 1 :> $local-var;
+    $local-var + 1 :> @local-var;
     $local-var; // prints 2 each loop
-    $loop-iteration1 + 1 :> $loop-iteration1;  // This would not shadow the exterior scope, so the value would be persistent
+    $loop-iteration1 + 1 :> @loop-iteration1;  // This would not shadow the exterior scope, so the value would be persistent
     $loop-iteration1; // prints 1, 2, 3
    If $loop-iteration1 is at least 3, (end-loop); //
 );
@@ -96,38 +96,38 @@ Loop, (
 );
 
 //= LOOP: PIPELINING IN LOOP BODY
-$p-loop: 1;
+@p-loop: 1;
 Loop, (
-    $p-loop then ($this * 2) :> $p-loop;
+    $p-loop then ($this * 2) :> @p-loop;
     If $p-loop is greater than 10, ( end-loop; );
 );
 $p-loop; // should print 16
 
 //= WHILE LOOP SIMPLE
-$count-while: 1;
+@count-while: 1;
 Loop while $count-while is less than 3, (
   $count-while;
-  $count-while <: $count-while + 1;
+  @count-while <: $count-while + 1;
 );
 $count-while; // prints 3
 
 //= WHILE LOOP NEVER ENTERED (INITIAL CONDITION FALSE)
-$count-never: 5;
+@count-never: 5;
 Loop while $count-never is less than 0, (
   "Never prints";
-  $count-never <: $count-never - 1;
+  @count-never <: $count-never - 1;
 );
 
 $count-never; // prints 5, unchanged
 
 //= SIMPLE FOR LOOP
-$list-for: [1,2,3];
+@list-for: [1,2,3];
 Loop for $item in $list-for, (
   "Item: <$item>"; // prints each item
 );
 
 //= FOR LOOP WITH EMPTY LIST (NEVER ENTERED)
-$empty-list-for: [];
+@empty-list-for: [];
 Loop for $item in $empty-list-for, (
   "Never prints";
 );
@@ -135,74 +135,74 @@ Loop for $item in $empty-list-for, (
 $empty-list-for; // prints []
 
 //= ERROR: FOR LOOP WITH NON-ITERABLE
-$item10: 5;
+@item10: 5;
 Loop for $item10 in 10, ( // error: `for` loop must be over a list
   "Won't print";
 );
 
 //= WHILE LOOP WITH COMPLEX CONDITION
-$active-while: True;
-$counter-while: 0;
+@active-while: True;
+@counter-while: 0;
 Loop while $active-while and $counter-while is less than 5, (
-    $counter-while + 1 :> $counter-while;
+    $counter-while + 1 :> @counter-while;
     "Counter: <$counter-while>"; // prints 1, 2, 3, 4, 5
 
     If $counter-while is 5, (
-        False :> $active-while;
+        False :> @active-while;
     );
 );
 $active-while; // should print False
 
 //= UNTIL LOOP: THE OPPOSITE OF WHILE
-$count-until: 0;
+@count-until: 0;
 Loop until $count-until is 3, (
   "Count is <$count-until>"; // prints for 0, 1, 2
-  $count-until + 1 :> $count-until;
+  $count-until + 1 :> @count-until;
 );
 $count-until; // should print 3
 
 //= UNTIL LOOP THAT NEVER RUNS
-$never-run-until: 10;
+@never-run-until: 10;
 Loop until $never-run-until is greater than 5, (
     "This should not execute";
 );
 $never-run-until; // prints 10, unchanged
 
 //= FOR LOOP: ITEM IS A COPY, NOT A REFERENCE
-$list-for-copy: [10, 20, 30];
+@list-for-copy: [10, 20, 30];
 Loop for $item in $list-for-copy, (
-  $item <: $item + 1; // Mutating the loop variable
+  @item <: $item + 1; // Mutating the loop variable
   "Item copy is now <$item>"; // prints 11, 21, 31
 );
 $list-for-copy; // prints [10, 20, 30] - original list is unaffected
 
 //= FOR LOOP: ITEM IS A REFERENCE
-$list-for-copy2: [10, 20, 30];
+@list-for-copy2: [10, 20, 30];
 Loop for @item in $list-for-copy2, (
-  $item <: $item + 1; // Mutating the original variable
+  @item <: $item + 1; // Mutating the original variable
   "Item is now <$item>"; // prints 11, 21, 31
 );
 $list-for-copy2; // prints [11, 21, 31] - original list has changed
 
 //= WHILE LOOP MUTATING THE ORIGINAL LIST (BY INDEX)
-$list-for-mutate: [10, 20, 30];
-$i-for: 1;
+@list-for-mutate: [10, 20, 30];
+@i-for: 1;
 Loop while $i-for is at most 3, (
-    $list-for-mutate.$i-for + 5 :> $list-for-mutate.$i-for;
-    $i-for + 1 :> $i-for;
+    $list-for-mutate.$i-for + 5 :> @list-for-mutate.$i-for;
+    $i-for + 1 :> @i-for;
 );
 
 $list-for-mutate; // prints [15, 25, 35] - original is mutated
 
 //= WHILE LOOP SHADOWING
-$iteration52: 0;
+@iteration52: 0;
 $iteration52; // prints 0
 Loop while $iteration52 is less than 3, (
-    $local-var: 1;
+    @local-var: 1;
     $local-var;  // prints 1 each loop
-    $local-var + 1 :> $local-var;
+    $local-var + 1 :> @local-var;
     $local-var; // prints 2 each loop
-    $iteration52 + 1 :> $iteration52;
+    $iteration52 + 1 :> @iteration52;
     $iteration52; // prints 1, 2, 3
 );
 
@@ -210,41 +210,41 @@ $iteration52; // prints 3
 
 //= While loop shadowing exception
 
-$iteration53: 0;
+@iteration53: 0;
 $iteration53; // prints 0
-$local-var2: 0;
+@local-var2: 0;
 $local-var2; // prints 0
 Loop while $iteration53 is less than 3, (
-    $local-var2: 1;
+    @local-var2: 1;
     $local-var2;  // prints 1 each loop
-    $local-var2 + 1 :> $local-var2;
+    $local-var2 + 1 :> @local-var2;
     $local-var2; // prints 2 each loop
-    $iteration53 + 1 :> $iteration53;
+    $iteration53 + 1 :> @iteration53;
     $iteration53; // prints 1, 2, 3
 );
 $iteration52; // prints 3
 $local-var2; // prints 0
 
 //= FOR LOOP OVER LIST OF LISTS
-$list-of-lists: [[1, 2], ["a", "b"]];
+@list-of-lists: [[1, 2], ["a", "b"]];
 Loop for $inner in $list-of-lists, (
     "Inner list: <$inner>"; // prints [1, 2] then ["a", "b"]
     $inner.1; // prints 1, then "a"
 );
 
 //= FOR LOOP WITH DESTRUCTURING INSIDE
-$people: [
-    [$name: "Alice", $age: 30],
-    [$name: "Bob", $age: 42]
+@people: [
+    [@name: "Alice", @age: 30],
+    [@name: "Bob", @age: 42]
 ];
 Loop for $person in $people, (
-    $name, $age: $person[];
+    @name, @age: $person[];
     "User <$name> is <$age> years old."; // prints for Alice, then Bob
 );
 
 //= USING RESTART-LOOP AND END-LOOP
-$numbers-for: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-$sum-for: 0;
+@numbers-for: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+@sum-for: 0;
 Loop for $num in $numbers-for, (
     If $num is 8, (
         "Found 8, ending loop.";
@@ -254,38 +254,38 @@ Loop for $num in $numbers-for, (
         // skip odd numbers
         restart-loop;
     );
-    $sum-for + $num :> $sum-for; // only adds even numbers
+    $sum-for + $num :> @sum-for; // only adds even numbers
 );
 $sum-for; // should be 2 + 4 + 6 = 12
 
 //= MODIFYING THE LIST WHILE ITERATING (APPENDING)
-$dynamic-list: [1, 2];
-$iterations-dynamic: 0;
+@dynamic-list: [1, 2];
+@iterations-dynamic: 0;
 Loop for $item in $dynamic-list, (
     "Item: <$item>"; // should print 1, 2, 3
-    $iterations-dynamic + 1 :> $iterations-dynamic;
+    $iterations-dynamic + 1 :> @iterations-dynamic;
     If $item is 2, (
-        [<$dynamic-list>, 3] :> $dynamic-list; // append to the list
+        [<$dynamic-list>, 3] :> @dynamic-list; // append to the list
     );
     If $iterations-dynamic is 3, ( end-loop; ); // safety break
 );
 $dynamic-list; // should be [1, 2, 3]
 
 //= MODIFYING AN UPCOMING ITEM
-$items-live: ["a", "b", "c"];
+@items-live: ["a", "b", "c"];
 Loop for $item in $items-live, (
   "Current item: <$item>"; // prints "a", then "b_mod", then "c"
   If $item is "a", (
-    "b_mod" :> $items-live.2; // Modify the next item in the list
+    "b_mod" :> @items-live.2; // Modify the next item in the list
   );
 );
 $items-live; // prints ["a", "b_mod", "c"]
 
 //= ITERATING OVER BLUEPRINT INSTANCES
 Player: <[ name: Text, hp: Number ]>;
-$players: [
-    Player[$name: "Zork", $hp: 100],
-    Player[$name: "Bork", $hp: 85]
+@players: [
+    Player[@name: "Zork", @hp: 100],
+    Player[@name: "Bork", @hp: 85]
 ];
 Loop for $p in $players, (
     If $p.hp is less than 100, (
@@ -296,10 +296,10 @@ Loop for $p in $players, (
 //= END-LOOP AFFECTS INNERMOST LOOP ONLY
 Loop, (
     "Outer loop started";
-    $inner-count: 0;
+    @inner-count: 0;
     Loop, (
         "Inner loop running";
-        $inner-count + 1 :> $inner-count;
+        $inner-count + 1 :> @inner-count;
         If $inner-count is 1, (
                 "ending inner loop";
                 end-loop; // should only end the inner loop
@@ -311,7 +311,7 @@ Loop, (
 );
 
 //= RESTART-LOOP AFFECTS INNERMOST LOOP ONLY
-$matrix: [[1, 2], [3, 4]];
+@matrix: [[1, 2], [3, 4]];
 Loop for $row in $matrix, (
     "Processing row: <$row>";
     Loop for $cell in $row, (
@@ -325,7 +325,7 @@ Loop for $row in $matrix, (
 
 //= LOOP INSIDE A FUNCTION WITH A RETURN
 find-first-even: (
-    param $list: ;
+    param @list: ;
     Loop for $item in $list, (
         If ($item % 2) is 0, (
             return($item); // should exit the loop AND the function
@@ -337,55 +337,55 @@ find-first-even([1, 3, 5, 8, 9]); // prints 8
 find-first-even([1, 3, 5, 7, 9]); // prints False
 
 //= FOR LOOP (LIVE): DELETING AN ITEM BEHIND THE ITERATOR
-$list-delete-behind: ["a", "b", "c"];
-$visited-behind: [];
+@list-delete-behind: ["a", "b", "c"];
+@visited-behind: [];
 Loop for $item in $list-delete-behind, (
   // When $item is "b", we delete "a". The list becomes ["b", "c"].
   // The iterator's next position is index 3, which is now "c".
   // This behavior can be surprising but is consistent with a live index.
   If $item is "b", (
-      [$list-delete-behind.2, $list-delete-behind.3] :> $list-delete-behind;
+      [$list-delete-behind.2, $list-delete-behind.3] :> @list-delete-behind;
   );
-  [<$visited-behind>, $item] :> $visited-behind;
+  [<$visited-behind>, $item] :> @visited-behind;
 );
 $visited-behind; // Should print ["a", "b", "c"]
 $list-delete-behind; // Should print ["b", "c"]
 
 //= FOR LOOP (LIVE): DELETING THE CURRENT ITEM AND SKIPPING THE NEXT
-$list-delete-current: ["a", "b", "c", "d"];
-$visited-current: [];
+@list-delete-current: ["a", "b", "c", "d"];
+@visited-current: [];
 Loop for $item in $list-delete-current, (
-    [<$visited-current>, $item] :> $visited-current;
+    [<$visited-current>, $item] :> @visited-current;
     If $item is "b", (
         // List becomes ["a", "c", "d"]. The iterator was at index 2.
         // For the next iteration, it moves to index 3. The item at index 3 is now "d".
         // The value "c" is effectively skipped. This is a critical behavior to define.
-        [$list-delete-current.1, $list-delete-current.3, $list-delete-current.4] :> $list-delete-current;
+        [$list-delete-current.1, $list-delete-current.3, $list-delete-current.4] :> @list-delete-current;
     );
 );
 $visited-current; // prints ["a", "b", "d"]
 $list-delete-current; // prints ["a", "c", "d"]
 
 //= FOR LOOP (LIVE): CLEARING THE LIST MID-ITERATION
-$list-clearing: [10, 20, 30, 40];
-$visited-clearing: [];
+@list-clearing: [10, 20, 30, 40];
+@visited-clearing: [];
 Loop for $item in $list-clearing, (
-    [<$visited-clearing>, $item] :> $visited-clearing;
+    [<$visited-clearing>, $item] :> @visited-clearing;
     If $item is 20, (
-        [] :> $list-clearing; // Clear the list
+        [] :> @list-clearing; // Clear the list
     );
 );
 $visited-clearing; // prints [10, 20]. The loop terminates as the list is now empty.
 $list-clearing; // prints []
 
 //= FOR @ITEM: MUTATING PROPERTIES OF BLUEPRINT INSTANCES
-$monsters55: [
-    Player[$name: "Goblin", $hp: 20],
-    Player[$name: "Orc", $hp: 50]
+@monsters55: [
+    Player[@name: "Goblin", @hp: 20],
+    Player[@name: "Orc", @hp: 50]
 ];
 Loop for @monster in $monsters55, (
     // Rebind the hp property of the original monster in the list
-    $monster.hp + 10 :> $monster.hp;
+    $monster.hp + 10 :> @monster.hp;
 );
 $monsters55.1.hp; // prints 30
 $monsters55.2.hp; // prints 60
@@ -394,22 +394,22 @@ $monsters55.2.hp; // prints 60
 Loop for @monster_ref in $monsters55, (
     // Replace the Orc with a brand new, full-health Player
     If $monster_ref.name is "Orc", (
-        Player[$name: "Super Orc", $hp: 100] :> $monster_ref;
+        Player[@name: "Super Orc", @hp: 100] :> @monster_ref;
     );
 );
-$monsters55; // prints [Player[$name: "Goblin", $hp: 30], Player[$name: "Super Orc", $hp: 100]]
+$monsters55; // prints [Player[@name: "Goblin", @hp: 30], Player[@name: "Super Orc", @hp: 100]]
 
 //= FOR @ITEM: ERROR ON TYPE-INCONSISTENT REBINDING
-$typed_list: [10, 20];
+@typed_list: [10, 20];
 Loop for @num_ref in $typed_list, (
     If $num_ref is 20, (
-        "should not work" :> $num_ref; // error: cannot bind Text to Number
+        "should not work" :> @num_ref; // error: cannot bind Text to Number
     );
 );
 
 //= NESTED LOOPS: SHADOWING THE LOOP VARIABLE
-$outer-list: [1, 2];
-$inner-list: ["a", "b"];
+@outer-list: [1, 2];
+@inner-list: ["a", "b"];
 Loop for $item in $outer-list, (
   "Outer: <$item>";
   Loop for $item in $inner-list, (
@@ -420,11 +420,11 @@ Loop for $item in $outer-list, (
 );
 
 //= FOR LOOP OVER A LIST CONTAINING EMPTY/FALSY VALUES
-$mixed-falsy-list: [1, "", 3, False, 5];
-$visited-falsy: [];
+@mixed-falsy-list: [1, "", 3, False, 5];
+@visited-falsy: [];
 Loop for $val in $mixed-falsy-list, (
   // The loop should visit every element, regardless of its truthiness
-  [<$visited-falsy>, $val] :> $visited-falsy;
+  [<$visited-falsy>, $val] :> @visited-falsy;
 );
 $visited-falsy.2; // should be "" (empty string)
 $visited-falsy.4; // should be False
@@ -436,60 +436,60 @@ Loop, (
 );
 
 //= LOOPING OVER A REFERENCE TO A LIST
-$original-list-ref: ["x", "y", "z"];
-$ref-to-list: @original-list-ref;
-$visited-ref-list: [];
+@original-list-ref: ["x", "y", "z"];
+@ref-to-list: @original-list-ref;
+@visited-ref-list: [];
 // This should behave identically to looping over the original
 Loop for $item in $ref-to-list, (
-    [<$visited-ref-list>, $item] :> $visited-ref-list;
+    [<$visited-ref-list>, $item] :> @visited-ref-list;
 );
 $visited-ref-list; // prints ["x", "y", "z"]
 
 //= WHILE LOOP WITH END-LOOP
-$counter45: 0;
+@counter45: 0;
 $counter45; // prints 0
 Loop while $counter45 is less than 10, (
-    $counter45 + 1 :> $counter45;
+    $counter45 + 1 :> @counter45;
     $counter45;
     If $counter45 is 3, (end-loop;);
 );
 $counter45; // Should print 3
 
 //= WHILE LOOP WITH RESTART-LOOP
-$i-99: 0;
-$processed-99: 0;
+@i-99: 0;
+@processed-99: 0;
 Loop while $i-99 is less than 5, (
-    $i-99 + 1 :> $i-99;
+    $i-99 + 1 :> @i-99;
     If $i-99 is 3, (restart-loop;); // Skip processing when i=3
-    $processed-99 + 1 :> $processed-99;
+    $processed-99 + 1 :> @processed-99;
     $processed-99;
 );
 $i-99; // print 5
 $processed-99; // Should print 4 (skipped when i=3)
 
 //= UNTIL LOOP WITH END-LOOP
-$value-loop: 1;
+@value-loop: 1;
 Loop until $value-loop is 100, (
-    $value-loop * 2 :> $value-loop;
+    $value-loop * 2 :> @value-loop;
     $value-loop;
     If $value-loop is 16, (end-loop;);
 );
 $value-loop; // Should print 16
 
 //= UNTIL LOOP WITH RESTART-LOOP
-$attempts: 0;
-$success: 0;
+@attempts: 0;
+@success: 0;
 Loop until $success is 3, (
-    $attempts + 1 :> $attempts;
+    $attempts + 1 :> @attempts;
     If $attempts is 2, (restart-loop;); // Skip this attempt
-    $success + 1 :> $success;
+    $success + 1 :> @success;
     $success;
 );
 $attempts;   // should print 4
 $success; // Should print 3
 
 //= FOR LOOP WITH END-LOOP
-$numbers: [1, 2, 3, 4, 5];
+@numbers: [1, 2, 3, 4, 5];
 Loop for $num in $numbers, (
     $num;
     If $num is 3, (end-loop;);
@@ -497,7 +497,7 @@ Loop for $num in $numbers, (
 // Should print: 1, 2, 3
 
 //= FOR LOOP WITH RESTART-LOOP
-$items: [1, 2, 3, 4, 5];
+@items: [1, 2, 3, 4, 5];
 Loop for $item in $items, (
     If $item is 3, (restart-loop;); // Skip 3
     "Processing: <$item;>";
@@ -505,7 +505,7 @@ Loop for $item in $items, (
 // Should print: "Processing: 1", "Processing: 2", "Processing: 4", "Processing: 5"
 
 //= FOR LOOP WITH REFERENCE AND END-LOOP
-$data: [10, 20, 30, 40];
+@data: [10, 20, 30, 40];
 Loop for @ref in $data, (
     $ref;
     If $ref is 30, (end-loop;);
@@ -513,18 +513,18 @@ Loop for @ref in $data, (
 $data; // Should print [10, 20, 30, 40] (unchanged)
 
 //= WHILE LOOP WITH BOTH END-LOOP AND RESTART-LOOP
-$x-77: 0;
-$results-77: [];
+@x-77: 0;
+@results-77: [];
 Loop while $x-77 is less than 10, (
-    $x-77 + 1 :> $x-77;
+    $x-77 + 1 :> @x-77;
     If $x-77 is 3, (restart-loop;); // Skip 3
     If $x-77 is 7, (end-loop;);     // Stop at 7
-    [<$results-77>, $x-77] :> $results-77;
+    [<$results-77>, $x-77] :> @results-77;
 );
 $results-77; // Should be [1, 2, 4, 5, 6]
 
 //= FOR LOOP ERROR: END-LOOP IN NESTED FUNCTION
-$list-93: [1, 2, 3];
+@list-93: [1, 2, 3];
 Loop for $item in $list-93, (
     (end-loop;); // error: `end-loop;` inside a non-loop function atom
 );

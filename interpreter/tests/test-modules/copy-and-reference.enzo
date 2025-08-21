@@ -1,79 +1,79 @@
 //= COPY BY DEFAULT: LISTS ───────────────────────────────────────────────────────────
-$original: [1, 2, 3];
+@original: [1, 2, 3];
 $original;  // print [1, 2, 3]
-$copy: $original;        // creates a copy of the list
-$copy.1 <: 99;
+@copy: $original;        // creates a copy of the list
+@copy.1 <: 99;
 $copy;                   // prints [99, 2, 3]
 $original;               // prints [1, 2, 3] original unaffected
 
 //= COPY BY DEFAULT: NESTED LISTS ───────────────────────────────────────────────────
-$nested-original: [$inner: [10, 20]];
-$nested-copy: $nested-original;
-$nested-copy.inner.1 <: 99;
-$nested-copy;            // prints [$inner: [99, 20]]
-$nested-original;        // prints [$inner: [10, 20]] original unaffected
+@nested-original: [@inner: [10, 20]];
+@nested-copy: $nested-original;
+@nested-copy.inner.1 <: 99;
+$nested-copy;            // prints [@inner: [99, 20]]
+$nested-original;        // prints [@inner: [10, 20]] original unaffected
 
 //= VARIABLE REFERENCE WITH @ ───────────────────────────────────────────────────────
-$original-list: [4, 5, 6];
-$reference-list: @original-list;   // stores a reference explicitly
-$reference-list.2 <: 99;
+@original-list: [4, 5, 6];
+@reference-list: @original-list;   // stores a reference explicitly
+@reference-list.2 <: 99;
 $reference-list;        // prints [4, 99, 6]
 $original-list;         // prints [4, 99, 6] original affected due to reference
 
 //= REFERENCE TO VARIABLE (COPY VS EXPLICIT REFERENCE) ──────────────────────────────
-$x-ref: 100;
-$y-ref: $x-ref;                 // copy by default
-$y-ref <: 200;
+@x-ref: 100;
+@y-ref: $x-ref;                 // copy by default
+@y-ref <: 200;
 $x-ref;                     // prints 100 (original unaffected)
 $y-ref;                     // prints 200
 
-$ref-x: @x-ref;            // explicit reference
-$ref-x <: 300;
+@ref-x: @x-ref;            // explicit reference
+@ref-x <: 300;
 $ref-x;                 // prints 300
 $x-ref;                     // prints 300 (original affected due to reference)
 
 //= FUNCTION ARGUMENT REFERENCE VS COPY ──────────────────────────────────────────────
 modify-list: (
-    param $lst: ;
-    $lst.1 <: 99;
+    param @lst: ;
+    @lst.1 <: 99;
     return($lst);
 );
 
-$test-list: [1,2,3];
+@test-list: [1,2,3];
 modify-list($test-list);   // returns [99,2,3] but does not mutate original
 $test-list;                // prints [1,2,3] original unaffected
 
 modify-list-ref: (
-    param $lst-ref: ;
-    $lst-ref.1 <: 99;
+    param @lst-ref: ;
+    @lst-ref.1 <: 99;
     return($lst-ref);
 );
 
-$test-list-ref: [1,2,3];
+@test-list-ref: [1,2,3];
 modify-list-ref(@test-list-ref);  // returns [99,2,3] and mutates original
 $test-list-ref;                    // prints [99,2,3] original affected
 
 //= REFERENCE VS COPY IN LIST OF LISTS ──────────────────────────────────────────────
-$list-container: [
-    $first: [1,2],
-    $second: [3,4]
+@list-container: [
+    @first: [1,2],
+    @second: [3,4]
 ];
 
-$copy-container: $list-container;        // copy container
-$copy-container.first.1 <: 99;
-$copy-container;         // prints [$first: [99,2], $second: [3,4]]
-$list-container;         // prints [$first: [1,2], $second: [3,4]] original unaffected
+@copy-container: $list-container;        // copy container
+@copy-container.first.1 <: 99;
+$copy-container;         // prints [@first: [99,2], @second: [3,4]]
+$list-container;         // prints [@first: [1,2], @second: [3,4]] original unaffected
 
-$ref-container: @list-container;        // reference container
-$ref-container.second.2 <: 88;
-$ref-container;          // prints [$first: [1,2], $second: [3,88]]
-$list-container;         // prints [$first: [1,2], $second: [3,88]] original affected
+@ref-container: @list-container;        // reference container
+@ref-container.second.2 <: 88;
+$ref-container;          // prints [@first: [1,2], @second: [3,88]]
+$list-container;         // prints [@first: [1,2], @second: [3,88]] original affected
 
 //= REFERENCE VS COPY IN FUNCTIONS ──────────────────────────────────────────────────
-$number: 10;
+@number: 10;
 copy-increment: (
-    param $num: ;
-    $num + 1 :> $num;
+    param @num: ;
+    $num + 1 :> @num;
     return($num);
 );
 
@@ -81,8 +81,8 @@ copy-increment($number); // returns 11
 $number;                 // prints 10 original unaffected
 
 ref-increment: (
-    param $num: ;
-    $num + 1 :> $num;
+    param @num: ;
+    $num + 1 :> @num;
     return($num);
 );
 
@@ -90,37 +90,37 @@ ref-increment(@number); // returns 11
 $number;                 // prints 11 original affected
 
 //= COPY-BY-DEFAULT WITH FUNCTIONS ────────────────────────────────────────────
-$foo-ref1: [$bar: 1];
+@foo-ref1: [@bar: 1];
 $foo-ref1;
 
 mutate-bar: (
-    param $target: ;
-    $target.bar <: 99;
+    param @target: ;
+    @target.bar <: 99;
     return($target);
 );
 
 // No @ — $foo is copied into the function
-$foo-ref1 then mutate-bar($this);   // prints [$bar: 99]
+$foo-ref1 then mutate-bar($this);   // prints [@bar: 99]
 $foo-ref1.bar;                      // still prints 1 — original not mutated
 
 //= REFERENCE PASSING WITH @ ───────────────────────────────────────────────────
-$foo-ref2: [$bar: 1];
+@foo-ref2: [@bar: 1];
 $foo-ref2;
 
 mutate-bar2: (
-    param $target: ;
-    $target.bar <: 42;
+    param @target: ;
+    @target.bar <: 42;
     return($target);
 );
 
-$foo-ref2 then mutate-bar2(@this);  // prints [$bar: 42]
+$foo-ref2 then mutate-bar2(@this);  // prints [@bar: 42]
 $foo-ref2.bar;                      // prints 42 — original WAS mutated
 
 //= REFERENCE CAPTURE WITHIN A FUNCTION ────────────────────────────────────────
-$counter-ref: [
-    $count: 10,
+@counter-ref: [
+    @count: 10,
     increment: (
-        $self.count + 1 :> $self.count;
+        $self.count + 1 :> @self.count;
         return($self.count);
     )
 ];
@@ -130,11 +130,11 @@ $counter-ref.increment();       // → 12
 $counter-ref.count;             // → 12
 
 //= COPY-BY-DEFAULT INSIDE A METHOD ─────────────────────────────────────────────
-$counter2: [
-    $count: 20,
+@counter2: [
+    @count: 20,
     increment: (
-        $copy: $self;
-        $copy.count + 1 :> $copy.count;
+        @copy: $self;
+        $copy.count + 1 :> @copy.count;
         return($copy.count);
     )
 ];
@@ -143,31 +143,31 @@ $counter2.increment();       // → 21
 $counter2.count;             // → still 20 — copy mutated, not self
 
 //= USING $this IN A PIPELINE ───────────────────────────────────────────────────
-$goblin-ref: [
-    $health: 100,
+@goblin-ref: [
+    @health: 100,
     take-damage: (
-        param $amount: 10;
-        $self.health - $amount :> $self.health;
+        param @amount: 10;
+        $self.health - $amount :> @self.health;
         return($self);
     )
 ];
-$goblin-ref;                   // → [$health: 100]
-$goblin-ref.take-damage(15);   // → [$health: 85]
+$goblin-ref;                   // → [@health: 100]
+$goblin-ref.take-damage(15);   // → [@health: 85]
 $goblin-ref.health;            // → 85
 
 //= USING EXTERNAL FUNCTION + PIPELINE + @this ────────────────────────────────
 take-damage: (
-    param $target: ;
-    param $amount: 5;
-    $target.health - $amount :> $target.health;
+    param @target: ;
+    param @amount: 5;
+    $target.health - $amount :> @target.health;
     return($target);
 );
 
-$orc-ref: [$health: 120];
-$orc-ref then take-damage(@this, 20);  // → [$health: 100]
+@orc-ref: [@health: 120];
+$orc-ref then take-damage(@this, 20);  // → [@health: 100]
 $orc-ref.health;                        // → 100
 
 //= COPY-BY-DEFAULT FAILS TO MUTATE ─────────────────────────────────────────────
-$orc-ref2: [$health: 150];
-$orc-ref2 then take-damage($this, 25);  // → [$health: 125]
+@orc-ref2: [@health: 150];
+$orc-ref2 then take-damage($this, 25);  // → [@health: 125]
 $orc-ref2.health;                       // → 150 — original not mutated
