@@ -51,11 +51,36 @@ def parse_list_atom(parser):
             else:
                 from src.error_messaging import error_message_unexpected_token
                 raise EnzoParseError(f"error: expected '>' to close list interpolation", code_line=parser._get_code_line(gt_token) if gt_token else None)
-        # Check for key-value pair (keyname: value)
+        # Check for key-value pair (@keyname: value or keyname: value)
+        elif t.type == "AT":
+            # Look ahead to see if this is @keyname: pattern
+            t2 = parser.tokens[parser.pos + 1] if parser.pos + 1 < len(parser.tokens) else None
+            t3 = parser.tokens[parser.pos + 2] if parser.pos + 2 < len(parser.tokens) else None
+            if t2 and t2.type == "KEYNAME" and t3 and t3.type == "BIND":
+                # This is @keyname: value pattern
+                has_key_value_pairs = True  # Mark that we have key-value pairs
+                parser.advance()  # consume AT token
+                keyname = parser.advance().value  # consume KEYNAME token
+                parser.advance()  # consume BIND token
+
+                # Validate keyname - must not be purely numeric
+                if _is_purely_numeric(keyname):
+                    raise EnzoParseError(f"error: purely numeric keynames are not allowed: {keyname}", code_line=parser._get_code_line(t))
+
+                value = parser.parse_value_expression()
+                elements.append(ListKeyValue(keyname, value, code_line=parser._get_code_line(t)))
+            else:
+                # This is a regular @ reference element
+                elements.append(parser.parse_value_expression())
         elif t.type == "KEYNAME":
             # Look ahead to see if this is a key-value pair
             t2 = parser.tokens[parser.pos + 1] if parser.pos + 1 < len(parser.tokens) else None
             if t2 and t2.type == "BIND":
+                # Check if this is $variable: pattern (which should error)
+                if t.value.startswith('$'):
+                    from src.error_messaging import error_message_dollar_in_assignment
+                    raise EnzoParseError(error_message_dollar_in_assignment(), code_line=parser._get_code_line(t))
+
                 # This is a key-value pair
                 has_key_value_pairs = True  # Mark that we have key-value pairs
                 keyname = parser.advance().value

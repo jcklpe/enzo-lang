@@ -1,27 +1,27 @@
 // ── FUNCTIONS  -------------------
 //= Empty function atom
-();  // prints nothing
+$();  // prints nothing
 //= Function atom with just a single value
-(6);  // prints 6
+$(6);  // prints 6
 
 //= Function atom with single variable and implicit return
-(@foo: 99; $foo); // prints 99
+$(@foo: 99; $foo); // prints 99
 
 //= Nested function atoms
-((@x: 2; @y: 3; $x * $y);); // prints 6
-((@x: 3; @y: 3; $x * $y)); // prints 9
+$($(@x: 2; @y: 3; $x * $y);); // prints 6
+$($(@x: 3; @y: 3; $x * $y)); // prints 9
 //= Function atom one liner with implicit return
-(@x: 3, @y: 2; $x + $y);   // prints 5
-(@x: 3; @y: 3; $x + $y);   // prints 6
+$(@x: 3, @y: 2; $x + $y);   // prints 5
+$(@x: 3; @y: 3; $x + $y);   // prints 6
 // (both commas and semicolons work for breaking up variables in single line statements)
 
 //= Function with only a return statement (multi-line)
-(
+$(
     return(123);
 ); // prints 123
 
 //= Multiline function atom with explicit return
-(
+$(
 @x: 100;
 @y: 100;
 return(($x + $y));
@@ -29,12 +29,12 @@ return(($x + $y));
 ); // prints 200
 
 //= Multiline function atom with explicit return 2
-(@x: 101;
+$(@x: 101;
 @y: 100;
-return(($x + $y));); // prints 201
+return($x + $y);); // prints 201
 
 //= Multiline nested function atoms
-(
+$(
     @a: 10;
     @b: 20;
     return((
@@ -44,49 +44,49 @@ return(($x + $y));); // prints 201
 ); // prints 32
 
 //= Single line, implicit return, named function
-times2: (2 * 2); // binds (2 * 2) to the times2 keyname
+@times2: (2 * 2); // binds (2 * 2) to the times2 keyname
 "this is the normal function invocation;";
-times2();       // prints 4
+$times2();       // prints 4
 "this is the $times2 style function invocation;";
 $times2;       // prints 4
 "this is the $times2(); style function invocation";
 $times2();       // prints 4
 
 //= Nameless function: multi-line with no explicit return
-(@x: 1;
+$(@x: 1;
  @y: 2;
  $x + $y;
 ); // prints 3
 
 //= Multi-line with params and default values
-adder: (
+@adder: (
 param @x: 6; // these are default values
 param @y: 6;
-return(($y + $x));
+return($y + $x);
 );
 
-adder();                       // prints 12
+$adder();                       // prints 12
 $adder();                      // prints 12
 $adder;                      // prints 12
 
 //= passing functions as references
 @referenced-function: @adder;  // does not invoke adder function just saves it to another variable as a reference
 $referenced-function();        // prints 12
-adder(4, 5);                   // prints 9
-adder(4, 5, 6);                // error: too many args
+$adder(4, 5);                   // prints 9
+$adder(4, 5, 6);                // error: too many args
 $adder("", 500);               // error: expected argument is a number atom, not a text atom
 $referenced-function(300, 5);    // prints 305
 
 //= Named function with local variable
-adder-plus-1: (
+@adder-plus-1: (
     param @x: 6;
     param @y: 4;
-    $z: 1;
+    @z: 1;
     return($x + $y + $z);
 );
 
-adder-plus-1();    // prints 11
-adder-plus-1(2, 2);   // prints 5
+$adder-plus-1();    // prints 11
+$adder-plus-1(2, 2);   // prints 5
 
 //= Subtraction with empty default
 @subtractor: (
@@ -95,9 +95,9 @@ adder-plus-1(2, 2);   // prints 5
     return($x - $y);
 );
 
-subtractor(3, 2);   // prints 1
+$subtractor(3, 2);   // prints 1
 $subtractor(3, 4);   // prints 1
-subtractor();        // error: missing necessary params
+$subtractor();        // error: missing necessary params
 
 $subtractor(4);   //error: missing necessary params
 //= List of functions invoked by index
@@ -106,31 +106,31 @@ $funs.1(10);              // → 11
 $funs.2(10);              // → 20
 
 //= Named function, then function reference and direct invocation
-double: (param @x: 2; $x * 2);
+@double: (param @x: 2; $x * 2);
 @ref: @double;       // should NOT invoke — should just bind the function object
 $ref(5);             // → 10
 
 // Direct invocation should work too:
-double(3);           // → 6
+$double(3);           // → 6
 
 // Function reference must use $, no parens:
 double;              // error: expected function reference (@) or function invocation ($)
 //= Higher-order function: passing function as argument and using default argument
-apply: (
+@apply: (
     param @function-arg:;
     param @value: 7;
     return($function-arg($value));
 );
 
-apply(@double, 4);   // → 8
-apply(@double);      // → 14 (default $val: 7)
+$apply(@double, 4);   // → 8
+$apply(@double);      // → 14 (default $val: 7)
 
-apply(double, 4);    // error: expected function reference (@) or function invocation ($)
+$apply(double, 4);    // error: expected function reference (@) or function invocation ($)
 
 //= List with function member and self mutation
 @counter: [
     @count: 10,
-    increment: (
+    @increment: (
         $self.count + 1 :> @self.count;
         return($self.count);
     )
@@ -153,37 +153,37 @@ $referencing-function();              // → 11
 $referencing-function(5);             // → 6
 
 //= Nested function: inner function shadows param
-outer: (
+@outer: (
     param @x: 10;
-    inner: (
+    @inner: (
         param @y: 5;
         return(($x + $y));
     );
     return($inner(7));
 );
-outer();             // → 17
-outer(20);           // → 27
+$outer();             // → 17
+$outer(20);           // → 27
 
 //= Duplicate param name error in function declaration
-duplicate-params: (
+@duplicate-params: (
     param @x: 1;
     param @x: 2; // error: duplicate parameter name '@x' in function definition
     return($x);
 );
 
 //= Empty function declaration and invocation
-empty-fn: ();
-empty-fn();     // returns empty.
+@empty-fn: ();
+$empty-fn();     // returns empty.
 
 //= Function with default param referencing previous param
-sum-default: (
+@sum-default: (
     param @a: 5;
     param @b: $a;
     return(($a + $b));
 );
-sum-default();            // → 10
-sum-default(2);           // → 4
-sum-default(2, 10);       // → 12
+$sum-default();            // → 10
+$sum-default(2);           // → 4
+$sum-default(2, 10);       // → 12
 
 //= List with a list of functions as a property
 @calc: [
@@ -198,7 +198,7 @@ $calc.ops.2(4);           // → 8
     @speak: ("Hi, my name is <$self.name>."),
     @roll-over: (
         param @direction: "left";
-        return ("I'm now spinning <$direction>.");
+        return("I'm now spinning <$direction>.");
     )
 ];
 $doggie.speak();              // prints "Hi, my name is ralph."
@@ -211,24 +211,24 @@ $weird-list.3; // prints 10
 $weird-list.4; // prints 21
 
 //= Function with numeric param name
-number-name-param: (
+@number-name-param: (
     param @123: 4;
     return($123);
 );
-number-name-param();    // prints 4
+$number-name-param();    // prints 4
 
 //= Early exit
-early-exit: (
+@early-exit: (
     @a: 99;
     return($a);
     @a<: 1; // should not execute
 );
-early-exit(); // should return 99
+$early-exit(); // should return 99
 
 //= Function param name shadows outer variable
 @whatever: 42;
-shadow: (
+@shadow: (
     param @whatever: 1;
     return($whatever);
 );
-shadow();    // prints 1 not 42
+$shadow();    // prints 1 not 42

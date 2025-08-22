@@ -209,22 +209,22 @@ Examples:
 
 Basic arithmetic
 ```javascript!
-(2 + 2);    // returns 4
-(2 - 3);    // returns -1
-(50 * 100); // returns 5000
-(20 / 5);   // returns 4
-(5 % 2);    // modulo returns 1 (Euclidean style remainder)
+$(2 + 2);    // returns 4
+$(2 - 3);    // returns -1
+$(50 * 100); // returns 5000
+$(20 / 5);   // returns 4
+$(5 % 2);    // modulo returns 1 (Euclidean style remainder)
 ```
 
 Function atoms can also have keynames declared inside of them like so:
 ```javascript!
-(@x: 4; @y: 6; $x + $y); // returns 10
-(@x: 5, @y: 5; $x * $y); // commas can also be used to separate keyname binding declarations
+$(@x: 4; @y: 6; $x + $y); // returns 10
+$(@x: 5, @y: 5; $x * $y); // commas can also be used to separate keyname binding declarations
 ```
 
 Function atoms can also be multi-line:
 ```javascript!
-(
+$(
 @x: 100;
 @y: 100;
 return($x + $y);
@@ -234,7 +234,7 @@ Single line function atoms do not require an explicit return. Multi-line functio
 
 Function atoms can also be bound to a keyname.
 ```javascript!
-function-example: (
+@function-example: (
 
     // Parameters are declared inside the function definition.
     // the param keyword distinguishes parameter from private function scoped variables.

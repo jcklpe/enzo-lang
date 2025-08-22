@@ -16,7 +16,7 @@ def error_message_unknown_variable(name):
     return f"error: undefined variable"
 
 def error_message_dollar_in_assignment():
-    return "error: cannot use `$` in assignment context"
+    return "error: cannot use `$` in variable declaration context"
 
 def error_message_dollar_in_rebind():
     return "error: cannot use `$` in rebind context"
@@ -113,14 +113,32 @@ def format_parse_error(err, src=None):
         # ...existing parse error logic...
         # (leave as is)
         pass
-    # For all errors, prefer src parameter over error's code_line if src is provided
-    if src:
-        # Preserve comments in source code for error context
-        code_line = src.strip()
-        return error_message_with_code_line(str(err), code_line)
-    # Fallback: If the error has a code_line attribute, use it for context
-    if hasattr(err, 'code_line') and err.code_line:
-        return error_message_with_code_line(str(err), err.code_line)
+    # For parse errors, use the most complete source available
+    # If src contains more content (like comments) than err.code_line, prefer src
+    # Otherwise, prefer the specific error code_line over the general src
+    err_line = getattr(err, 'code_line', '') or ''
+    src_line = (src or '').strip()
+
+    # For parse errors, use the most appropriate source available
+    err_line = getattr(err, 'code_line', '') or ''
+    src_line = (src or '').strip()
+
+    # If we have both err_line and src_line, choose the best one:
+    if err_line and src_line:
+        # If err_line is a single line and src_line is multi-line, prefer err_line (more specific)
+        if '\n' not in err_line and '\n' in src_line:
+            return error_message_with_code_line(str(err), err_line)
+        # If src_line has comments that err_line doesn't, prefer src_line (more complete)
+        elif '//' in src_line and '//' not in err_line:
+            return error_message_with_code_line(str(err), src_line)
+        # Otherwise, prefer err_line (more specific to the error)
+        else:
+            return error_message_with_code_line(str(err), err_line)
+    # Fallback to whichever one is available
+    elif err_line:
+        return error_message_with_code_line(str(err), err_line)
+    elif src_line:
+        return error_message_with_code_line(str(err), src_line)
     return str(err)
 
 def error_message_with_code_line(msg, code_line):
@@ -128,11 +146,13 @@ def error_message_with_code_line(msg, code_line):
     # Handle multi-line code_line by adding indentation to each line
     if '\n' in code_line:
         lines = code_line.split('\n')
-        indented_lines = ['\t' + line for line in lines]  # tab character
+        # Strip original indentation and apply consistent tab indentation
+        indented_lines = ['\t' + line.strip() for line in lines]  # tab character
         formatted_code = '\n'.join(indented_lines)
         return f"{msg}\n{formatted_code}"
     else:
-        return f"{msg}\n\t{code_line}"  # tab character
+        # Strip original indentation and apply consistent tab indentation
+        return f"{msg}\n\t{code_line.strip()}"  # tab character
 
 def error_message_double_comma_table():
     return "error: extra comma in list"
@@ -166,8 +186,8 @@ def error_message_missing_necessary_params():
 
 def error_message_duplicate_param(param_name, code_line=None):
     # Don't include the code line in the message - let format_parse_error handle it
-    # Ensure param_name has $ prefix for display
-    display_name = param_name if param_name.startswith('$') else f'${param_name}'
+    # Ensure param_name has @ prefix for display (new paradigm)
+    display_name = param_name if param_name.startswith('@') else f'@{param_name}'
     return f"error: duplicate parameter name '{display_name}' in function definition"
 
 def error_message_destructure_count_mismatch():

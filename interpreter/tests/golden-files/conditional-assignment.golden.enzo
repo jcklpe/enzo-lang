@@ -9,7 +9,7 @@
 
 //= TYPE CONSISTENCY ON REBINDING
 error: cannot bind Text to Number
-	$result-33 <: If False, (300), Else, ("error-type"); // error: cannot bind Text to Number
+	@result-33 <: If False, (300), Else, ("error-type"); // error: cannot bind Text to Number
 
 //= NESTED INLINE CONDITIONALS IN ASSIGNMENT
 10

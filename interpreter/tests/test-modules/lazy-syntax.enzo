@@ -1,5 +1,15 @@
 //= use of invocation in a storage context
-$lazy-var: 0; // error: cannot use `$` in assignment context
+$lazy-var: 0; // error: cannot use `$` in variable declaration context
 @lazy-var2: 0;
 $lazy-var2 <: 50; // error: cannot use `$` in rebind context
 50 :> $lazy-var2; // error: cannot use `$` in rebind context
+
+//= use of invocation in a List
+$list-name-lazy1: [50, 60, 70]; // error: cannot use `$` in variable declaration context
+@list-name-lazy2: [$test-var: 50, 60, 70]; // error: cannot use `$` in variable declaration context
+
+//= invocation in a function param context
+@lazy-function1: (
+    param $x: 50;  // error: cannot use `$` in variable declaration context
+    return($x + 1);
+)

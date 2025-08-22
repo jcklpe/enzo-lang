@@ -76,6 +76,7 @@ TOKEN_SPEC = [
     ("EITHER", r"\beither\b"),
     ("OTHERWISE", r"\bOtherwise\b"),
     ("THIS", r"\$this"),    # Add $this as dedicated reserved token
+    ("DOLLAR", r"\$"),      # Standalone $ for invocation (must come before KEYNAME)
     # Allow dashes in variable names after the first character for both $-prefixed and non-prefixed
     ("KEYNAME",      r"\$[a-zA-Z0-9_-]+|[a-zA-Z_][a-zA-Z0-9_-]*"),
     ("NEWLINE",      r"\n"),

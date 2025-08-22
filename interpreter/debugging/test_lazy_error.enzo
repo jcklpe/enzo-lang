@@ -1,0 +1,1 @@
+$lazy-var: 0; // error: cannot use `$` in variable declaration context

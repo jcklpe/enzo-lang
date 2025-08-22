@@ -199,7 +199,7 @@ class EnzoList:
                     break
 
             if key_for_index:
-                items.append(f"{key_for_index}: {format_val(element)}")
+                items.append(f"@{key_for_index}: {format_val(element)}")
             else:
                 items.append(format_val(element))
 

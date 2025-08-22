@@ -375,6 +375,23 @@ class Parser:
                     node = NumberAtom(int('-' + val.lstrip('-')), code_line=code_line)
             else:
                 raise EnzoParseError(error_message_unexpected_token(t2), code_line=self._get_code_line(t2))
+        elif t.type == "DOLLAR":
+            # Handle $ followed by function atom or variable for invocation: $() or $variable
+            self.advance()  # consume '$'
+            next_token = self.peek()
+            if next_token and next_token.type == "LPAR":
+                # This is $(...) - invoke anonymous function
+                func_atom = self.parse_function_atom()  # Parse the function atom
+                from src.enzo_parser.ast_nodes import Invoke
+                node = Invoke(func_atom, [], code_line=code_line)
+            elif next_token and next_token.type == "KEYNAME":
+                # This is $variable - variable invocation
+                var_token = self.advance()
+                var_name = var_token.value
+                from src.enzo_parser.ast_nodes import VarInvoke
+                node = VarInvoke(f"${var_name}", code_line=code_line)
+            else:
+                raise EnzoParseError("Expected function or variable name after '$'", code_line=self._get_code_line(next_token))
         else:
             raise EnzoParseError(error_message_unexpected_token(t), code_line=self._get_code_line(t))
         # Always parse postfix after atom (to allow nested function atoms, chained indices, etc.)
@@ -530,14 +547,31 @@ class Parser:
         if t and t.type == "RESTART_LOOP":
             return self.parse_restart_loop_statement()
 
-        # --- Handle param statement: param $name: default_value; ---
+        # --- Handle param statement: param @name: default_value; or param name: default_value; ---
         if t and t.type == "PARAM":
             self.advance()  # consume 'param'
-            # Expect variable name
-            if not self.peek() or self.peek().type not in ("KEYNAME", "THIS"):
+            # Handle both @ syntax (param @name:) and legacy syntax (param name:)
+            var_name = None
+            if self.peek() and self.peek().type == "AT":
+                # New @ syntax: param @name:
+                self.advance()  # consume '@'
+                if not self.peek() or self.peek().type not in ("KEYNAME", "THIS", "NUMBER_TOKEN"):
+                    raise EnzoParseError("Expected variable name after 'param @'", code_line=code_line)
+                var_token = self.advance()
+                var_name = var_token.value
+            elif self.peek() and self.peek().type in ("KEYNAME", "THIS", "NUMBER_TOKEN"):
+                # Legacy syntax: param name:
+                var_token = self.advance()
+                var_name = var_token.value
+                # Check if this is $variable (which should error in new paradigm)
+                if var_name.startswith('$'):
+                    from src.error_messaging import error_message_dollar_in_assignment
+                    # Use the specific var_token line for more precise error context
+                    param_code_line = self._get_code_line(var_token) if var_token else code_line
+                    raise EnzoParseError(error_message_dollar_in_assignment(), code_line=param_code_line)
+            else:
                 raise EnzoParseError("Expected variable name after 'param'", code_line=code_line)
-            var_token = self.advance()
-            var_name = var_token.value
+
             # Expect colon
             if not self.peek() or self.peek().type != "BIND":
                 raise EnzoParseError("Expected ':' after parameter name", code_line=code_line)
@@ -751,6 +785,8 @@ class Parser:
             # Handle @variable syntax in :> expressions
             if isinstance(expr2, ReferenceAtom) and isinstance(expr2.target, VarInvoke):
                 target_expr = expr2.target  # Extract VarInvoke from ReferenceAtom
+            elif isinstance(expr2, ReferenceAtom) and isinstance(expr2.target, ListIndex):
+                target_expr = expr2.target  # Extract ListIndex from ReferenceAtom (@property.access)
             elif isinstance(expr2, VarInvoke):
                 # $variable is not allowed in rebind context in new paradigm
                 from src.error_messaging import error_message_dollar_in_rebind
