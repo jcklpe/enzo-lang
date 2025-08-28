@@ -1,0 +1,4 @@
+//= Multiline function atom with explicit return 2
+$(@x: 101;
+@y: 100;
+return($x + $y);); // prints 201
