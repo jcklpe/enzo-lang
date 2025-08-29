@@ -91,13 +91,17 @@ def normalize_block_lines(lines):
 def regenerate_combined_files():
     #Regenerate combined-tests.enzo and combined-tests.golden.enzo from individual modules
 
+
+
+    # "anon-function-refs",
+    # "IIFE",
+    # "recursion",
     # Module order (can be customized as needed)
     modules = [
 
             "vars",
             "lists-indexing",
             "math",
-            "loops",
             "lists-mapping",
             "text",
             "functions",
@@ -107,7 +111,12 @@ def regenerate_combined_files():
             "destructuring",
             "conditional-flow",
             "complex-computed-index",
+            "loops",
             "list-interpolation",
+            "conditional-shadowing",
+            "conditional-assignment",
+
+
 
 
 

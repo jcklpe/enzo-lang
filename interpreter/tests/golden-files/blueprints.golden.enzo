@@ -22,12 +22,12 @@ Duck[$position: [10, 5, 5], $wings: "true", $fly: <function ($z-position-movemen
 
 //= BLUEPRINT COMPOSITION: CONFLICT ERROR ──────────────────────────────
 error: duplicate property 'x' in composed blueprints
-	C: A and B;
+	C: A and B;     // error: duplicate property 'x' in composed blueprints
 
 //= SIMPLE VARIANT GROUP (OPTIONS ONLY) ────────────────────────────────
 Magic-Type.Fire
 error: 'Plasma' not a valid Magic-Type
-	$wizard-attacks.bad-spell: Magic-Type.Plasma;
+	$wizard-attacks.bad-spell: Magic-Type.Plasma; // error: 'Plasma' not a valid Magic-Type
 
 //= VARIANTS WITH BLUEPRINTS (SUM-OF-PRODUCTS) ─────────────────────────
 "heeheehee"

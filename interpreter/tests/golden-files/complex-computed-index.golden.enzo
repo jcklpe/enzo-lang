@@ -11,29 +11,29 @@
 
 //= COMPUTED INDEX: NEGATIVE AND ZERO
 error: list index out of range
-	$list300.($a00 - 1);
+	$list300.($a00 - 1);          // error: list index out of range (if $a = 1)
 5
 10
 error: list index out of range
-	$list300.(-1);
+	$list300.(-1);              // error: list index out of range
 
 //= COMPUTED INDEX: OUT OF BOUNDS
 error: list index out of range
-	$list300.(4);
+	$list300.(4);               // error: list index out of range (list has 3 elements)
 error: list index out of range
-	$list300.($a00 + $b00 + 2);
+	$list300.($a00 + $b00 + 2);     // error: list index out of range
 
 //= COMPUTED INDEX: NON-INTEGER RESULT
 error: list index must be an integer
-	$list400.(1.5);
+	$list400.(1.5);             // error: list index must be integer
 error: list index must be an integer
-	$list400.($a00 / 2);
+	$list400.($a00 / 2);          // error: list index must be integer
 
 //= COMPUTED INDEX: INVALID EXPRESSION TYPE
 error: can't use text as index
-	$list400.("hi");
+	$list400.("hi");            // error: list index must be integer
 error: list index must be an integer
-	$list400.($list100);
+	$list400.($list100);          // error: list index must be integer
 
 //= COMPUTED INDEX: USE IN ASSIGNMENT
 99

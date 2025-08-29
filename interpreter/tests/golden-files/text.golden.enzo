@@ -23,8 +23,8 @@
 "foo\"bar\"baz"
 //= Interpolation errors
 error: parse error in interpolation
-	"text <bad syntax>";
+	"text <bad syntax>";    // error: undefined variable or parse error in interp
 error: parse error in interpolation
-	"hello <$foo + >";
+	"hello <$foo + >";      // error: parse error in interpolation
 error: parse error in interpolation
-	"hello <<$foo>>";
+	"hello <<$foo>>";       // error: nested <...> not allowed (for now)

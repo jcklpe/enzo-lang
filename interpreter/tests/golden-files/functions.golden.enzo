@@ -36,9 +36,9 @@
 12
 9
 error: too many args
-	adder(4, 5, 6);
-error: expected argument is a number atom, not a text atom
-	$adder("", 500);
+	adder(4, 5, 6);                // error: too many args
+error: expected argument is a Number atom, not a Text atom
+	$adder("", 500);               // error: expected argument is a Number atom, not a Text atom
 305
 //= Named function with local variable
 11
@@ -48,9 +48,9 @@ error: expected argument is a number atom, not a text atom
 1
 -1
 error: missing necessary params
-	subtractor();
+	subtractor();        // error: missing necessary params
 error: missing necessary params
-	$subtractor(4);
+	$subtractor(4);   //error: missing necessary params
 
 //= List of functions invoked by index
 11
@@ -60,13 +60,13 @@ error: missing necessary params
 10
 6
 error: expected function reference (@) or function invocation ($)
-	double;
+	double;              // error: expected function reference (@) or function invocation ($)
 
 //= Higher-order function: passing function as argument and using default argument
 8
 14
 error: expected function reference (@) or function invocation ($)
-	apply(double, 4);
+	apply(double, 4);    // error: expected function reference (@) or function invocation ($)
 
 //= List with function member and self mutation
 10

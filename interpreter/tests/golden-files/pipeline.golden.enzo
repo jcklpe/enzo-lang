@@ -47,7 +47,7 @@ error: cannot declare variable '$this'
 
 //= PIPELINE ERROR NO FUNCTION ATOM
 error: pipeline expects function atom after `then`
-	5 then 10;
+	5 then 10; // error: pipeline expects function atom after `then`
 
 //= PIPELINE ERROR EMPTY FUNCTION ATOM
 //= Complex tests

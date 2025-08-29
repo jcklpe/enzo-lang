@@ -8,6 +8,7 @@
 "teenager"
 
 //= TYPE CONSISTENCY ON REBINDING
+100
 error: cannot bind Text to Number
 	$result-33 <: If False, (300), Else, ("error-type"); // error: cannot bind Text to Number
 
@@ -15,5 +16,5 @@ error: cannot bind Text to Number
 10
 
 //= INLINE IF: BODY IS A SCOPE AND DOES NOT LEAK
-"inner"
-"outer"
+"Result of inline If: inner"
+"After inline If: outer"

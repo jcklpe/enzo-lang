@@ -39,6 +39,6 @@ $shipping-cost; // prints 10
 
 //= INLINE IF: BODY IS A SCOPE AND DOES NOT LEAK
 $inline-test: "outer";
-$result-scope: If True, ( $inline-test: "inner"; $inline-test ), Else ( "never" );
+$result-scope: If True, ( $inline-test: "inner"; $inline-test ), Else, ( "never" );
 "Result of inline If: <$result-scope>"; // Prints "inner"
 "After inline If: <$inline-test>"; // Global is unaffected by the shadow. Prints "outer"

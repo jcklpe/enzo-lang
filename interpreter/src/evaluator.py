@@ -267,30 +267,30 @@ def _infer_type_from_default(default_value):
     from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom
 
     if isinstance(default_value, NumberAtom):
-        return "number"
+        return "Number"
     elif isinstance(default_value, TextAtom):
-        return "text"
+        return "Text"
     elif isinstance(default_value, ListAtom):
-        return "list"
+        return "List"
     # For complex expressions or Empty(), don't enforce type validation
     return None
 
 def _get_enzo_type(value):
     """Get the Enzo type name for a runtime value."""
     if isinstance(value, (int, float)):
-        return "number"
+        return "Number"
     elif isinstance(value, str):
-        return "text"
+        return "Text"
     elif isinstance(value, list):
-        return "list"
+        return "List"
     elif isinstance(value, dict):
-        return "table"
+        return "Table"
     elif isinstance(value, EnzoFunction):
-        return "function"
+        return "Function"
     elif isinstance(value, Empty):
-        return "empty"
+        return "Empty"
     else:
-        return type(value).__name__.lower()
+        return type(value).__name__.capitalize()
 
 
 def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None, is_function_context=False, outer_env=None, loop_locals=None, is_loop_context=False):
@@ -1042,6 +1042,10 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             for stmt in node.body:
                 if _check_for_this_reference(stmt):
                     raise EnzoRuntimeError(error_message_cannot_reference_this_in_named_function(), code_line=node.code_line)
+
+        # If this is an explicit function reference (@(...)), always return function object
+        if getattr(node, 'is_explicit_reference', False):
+            return EnzoFunction(node.params, node.local_vars, node.body, env, getattr(node, 'is_multiline', False))
 
         # Demand-value context: invoke
         if value_demand:
@@ -1808,14 +1812,22 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     condition_result = eval_ast(condition, env=env, is_loop_context=is_loop_context)
                     if _is_truthy(condition_result):
                         any_executed = True
-                        # Execute this branch and collect all results
-                    for stmt in then_block:
-                        result = eval_ast(stmt, env=env, is_loop_context=is_loop_context, is_function_context=is_function_context, outer_env=outer_env, loop_locals=loop_locals)
-                        if result is not None:
-                            results.append(result)                # If no branches executed and there's an else block, execute it
+                        # Execute this branch with isolated scope and collect all results
+                        branch_env = env.copy()
+                        for stmt in then_block:
+                            # In loop context, preserve the original outer_env; otherwise use current env
+                            target_outer_env = outer_env if is_loop_context else env
+                            result = eval_ast(stmt, env=branch_env, is_loop_context=is_loop_context, is_function_context=True, outer_env=target_outer_env, loop_locals=loop_locals)
+                            if result is not None:
+                                results.append(result)
+
+                # If no branches executed and there's an else block, execute it
                 if not any_executed and node.else_block:
+                    else_env = env.copy()
                     for stmt in node.else_block:
-                        result = eval_ast(stmt, env=env, is_loop_context=is_loop_context, is_function_context=is_function_context, outer_env=outer_env, loop_locals=loop_locals)
+                        # In loop context, preserve the original outer_env; otherwise use current env
+                        target_outer_env = outer_env if is_loop_context else env
+                        result = eval_ast(stmt, env=else_env, is_loop_context=is_loop_context, is_function_context=True, outer_env=target_outer_env, loop_locals=loop_locals)
                         if result is not None:
                             results.append(result)
             except (EndLoopSignal, RestartLoopSignal) as signal:
@@ -1827,6 +1839,13 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 elif results and not hasattr(signal, 'last_result'):
                     # Add last_result attribute with our collected results
                     signal.last_result = results[-1] if len(results) == 1 else results if results else None
+                raise
+            except Exception as e:
+                # For any other error (including EnzoRuntimeError), print accumulated results first
+                if results:
+                    # Print accumulated results before re-raising the error
+                    for result in results:
+                        print(format_val(result))
                 raise
 
             # Return all results as a list if there are multiple, or the single result
@@ -1840,11 +1859,15 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             # Regular exclusive if statement
             condition_result = eval_ast(node.condition, env=env, is_loop_context=is_loop_context)
             if _is_truthy(condition_result):
-                # Execute then block - collect all non-None results
+                # Execute then block with isolated scope - collect all non-None results
                 results = []
+                # Create isolated environment for then block (like function atom scoping)
+                then_env = env.copy()
                 try:
                     for stmt in node.then_block:
-                        result = eval_ast(stmt, env=env, is_loop_context=is_loop_context, is_function_context=is_function_context, outer_env=outer_env, loop_locals=loop_locals)
+                        # In loop context, preserve the original outer_env; otherwise use current env
+                        target_outer_env = outer_env if is_loop_context else env
+                        result = eval_ast(stmt, env=then_env, is_loop_context=is_loop_context, is_function_context=True, outer_env=target_outer_env, loop_locals=loop_locals)
                         if result is not None:
                             results.append(result)
                 except (EndLoopSignal, RestartLoopSignal) as signal:
@@ -1857,6 +1880,13 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         # Add last_result attribute with our collected results
                         signal.last_result = results[-1] if len(results) == 1 else results if results else None
                     raise
+                except Exception as e:
+                    # For any other error (including EnzoRuntimeError), print accumulated results first
+                    if results:
+                        # Print accumulated results before re-raising the error
+                        for result in results:
+                            print(format_val(result))
+                    raise
 
                 # Return all results as a list if there are multiple, or the single result
                 if len(results) == 0:
@@ -1866,15 +1896,26 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 else:
                     return results
             elif node.else_block:
-                # Execute else block - collect all non-None results
+                # Execute else block with isolated scope - collect all non-None results
                 results = []
+                # Create isolated environment for else block (like function atom scoping)
+                else_env = env.copy()
                 try:
                     for stmt in node.else_block:
-                        result = eval_ast(stmt, env=env, is_loop_context=is_loop_context, is_function_context=is_function_context, outer_env=outer_env, loop_locals=loop_locals)
+                        # In loop context, preserve the original outer_env; otherwise use current env
+                        target_outer_env = outer_env if is_loop_context else env
+                        result = eval_ast(stmt, env=else_env, is_loop_context=is_loop_context, is_function_context=True, outer_env=target_outer_env, loop_locals=loop_locals)
                         if result is not None:
                             results.append(result)
                 except (EndLoopSignal, RestartLoopSignal):
                     # Re-raise loop control signals so they propagate to the loop
+                    raise
+                except Exception as e:
+                    # For any other error (including EnzoRuntimeError), print accumulated results first
+                    if results:
+                        # Print accumulated results before re-raising the error
+                        for result in results:
+                            print(format_val(result))
                     raise
 
                 # Return all results as a list if there are multiple, or the single result
@@ -1939,17 +1980,18 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             max_iterations = 10000  # Safety limit
             iteration_count = 0
 
+            # Create loop environment once and reuse across iterations
+            loop_env = env.copy()
+            loop_locals = set()  # Track variables created in loop scope
+
             while iteration_count < max_iterations:
-                # Evaluate condition
-                condition_result = eval_ast(node.condition, env=env, is_loop_context=is_loop_context)
+                # Evaluate condition using loop environment (so variable changes are visible)
+                condition_result = eval_ast(node.condition, env=loop_env, is_loop_context=is_loop_context)
                 if not _is_truthy(condition_result):
                     break
 
                 try:
-                    # Create a fresh environment for each iteration to allow shadowing
-                    loop_env = env.copy()
-                    loop_locals = set()  # Track variables created in this iteration
-                    # Execute loop body
+                    # Execute loop body in the persistent loop environment
                     for stmt in node.body:
                         result = eval_ast(stmt, value_demand=True, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
                         if result is not None:
@@ -1977,17 +2019,18 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             max_iterations = 10000  # Safety limit
             iteration_count = 0
 
+            # Create loop environment once and reuse across iterations
+            loop_env = env.copy()
+            loop_locals = set()  # Track variables created in loop scope
+
             while iteration_count < max_iterations:
-                # Evaluate condition (opposite of while)
-                condition_result = eval_ast(node.condition, env=env, is_loop_context=is_loop_context)
+                # Evaluate condition using loop environment (so variable changes are visible)
+                condition_result = eval_ast(node.condition, env=loop_env, is_loop_context=is_loop_context)
                 if _is_truthy(condition_result):
                     break
 
                 try:
-                    # Create a fresh environment for each iteration to allow shadowing
-                    loop_env = env.copy()
-                    loop_locals = set()  # Track variables created in this iteration
-                    # Execute loop body
+                    # Execute loop body in the persistent loop environment
                     for stmt in node.body:
                         result = eval_ast(stmt, value_demand=True, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
                         if result is not None:
@@ -2140,15 +2183,19 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         raise RestartLoopSignal()
 
     if isinstance(node, ComparisonExpression):
-        left_val = eval_ast(node.left, value_demand=True, env=env)
-
         # Special handling for type comparisons with 'is' and 'is not'
         if ((node.operator == "is" or node.operator == "is not") and
             isinstance(node.right, VarInvoke) and
-            node.right.name in ["Number", "Text", "List", "Empty"]):
+            node.right.name in ["Number", "Text", "List", "Empty", "Function"]):
+            # For Function type comparisons, don't auto-invoke the left side
+            if node.right.name == "Function":
+                left_val = eval_ast(node.left, value_demand=False, env=env)
+            else:
+                left_val = eval_ast(node.left, value_demand=True, env=env)
             # Pass the type name directly instead of evaluating as a variable
             right_val = node.right.name
         else:
+            left_val = eval_ast(node.left, value_demand=True, env=env)
             right_val = eval_ast(node.right, value_demand=True, env=env)
 
         return _compare_values(left_val, node.operator, right_val)
@@ -2300,7 +2347,7 @@ def _compare_values(left, operator, right):
     """Compare two values using the given operator"""
     if operator == "is":
         # Type and value comparison
-        if isinstance(right, str) and right in ["Number", "Text", "List", "Empty"]:
+        if isinstance(right, str) and right in ["Number", "Text", "List", "Empty", "Function"]:
             # Type checking
             if right == "Number":
                 return isinstance(left, (int, float))
@@ -2310,11 +2357,13 @@ def _compare_values(left, operator, right):
                 return isinstance(left, (list, EnzoList))
             elif right == "Empty":
                 return left is None or isinstance(left, Empty)
+            elif right == "Function":
+                return isinstance(left, EnzoFunction)
         # Value comparison
         return left == right
     elif operator == "is not":
         # Type and value comparison (opposite of "is")
-        if isinstance(right, str) and right in ["Number", "Text", "List", "Empty"]:
+        if isinstance(right, str) and right in ["Number", "Text", "List", "Empty", "Function"]:
             # Type checking
             if right == "Number":
                 return not isinstance(left, (int, float))
@@ -2324,6 +2373,8 @@ def _compare_values(left, operator, right):
                 return not isinstance(left, (list, EnzoList))
             elif right == "Empty":
                 return not (left is None or isinstance(left, Empty))
+            elif right == "Function":
+                return not isinstance(left, EnzoFunction)
         # Value comparison
         return left != right
     elif operator == "is less than":

@@ -8,6 +8,8 @@ applyTo: "**"
 
 ## Important Context
 - The interpreter can be found in folder `~/work/enzo-lang/interpreter/`. `enzo-lang/` is the root project folder but all terminal commands for the interpreter must be run from the interpreter folder.
+- you import the tokenizer with the name `Tokenizer`, NOT `tokenize.
+- You can import a parser for debug files rather than creating a custom one using `from src.enzo_parser.parser import parse`
 - The interpreter project is a poetry env so you have to use `poetry run python` instead of just `python`
 - please put all debugging related scripts in the "debugging" folder so it doesn't clutter the project space. If you need to debug something it might be helpful to check if a script already exists there too.
 - All error messaging and all error handling are centralized to the "error_messaging.py" and "error_handling.py" files.
@@ -16,6 +18,20 @@ applyTo: "**"
 ✔ correct expected outcome
 ✖ failing actual outcome
 ```
+### Debugging and Import Guidelines
+
+- **Always check existing imports**: Before writing debug scripts, look at how other files import from the same modules. Use `grep_search` to find existing import patterns.
+- **Verify exports before importing**: Use `read_file` or `grep_search` to check what classes/functions are actually exported from a module before trying to import them.
+- **Follow established patterns**: Look at existing debug scripts in the `debugging/` folder for reference on correct import patterns.
+- **Common import patterns in this project**:
+  - `from src.evaluator import eval_ast, _env, _initialize_builtin_variants`
+  - `from src.enzo_parser.parser import parse` (not a class, just the parse function)
+  - `from src.error_handling import EnzoRuntimeError, EnzoTypeError, EnzoParseError`
+
+### Before creating debug scripts:
+1. Check existing debug scripts for import patterns
+2. Use `grep_search` to find how the target module is imported elsewhere
+3. Use `read_file` to verify class/function names if unsure
 
 # Interpreter technical context:
 ## Import and Module Context
@@ -58,16 +74,22 @@ from src.error_handling import (
 ```
 import sys
 sys.path.append('..')  # If needed to import from parent
-from src.evaluator import eval_ast, _env
+from src.evaluator import eval_ast, _env, _initialize_builtin_variants
 from src.enzo_parser.parser import parse
 
-# Reset environment for clean testing
+# Reset environment for clean testing but preserve built-ins
 _env.clear()
+_initialize_builtin_variants()  # IMPORTANT: Re-add True, False, Status variants
 
 # Parse and evaluate test code
 ast = parse(test_code)
 result = eval_ast(ast)
 ```
+
+### Environment Management Warning
+- **NEVER** call `_env.clear()` without immediately calling `_initialize_builtin_variants()`
+- The global environment `_env` contains essential built-in variant groups (`True`, `False`, `Status`) that Enzo code depends on
+- Clearing without re-initializing will cause "undefined variable" errors when code references `True` or `False`
 
 ### Function Signatures to Remember
 - `eval_ast(node, env=None, value_demand=False, is_function_context=False, outer_env=None)`

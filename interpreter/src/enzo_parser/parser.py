@@ -328,9 +328,17 @@ class Parser:
             node = VarInvoke(self.advance().value, code_line=code_line)
         elif t.type == "AT":
             self.advance()
-            # Parse the expression after @, which could be a simple variable or property access
-            expr = self.parse_value_expression()
-            node = ReferenceAtom(expr, code_line=code_line)
+            # Check if this is @(...) for anonymous function reference
+            if self.peek() and self.peek().type == "LPAR":
+                # Parse the function atom after @
+                function_atom = self.parse_function_atom()
+                # Mark it as an explicit function reference
+                function_atom.is_explicit_reference = True
+                node = function_atom
+            else:
+                # Parse the expression after @, which could be a simple variable or property access
+                expr = self.parse_value_expression()
+                node = ReferenceAtom(expr, code_line=code_line)
         elif t.type == "LPAR":
             # ALL parentheses create function atoms according to the language spec
             node = self.parse_function_atom()
@@ -616,6 +624,11 @@ class Parser:
                         return True  # Found comma followed by arrow (renaming)
                     elif token.type == "VARIANTS":
                         # If we encounter 'variants' keyword, this is NOT destructuring
+                        return False
+                    elif token.type in ["ADD", "SUBTRACT", "STAR", "DIVIDE", "MODULO", "POWER",
+                                      "EQUAL", "NOT_EQUAL", "LESS_THAN", "GREATER_THAN",
+                                      "LESS_EQUAL", "GREATER_EQUAL", "AND", "OR"]:
+                        # If we find mathematical or logical operators, this is an expression, not destructuring
                         return False
                     elif token.type in ["SEMICOLON", "NEWLINE", "RBRACE"]:
                         break  # End of statement

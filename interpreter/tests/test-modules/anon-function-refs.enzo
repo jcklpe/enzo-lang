@@ -1,12 +1,18 @@
 //= ANON REF: ASSIGNMENT TO A VARIABLE
 // The simplest use case: storing an anonymous function reference in a variable.
 $anon_ref_add_one: @(param $x: ; return($x + 1));
+$anon_ref_add_one1: (param $x: ; return($x + 1));
 
 // Prove it's a function by calling it.
 $anon_ref_add_one(5); // prints 6
+$anon_ref_add_one1(5); // prints 6
 
 // Prove its type with a conditional check.
 If $anon_ref_add_one is Function, (
+    "Variable holds a function reference"; // Should print
+);
+
+If $anon_ref_add_one1 is Function, (
     "Variable holds a function reference"; // Should print
 );
 
@@ -18,11 +24,19 @@ $anon_ref_ops: [
     "not-a-function"
 ];
 
+$anon_ref_ops1: [
+    (param $n: ; $n * 2), // Doubler
+    (param $n: ; $n * $n), // Squarer
+    "not-a-function"
+];
+
 // Invoke the first function from the list.
 $anon_ref_ops.1(10); // prints 20
+$anon_ref_ops1.1(10); // prints 20
 
 // Invoke the second function from the list.
 $anon_ref_ops.2(10); // prints 100
+$anon_ref_ops1.2(10); // prints 100
 
 //= ANON REF: PASSING DIRECTLY AS A FUNCTION ARGUMENT
 // Defines a higher-order function that accepts a function and a value.
@@ -41,7 +55,13 @@ $anon_ref_calculator: [
     $op: @(param $x:; $x + $self.base)
 ];
 
+$anon_ref_calculator1: [
+    $base: 10,
+    $op: (param $x:; $x + $self.base)
+];
+
 $anon_ref_calculator.op(5); // Uses $self to access list properties. Prints 15
+$anon_ref_calculator1.op(5); // Uses $self to access list properties. Prints 15
 
 //= ANON REF: NESTED ANONYMOUS REFERENCE
 // An anonymous function that *returns* another anonymous function reference.
@@ -50,10 +70,18 @@ $anon_ref_creator: @(
     return( @(param $text:; "<$prefix> <$text>") );
 );
 
+$anon_ref_creator1: (
+    param $prefix: ;
+    return( @(param $text:; "<$prefix> <$text>") );
+);
+
 // Call the outer function to get the inner function.
 $anon_ref_logger: $anon_ref_creator("[LOG]");
+$anon_ref_logger1: $anon_ref_creator1("[LOG]");
+
 // Call the inner function.
 $anon_ref_logger("System Ready"); // prints "[LOG] System Ready"
+$anon_ref_logger1("System Ready"); // prints "[LOG] System Ready"
 
 //= ERROR CASE: FORGETTING THE `@` SIGIL
 // Without `@`, the function atom is immediately evaluated (demand-driven).
@@ -61,7 +89,7 @@ $anon_ref_logger("System Ready"); // prints "[LOG] System Ready"
 anon_ref_apply( (param $x:; $x * 2), 5 ); // error: param expects Function type
 
 //= ERROR CASE: SYNTAX ERROR INSIDE THE FUNCTION BODY
-$anon_ref_bad_syntax: @(param $x: $x + ); // error: parse error in function atom body
+$anon_ref_bad_syntax: @(param $x: $x + ); // error: parse error in Function atom body
 
 //= CLOSURE: BASIC FUNCTION FACTORY
 // Tests the primary closure pattern: a function-making function.

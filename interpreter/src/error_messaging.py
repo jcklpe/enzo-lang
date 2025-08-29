@@ -101,21 +101,27 @@ def error_message_pipeline_expects_function():
 # User-friendly error message for parse errors, with code context.
 def format_parse_error(err, src=None):
     from src.error_messaging import error_message_with_code_line
+    # If src is provided and it's a single line, use it (preserving comments)
+    # For multi-line src, prefer the error's specific code_line
+    if src and '\n' not in src.strip():
+        # Single-line source: use it to preserve comments
+        code_line = src.strip()
+        return error_message_with_code_line(str(err), code_line)
     # If the error has a code_line attribute, use it for context
-    if hasattr(err, 'code_line') and err.code_line:
+    elif hasattr(err, 'code_line') and err.code_line:
         return error_message_with_code_line(str(err), err.code_line)
-    # Special cases for commas in lists/tables and parse errors
-    if hasattr(err, 'token') and hasattr(err, 'expected'):
-        # ...existing parse error logic...
-        # (leave as is)
-        pass
-    # For all other errors, if src is provided, always add the code line
-    if src:
+    # For multi-line src without error code_line, fall back to src but strip comments
+    elif src:
         # Strip comments from source code for error context
         code_line = src.strip()
         if '//' in code_line:
             code_line = code_line.split('//', 1)[0].rstrip()
         return error_message_with_code_line(str(err), code_line)
+    # Special cases for commas in lists/tables and parse errors
+    if hasattr(err, 'token') and hasattr(err, 'expected'):
+        # ...existing parse error logic...
+        # (leave as is)
+        pass
     return str(err)
 
 def error_message_with_code_line(msg, code_line):

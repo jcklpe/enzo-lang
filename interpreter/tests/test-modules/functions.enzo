@@ -74,7 +74,7 @@ $referenced-function: @adder;  // does not invoke adder function just saves it t
 $referenced-function();        // prints 12
 adder(4, 5);                   // prints 9
 adder(4, 5, 6);                // error: too many args
-$adder("", 500);               // error: expected argument is a number atom, not a text atom
+$adder("", 500);               // error: expected argument is a Number atom, not a Text atom
 $referenced-function(300, 5);    // prints 305
 
 //= Named function with local variable

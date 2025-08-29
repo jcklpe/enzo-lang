@@ -223,6 +223,7 @@ def run_enzo_file(filename):
         # Multi-line statements (like function atoms) should not have comments stripped
         # since the tokenizer handles them properly
         is_multiline = '\n' in statement
+        original_statement = statement  # Keep original for error reporting
         if not is_multiline and '//' in statement:
             statement = statement.split('//', 1)[0].rstrip()
         if not statement:
@@ -236,19 +237,23 @@ def run_enzo_file(filename):
             if '\n' in statement or ';' in statement.rstrip(';'):
                 # Multi-line or multiple statements - use program parser
                 from src.enzo_parser.parser import parse_program
-                result = eval_ast(parse_program(statement), value_demand=True)
-                # If result is a list, print each non-None result on its own line
-                if isinstance(result, list):
-                    for item in result:
-                        if item is not None:
-                            # If the item is itself a list from a loop, print each element
-                            if isinstance(item, list):
-                                for sub_item in item:
+                program = parse_program(statement)
+
+                # Evaluate statements one by one to handle errors gracefully
+                if hasattr(program, 'statements'):
+                    for stmt in program.statements:
+                        result = eval_ast(stmt, value_demand=True)
+                        if result is not None:
+                            # If the result is itself a list from a loop, print each element
+                            if isinstance(result, list):
+                                for sub_item in result:
                                     if sub_item is not None:
                                         print(format_val(sub_item))
                             else:
-                                print(format_val(item))
+                                print(format_val(result))
                 else:
+                    # Fallback for non-program results
+                    result = eval_ast(program, value_demand=True)
                     if result is not None:
                         print(format_val(result))
             else:
@@ -257,7 +262,7 @@ def run_enzo_file(filename):
                 if result is not None:
                     print(format_val(result))
         except InterpolationParseError as e:
-            msg = format_parse_error(e, src=statement)
+            msg = format_parse_error(e, src=original_statement)
             if "\n" in msg:
                 errline, context = msg.split("\n", 1)
                 print_enzo_error(errline + "\n" + context)
@@ -265,7 +270,7 @@ def run_enzo_file(filename):
                 print_enzo_error(msg)
             continue
         except EnzoParseError as e:
-            msg = format_parse_error(e, src=statement)
+            msg = format_parse_error(e, src=original_statement)
             if "\n" in msg:
                 errline, context = msg.split("\n", 1)
                 print_enzo_error(errline + "\n" + context)
@@ -273,15 +278,15 @@ def run_enzo_file(filename):
                 print_enzo_error(msg)
             continue
         except EnzoParseError as e:
-            msg = format_parse_error(e, src=statement)
+            msg = format_parse_error(e, src=original_statement)
             print_enzo_error(msg)
             continue
         except EnzoRuntimeError as e:
-            msg = format_parse_error(e, src=statement)
+            msg = format_parse_error(e, src=original_statement)
             print_enzo_error(msg)
             continue
         except Exception as e:
-            msg = format_parse_error(e, src=statement) if hasattr(e, 'code_line') or hasattr(e, 'line') or hasattr(e, 'column') else error_message_generic(str(e))
+            msg = format_parse_error(e, src=original_statement) if hasattr(e, 'code_line') or hasattr(e, 'line') or hasattr(e, 'column') else error_message_generic(str(e))
             print_enzo_error(msg)
             continue
 

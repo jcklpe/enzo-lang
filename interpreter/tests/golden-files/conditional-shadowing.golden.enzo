@@ -8,18 +8,18 @@
 
 //= SCOPE LEAKAGE: VARIABLE DECLARED IN `If` IS UNDEFINED OUTSIDE
 error: undefined variable
-    $z-local; // error: undefined variable
+	$z-local; // error: undefined variable
 
 //= SCOPE ISOLATION: `If` AND `Else` BLOCKS HAVE SEPARATE SCOPES
-"In Else: else-branch"; // Prints "else-branch"
+"In Else: else-branch"
 error: undefined variable
-    $if-var; // error: undefined variable (was defined in a separate scope)
+	$if-var; // error: undefined variable (was defined in a separate scope)
 "Afterward: global"
 
 //= SCOPE ISOLATION: `Else if` HAS ITS OWN ISOLATED SCOPE
 "In Else If: Level 1"
 error: undefined variable
-    $msg-scope; // error: undefined variable (each $msg was local to its own conditional block)
+	$msg-scope; // error: undefined variable (each $msg was local to its own conditional block)
 
 //= NESTED SHADOWING: INNER SCOPE SHADOWS OUTER SCOPE
 "Innermost scope: level 3"
