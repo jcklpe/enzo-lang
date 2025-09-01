@@ -160,6 +160,13 @@ class ReferenceAtom(ASTNode):
     def __repr__(self):
         return f"ReferenceAtom(target={self.target!r})"
 
+class ImmediateInvocationAtom(ASTNode):
+    def __init__(self, function_atom, code_line=None):
+        super().__init__(code_line)
+        self.function_atom = function_atom
+    def __repr__(self):
+        return f"ImmediateInvocationAtom(function_atom={self.function_atom!r})"
+
 class PipelineNode(ASTNode):
     def __init__(self, left, right, code_line=None):
         super().__init__(code_line)

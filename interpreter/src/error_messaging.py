@@ -197,3 +197,6 @@ def error_message_else_if_without_if():
 
 def error_message_else_without_if():
     return "error: `Else` without preceding `If`"
+
+def error_message_bang_must_be_followed_by_function_atom():
+    return "error: The `!` sigil for immediate invocation must be followed by a Function atom `(...)`."

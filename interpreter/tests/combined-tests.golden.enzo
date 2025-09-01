@@ -1273,3 +1273,51 @@ error: cannot bind Text to Number
 //= INLINE IF: BODY IS A SCOPE AND DOES NOT LEAK
 "Result of inline If: inner"
 "After inline If: outer"
+
+//= ANON REF: ASSIGNMENT TO A VARIABLE
+6
+6
+"Variable holds a function reference"
+"Variable holds a function reference"
+
+//= ANON REF: STORING IN A LIST
+20
+20
+100
+100
+
+//= ANON REF: PASSING DIRECTLY AS A FUNCTION ARGUMENT
+"Hello, Enzo!"
+
+//= ANON REF: IN A LIST PROPERTY (METHOD)
+15
+15
+
+//= ANON REF: NESTED ANONYMOUS REFERENCE
+"[LOG] System Ready"
+"[LOG] System Ready"
+
+//= ERROR CASE: FORGETTING THE `@` SIGIL
+error: expected argument is a Function atom, not a Number atom
+	anon_ref_apply( (param $x:5; $x * 2), "text" ); // error: param expects Function type
+
+//= ERROR CASE: SYNTAX ERROR INSIDE THE FUNCTION BODY
+error: parse error in Function atom body
+	$anon_ref_bad_syntax: @(param $x: $x + ); // error: parse error in Function atom body
+
+//= CLOSURE: BASIC FUNCTION FACTORY
+12
+100
+
+//= CLOSURE: STATEFUL COUNTER (ENCAPSULATION)
+1
+2
+1
+3
+
+//= CLOSURE: INTERACTION WITH GLOBAL SCOPE SHADOWING
+"captured"
+
+//= CLOSURE: STORED IN A DATA STRUCTURE
+15
+4

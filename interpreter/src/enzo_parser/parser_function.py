@@ -76,10 +76,15 @@ def parse_function_atom(parser):
                 parser.advance()
                 log_debug(f"[parse_function_atom] skipped delimiter, now at parser.pos={parser.pos}")
     except EnzoParseError as e:
-        # Abort parsing the rest of the function atom after the first error
-        synchronize(parser)  # Skip to the end of the function atom
-        # Wrap the error with a more specific message about function body parsing
-        raise EnzoParseError("error: parse error in Function atom body", code_line=e.code_line)
+        # Only wrap errors that don't already have meaningful error messages
+        # Let specific validation errors (duplicate params, $this declarations, etc.) pass through
+        if e.args[0].startswith("error: "):
+            # This is already a well-formatted error message, don't wrap it
+            raise e
+        else:
+            # This is a generic parsing error, wrap it with function context
+            synchronize(parser)  # Skip to the end of the function atom after generic errors
+            raise EnzoParseError("error: parse error in Function atom body", code_line=e.code_line)
 
     # Expect the closing RPAR
     if parser.peek() and parser.peek().type == "RPAR":

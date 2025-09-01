@@ -1,7 +1,7 @@
 from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val, log_debug, EnzoList, deep_copy_enzo_value
 from collections import ChainMap
-from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, ModNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantGroupExtension, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding, IfStatement, ComparisonExpression, LogicalExpression, NotExpression, LoopStatement, EndLoopStatement, RestartLoopStatement, ListKeyValue, ListInterpolation
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, ModNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantGroupExtension, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding, IfStatement, ComparisonExpression, LogicalExpression, NotExpression, LoopStatement, EndLoopStatement, RestartLoopStatement, ListKeyValue, ListInterpolation, ImmediateInvocationAtom
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
 
 # Loop control signals
@@ -1055,6 +1055,10 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             return invoke_function(fn, [], env, self_obj=None, is_loop_context=is_loop_context)
         else:
             return EnzoFunction(node.params, node.local_vars, node.body, env, getattr(node, 'is_multiline', False))
+    if isinstance(node, ImmediateInvocationAtom):
+        # Immediate invocation: evaluate the function atom and immediately invoke it
+        fn = eval_ast(node.function_atom, value_demand=False, env=env, is_loop_context=is_loop_context)
+        return invoke_function(fn, [], env, self_obj=None, is_loop_context=is_loop_context)
     if isinstance(node, AddNode):
         left = eval_ast(node.left, value_demand=True, env=env, is_loop_context=is_loop_context)
         right = eval_ast(node.right, value_demand=True, env=env, is_loop_context=is_loop_context)
