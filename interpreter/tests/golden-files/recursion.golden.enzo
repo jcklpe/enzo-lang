@@ -1,0 +1,26 @@
+//= RECURSION: CLASSIC FACTORIAL
+120
+1
+
+//= RECURSION: MUTUAL RECURSION FOR EVEN/ODD
+True
+True
+False
+
+//= RECURSION: WITH LISTS AND DESTRUCTURING
+100
+0
+
+//= RECURSION: SCOPE INTEGRITY WITH SHADOWING
+3
+2
+1
+0
+"Global n is still: 100"
+
+//= RECURSION: WITH A NAMED ANONYMOUS REFERENCE
+24
+
+//= RECURSION: STACK OVERFLOW PROTECTION
+error: Maximum recursion depth exceeded
+	rec_infinite(); // error: Maximum recursion depth exceeded
