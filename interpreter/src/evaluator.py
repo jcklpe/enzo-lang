@@ -264,7 +264,7 @@ def invoke_function(fn, args, env, self_obj=None, is_loop_context=False):
 
 def _infer_type_from_default(default_value):
     """Infer expected parameter type from default value AST node."""
-    from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom
+    from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, FunctionAtom
 
     if isinstance(default_value, NumberAtom):
         return "Number"
@@ -272,6 +272,8 @@ def _infer_type_from_default(default_value):
         return "Text"
     elif isinstance(default_value, ListAtom):
         return "List"
+    elif isinstance(default_value, FunctionAtom):
+        return "Function"
     # For complex expressions or Empty(), don't enforce type validation
     return None
 

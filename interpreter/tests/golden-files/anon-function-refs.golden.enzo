@@ -22,14 +22,14 @@
 "[LOG] System Ready"
 
 //= ERROR CASE: FORGETTING THE `@` SIGIL
-error: param expects Function type
-    anon_ref_apply( (param $x:; $x * 2), 5 ); // error: param expects Function type
+error: expected argument is a Function atom, not a Number atom
+	anon_ref_apply( (param $x:5; $x * 2), "text" ); // error: param expects Function type
 
 //= ERROR CASE: SYNTAX ERROR INSIDE THE FUNCTION BODY
 error: parse error in Function atom body
-    $anon_ref_bad_syntax: @(param $x: $x + ); // error: parse error in Function atom body
+	$anon_ref_bad_syntax: @(param $x: $x + ); // error: parse error in Function atom body
 
-    //= CLOSURE: BASIC FUNCTION FACTORY
+//= CLOSURE: BASIC FUNCTION FACTORY
 12
 100
 
@@ -40,7 +40,7 @@ error: parse error in Function atom body
 3
 
 //= CLOSURE: INTERACTION WITH GLOBAL SCOPE SHADOWING
- "captured"
+"captured"
 
 //= CLOSURE: STORED IN A DATA STRUCTURE
 15

@@ -86,7 +86,7 @@ $anon_ref_logger1("System Ready"); // prints "[LOG] System Ready"
 //= ERROR CASE: FORGETTING THE `@` SIGIL
 // Without `@`, the function atom is immediately evaluated (demand-driven).
 // It returns a Function *object*, which is not a Number, causing a type error inside the function.
-anon_ref_apply( (param $x:; $x * 2), 5 ); // error: param expects Function type
+anon_ref_apply( (param $x:5; $x * 2), "text" ); // error: param expects Function type
 
 //= ERROR CASE: SYNTAX ERROR INSIDE THE FUNCTION BODY
 $anon_ref_bad_syntax: @(param $x: $x + ); // error: parse error in Function atom body

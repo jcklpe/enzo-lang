@@ -1,0 +1,135 @@
+//= METHOD REFERENCING: BASICS
+$pet: [
+    $name: "Spot",
+    speak: (
+        return("Woof! My name is <$self.name>");
+    ),
+    age-increment: (
+        $self.age + 1 :> $self.age;
+        return($self.age);
+    ),
+    $age: 5
+];
+
+// Reference a method without invoking it
+$ref-speak: @pet.speak;
+$ref-speak;                // prints "Woof! My name is Spot"
+$ref-speak();              // prints "Woof! My name is Spot"
+
+//= METHOD REFERENCE PASSED AS ARGUMENT
+call-method: (
+    param $fn-ref:;
+    return($fn-ref());
+);
+
+call-method(@pet.speak);   // prints "Woof! My name is Spot"
+
+//= METHOD REFERENCE WITH STATE MUTATION
+$ref-age: @pet.age-increment;
+$ref-age();                 // should increment $pet.age → 6
+$ref-age();                 // should increment $pet.age → 7
+$pet.age;                   // should print 7
+
+//= METHOD REFERENCE TO ANONYMOUS FUNCTION INSIDE LIST
+$list-funcs: [
+    $adder: (
+        param $x:;
+        return($x + 10);
+    )
+];
+
+$ref-adder: @list-funcs.adder;
+$ref-adder(5);              // prints 15
+
+//= METHOD REFERENCE: NESTED LIST
+$outer: [
+    $inner: [
+        $say-hi: (
+            return("hi from inner");
+        )
+    ]
+];
+
+$ref-hi: @outer.inner.say-hi;
+$ref-hi();                  // prints "hi from inner"
+
+//= METHOD REFERENCE ERROR: NON-EXISTENT METHOD
+$bad-ref: @pet.nonexistent;   // error: method '$nonexistent' not found
+
+//= METHOD REFERENCE ERROR: REFERENCING NON-FUNCTION PROPERTY
+$ref-name: @pet.name;         // error: cannot reference non-function property '$name'
+
+//= BLUEPRINT METHOD REFERENCING: BASICS ───────────────────────
+Animal: <[
+    $name: Text,
+    speak: (
+        return("I am <$self.name>");
+    )
+]>;
+
+$dog: Animal[$name: "Fido"];
+$ref-speak-animal: @dog.speak;
+$ref-speak-animal();      // prints "I am Fido"
+
+//= BLUEPRINT METHOD WITH STATE MUTATION ──────────────────────
+Counter: <[
+    $count: Number,
+    increment: (
+        $self.count + 1 :> $self.count;
+        return($self.count);
+    )
+]>;
+
+$c: Counter[$count: 0];
+$ref-inc: @c.increment;
+$ref-inc();               // prints 1
+$ref-inc();               // prints 2
+$c.count;                 // prints 2
+
+//= METHOD REFERENCE PASSED INTO FUNCTION (BLUEPRINT) ─────────
+invoke-method: (
+    param $fn-ref:;
+    return($fn-ref());
+);
+
+invoke-method(@c.increment);  // prints 3 (increments again)
+
+//= VARIANT METHOD REFERENCING ────────────────────────────────
+GoblinV: <[
+    $hp: Number,
+    cackle: (
+        return("heeheehee");
+    )
+]>;
+OrcV: <[
+    $hp: Number,
+    shout: (
+        return("Manmeat for dinner!");
+    )
+]>;
+
+MonsterV variants: GoblinV, or OrcV;
+
+$g: MonsterV.GoblinV[$hp: 25];
+$o: MonsterV.OrcV[$hp: 40];
+
+$ref-cackle: @g.cackle;
+$ref-cackle();            // prints "heeheehee"
+
+$ref-shout: @o.shout;
+$ref-shout();             // prints "Manmeat for dinner!"
+
+//= VARIANT METHOD PASSED INTO FUNCTION ───────────────────────
+do-twice: (
+    param $fn:;
+    $fn();
+    return($fn());
+);
+
+do-twice(@g.cackle);      // prints "heeheehee" twice
+
+//= ERROR: METHOD REFERENCE TO NON-EXISTENT VARIANT METHOD ────
+$bad-ref-v: @g.nonexistent;  // error: method '$nonexistent' not found
+
+//= ERROR: METHOD REFERENCE TO NON-FUNCTION FIELD ─────────────
+$bad-ref-v2: @g.hp;          // error: cannot reference non-function property '$hp'

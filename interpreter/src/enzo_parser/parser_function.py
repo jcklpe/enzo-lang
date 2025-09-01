@@ -78,7 +78,8 @@ def parse_function_atom(parser):
     except EnzoParseError as e:
         # Abort parsing the rest of the function atom after the first error
         synchronize(parser)  # Skip to the end of the function atom
-        raise
+        # Wrap the error with a more specific message about function body parsing
+        raise EnzoParseError("error: parse error in Function atom body", code_line=e.code_line)
 
     # Expect the closing RPAR
     if parser.peek() and parser.peek().type == "RPAR":
