@@ -52,7 +52,8 @@ class EnzoFunction:
         self.params = params          # list of (name, default)
         self.local_vars = local_vars  # list of Binding nodes
         self.body = body              # list of AST stmts
-        self.closure_env = closure_env.copy()  # captured env for closure
+        # Do NOT copy closure_env: must be persistent for closure state
+        self.closure_env = closure_env
         self.is_multiline = is_multiline      # track if function atom is multiline
 
     def __repr__(self):
@@ -200,7 +201,9 @@ def invoke_function(fn, args, env, self_obj=None, is_loop_context=False):
         if expected_type and actual_type != expected_type:
             raise EnzoRuntimeError(error_message_arg_type_mismatch(param_name, expected_type, actual_type))
 
-    call_env = fn.closure_env.copy()
+    # Use a ChainMap so that mutations to closure_env persist across calls
+    from collections import ChainMap
+    call_env = ChainMap({}, fn.closure_env)
     # Bind parameters with copy-by-default semantics
     for (param_name, default), arg in zip(fn.params, args):
         # Handle reference vs copy semantics for function arguments
@@ -224,11 +227,8 @@ def invoke_function(fn, args, env, self_obj=None, is_loop_context=False):
         call_env['$self'] = self_obj
 
     # Create a combined environment that allows both reading from outer env and writing to call_env
-    # Make sure we don't pollute the outer environment
-    # Function-local variables should shadow global variables, not conflict with them
-    combined_env = {}
-    combined_env.update(env)  # Add outer environment variables (read-only)
-    combined_env.update(call_env)  # Add function parameters
+    # For closures, we need to use the ChainMap directly so mutations persist
+    combined_env = call_env
 
     # For function execution, we need to allow local variables to shadow global ones
     # So we'll use a special binding context that doesn't check for global conflicts
@@ -1243,11 +1243,22 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # Assignment to variable
         if isinstance(target, str):
             name = target
-            # For rebinding operations:
-            # - If variable was shadowed in this loop (in loop_locals), rebind in current env
-            # - If variable exists in outer_env and not shadowed, rebind in outer_env
-            # - Otherwise rebind in current env
-            if loop_locals is not None and name in loop_locals:
+
+            # Special handling for closure contexts: if we're in a ChainMap and the variable
+            # exists in a deeper layer (closure environment), update it there
+            if isinstance(env, ChainMap) and len(env.maps) > 1:
+                # Check if this variable exists in any of the deeper ChainMap layers (closure env)
+                for i, env_layer in enumerate(env.maps[1:], 1):  # Skip the first layer (local)
+                    if name in env_layer:
+                        # Found the variable in a closure layer - update it there
+                        target_env = env_layer
+                        update_current_env = False
+                        break
+                else:
+                    # Variable not found in closure layers, use normal rebinding logic
+                    target_env = env
+                    update_current_env = False
+            elif loop_locals is not None and name in loop_locals:
                 # Variable was shadowed in this loop - rebind in current env only
                 target_env = env
                 update_current_env = False
@@ -1278,8 +1289,22 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         if isinstance(target, VarInvoke):
             name = target.name
             t_code_line = getattr(target, 'code_line', node.code_line)
-            # For rebinding operations: same logic as string targets
-            if loop_locals is not None and name in loop_locals:
+
+            # Special handling for closure contexts: if we're in a ChainMap and the variable
+            # exists in a deeper layer (closure environment), update it there
+            if isinstance(env, ChainMap) and len(env.maps) > 1:
+                # Check if this variable exists in any of the deeper ChainMap layers (closure env)
+                for i, env_layer in enumerate(env.maps[1:], 1):  # Skip the first layer (local)
+                    if name in env_layer:
+                        # Found the variable in a closure layer - update it there
+                        target_env = env_layer
+                        update_current_env = False
+                        break
+                else:
+                    # Variable not found in closure layers, use normal rebinding logic
+                    target_env = env
+                    update_current_env = False
+            elif loop_locals is not None and name in loop_locals:
                 # Variable was shadowed in this loop - rebind in current env only
                 target_env = env
                 update_current_env = False
