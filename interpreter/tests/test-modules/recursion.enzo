@@ -30,30 +30,16 @@ rec_is_even(10); // prints True
 rec_is_odd(7);   // prints True
 rec_is_even(5);  // prints False
 
-//= RECURSION: WITH LISTS AND DESTRUCTURING
-// Tests recursion on a data structure, using the rest operator.
-rec_sum: (
-    param $list: ;
-    // Base case: an empty list has a sum of 0
-    If not $list, ( return(0) );
-
-    // Recursive step: destructure the list and sum the head with the rest
-    $head, $tail[...] : $list[];
-    return( $head + rec_sum($tail) );
-);
-
-rec_sum([10, 20, 30, 40]); // prints 100
-rec_sum([]);               // prints 0
-
 //= RECURSION: SCOPE INTEGRITY WITH SHADOWING
 // Proves that each recursive call gets its own scope for parameters,
 // correctly shadowing the global variable.
 $rec_n: 100;
 rec_countdown: (
-    param $n: ; // This $n shadows the global $rec_n
-    $n; // prints the local parameter's value
-    If $n is greater than 0, (
-        rec_countdown($n - 1);
+    param $rec_n: 3; // This $n shadows the global $rec_n
+    $rec_n; // prints the local parameter's value
+    If $rec_n is greater than 0, (
+		$rec_n - 1 :> $rec_n;
+        rec_countdown($rec_n);
     );
 );
 

@@ -2,7 +2,7 @@ from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val, log_debug, EnzoList, deep_copy_enzo_value
 from collections import ChainMap
 from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, ModNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantGroupExtension, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding, IfStatement, ComparisonExpression, LogicalExpression, NotExpression, LoopStatement, EndLoopStatement, RestartLoopStatement, ListKeyValue, ListInterpolation, ImmediateInvocationAtom
-from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError
+from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError, EnzoRecursionError
 
 # Loop control signals
 class EndLoopSignal(Exception):
@@ -250,6 +250,9 @@ def invoke_function(fn, args, env, self_obj=None, is_loop_context=False):
         # Execute body statements (rebinds, returns, etc.)
         for stmt in fn.body:
             res = eval_ast(stmt, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=False)
+    except RecursionError:
+        from src.error_messaging import error_message_maximum_recursion_depth_exceeded
+        raise EnzoRecursionError(error_message_maximum_recursion_depth_exceeded())
     except ReturnSignal as ret:
         return ret.value
     except (EndLoopSignal, RestartLoopSignal) as loop_signal:
