@@ -53,16 +53,16 @@ $-foo;        // prints 3
 //= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
 $emptyListTest: []; // binds []
 $emptyListTest;    // prints “[]”
-$emptyListTest.1;  // error: list index out of range
+$emptyListTest.1;  // error: List index out of range
 
 //= BIND EMPTY AND THEN FILL WITH LIST ────────────────────────────────────
 $empty-list: ;
 $empty-list: 50;    //error: $empty-list already defined
-$empty-list<: ["now not empty"];  //bind contents to list
+$empty-list<: ["now not empty"];  //bind contents to List
 $empty-list;       // prints “["now not empty"]”
 
 //= DECLARE LIST AND ACCESS ITEMS ────────────────────────────────────────
-$colors: ["red", "green", "blue", "yellow"]; // binds list
+$colors: ["red", "green", "blue", "yellow"]; // binds List
 $colors.3;         // prints “blue”
 $i: 2;             // binds 2
 $colors.$i;        // prints “green”
@@ -72,33 +72,33 @@ $nestedList: [[1, 2], [3, 4]];
 $nestedList.2.1;   // prints “3”
 
 //= MIXED LIST‐INSIDE‐LIST ● INDEX VS ATTR ──────────────────────────────
-$mix: [$lst: ["a", "b", "c"]];  //binds list
+$mix: [$lst: ["a", "b", "c"]];  //binds List
 $mix.lst.2;                // prints “b”
 
 //= LIST OF LISTS + INDEX OF LIST ────────────────────────────────────
-$lol-index: [[$x: 5], [$x: 7]];  // binds list
+$lol-index: [[$x: 5], [$x: 7]];  // binds List
 $lol-index;                 // prints “[[$x: 5], [$x: 7]]”
 $lol-index.2.x;             // prints “7”
 
-//= Out-of-bounds and weird list indices
-$list: [1,2,3];     // binds list
+//= Out-of-bounds and weird List indices
+$list: [1,2,3];     // binds List
 $list;
-$list.0;            // error: list index out of range
-$list.4;            // error: list index out of range
-$list.-1;           // error: list index out of range
+$list.0;            // error: List index out of range
+$list.4;            // error: List index out of range
+$list.-1;           // error: List index out of range
 $list."foo";        // error: can't use text as index or keyname
-$list.1.1;          // error: list index out of range
+$list.1.1;          // error: List index out of range
 
 //= List mutation
 $mutable: [1,2];
 $mutable;
 $mutable.1 <: 5;        // updates first element to 5
 $mutable;               // prints [5, 2]
-$mutable.3 <: 9;        // error: list index out of range
+$mutable.3 <: 9;        // error: List index out of range
 
 //= Trailing commas
 // These are fine
-$goodList-index: [1, 2, 3,]; // binds list
+$goodList-index: [1, 2, 3,]; // binds List
 $goodList-index;              // prints  [1, 2, 3]
 // these should error
 $badList1-index: [1,,2];                        // error: remove one comma
@@ -108,7 +108,7 @@ $badList3-index: [,];                           // error: just comma
 //= Various type errors
 $notalist: "oops";
 $notalist;
-$notalist.1;                              // index applies to lists
+$notalist.1;                              // index applies to Lists
 
 //= BINDING MATH OPERATIONS ────────────────────────────────────────────────
 $math1: 100;    // binds 100
@@ -189,7 +189,7 @@ $list-map2;            // prints “[$foo: 100, $bar: "hello"]”
 //= EMPTY LIST LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
 $emptyListMap: [];
 $emptyListMap;            // prints “[]”
-$emptyListMap.someKey;    // error: Keyname '$someKey' does not exist on this list
+$emptyListMap.someKey;    // error: Keyname '$someKey' does not exist on this List
 
 //= NESTED LIST + MIXED INDEX/PROPERTY ───────────────────────────────────────
 $nestedListMap: [
@@ -229,13 +229,13 @@ $deep-list.x.y.z; // prints 7
 //= List property errors
 $list9: [$foo: 1];
 $list9;                // prints [$foo: 1]
-$list9.bar;         // error: list property '$bar' not found
+$list9.bar;         // error: List property '$bar' not found
 $list9.1;           // prints 1
-$list9.foo.bar;     // error: list property '$bar' not found
+$list9.foo.bar;     // error: List property '$bar' not found
 
 $prim: 999;
 $prim;                      // prints 999;
-$prim.someKey <: 5;       // error: list property '$someKey' not found
+$prim.someKey <: 5;       // error: List property '$someKey' not found
 
 $myList: [$a: 1];
 $myList;                    // prints [$a: 1]
@@ -246,7 +246,7 @@ $table-error;                   // prints [$x: 1]
 $table-error.x <: 99;           // rebinds 99 to $table-error.x
 $table-error.x;                 // prints 99
 $table-error;                   // prints [$x: 99]
-$table-error.y <: 42;           // error: list property '$y' not found
+$table-error.y <: 42;           // error: List property '$y' not found
 
 //= Valid trailing commas (should succeed)
 $goodList: [$foo: 1, $bar: 2,];
@@ -364,8 +364,8 @@ $times2();       // prints 4
 //= Nameless function: multi-line with no explicit return
 ($x: 1;
  $y: 2;
- $x + $y;
-); // prints 3
+ $x + $y; // prints 3
+);
 
 //= Multi-line with params and default values
 adder: (
@@ -1505,9 +1505,9 @@ $list-exact: [1,2,3];
 If $list-exact either is [3,2,1], (
   "Reverse matched";),
 or is [1,2,3], (
-  "Exact list matched";),  // should print
+  "Exact List matched";),  // should print
 Otherwise, (
-  "No exact list match";
+  "No exact List match";
 );
 
 //= MULTI-BRANCH WITH VARIANT GROUP
@@ -1660,14 +1660,14 @@ If $undefined-var, ( // error: undefined variable
 );
 
 //= ERROR CASE: INVALID COMPARISON TYPE
-If $list-contain is less than 10, ( // error: can't compare list with number comparison word
+If $list-contain is less than 10, ( // error: can't compare List with Number comparison word
   "Won't print";
 );
 
 //= ERROR CASE: INVALID USE OF "CONTAINS" ON NON-LIST
 $non-list-val: 10;
 
-If $non-list-val contains 1, ( // error: contains used on non-list
+If $non-list-val contains 1, ( // error: contains used on non-List
   "Won't print";
 );
 
@@ -1694,7 +1694,7 @@ If $list-all-falsy, (
 );
 
 If not $list-all-falsy, (
-  "All falsy elements in a list are falsy"; // should print
+  "All falsy elements in a List are falsy"; // should print
 );
 
 //= BOOLEAN TEST: TEXT WITH WHITESPACE ONLY (TRUTHY)
@@ -1730,7 +1730,7 @@ If $inline-num, ("Number 1 is truthy"), Else, ("Won't print"); // prints truthy
 //= INLINE IF WITH EMPTY LIST (FALSY)
 $inline-list: [];
 
-If $inline-list, ("Won't print"), Else, ("Empty list falsy"); // prints falsy
+If $inline-list, ("Won't print"), Else, ("Empty List falsy"); // prints falsy
 
 //= DESTRUCTURE IN IF CONDITION (Truthy)
 $person21: [$name21: "Eve", $age21: 28];
@@ -1813,14 +1813,14 @@ If $hero.hp is at least 100, (
 //= ERROR: IF CONDITION ACCESSING INVALID LIST INDEX
 $bad-list50: [1,2,3];
 
-If $bad-list50.4, ( // error: list index out of range
+If $bad-list50.4, ( // error: List index out of range
   "Won't print";
 );
 
 //= ERROR: IF CONDITION ON UNDEFINED PROPERTY IN LIST
 $user-bad: [$name: "Bob"];
 
-If $user-bad.age, ( // error: list property `$age` not found
+If $user-bad.age, ( // error: List property `$age` not found
   "Won't print";
 );
 
@@ -1860,7 +1860,7 @@ If not $pipeline-empty, (
 $nested-list66: [0, "", [0, "valid"]];
 
 If $nested-list66, (
-  "Nested list considered truthy"; // should print
+  "Nested List considered truthy"; // should print
 );
 
 //= ERROR: USING "is" WITH A VARIANT THAT DOES NOT EXIST
@@ -1923,23 +1923,23 @@ $list200.($a00 + ($b00 * 1));   // prints 300 (index 3)
 
 //= COMPUTED INDEX: NEGATIVE AND ZERO
 $list300: [5, 10, 15];
-$list300.($a00 - 1);          // error: list index out of range (if $a = 1)
+$list300.($a00 - 1);          // error: List index out of range (if $a = 1)
 $list300.(-1 + 2);          // prints 5 (index 1)
 $list300.(-2 + 4);          // prints 10 (index 2)
-$list300.(-1);              // error: list index out of range
+$list300.(-1);              // error: List index out of range
 
 //= COMPUTED INDEX: OUT OF BOUNDS
-$list300.(4);               // error: list index out of range (list has 3 elements)
-$list300.($a00 + $b00 + 2);     // error: list index out of range
+$list300.(4);               // error: List index out of range (List has 3 elements)
+$list300.($a00 + $b00 + 2);     // error: List index out of range
 
 //= COMPUTED INDEX: NON-INTEGER RESULT
 $list400: [9, 8, 7];
-$list400.(1.5);             // error: list index must be integer
-$list400.($a00 / 2);          // error: list index must be integer
+$list400.(1.5);             // error: List index must be integer
+$list400.($a00 / 2);          // error: List index must be integer
 
 //= COMPUTED INDEX: INVALID EXPRESSION TYPE
-$list400.("hi");            // error: list index must be integer
-$list400.($list100);          // error: list index must be integer
+$list400.("hi");            // error: List index must be integer
+$list400.($list100);          // error: List index must be integer
 
 //= COMPUTED INDEX: USE IN ASSIGNMENT
 $list500: [10, 20, 30];
@@ -2100,7 +2100,7 @@ $empty-list-for; // prints []
 
 //= ERROR: FOR LOOP WITH NON-ITERABLE
 $item10: 5;
-Loop for $item10 in 10, ( // error: `for` loop must be over a list
+Loop for $item10 in 10, ( // error: `for` loop must be over a List
   "Won't print";
 );
 
@@ -2138,7 +2138,7 @@ Loop for $item in $list-for-copy, (
   $item <: $item + 1; // Mutating the loop variable
   "Item copy is now <$item>"; // prints 11, 21, 31
 );
-$list-for-copy; // prints [10, 20, 30] - original list is unaffected
+$list-for-copy; // prints [10, 20, 30] - original List is unaffected
 
 //= FOR LOOP: ITEM IS A REFERENCE
 $list-for-copy2: [10, 20, 30];
@@ -2146,7 +2146,7 @@ Loop for @item in $list-for-copy2, (
   $item <: $item + 1; // Mutating the original variable
   "Item is now <$item>"; // prints 11, 21, 31
 );
-$list-for-copy2; // prints [11, 21, 31] - original list has changed
+$list-for-copy2; // prints [11, 21, 31] - original List has changed
 
 //= WHILE LOOP MUTATING THE ORIGINAL LIST (BY INDEX)
 $list-for-mutate: [10, 20, 30];
@@ -2192,7 +2192,7 @@ $local-var2; // prints 0
 //= FOR LOOP OVER LIST OF LISTS
 $list-of-lists: [[1, 2], ["a", "b"]];
 Loop for $inner in $list-of-lists, (
-    "Inner list: <$inner>"; // prints [1, 2] then ["a", "b"]
+    "Inner List: <$inner>"; // prints [1, 2] then ["a", "b"]
     $inner.1; // prints 1, then "a"
 );
 
@@ -2229,7 +2229,7 @@ Loop for $item in $dynamic-list, (
     "Item: <$item>"; // should print 1, 2, 3
     $iterations-dynamic + 1 :> $iterations-dynamic;
     If $item is 2, (
-        [<$dynamic-list>, 3] :> $dynamic-list; // append to the list
+        [<$dynamic-list>, 3] :> $dynamic-list; // append to the List
     );
     If $iterations-dynamic is 3, ( end-loop; ); // safety break
 );
@@ -2240,7 +2240,7 @@ $items-live: ["a", "b", "c"];
 Loop for $item in $items-live, (
   "Current item: <$item>"; // prints "a", then "b_mod", then "c"
   If $item is "a", (
-    "b_mod" :> $items-live.2; // Modify the next item in the list
+    "b_mod" :> $items-live.2; // Modify the next item in the List
   );
 );
 $items-live; // prints ["a", "b_mod", "c"]
@@ -2289,7 +2289,7 @@ Loop for $row in $matrix, (
 
 //= LOOP INSIDE A FUNCTION WITH A RETURN
 find-first-even: (
-    param $list: ;
+    param $list: [];
     Loop for $item in $list, (
         If ($item % 2) is 0, (
             return($item); // should exit the loop AND the function
@@ -2304,7 +2304,7 @@ find-first-even([1, 3, 5, 7, 9]); // prints False
 $list-delete-behind: ["a", "b", "c"];
 $visited-behind: [];
 Loop for $item in $list-delete-behind, (
-  // When $item is "b", we delete "a". The list becomes ["b", "c"].
+  // When $item is "b", we delete "a". The List becomes ["b", "c"].
   // The iterator's next position is index 3, which is now "c".
   // This behavior can be surprising but is consistent with a live index.
   If $item is "b", (
@@ -2336,10 +2336,10 @@ $visited-clearing: [];
 Loop for $item in $list-clearing, (
     [<$visited-clearing>, $item] :> $visited-clearing;
     If $item is 20, (
-        [] :> $list-clearing; // Clear the list
+        [] :> $list-clearing; // Clear the List
     );
 );
-$visited-clearing; // prints [10, 20]. The loop terminates as the list is now empty.
+$visited-clearing; // prints [10, 20]. The loop terminates as the List is now empty.
 $list-clearing; // prints []
 
 //= FOR @ITEM: MUTATING PROPERTIES OF BLUEPRINT INSTANCES
@@ -2348,7 +2348,7 @@ $monsters55: [
     Player[$name: "Orc", $hp: 50]
 ];
 Loop for @monster in $monsters55, (
-    // Rebind the hp property of the original monster in the list
+    // Rebind the hp property of the original monster in the List
     $monster.hp + 10 :> $monster.hp;
 );
 $monsters55.1.hp; // prints 30
@@ -2687,3 +2687,421 @@ $inline-test: "outer";
 $result-scope: If True, ( $inline-test: "inner"; $inline-test ), Else, ( "never" );
 "Result of inline If: <$result-scope>"; // Prints "inner"
 "After inline If: <$inline-test>"; // Global is unaffected by the shadow. Prints "outer"
+
+//= ANON REF: ASSIGNMENT TO A VARIABLE
+// The simplest use case: storing an anonymous function reference in a variable.
+$anon_ref_add_one: @(param $x: ; return($x + 1));
+$anon_ref_add_one1: (param $x: ; return($x + 1));
+
+// Prove it's a function by calling it.
+$anon_ref_add_one(5); // prints 6
+$anon_ref_add_one1(5); // prints 6
+
+// Prove its type with a conditional check.
+If $anon_ref_add_one is Function, (
+    "Variable holds a function reference"; // Should print
+);
+
+If $anon_ref_add_one1 is Function, (
+    "Variable holds a function reference"; // Should print
+);
+
+//= ANON REF: STORING IN A LIST
+// A common use case for callbacks or strategies.
+$anon_ref_ops: [
+    @(param $n: ; $n * 2), // Doubler
+    @(param $n: ; $n * $n), // Squarer
+    "not-a-function"
+];
+
+$anon_ref_ops1: [
+    (param $n: ; $n * 2), // Doubler
+    (param $n: ; $n * $n), // Squarer
+    "not-a-function"
+];
+
+// Invoke the first function from the list.
+$anon_ref_ops.1(10); // prints 20
+$anon_ref_ops1.1(10); // prints 20
+
+// Invoke the second function from the list.
+$anon_ref_ops.2(10); // prints 100
+$anon_ref_ops1.2(10); // prints 100
+
+//= ANON REF: PASSING DIRECTLY AS A FUNCTION ARGUMENT
+// Defines a higher-order function that accepts a function and a value.
+anon_ref_apply: (
+    param $func: ();
+    param $value: "";
+    return( $func($value) );
+);
+
+// Pass an anonymous function reference directly as an argument.
+anon_ref_apply( @(param $text: ; "Hello, <$text>!"), "Enzo" ); // prints "Hello, Enzo!"
+
+//= ANON REF: IN A LIST PROPERTY (METHOD)
+$anon_ref_calculator: [
+    $base: 10,
+    $op: @(param $x:; $x + $self.base)
+];
+
+$anon_ref_calculator1: [
+    $base: 10,
+    $op: (param $x:; $x + $self.base)
+];
+
+$anon_ref_calculator.op(5); // Uses $self to access list properties. Prints 15
+$anon_ref_calculator1.op(5); // Uses $self to access list properties. Prints 15
+
+//= ANON REF: NESTED ANONYMOUS REFERENCE
+// An anonymous function that *returns* another anonymous function reference.
+$anon_ref_creator: @(
+    param $prefix: ;
+    return( @(param $text:; "<$prefix> <$text>") );
+);
+
+$anon_ref_creator1: (
+    param $prefix: ;
+    return( @(param $text:; "<$prefix> <$text>") );
+);
+
+// Call the outer function to get the inner function.
+$anon_ref_logger: $anon_ref_creator("[LOG]");
+$anon_ref_logger1: $anon_ref_creator1("[LOG]");
+
+// Call the inner function.
+$anon_ref_logger("System Ready"); // prints "[LOG] System Ready"
+$anon_ref_logger1("System Ready"); // prints "[LOG] System Ready"
+
+//= ERROR CASE: FORGETTING THE `@` SIGIL
+// Without `@`, the function atom is immediately evaluated (demand-driven).
+// It returns a Function *object*, which is not a Number, causing a type error inside the function.
+anon_ref_apply( (param $x:5; $x * 2), "text" ); // error: param expects Function type
+
+//= ERROR CASE: SYNTAX ERROR INSIDE THE FUNCTION BODY
+$anon_ref_bad_syntax: @(param $x: $x + ); // error: parse error in Function atom body
+
+//= CLOSURE: BASIC FUNCTION FACTORY
+// Tests the primary closure pattern: a function-making function.
+clos_make_adder: (
+    param $add_by: ;
+    return( @(param $num: ; $num + $add_by) );
+);
+
+// Create two distinct closures with different captured environments.
+$clos_add2: clos_make_adder(2);
+$clos_add99: clos_make_adder(99);
+
+$clos_add2(10);   // prints 12
+$clos_add99(1);   // prints 100
+
+// the below have not yet be vetted
+//= CLOSURE: STATEFUL COUNTER (ENCAPSULATION)
+// Proves that a closure can be used to maintain a private, mutable state.
+clos_make_counter: (
+    $count: 0; // This variable is private to the closure's environment.
+    return( @(
+        $count + 1 :> $count; // Mutate the captured variable
+        return($count);
+    ) );
+);
+
+$clos_counter_A: clos_make_counter();
+$clos_counter_A(); // prints 1
+$clos_counter_A(); // prints 2
+
+$clos_counter_B: clos_make_counter(); // A completely separate counter
+$clos_counter_B(); // prints 1
+
+$clos_counter_A(); // prints 3 (A's state is independent of B's)
+
+//= CLOSURE: INTERACTION WITH GLOBAL SCOPE SHADOWING
+// Proves the closure uses the variable from its creation scope, not the global scope.
+$clos_shadow: "global";
+
+clos_creator: (
+    $clos_shadow: "captured"; // This is the variable that should be remembered.
+    return( @( return($clos_shadow) ) );
+);
+
+$clos_my_closure: clos_creator();
+"global" :> $clos_shadow; // Change the global variable *after* the closure is created.
+
+$clos_my_closure(); // prints "captured", proving it uses its remembered scope.
+
+//= CLOSURE: STORED IN A DATA STRUCTURE
+// Proves a closure maintains its scope even when stored in a list.
+$clos_list: [
+    clos_make_adder(10), // Store the closure in the list
+    clos_make_adder(-1)
+];
+
+$clos_list.1(5);  // prints 15
+$clos_list.2(5);  // prints 4
+
+//= IMMEDIATE INVOCATION: BINDING VALUE VS. FUNCTION
+// This is the core test. It proves that `!` changes the type of the bound variable.
+$imm_func: (2 + 2);   // Stored as a Function object
+$imm_value: !(2 + 2); // Immediately evaluated and stored as a Number
+
+// Prove the type of $imm_func by using it as a function.
+If $imm_func is Function, (
+    "imm_func is a Function"; // Should print
+);
+$imm_func(); // Should print 4
+
+// Prove the type of $imm_value by using it as a number.
+If $imm_value is Number, (
+    "imm_value is a Number"; // Should print
+);
+$imm_value + 1; // Should print 5
+
+//= IMMEDIATE INVOCATION: REBINDING AND TYPE LOCKING
+$imm_result: ; // Initially empty
+$imm_result <: !(5 * 5); // Rebinds with a Number, locking the type
+$imm_result; // prints 25
+
+$imm_result <: !(10 - 4); // Rebinding with another Number is fine
+$imm_result; // prints 6
+
+$imm_result <: !("hello"); // error: cannot bind Text to Number
+
+//= IMMEDIATE INVOCATION: IN A LIST LITERAL
+// The contents are proven by how we use them later.
+$imm_list: [
+    10,
+    !(10 + 10), // Evaluated to 20 (Number)
+    (10 + 20)  // Stored as a Function
+];
+$imm_list.1;     // prints 10
+$imm_list.2;     // prints 20
+$imm_list.3();   // Invoke the stored function, prints 30
+
+//= IMMEDIATE INVOCATION: AS A FUNCTION ARGUMENT
+// The `!` forces evaluation *before* the value is passed to the function's parameter.
+imm_square: (
+    param $num: 0;
+    return($num * $num);
+);
+
+imm_square( !(2 + 3) ); // The function receives the value 5, not the function atom. Prints 25
+
+//= IMMEDIATE INVOCATION: WITH MULTI-STATEMENT BODY
+// Proves that `!` works with complex function atoms and their scope does not leak.
+$imm_complex_value: !(
+    $imm_a: 100;
+    $imm_b: 50;
+    return($imm_a - $imm_b); // Using explicit return
+);
+$imm_complex_value; // prints 50
+$imm_a; // error: undefined variable
+
+//= IMMEDIATE INVOCATION: REDUNDANT BUT VALID USE
+// In contexts where demand-driven evaluation already applies, `!` is unnecessary but should still work.
+// 1. As a top-level statement
+!(3 * 3); // prints 9, same as (3*3)
+
+// 2. In string interpolation
+"Value is: <!(4+4)>"; // prints "Value is: 8", same as "<(4+4)>"
+
+//= ERROR CASE: `!` NOT FOLLOWED BY A FUNCTION ATOM
+$imm_bad: !5; // error: The `!` sigil for immediate invocation must be followed by a function atom `(...)`.
+
+//= ERROR CASE: SYNTAX ERROR INSIDE THE FUNCTION ATOM
+$imm_bad2: !($x + ); // error: parse error in function atom body
+
+//= RECURSION: CLASSIC FACTORIAL
+// Tests the basic recursive pattern: a base case and a recursive step.
+rec_factorial: (
+    param $n: ;
+    // 1. Base case to terminate recursion
+    If $n is at most 1, (
+        return(1);
+    );
+    // 2. Recursive step: call itself with a modified argument
+    return( $n * rec_factorial($n - 1) );
+);
+
+rec_factorial(5); // prints 120 (5 * 4 * 3 * 2 * 1)
+rec_factorial(1); // prints 1 (tests the base case directly)
+
+//= RECURSION: MUTUAL RECURSION FOR EVEN/ODD
+// Tests if two functions can call each other, proving they exist in the same scope.
+rec_is_even: (
+    param $n: ;
+    If $n is 0, ( return(True) );
+    return( rec_is_odd($n - 1) );
+);
+rec_is_odd: (
+    param $n: ;
+    If $n is 0, ( return(False) );
+    return( rec_is_even($n - 1) );
+);
+
+rec_is_even(10); // prints True
+rec_is_odd(7);   // prints True
+rec_is_even(5);  // prints False
+
+//= RECURSION: SCOPE INTEGRITY WITH SHADOWING
+// Proves that each recursive call gets its own scope for parameters,
+// correctly shadowing the global variable.
+$rec_n: 100;
+rec_countdown: (
+    param $rec_n: 3; // This $n shadows the global $rec_n
+    $rec_n; // prints the local parameter's value
+    If $rec_n is greater than 0, (
+		$rec_n - 1 :> $rec_n;
+        rec_countdown($rec_n);
+    );
+);
+
+rec_countdown(3); // prints 3, then 2, then 1, then 0
+"Global n is still: <$rec_n>"; // prints "Global n is still: 100"
+
+//= RECURSION: WITH A NAMED ANONYMOUS REFERENCE
+// Tests that a function reference bound to a variable can call itself.
+$rec_anon_factorial: @(
+    param $n: ;
+    If $n is 0, ( return(1) );
+    // The function must use its own variable name to recurse
+    return( $n * $rec_anon_factorial($n - 1) );
+);
+
+$rec_anon_factorial(4); // prints 24
+
+//= RECURSION: STACK OVERFLOW PROTECTION
+// Tests the interpreter's ability to handle infinite recursion gracefully.
+rec_infinite: (
+    rec_infinite(); // This function will call itself forever
+);
+
+rec_infinite(); // error: Maximum recursion depth exceeded
+
+//= METHOD REFERENCING: BASICS
+$pet: [
+    $name: "Spot",
+    speak: (
+        return("Woof! My name is <$self.name>");
+    ),
+    age-increment: (
+        $self.age + 1 :> $self.age;
+    ),
+    $age: 5
+];
+
+// Reference a method without invoking it
+$ref-speak: @pet.speak;
+$ref-speak;                // prints "Woof! My name is Spot"
+$ref-speak();              // prints "Woof! My name is Spot"
+
+//= METHOD REFERENCE PASSED AS ARGUMENT
+call-method: (
+    param $fn-ref:;
+    return($fn-ref());
+);
+
+call-method(@pet.speak);   // prints "Woof! My name is Spot"
+
+//= METHOD REFERENCE WITH STATE MUTATION
+$ref-age: @pet.age-increment;
+$ref-age();                 // should increment $pet.age → 6
+$ref-age();                 // should increment $pet.age → 7
+$pet.age;                   // should print 7
+
+//= METHOD REFERENCE TO ANONYMOUS FUNCTION INSIDE LIST
+$list-funcs: [
+    $adder: (
+        param $x:;
+        return($x + 10);
+    )
+];
+
+$ref-adder: @list-funcs.adder;
+$ref-adder(5);              // prints 15
+
+//= METHOD REFERENCE: NESTED LIST
+$outer2: [
+    $inner: [
+        $say-hi: (
+            return("hi from inner");
+        )
+    ]
+];
+
+$ref-hi: @outer2.inner.say-hi;
+$ref-hi();                  // prints "hi from inner"
+
+//= METHOD REFERENCE ERROR: NON-EXISTENT METHOD
+$bad-ref: @pet.nonexistent;   // error: List property not found: $nonexistent
+
+//= BLUEPRINT METHOD REFERENCING: BASICS
+Animal1: <[
+    name: Text,
+    speak: (
+        return("I am <$self.name>");
+    )
+]>;
+
+$dog1: Animal1[$name: "Fido"];
+$ref-speak-animal: @dog1.speak;
+$ref-speak-animal();      // prints "I am Fido"
+
+//= BLUEPRINT METHOD WITH STATE MUTATION ──────────────────────
+Counter3: <[
+    count: Number,
+    increment: (
+        $self.count + 1 :> $self.count;
+        return($self.count);
+    )
+]>;
+
+$c3: Counter3[$count: 0];
+$ref-inc: @c3.increment;
+$ref-inc();               // prints 1
+$ref-inc();               // prints 2
+$c3.count;                 // prints 2
+
+//= METHOD REFERENCE PASSED INTO FUNCTION (BLUEPRINT) ─────────
+invoke-method: (
+    param $fn-ref:;
+    return($fn-ref());
+);
+
+invoke-method(@c3.increment);  // prints 3 (increments again)
+
+//= VARIANT METHOD REFERENCING ────────────────────────────────
+GoblinV: <[
+    hp: Number,
+    cackle: (
+        return("heeheehee");
+    )
+]>;
+OrcV: <[
+    hp: Number,
+    shout: (
+        return("Manmeat for dinner!");
+    )
+]>;
+
+MonsterV variants: GoblinV, or OrcV;
+
+$g3: MonsterV.GoblinV[$hp: 25];
+$o3: MonsterV.OrcV[$hp: 40];
+
+$ref-cackle: @g3.cackle;
+$ref-cackle();            // prints "heeheehee"
+
+$ref-shout: @o3.shout;
+$ref-shout();             // prints "Manmeat for dinner!"
+
+//= VARIANT METHOD PASSED INTO FUNCTION ───────────────────────
+do-twice: (
+    param $fn:;
+    $fn();
+    return($fn());
+);
+
+do-twice(@g3.cackle);      // prints "heeheehee" twice
+
+//= ERROR: METHOD REFERENCE TO NON-EXISTENT VARIANT METHOD ────
+$bad-ref-v: @g3.nonexistent;  // error: List property not found: $nonexistent
