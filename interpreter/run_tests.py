@@ -90,9 +90,6 @@ def normalize_block_lines(lines):
 
 def regenerate_combined_files():
     #Regenerate combined-tests.enzo and combined-tests.golden.enzo from individual modules
-
-    # "IIFE",
-    # "recursion",
     # Module order (can be customized as needed)
     modules = [
 
@@ -113,6 +110,9 @@ def regenerate_combined_files():
             "conditional-shadowing",
             "conditional-assignment",
             "anon-function-refs",
+            "IIFE",
+            "recursion",
+            "method-references",
 
 
 

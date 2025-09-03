@@ -41,8 +41,10 @@
 5
 
 //= Not a loop error
+"this function atom is not a loop"
 error: `end-loop;` inside a non-loop function atom
 	end-loop; // error: `end-loop;` inside a non-loop function atom
+"this function atom is not a loop"
 error: `restart-loop;` inside a non-loop function atom
 	restart-loop; // error: `restart-loop;` inside a non-loop function atom
 
@@ -72,8 +74,8 @@ error: undefined variable
 []
 
 //= ERROR: FOR LOOP WITH NON-ITERABLE
-error: `For` loop must be over a list
-	Loop for $item10 in 10, ( // error: `for` loop must be over a list
+error: `For` loop must be over a List
+	Loop for $item10 in 10, ( // error: `for` loop must be over a List
 
 //= WHILE LOOP WITH COMPLEX CONDITION
 "Counter: 1"
@@ -137,9 +139,9 @@ False
 
 
 //= FOR LOOP OVER LIST OF LISTS
-"Inner list: [1, 2]"
+"Inner List: [1, 2]"
 1
-"Inner list: ["a", "b"]"
+"Inner List: ["a", "b"]"
 "a"
 
 //= FOR LOOP WITH DESTRUCTURING INSIDE

@@ -20,7 +20,7 @@ $list-map2;            // prints “[$foo: 100, $bar: "hello"]”
 //= EMPTY LIST LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
 $emptyListMap: [];
 $emptyListMap;            // prints “[]”
-$emptyListMap.someKey;    // error: Keyname '$someKey' does not exist on this list
+$emptyListMap.someKey;    // error: Keyname '$someKey' does not exist on this List
 
 //= NESTED LIST + MIXED INDEX/PROPERTY ───────────────────────────────────────
 $nestedListMap: [
@@ -60,13 +60,13 @@ $deep-list.x.y.z; // prints 7
 //= List property errors
 $list9: [$foo: 1];
 $list9;                // prints [$foo: 1]
-$list9.bar;         // error: list property '$bar' not found
+$list9.bar;         // error: List property '$bar' not found
 $list9.1;           // prints 1
-$list9.foo.bar;     // error: list property '$bar' not found
+$list9.foo.bar;     // error: List property '$bar' not found
 
 $prim: 999;
 $prim;                      // prints 999;
-$prim.someKey <: 5;       // error: list property '$someKey' not found
+$prim.someKey <: 5;       // error: List property '$someKey' not found
 
 $myList: [$a: 1];
 $myList;                    // prints [$a: 1]
@@ -77,7 +77,7 @@ $table-error;                   // prints [$x: 1]
 $table-error.x <: 99;           // rebinds 99 to $table-error.x
 $table-error.x;                 // prints 99
 $table-error;                   // prints [$x: 99]
-$table-error.y <: 42;           // error: list property '$y' not found
+$table-error.y <: 42;           // error: List property '$y' not found
 
 //= Valid trailing commas (should succeed)
 $goodList: [$foo: 1, $bar: 2,];

@@ -69,7 +69,7 @@
 "Small number matched"
 
 //= MULTI-BRANCH LIST EXACT MATCH
-"Exact list matched"
+"Exact List matched"
 
 //= MULTI-BRANCH WITH VARIANT GROUP
 "Goblin matched"
@@ -133,11 +133,11 @@ error: undefined variable
 	If $undefined-var, ( // error: undefined variable
 
 //= ERROR CASE: INVALID COMPARISON TYPE
-error: can't compare list with number
+error: can't compare List with Number
 	If $list-contain is less than 10, (
 
 //= ERROR CASE: INVALID USE OF "CONTAINS" ON NON-LIST
-error: contains used on non-list
+error: contains used on non-List
 	If $non-list-val contains 1, (
 
 //= ERROR CASE: INVALID MULTI-BRANCH "or" WITHOUT PRECEDING IF
@@ -153,7 +153,7 @@ error: `Else` without preceding `If`
 	Else, ( // error: `Else` without preceding `If`
 
 //= BOOLEAN TEST: LIST WITH ALL FALSY ELEMENTS
-"All falsy elements in a list are falsy"
+"All falsy elements in a List are falsy"
 
 //= BOOLEAN TEST: TEXT WITH WHITESPACE ONLY (TRUTHY)
 "Whitespace text is truthy"
@@ -168,7 +168,7 @@ error: `Else` without preceding `If`
 "Number 1 is truthy"
 
 //= INLINE IF WITH EMPTY LIST (FALSY)
-"Empty list falsy"
+"Empty List falsy"
 
 //= DESTRUCTURE IN IF CONDITION (Truthy)
 "Eve is over 21"
@@ -198,12 +198,12 @@ error: comparison word in pipeline
 "Hero at full health"
 
 //= ERROR: IF CONDITION ACCESSING INVALID LIST INDEX
-error: list index out of range
-	If $bad-list50.4, ( // error: list index out of range
+error: List index out of range
+	If $bad-list50.4, ( // error: List index out of range
 
 //= ERROR: IF CONDITION ON UNDEFINED PROPERTY IN LIST
-error: list property not found: $age
-	If $user-bad.age, ( // error: list property `$age` not found
+error: List property not found: $age
+	If $user-bad.age, ( // error: List property `$age` not found
 
 //= More destructuring stuff and conditionals stuff
 "Pass: positional destructure"
@@ -221,7 +221,7 @@ error: list property not found: $age
 "Pipeline resulted in empty"
 
 //= BOOLEAN TEST: NESTED LIST WITH TRUTHY AND FALSY ELEMENTS
-"Nested list considered truthy"
+"Nested List considered truthy"
 
 //= ERROR: USING "is" WITH A VARIANT THAT DOES NOT EXIST
 error: undefined variable

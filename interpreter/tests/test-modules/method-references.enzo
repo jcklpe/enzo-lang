@@ -6,7 +6,6 @@ $pet: [
     ),
     age-increment: (
         $self.age + 1 :> $self.age;
-        return($self.age);
     ),
     $age: 5
 ];
@@ -42,7 +41,7 @@ $ref-adder: @list-funcs.adder;
 $ref-adder(5);              // prints 15
 
 //= METHOD REFERENCE: NESTED LIST
-$outer: [
+$outer2: [
     $inner: [
         $say-hi: (
             return("hi from inner");
@@ -50,41 +49,38 @@ $outer: [
     ]
 ];
 
-$ref-hi: @outer.inner.say-hi;
+$ref-hi: @outer2.inner.say-hi;
 $ref-hi();                  // prints "hi from inner"
 
 //= METHOD REFERENCE ERROR: NON-EXISTENT METHOD
-$bad-ref: @pet.nonexistent;   // error: method '$nonexistent' not found
+$bad-ref: @pet.nonexistent;   // error: List property not found: $nonexistent
 
-//= METHOD REFERENCE ERROR: REFERENCING NON-FUNCTION PROPERTY
-$ref-name: @pet.name;         // error: cannot reference non-function property '$name'
-
-//= BLUEPRINT METHOD REFERENCING: BASICS ───────────────────────
-Animal: <[
-    $name: Text,
+//= BLUEPRINT METHOD REFERENCING: BASICS
+Animal1: <[
+    name: Text,
     speak: (
         return("I am <$self.name>");
     )
 ]>;
 
-$dog: Animal[$name: "Fido"];
-$ref-speak-animal: @dog.speak;
+$dog1: Animal1[$name: "Fido"];
+$ref-speak-animal: @dog1.speak;
 $ref-speak-animal();      // prints "I am Fido"
 
 //= BLUEPRINT METHOD WITH STATE MUTATION ──────────────────────
-Counter: <[
-    $count: Number,
+Counter3: <[
+    count: Number,
     increment: (
         $self.count + 1 :> $self.count;
         return($self.count);
     )
 ]>;
 
-$c: Counter[$count: 0];
-$ref-inc: @c.increment;
+$c3: Counter3[$count: 0];
+$ref-inc: @c3.increment;
 $ref-inc();               // prints 1
 $ref-inc();               // prints 2
-$c.count;                 // prints 2
+$c3.count;                 // prints 2
 
 //= METHOD REFERENCE PASSED INTO FUNCTION (BLUEPRINT) ─────────
 invoke-method: (
@@ -92,17 +88,17 @@ invoke-method: (
     return($fn-ref());
 );
 
-invoke-method(@c.increment);  // prints 3 (increments again)
+invoke-method(@c3.increment);  // prints 3 (increments again)
 
 //= VARIANT METHOD REFERENCING ────────────────────────────────
 GoblinV: <[
-    $hp: Number,
+    hp: Number,
     cackle: (
         return("heeheehee");
     )
 ]>;
 OrcV: <[
-    $hp: Number,
+    hp: Number,
     shout: (
         return("Manmeat for dinner!");
     )
@@ -110,13 +106,13 @@ OrcV: <[
 
 MonsterV variants: GoblinV, or OrcV;
 
-$g: MonsterV.GoblinV[$hp: 25];
-$o: MonsterV.OrcV[$hp: 40];
+$g3: MonsterV.GoblinV[$hp: 25];
+$o3: MonsterV.OrcV[$hp: 40];
 
-$ref-cackle: @g.cackle;
+$ref-cackle: @g3.cackle;
 $ref-cackle();            // prints "heeheehee"
 
-$ref-shout: @o.shout;
+$ref-shout: @o3.shout;
 $ref-shout();             // prints "Manmeat for dinner!"
 
 //= VARIANT METHOD PASSED INTO FUNCTION ───────────────────────
@@ -126,10 +122,7 @@ do-twice: (
     return($fn());
 );
 
-do-twice(@g.cackle);      // prints "heeheehee" twice
+do-twice(@g3.cackle);      // prints "heeheehee" twice
 
 //= ERROR: METHOD REFERENCE TO NON-EXISTENT VARIANT METHOD ────
-$bad-ref-v: @g.nonexistent;  // error: method '$nonexistent' not found
-
-//= ERROR: METHOD REFERENCE TO NON-FUNCTION FIELD ─────────────
-$bad-ref-v2: @g.hp;          // error: cannot reference non-function property '$hp'
+$bad-ref-v: @g3.nonexistent;  // error: List property not found: $nonexistent

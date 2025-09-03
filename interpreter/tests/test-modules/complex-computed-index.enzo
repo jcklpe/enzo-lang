@@ -16,23 +16,23 @@ $list200.($a00 + ($b00 * 1));   // prints 300 (index 3)
 
 //= COMPUTED INDEX: NEGATIVE AND ZERO
 $list300: [5, 10, 15];
-$list300.($a00 - 1);          // error: list index out of range (if $a = 1)
+$list300.($a00 - 1);          // error: List index out of range (if $a = 1)
 $list300.(-1 + 2);          // prints 5 (index 1)
 $list300.(-2 + 4);          // prints 10 (index 2)
-$list300.(-1);              // error: list index out of range
+$list300.(-1);              // error: List index out of range
 
 //= COMPUTED INDEX: OUT OF BOUNDS
-$list300.(4);               // error: list index out of range (list has 3 elements)
-$list300.($a00 + $b00 + 2);     // error: list index out of range
+$list300.(4);               // error: List index out of range (List has 3 elements)
+$list300.($a00 + $b00 + 2);     // error: List index out of range
 
 //= COMPUTED INDEX: NON-INTEGER RESULT
 $list400: [9, 8, 7];
-$list400.(1.5);             // error: list index must be integer
-$list400.($a00 / 2);          // error: list index must be integer
+$list400.(1.5);             // error: List index must be integer
+$list400.($a00 / 2);          // error: List index must be integer
 
 //= COMPUTED INDEX: INVALID EXPRESSION TYPE
-$list400.("hi");            // error: list index must be integer
-$list400.($list100);          // error: list index must be integer
+$list400.("hi");            // error: List index must be integer
+$list400.($list100);          // error: List index must be integer
 
 //= COMPUTED INDEX: USE IN ASSIGNMENT
 $list500: [10, 20, 30];

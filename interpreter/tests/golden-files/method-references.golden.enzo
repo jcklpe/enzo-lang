@@ -1,0 +1,42 @@
+//= METHOD REFERENCING: BASICS
+"Woof! My name is Spot"
+"Woof! My name is Spot"
+
+//= METHOD REFERENCE PASSED AS ARGUMENT
+"Woof! My name is Spot"
+
+//= METHOD REFERENCE WITH STATE MUTATION
+7
+
+//= METHOD REFERENCE TO ANONYMOUS FUNCTION INSIDE LIST
+15
+
+//= METHOD REFERENCE: NESTED LIST
+"hi from inner"
+
+//= METHOD REFERENCE ERROR: NON-EXISTENT METHOD
+error: List property not found: $nonexistent
+	$bad-ref: @pet.nonexistent;   // error: List property not found: $nonexistent
+
+//= BLUEPRINT METHOD REFERENCING: BASICS
+"I am Fido"
+
+//= BLUEPRINT METHOD WITH STATE MUTATION ──────────────────────
+1
+2
+2
+
+//= METHOD REFERENCE PASSED INTO FUNCTION (BLUEPRINT) ─────────
+3
+
+//= VARIANT METHOD REFERENCING ────────────────────────────────
+"heeheehee"
+"Manmeat for dinner!"
+
+//= VARIANT METHOD PASSED INTO FUNCTION ───────────────────────
+"heeheehee"
+"heeheehee"
+
+//= ERROR: METHOD REFERENCE TO NON-EXISTENT VARIANT METHOD ────
+error: List property not found: $nonexistent
+	$bad-ref-v: @g3.nonexistent;  // error: List property not found: $nonexistent

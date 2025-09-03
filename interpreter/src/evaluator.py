@@ -89,7 +89,20 @@ class EnzoVariantGroup:
     def __repr__(self):
         return f"VariantGroup({self.name})"
 
-# Initialize built-in variant groups
+class MethodReference:
+    """A reference to a method that preserves its $self context"""
+    def __init__(self, method_function, self_object):
+        self.method_function = method_function  # The EnzoFunction
+        self.self_object = self_object          # The object that should be $self
+
+    def __repr__(self):
+        # Display as the underlying function for compatibility
+        return repr(self.method_function)
+
+    def __call__(self, *args):
+        # This allows the method reference to be invoked like a function
+        # The actual invocation will be handled by invoke_function
+        return self# Initialize built-in variant groups
 def _initialize_builtin_variants():
     """Initialize built-in variant groups for boolean-like values"""
     # Simple boolean-like variants
@@ -250,6 +263,13 @@ def invoke_function(fn, args, env, self_obj=None, is_loop_context=False):
         # Execute body statements (rebinds, returns, etc.)
         for stmt in fn.body:
             res = eval_ast(stmt, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=False)
+            # Only print standalone expressions in multiline functions
+            # Single-line functions have implicit returns and shouldn't print during execution
+            if fn.is_multiline:
+                from src.enzo_parser.ast_nodes import Binding, BindOrRebind, ReturnNode
+                if res is not None and not isinstance(stmt, (Binding, BindOrRebind, ReturnNode)):
+                    from src.cli import format_val
+                    print(format_val(res))
     except RecursionError:
         from src.error_messaging import error_message_maximum_recursion_depth_exceeded
         raise EnzoRecursionError(error_message_maximum_recursion_depth_exceeded())
@@ -262,7 +282,12 @@ def invoke_function(fn, args, env, self_obj=None, is_loop_context=False):
             # Store the result for the calling loop to collect
             loop_signal.last_result = res
         raise
-    return res
+    # Multiline functions without explicit return should return None (nothing)
+    # Single-line functions have implicit return of the last expression
+    if fn.is_multiline:
+        return None
+    else:
+        return res
 
 
 def _infer_type_from_default(default_value):
@@ -282,11 +307,12 @@ def _infer_type_from_default(default_value):
 
 def _get_enzo_type(value):
     """Get the Enzo type name for a runtime value."""
+    from src.runtime_helpers import EnzoList
     if isinstance(value, (int, float)):
         return "Number"
     elif isinstance(value, str):
         return "Text"
-    elif isinstance(value, list):
+    elif isinstance(value, (list, EnzoList)):
         return "List"
     elif isinstance(value, dict):
         return "Table"
@@ -992,6 +1018,16 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 if not name.startswith('$'):
                     raise EnzoRuntimeError("error: expected function reference (@) or function invocation ($)", code_line=node.code_line)
                 return invoke_function(val, [], env, self_obj=None, is_loop_context=is_loop_context)
+
+        # Check if this is a method reference
+        if isinstance(val, MethodReference):
+            # Auto-invoke method references when referenced with $ sigil in value_demand context
+            if value_demand:
+                # Bare method reference names (without $ sigil) cannot be auto-invoked
+                if not name.startswith('$'):
+                    raise EnzoRuntimeError("error: expected function reference (@) or function invocation ($)", code_line=node.code_line)
+                return invoke_function(val.method_function, [], env, self_obj=val.self_object, is_loop_context=is_loop_context)
+
         return val
     if isinstance(node, FunctionRef):
         # Evaluate the expression to get the function object
@@ -1026,17 +1062,27 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 base_val = eval_ast(target.base, value_demand=True, env=env)
                 if isinstance(base_val, EnzoList):
                     prop_name = target.index.value
-                    prop_val = base_val.get_by_key(prop_name)
+                    try:
+                        prop_val = base_val.get_by_key(prop_name)
+                    except KeyError:
+                        # Convert KeyError to standard EnzoRuntimeError format
+                        raise EnzoRuntimeError(error_message_list_property_not_found(prop_name), code_line=getattr(target, 'code_line', None))
                     if isinstance(prop_val, EnzoFunction):
-                        return prop_val  # Return function directly for @object.method
+                        # Create a method reference that preserves the $self context
+                        return MethodReference(prop_val, base_val)
                 elif isinstance(base_val, dict):
                     prop_name = target.index.value
-                    prop_val = base_val.get(prop_name)
+                    try:
+                        prop_val = base_val.get(prop_name)
+                    except KeyError:
+                        # Convert KeyError to standard EnzoRuntimeError format
+                        raise EnzoRuntimeError(error_message_list_property_not_found(prop_name), code_line=getattr(target, 'code_line', None))
                     if isinstance(prop_val, EnzoFunction):
-                        return prop_val
-            except Exception as e:
-                # If we can't access the property, fall through to ReferenceWrapper
-                pass
+                        # Create a method reference that preserves the $self context
+                        return MethodReference(prop_val, base_val)
+            except (EnzoRuntimeError):
+                # Let EnzoRuntimeError bubble up as-is
+                raise
 
         # For non-function references, create ReferenceWrapper
         return ReferenceWrapper(target, env)
@@ -1168,6 +1214,11 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 # This is a method invocation - get the base object for $self
                 self_obj = eval_ast(node.func.base, env=env)
             return invoke_function(left, args, env, self_obj=self_obj, is_loop_context=is_loop_context)
+
+        # Method reference invocation
+        if isinstance(left, MethodReference):
+            return invoke_function(left.method_function, args, env, self_obj=left.self_object, is_loop_context=is_loop_context)
+
         # Not a list or function
         raise EnzoTypeError(error_message_index_applies_to_lists(), code_line=getattr(node, 'code_line', None))
     if isinstance(node, Program):
@@ -1253,18 +1304,26 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
             # Special handling for closure contexts: if we're in a ChainMap and the variable
             # exists in a deeper layer (closure environment), update it there
+            # BUT: if we're in a function context and the variable exists in the local scope
+            # (first layer), prioritize local shadowing over closure mutation
             if isinstance(env, ChainMap) and len(env.maps) > 1:
-                # Check if this variable exists in any of the deeper ChainMap layers (closure env)
-                for i, env_layer in enumerate(env.maps[1:], 1):  # Skip the first layer (local)
-                    if name in env_layer:
-                        # Found the variable in a closure layer - update it there
-                        target_env = env_layer
-                        update_current_env = False
-                        break
-                else:
-                    # Variable not found in closure layers, use normal rebinding logic
-                    target_env = env
+                # If we're in a function context and the variable exists locally, shadow it
+                if is_function_context and name in env.maps[0]:
+                    # Variable exists locally (parameter or local var) - update locally to maintain shadowing
+                    target_env = env.maps[0]  # Update the local layer directly
                     update_current_env = False
+                else:
+                    # Check if this variable exists in any of the deeper ChainMap layers (closure env)
+                    for i, env_layer in enumerate(env.maps[1:], 1):  # Skip the first layer (local)
+                        if name in env_layer:
+                            # Found the variable in a closure layer - update it there
+                            target_env = env_layer
+                            update_current_env = False
+                            break
+                    else:
+                        # Variable not found in closure layers, use normal rebinding logic
+                        target_env = env
+                        update_current_env = False
             elif loop_locals is not None and name in loop_locals:
                 # Variable was shadowed in this loop - rebind in current env only
                 target_env = env
@@ -1299,18 +1358,26 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
             # Special handling for closure contexts: if we're in a ChainMap and the variable
             # exists in a deeper layer (closure environment), update it there
+            # BUT: if we're in a function context and the variable exists in the local scope
+            # (first layer), prioritize local shadowing over closure mutation
             if isinstance(env, ChainMap) and len(env.maps) > 1:
-                # Check if this variable exists in any of the deeper ChainMap layers (closure env)
-                for i, env_layer in enumerate(env.maps[1:], 1):  # Skip the first layer (local)
-                    if name in env_layer:
-                        # Found the variable in a closure layer - update it there
-                        target_env = env_layer
-                        update_current_env = False
-                        break
-                else:
-                    # Variable not found in closure layers, use normal rebinding logic
-                    target_env = env
+                # If we're in a function context and the variable exists locally, shadow it
+                if is_function_context and name in env.maps[0]:
+                    # Variable exists locally (parameter or local var) - update locally to maintain shadowing
+                    target_env = env.maps[0]  # Update the local layer directly
                     update_current_env = False
+                else:
+                    # Check if this variable exists in any of the deeper ChainMap layers (closure env)
+                    for i, env_layer in enumerate(env.maps[1:], 1):  # Skip the first layer (local)
+                        if name in env_layer:
+                            # Found the variable in a closure layer - update it there
+                            target_env = env_layer
+                            update_current_env = False
+                            break
+                    else:
+                        # Variable not found in closure layers, use normal rebinding logic
+                        target_env = env
+                        update_current_env = False
             elif loop_locals is not None and name in loop_locals:
                 # Variable was shadowed in this loop - rebind in current env only
                 target_env = env
@@ -2006,7 +2073,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
             if iteration_count >= max_iterations:
                 raise EnzoRuntimeError("Loop exceeded maximum iterations (possible infinite loop)", code_line=node.code_line)
-            return results
+            return results if results else None
 
         elif node.loop_type == "while":
             # While loop - continues while condition is true
@@ -2045,7 +2112,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
             if iteration_count >= max_iterations:
                 raise EnzoRuntimeError("While loop exceeded maximum iterations (possible infinite loop)", code_line=node.code_line)
-            return results
+            return results if results else None
 
         elif node.loop_type == "until":
             # Until loop - continues until condition becomes true
@@ -2084,7 +2151,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
             if iteration_count >= max_iterations:
                 raise EnzoRuntimeError("Until loop exceeded maximum iterations (possible infinite loop)", code_line=node.code_line)
-            return results
+            return results if results else None
 
         elif node.loop_type == "for":
             # For loop - iterate over a list
@@ -2200,7 +2267,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     i += 1
                     continue
 
-            return results
+            return results if results else None
 
     if isinstance(node, EndLoopStatement):
         # If we're not in a loop context, this is an error

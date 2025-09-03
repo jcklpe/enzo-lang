@@ -1,16 +1,16 @@
 //= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
 $emptyListTest: []; // binds []
 $emptyListTest;    // prints “[]”
-$emptyListTest.1;  // error: list index out of range
+$emptyListTest.1;  // error: List index out of range
 
 //= BIND EMPTY AND THEN FILL WITH LIST ────────────────────────────────────
 $empty-list: ;
 $empty-list: 50;    //error: $empty-list already defined
-$empty-list<: ["now not empty"];  //bind contents to list
+$empty-list<: ["now not empty"];  //bind contents to List
 $empty-list;       // prints “["now not empty"]”
 
 //= DECLARE LIST AND ACCESS ITEMS ────────────────────────────────────────
-$colors: ["red", "green", "blue", "yellow"]; // binds list
+$colors: ["red", "green", "blue", "yellow"]; // binds List
 $colors.3;         // prints “blue”
 $i: 2;             // binds 2
 $colors.$i;        // prints “green”
@@ -20,33 +20,33 @@ $nestedList: [[1, 2], [3, 4]];
 $nestedList.2.1;   // prints “3”
 
 //= MIXED LIST‐INSIDE‐LIST ● INDEX VS ATTR ──────────────────────────────
-$mix: [$lst: ["a", "b", "c"]];  //binds list
+$mix: [$lst: ["a", "b", "c"]];  //binds List
 $mix.lst.2;                // prints “b”
 
 //= LIST OF LISTS + INDEX OF LIST ────────────────────────────────────
-$lol-index: [[$x: 5], [$x: 7]];  // binds list
+$lol-index: [[$x: 5], [$x: 7]];  // binds List
 $lol-index;                 // prints “[[$x: 5], [$x: 7]]”
 $lol-index.2.x;             // prints “7”
 
-//= Out-of-bounds and weird list indices
-$list: [1,2,3];     // binds list
+//= Out-of-bounds and weird List indices
+$list: [1,2,3];     // binds List
 $list;
-$list.0;            // error: list index out of range
-$list.4;            // error: list index out of range
-$list.-1;           // error: list index out of range
+$list.0;            // error: List index out of range
+$list.4;            // error: List index out of range
+$list.-1;           // error: List index out of range
 $list."foo";        // error: can't use text as index or keyname
-$list.1.1;          // error: list index out of range
+$list.1.1;          // error: List index out of range
 
 //= List mutation
 $mutable: [1,2];
 $mutable;
 $mutable.1 <: 5;        // updates first element to 5
 $mutable;               // prints [5, 2]
-$mutable.3 <: 9;        // error: list index out of range
+$mutable.3 <: 9;        // error: List index out of range
 
 //= Trailing commas
 // These are fine
-$goodList-index: [1, 2, 3,]; // binds list
+$goodList-index: [1, 2, 3,]; // binds List
 $goodList-index;              // prints  [1, 2, 3]
 // these should error
 $badList1-index: [1,,2];                        // error: remove one comma
@@ -56,4 +56,4 @@ $badList3-index: [,];                           // error: just comma
 //= Various type errors
 $notalist: "oops";
 $notalist;
-$notalist.1;                              // index applies to lists
+$notalist.1;                              // index applies to Lists

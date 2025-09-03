@@ -37,8 +37,8 @@ error: cannot bind Text to Number
 
 //= LIST STUFF & INDEX ERRORS ─────────────────────────────────────────────
 []
-error: list index out of range
-	$emptyListTest.1;  // error: list index out of range
+error: List index out of range
+	$emptyListTest.1;  // error: List index out of range
 //= BIND EMPTY AND THEN FILL WITH LIST ────────────────────────────────────
 error: $empty-list already defined
 	$empty-list: 50;    //error: $empty-list already defined
@@ -53,35 +53,35 @@ error: $empty-list already defined
 //= LIST OF LISTS + INDEX OF LIST ────────────────────────────────────
 [[$x: 5], [$x: 7]]
 7
-//= Out-of-bounds and weird list indices
+//= Out-of-bounds and weird List indices
 [1, 2, 3]
-error: list index out of range
-	$list.0;            // error: list index out of range
-error: list index out of range
-	$list.4;            // error: list index out of range
-error: list index out of range
-	$list.-1;           // error: list index out of range
+error: List index out of range
+	$list.0;            // error: List index out of range
+error: List index out of range
+	$list.4;            // error: List index out of range
+error: List index out of range
+	$list.-1;           // error: List index out of range
 error: can't use text as index
 	$list."foo";        // error: can't use text as index or keyname
-error: list index out of range
-	$list.1.1;          // error: list index out of range
+error: List index out of range
+	$list.1.1;          // error: List index out of range
 //= List mutation
 [1, 2]
 [5, 2]
-error: list index out of range
-	$mutable.3 <: 9;        // error: list index out of range
+error: List index out of range
+	$mutable.3 <: 9;        // error: List index out of range
 //= Trailing commas
 [1, 2, 3]
-error: double comma in list
+error: double comma in List
 	$badList1-index: [1,,2];                        // error: remove one comma
 error: excess leading comma
 	$badList2-index: [,1,2];                        // error: leading comma
-error: empty list with just a comma
+error: empty List with just a comma
 	$badList3-index: [,];                           // error: just comma
 //= Various type errors
 "oops"
-error: index applies to lists
-	$notalist.1;                              // index applies to lists
+error: index applies to Lists
+	$notalist.1;                              // index applies to Lists
 
 //= BINDING MATH OPERATIONS ────────────────────────────────────────────────
 100
@@ -146,8 +146,8 @@ error: No division by zero
 [$foo: 100, $bar: "hello"]
 //= EMPTY LIST LITERAL + BAD PROP ACCESS ERROR ──────────────────────────
 []
-error: list property not found: $someKey
-	$emptyListMap.someKey;    // error: Keyname '$someKey' does not exist on this list
+error: List property not found: $someKey
+	$emptyListMap.someKey;    // error: Keyname '$someKey' does not exist on this List
 //= NESTED LIST + MIXED INDEX/PROPERTY ───────────────────────────────────────
 [$inner: [$val: 42, $arr: [10, 20]]]
 42
@@ -167,29 +167,29 @@ error: list property not found: $someKey
 7
 //= List property errors
 [$foo: 1]
-error: list property not found: $bar
-	$list9.bar;         // error: list property '$bar' not found
+error: List property not found: $bar
+	$list9.bar;         // error: List property '$bar' not found
 1
-error: list property not found: $bar
-	$list9.foo.bar;     // error: list property '$bar' not found
+error: List property not found: $bar
+	$list9.foo.bar;     // error: List property '$bar' not found
 999
-error: list property not found: $someKey
-	$prim.someKey <: 5;       // error: list property '$someKey' not found
+error: List property not found: $someKey
+	$prim.someKey <: 5;       // error: List property '$someKey' not found
 [$a: 1]
 1
 [$x: 1]
 99
 [$x: 99]
-error: list property not found: $y
-	$table-error.y <: 42;           // error: list property '$y' not found
+error: List property not found: $y
+	$table-error.y <: 42;           // error: List property '$y' not found
 //= Valid trailing commas (should succeed)
 [$foo: 1, $bar: 2]
 //= invalid trailing commas (should error)
-error: extra comma in list
+error: extra comma in List
 	$badList1: [$foo: 1,, $bar: 2];
 error: excess leading comma
 	$badList2: [ ,$foo: 1, $bar: 2];
-error: empty list with just a comma
+error: empty List with just a comma
 	$badList3: [ ,];
 
 //= TEXT + INTERPOLATION ───────────────────────────────────────────────────
@@ -668,7 +668,7 @@ error: destructure count mismatch
 "Small number matched"
 
 //= MULTI-BRANCH LIST EXACT MATCH
-"Exact list matched"
+"Exact List matched"
 
 //= MULTI-BRANCH WITH VARIANT GROUP
 "Goblin matched"
@@ -732,11 +732,11 @@ error: undefined variable
 	If $undefined-var, ( // error: undefined variable
 
 //= ERROR CASE: INVALID COMPARISON TYPE
-error: can't compare list with number
+error: can't compare List with Number
 	If $list-contain is less than 10, (
 
 //= ERROR CASE: INVALID USE OF "CONTAINS" ON NON-LIST
-error: contains used on non-list
+error: contains used on non-List
 	If $non-list-val contains 1, (
 
 //= ERROR CASE: INVALID MULTI-BRANCH "or" WITHOUT PRECEDING IF
@@ -752,7 +752,7 @@ error: `Else` without preceding `If`
 	Else, ( // error: `Else` without preceding `If`
 
 //= BOOLEAN TEST: LIST WITH ALL FALSY ELEMENTS
-"All falsy elements in a list are falsy"
+"All falsy elements in a List are falsy"
 
 //= BOOLEAN TEST: TEXT WITH WHITESPACE ONLY (TRUTHY)
 "Whitespace text is truthy"
@@ -767,7 +767,7 @@ error: `Else` without preceding `If`
 "Number 1 is truthy"
 
 //= INLINE IF WITH EMPTY LIST (FALSY)
-"Empty list falsy"
+"Empty List falsy"
 
 //= DESTRUCTURE IN IF CONDITION (Truthy)
 "Eve is over 21"
@@ -797,12 +797,12 @@ error: comparison word in pipeline
 "Hero at full health"
 
 //= ERROR: IF CONDITION ACCESSING INVALID LIST INDEX
-error: list index out of range
-	If $bad-list50.4, ( // error: list index out of range
+error: List index out of range
+	If $bad-list50.4, ( // error: List index out of range
 
 //= ERROR: IF CONDITION ON UNDEFINED PROPERTY IN LIST
-error: list property not found: $age
-	If $user-bad.age, ( // error: list property `$age` not found
+error: List property not found: $age
+	If $user-bad.age, ( // error: List property `$age` not found
 
 //= More destructuring stuff and conditionals stuff
 "Pass: positional destructure"
@@ -820,7 +820,7 @@ error: list property not found: $age
 "Pipeline resulted in empty"
 
 //= BOOLEAN TEST: NESTED LIST WITH TRUTHY AND FALSY ELEMENTS
-"Nested list considered truthy"
+"Nested List considered truthy"
 
 //= ERROR: USING "is" WITH A VARIANT THAT DOES NOT EXIST
 error: undefined variable
@@ -844,30 +844,30 @@ error: undefined variable
 300
 
 //= COMPUTED INDEX: NEGATIVE AND ZERO
-error: list index out of range
-	$list300.($a00 - 1);          // error: list index out of range (if $a = 1)
+error: List index out of range
+	$list300.($a00 - 1);          // error: List index out of range (if $a = 1)
 5
 10
-error: list index out of range
-	$list300.(-1);              // error: list index out of range
+error: List index out of range
+	$list300.(-1);              // error: List index out of range
 
 //= COMPUTED INDEX: OUT OF BOUNDS
-error: list index out of range
-	$list300.(4);               // error: list index out of range (list has 3 elements)
-error: list index out of range
-	$list300.($a00 + $b00 + 2);     // error: list index out of range
+error: List index out of range
+	$list300.(4);               // error: List index out of range (List has 3 elements)
+error: List index out of range
+	$list300.($a00 + $b00 + 2);     // error: List index out of range
 
 //= COMPUTED INDEX: NON-INTEGER RESULT
-error: list index must be an integer
-	$list400.(1.5);             // error: list index must be integer
-error: list index must be an integer
-	$list400.($a00 / 2);          // error: list index must be integer
+error: List index must be an integer
+	$list400.(1.5);             // error: List index must be integer
+error: List index must be an integer
+	$list400.($a00 / 2);          // error: List index must be integer
 
 //= COMPUTED INDEX: INVALID EXPRESSION TYPE
 error: can't use text as index
-	$list400.("hi");            // error: list index must be integer
-error: list index must be an integer
-	$list400.($list100);          // error: list index must be integer
+	$list400.("hi");            // error: List index must be integer
+error: List index must be an integer
+	$list400.($list100);          // error: List index must be integer
 
 //= COMPUTED INDEX: USE IN ASSIGNMENT
 99
@@ -927,8 +927,10 @@ error: list index must be an integer
 5
 
 //= Not a loop error
+"this function atom is not a loop"
 error: `end-loop;` inside a non-loop function atom
 	end-loop; // error: `end-loop;` inside a non-loop function atom
+"this function atom is not a loop"
 error: `restart-loop;` inside a non-loop function atom
 	restart-loop; // error: `restart-loop;` inside a non-loop function atom
 
@@ -958,8 +960,8 @@ error: undefined variable
 []
 
 //= ERROR: FOR LOOP WITH NON-ITERABLE
-error: `For` loop must be over a list
-	Loop for $item10 in 10, ( // error: `for` loop must be over a list
+error: `For` loop must be over a List
+	Loop for $item10 in 10, ( // error: `for` loop must be over a List
 
 //= WHILE LOOP WITH COMPLEX CONDITION
 "Counter: 1"
@@ -1023,9 +1025,9 @@ False
 
 
 //= FOR LOOP OVER LIST OF LISTS
-"Inner list: [1, 2]"
+"Inner List: [1, 2]"
 1
-"Inner list: ["a", "b"]"
+"Inner List: ["a", "b"]"
 "a"
 
 //= FOR LOOP WITH DESTRUCTURING INSIDE
@@ -1321,3 +1323,106 @@ error: parse error in Function atom body
 //= CLOSURE: STORED IN A DATA STRUCTURE
 15
 4
+
+//= IMMEDIATE INVOCATION: BINDING VALUE VS. FUNCTION
+"imm_func is a Function"
+4
+"imm_value is a Number"
+5
+
+//= IMMEDIATE INVOCATION: REBINDING AND TYPE LOCKING
+25
+6
+error: cannot bind Text to Number
+	$imm_result <: !("hello"); // error: cannot bind Text to Number
+
+//= IMMEDIATE INVOCATION: IN A LIST LITERAL
+10
+20
+30
+
+//= IMMEDIATE INVOCATION: AS A FUNCTION ARGUMENT
+25
+
+//= IMMEDIATE INVOCATION: WITH MULTI-STATEMENT BODY
+50
+error: undefined variable
+	$imm_a; // error: undefined variable
+
+//= IMMEDIATE INVOCATION: REDUNDANT BUT VALID USE
+9
+"Value is: 8"
+
+//= ERROR CASE: `!` NOT FOLLOWED BY A FUNCTION ATOM
+error: The `!` sigil for immediate invocation must be followed by a Function atom `(...)`.
+	$imm_bad: !5; // error: The `!` sigil for immediate invocation must be followed by a function atom `(...)`.
+
+//= ERROR CASE: SYNTAX ERROR INSIDE THE FUNCTION ATOM
+error: parse error in Function atom body
+	$imm_bad2: !($x + ); // error: parse error in function atom body
+
+//= RECURSION: CLASSIC FACTORIAL
+120
+1
+
+//= RECURSION: MUTUAL RECURSION FOR EVEN/ODD
+True
+True
+False
+
+//= RECURSION: SCOPE INTEGRITY WITH SHADOWING
+3
+2
+1
+0
+"Global n is still: 100"
+
+//= RECURSION: WITH A NAMED ANONYMOUS REFERENCE
+24
+
+//= RECURSION: STACK OVERFLOW PROTECTION
+error: Maximum recursion depth exceeded
+	rec_infinite(); // error: Maximum recursion depth exceeded
+
+//= METHOD REFERENCING: BASICS
+"Woof! My name is Spot"
+"Woof! My name is Spot"
+
+//= METHOD REFERENCE PASSED AS ARGUMENT
+"Woof! My name is Spot"
+
+//= METHOD REFERENCE WITH STATE MUTATION
+7
+
+//= METHOD REFERENCE TO ANONYMOUS FUNCTION INSIDE LIST
+15
+
+//= METHOD REFERENCE: NESTED LIST
+"hi from inner"
+
+//= METHOD REFERENCE ERROR: NON-EXISTENT METHOD
+error: List property not found: $nonexistent
+	$bad-ref: @pet.nonexistent;   // error: List property not found: $nonexistent
+
+//= BLUEPRINT METHOD REFERENCING: BASICS
+"I am Fido"
+
+//= BLUEPRINT METHOD WITH STATE MUTATION ──────────────────────
+1
+2
+2
+
+//= METHOD REFERENCE PASSED INTO FUNCTION (BLUEPRINT) ─────────
+3
+
+//= VARIANT METHOD REFERENCING ────────────────────────────────
+"heeheehee"
+"Manmeat for dinner!"
+
+//= VARIANT METHOD PASSED INTO FUNCTION ───────────────────────
+"heeheehee"
+"heeheehee"
+
+//= ERROR: METHOD REFERENCE TO NON-EXISTENT VARIANT METHOD ────
+error: List property not found: $nonexistent
+	$bad-ref-v: @g3.nonexistent;  // error: List property not found: $nonexistent
