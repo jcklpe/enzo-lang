@@ -1,0 +1,7 @@
+// as a kind of try catch thing?
+
+$user
+then maybe($this.profile)
+then maybe($this.address)
+then maybe($this.zip)
+:> $zipcode;
