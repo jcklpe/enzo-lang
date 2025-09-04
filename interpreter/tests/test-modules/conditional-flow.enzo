@@ -257,9 +257,9 @@ $list-exact: [1,2,3];
 If $list-exact either is [3,2,1], (
   "Reverse matched";),
 or is [1,2,3], (
-  "Exact list matched";),  // should print
+  "Exact List matched";),  // should print
 Otherwise, (
-  "No exact list match";
+  "No exact List match";
 );
 
 //= MULTI-BRANCH WITH VARIANT GROUP
@@ -412,14 +412,14 @@ If $undefined-var, ( // error: undefined variable
 );
 
 //= ERROR CASE: INVALID COMPARISON TYPE
-If $list-contain is less than 10, ( // error: can't compare list with number comparison word
+If $list-contain is less than 10, ( // error: can't compare List with Number comparison word
   "Won't print";
 );
 
 //= ERROR CASE: INVALID USE OF "CONTAINS" ON NON-LIST
 $non-list-val: 10;
 
-If $non-list-val contains 1, ( // error: contains used on non-list
+If $non-list-val contains 1, ( // error: contains used on non-List
   "Won't print";
 );
 
@@ -446,7 +446,7 @@ If $list-all-falsy, (
 );
 
 If not $list-all-falsy, (
-  "All falsy elements in a list are falsy"; // should print
+  "All falsy elements in a List are falsy"; // should print
 );
 
 //= BOOLEAN TEST: TEXT WITH WHITESPACE ONLY (TRUTHY)
@@ -482,7 +482,7 @@ If $inline-num, ("Number 1 is truthy"), Else, ("Won't print"); // prints truthy
 //= INLINE IF WITH EMPTY LIST (FALSY)
 $inline-list: [];
 
-If $inline-list, ("Won't print"), Else, ("Empty list falsy"); // prints falsy
+If $inline-list, ("Won't print"), Else, ("Empty List falsy"); // prints falsy
 
 //= DESTRUCTURE IN IF CONDITION (Truthy)
 $person21: [$name21: "Eve", $age21: 28];
@@ -565,14 +565,14 @@ If $hero.hp is at least 100, (
 //= ERROR: IF CONDITION ACCESSING INVALID LIST INDEX
 $bad-list50: [1,2,3];
 
-If $bad-list50.4, ( // error: list index out of range
+If $bad-list50.4, ( // error: List index out of range
   "Won't print";
 );
 
 //= ERROR: IF CONDITION ON UNDEFINED PROPERTY IN LIST
 $user-bad: [$name: "Bob"];
 
-If $user-bad.age, ( // error: list property `$age` not found
+If $user-bad.age, ( // error: List property `$age` not found
   "Won't print";
 );
 
@@ -612,7 +612,7 @@ If not $pipeline-empty, (
 $nested-list66: [0, "", [0, "valid"]];
 
 If $nested-list66, (
-  "Nested list considered truthy"; // should print
+  "Nested List considered truthy"; // should print
 );
 
 //= ERROR: USING "is" WITH A VARIANT THAT DOES NOT EXIST

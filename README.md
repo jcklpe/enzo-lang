@@ -1294,11 +1294,13 @@ Loop until $iteration is more than 10, (
 #### For loops
 Loops through a list:
 ```javascript!
-$item-list: [1, 2, 3, 4, 5];
+$item-list: [1, 2, $name: "Bob", 4, 5];
 Loop for $item in $item-list, (
     "this iteration has returned <$item> of <$item-list>";
 );
 ```
+Since keyname value pairs are numerically indexed (a unique feature of Enzo), the third loop iteration will print "Bob", since that's the value of the third index.
+
 Loops are "live iteration" style, meaning that as you loop through the list, any changes to the list will be immediate. You could hypothetically create an infinitely growing loop this way. Not sure if this is better or worse UX than the "snapshot" style, but it seems the most intuitive to me.
 
 

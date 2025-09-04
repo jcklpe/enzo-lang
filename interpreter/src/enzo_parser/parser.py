@@ -339,6 +339,18 @@ class Parser:
                 # Parse the expression after @, which could be a simple variable or property access
                 expr = self.parse_value_expression()
                 node = ReferenceAtom(expr, code_line=code_line)
+        elif t.type == "BANG":
+            self.advance()
+            # Check if this is !(...)  for immediate invocation
+            if self.peek() and self.peek().type == "LPAR":
+                # Parse the function atom after !
+                function_atom = self.parse_function_atom()
+                from src.enzo_parser.ast_nodes import ImmediateInvocationAtom
+                node = ImmediateInvocationAtom(function_atom, code_line=code_line)
+            else:
+                # Error: ! must be followed by a function atom
+                from src.error_messaging import error_message_bang_must_be_followed_by_function_atom
+                raise EnzoParseError(error_message_bang_must_be_followed_by_function_atom(), code_line=code_line)
         elif t.type == "LPAR":
             # ALL parentheses create function atoms according to the language spec
             node = self.parse_function_atom()

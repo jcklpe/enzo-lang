@@ -1,7 +1,7 @@
 # Centralized error message formatting for Enzo
 
 def error_message_list_property_not_found(prop):
-    return f"error: list property not found: ${prop}"
+    return f"error: List property not found: ${prop}"
 
 def error_message_already_defined(name):
     # Only add $ if not already present
@@ -45,28 +45,28 @@ def error_message_double_minus(token=None):
     return "error: double minus not allowed"
 
 def error_message_list_index_out_of_range():
-    return "error: list index out of range"
+    return "error: List index out of range"
 
 def error_message_cant_use_text_as_index():
     return "error: can't use text as index"
 
 def error_message_index_applies_to_lists():
-    return "error: index applies to lists"
+    return "error: index applies to Lists"
 
 def error_message_list_property_not_found(prop):
-    return f"error: list property not found: ${prop}"
+    return f"error: List property not found: ${prop}"
 
 def error_message_list_property_not_found(prop):
-    return f"error: list property not found: ${prop}"
+    return f"error: List property not found: ${prop}"
 
 def error_message_index_must_be_number():
-    return "error: list index must be an integer"
+    return "error: List index must be an integer"
 
 def error_message_index_must_be_integer():
-    return "error: list index must be an integer"
+    return "error: List index must be an integer"
 
 def error_message_binding_to_list_index_out_of_range():
-    return "error: list index out of range"
+    return "error: List index out of range"
 
 def error_message_unmatched_bracket():
     return "error: unmatched bracket"
@@ -78,10 +78,10 @@ def error_message_unmatched_brace():
     return "error: unmatched brace"
 
 def error_message_double_comma():
-    return "error: double comma in list"
+    return "error: double comma in List"
 
 def error_message_empty_list_comma():
-    return "error: empty list with just a comma"
+    return "error: empty List with just a comma"
 
 def error_message_excess_leading_comma():
     return "error: excess leading comma"
@@ -117,7 +117,7 @@ def format_parse_error(err, src=None):
         if '//' in code_line:
             code_line = code_line.split('//', 1)[0].rstrip()
         return error_message_with_code_line(str(err), code_line)
-    # Special cases for commas in lists/tables and parse errors
+    # Special cases for commas in Lists and parse errors
     if hasattr(err, 'token') and hasattr(err, 'expected'):
         # ...existing parse error logic...
         # (leave as is)
@@ -136,13 +136,13 @@ def error_message_with_code_line(msg, code_line):
         return f"{msg}\n\t{code_line}"  # tab character
 
 def error_message_double_comma_table():
-    return "error: extra comma in list"
+    return "error: extra comma in List"
 
 def error_message_leading_comma_table():
-    return "error: leading comma in list"
+    return "error: leading comma in List"
 
 def error_message_empty_table_comma():
-    return "error: empty list with comma"
+    return "error: empty List with comma"
 
 def error_message_cannot_declare_this():
     return "error: cannot declare variable '$this'"
@@ -178,13 +178,13 @@ def error_message_duplicate_variable_names():
     return "error: duplicate variable names in destructure"
 
 def error_message_for_loop_non_iterable():
-    return "error: `For` loop must be over a list"
+    return "error: `For` loop must be over a List"
 
 def error_message_invalid_comparison_type():
-    return "error: can't compare list with number"
+    return "error: can't compare List with Number"
 
 def error_message_contains_non_list():
-    return "error: contains used on non-list"
+    return "error: contains used on non-List"
 
 def error_message_comparison_in_pipeline():
     return "error: comparison word in pipeline"
@@ -197,3 +197,9 @@ def error_message_else_if_without_if():
 
 def error_message_else_without_if():
     return "error: `Else` without preceding `If`"
+
+def error_message_bang_must_be_followed_by_function_atom():
+    return "error: The `!` sigil for immediate invocation must be followed by a Function atom `(...)`."
+
+def error_message_maximum_recursion_depth_exceeded():
+    return "error: Maximum recursion depth exceeded"

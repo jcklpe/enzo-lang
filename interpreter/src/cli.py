@@ -188,6 +188,7 @@ def run_enzo_file(filename):
                     continue
                 try:
                     result = eval_ast(parse(line), value_demand=True)
+                    # Don't print None values
                     if result is not None:
                         print(format_val(result))
                 except InterpolationParseError as e:
@@ -243,6 +244,7 @@ def run_enzo_file(filename):
                 if hasattr(program, 'statements'):
                     for stmt in program.statements:
                         result = eval_ast(stmt, value_demand=True)
+                        # Don't print None values
                         if result is not None:
                             # If the result is itself a list from a loop, print each element
                             if isinstance(result, list):
@@ -254,11 +256,13 @@ def run_enzo_file(filename):
                 else:
                     # Fallback for non-program results
                     result = eval_ast(program, value_demand=True)
+                    # Don't print None values
                     if result is not None:
                         print(format_val(result))
             else:
                 # Single statement - use regular parser
                 result = eval_ast(parse(statement), value_demand=True)
+                # Don't print None values
                 if result is not None:
                     print(format_val(result))
         except InterpolationParseError as e:
@@ -362,12 +366,14 @@ def main():
             # If result is a list (from Program), print each non-None value on its own line
             if isinstance(result, list):
                 for val in result:
+                    # Don't print None values
                     if val is not None:
                         if isinstance(val, (list, dict, Table)):
                             print(format_val(val))
                         else:
                             print(val)
             else:
+                # Don't print None values
                 if result is not None:
                     if isinstance(result, (list, dict, Table)):
                         print(format_val(result))

@@ -21,6 +21,9 @@ class EnzoRuntimeError(EnzoError):
 class EnzoTypeError(EnzoRuntimeError):
     pass
 
+class EnzoRecursionError(EnzoRuntimeError):
+    pass
+
 class InterpolationParseError(EnzoParseError):
     pass
 

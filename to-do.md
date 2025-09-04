@@ -1,10 +1,20 @@
-- add variable shadowing test for conditional statements
-- implement recursion tests
-- immediate evaluation !()
-- storing anon functions to a list by reference @()
 - implement classic algos
+- Loop from 1 to 10, ($i; ...);
+- ability to loop over just keys or just unnamed indexes
+- maybe pipeline operator or try/catch stuff
+- block quotes
+- multiline text
+- text escape characters
+- Blueprints that have type but no default set, and then you create an instance without specifying the value. Should be an error.
+- instancing a blueprint with the wrong type for a field.
+- arithmetic operations that mix types (like `"5" + 5`). Should error
+- divide by zero errors
+- floating point math
+- destructuring blueprint instances (instances are like lists but we haven't actually shown any destructuring of a blueprint instance)
+- blueprint extension with inheritance
 - builtin functions
 - casting solutions?
 - is odd/even conditional?
 - squaring operators?
 - inverse exponent?
+- generics?
