@@ -98,6 +98,7 @@ def split_statements(lines):
     brace_depth = 0
     bracket_depth = 0
     if_depth = 0  # Track control flow depth
+    block_comment_depth = 0  # Track block comment depth
 
     for line in lines:
         stripped = line.rstrip('\n')
@@ -114,15 +115,42 @@ def split_statements(lines):
                 brace_depth = 0
                 bracket_depth = 0
                 if_depth = 0
+                block_comment_depth = 0
             stmts.append([stripped])
             continue
         if stripped.strip().startswith('//') and not buffer:
             continue
-        # Update depths (but ignore characters in comments)
-        comment_start = stripped.find('//')
-        line_to_parse = stripped if comment_start == -1 else stripped[:comment_start]
 
-        # Track control flow keywords
+        # First, scan for block comments to determine what part of the line to parse for depths
+        # We need to track block comment state to know what parts are "real code"
+        line_to_parse = ""
+        i = 0
+        line_block_depth = block_comment_depth
+        while i < len(stripped):
+            if line_block_depth > 0:
+                # We're inside a block comment, look for closing '/
+                if i < len(stripped) - 1 and stripped[i:i+2] == "'/":
+                    line_block_depth -= 1
+                    i += 2
+                else:
+                    i += 1
+            else:
+                # We're outside block comments, look for opening /` or regular code
+                if i < len(stripped) - 1 and stripped[i:i+2] == "/'":
+                    line_block_depth += 1
+                    i += 2
+                elif stripped[i:i+2] == "//":
+                    # Regular comment - ignore rest of line
+                    break
+                else:
+                    # Regular code - add to line_to_parse
+                    line_to_parse += stripped[i]
+                    i += 1
+
+        # Update global block comment depth
+        block_comment_depth = line_block_depth
+
+        # Track control flow keywords (only in non-comment parts)
         import re
         # Check for If/For/While keywords (must be whole words)
         if re.search(r'\b(If|For|While)\b', line_to_parse):
@@ -134,6 +162,7 @@ def split_statements(lines):
         if re.search(r'\bend\b', line_to_parse):
             if_depth = max(0, if_depth - 1)  # Prevent negative depth
 
+        # Track parentheses/brackets/braces (only in non-comment parts)
         for char in line_to_parse:
             if char == '(':
                 paren_depth += 1
@@ -147,10 +176,12 @@ def split_statements(lines):
                 bracket_depth += 1
             elif char == ']':
                 bracket_depth -= 1
+
         buffer.append(stripped)
         # Only break on semicolon if all depths are zero and semicolon is not in a comment
-        has_semicolon = ';' in line_to_parse  # Only check semicolons outside of comments
-        if paren_depth <= 0 and brace_depth <= 0 and bracket_depth <= 0 and if_depth <= 0 and has_semicolon:
+        has_semicolon = ';' in line_to_parse  # Only check semicolons outside of comments and block comments
+        if (paren_depth <= 0 and brace_depth <= 0 and bracket_depth <= 0 and
+            if_depth <= 0 and block_comment_depth <= 0 and has_semicolon):
             stmts.append(buffer)
             buffer = []
     if buffer:
