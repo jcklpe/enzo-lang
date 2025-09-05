@@ -113,6 +113,8 @@ def regenerate_combined_files():
             "IIFE",
             "recursion",
             "method-references",
+            "block-comment",
+            "misc"
 
 
 
