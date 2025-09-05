@@ -237,7 +237,7 @@ class Parser:
             elif t and t.type == "LPAR":
                 # Before treating this as a function call, check if there was a semicolon
                 # between the end of the base expression and this LPAR token
-                
+
                 # Check if there's a semicolon between base expression and current token
                 if hasattr(base, 'end_pos') and base.end_pos is not None:
                     # Look for semicolons between base.end_pos and t.start
@@ -248,7 +248,7 @@ class Parser:
                     if semicolon_between:
                         # There's a semicolon separating this, so don't treat as function call
                         break
-                
+
                 # Function invoke: parse arguments
                 self.advance()  # consume LPAR
                 args = []

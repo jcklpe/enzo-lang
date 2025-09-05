@@ -1,7 +1,7 @@
 //= BLOCK COMMENT: BASIC FUNCTIONALITY
 /' This is a block comment. It should not produce any output or affect the code. '/
-$x: 1;
-$x;  // prints 1
+$x-block: 1;
+$x-block;  // prints 1
 
 //= BLOCK COMMENT: MULTILINE USAGE
 /'
@@ -9,33 +9,33 @@ $x;  // prints 1
   that extends over
   several lines.
 '/
-$y: 2;
-$y;  // prints 2
+$y-block: 2;
+$y-block;  // prints 2
 
 //= BLOCK COMMENT: COMMENTING OUT CODE
-$z: 3;
+$z-block: 3;
 /'
   // The following line should be ignored:
   $z <: 99;
 '/
-$z; // Should still be 3
+$z-block; // Should still be 3
 
 //= BLOCK COMMENT: INLINE BETWEEN CODE
-$a: 4 /' this part is ignored '/;
-$a;  // prints 4
+$a-block: 4 /' this part is ignored '/;
+$a-block;  // prints 4
 
 //= BLOCK COMMENT: EMPTY COMMENT
-$b: 5;
+$b-block: 5;
 /' '/
-$b; // prints 5
+$b-block; // prints 5
 
 //= BLOCK COMMENT: SPECIAL CHARACTERS AND SYNTAX
 /'
   Special characters like " $ : @ < > ! ; ( ) [ ] { }
   and code like `$var: 100;` should all be safely ignored.
 '/
-$c: 6;
-$c; // prints 6
+$c-block: 6;
+$c-block; // prints 6
 
 //= BLOCK COMMENT: NO NESTING
 // Description: Tests how the parser handles what looks like a nested comment. The first closing delimiter ('/) should end the comment.

@@ -15,6 +15,12 @@ import os
 import shutil
 from IPython.core.magic import register_line_cell_magic, register_line_magic
 
+# Module-level globals for Enzo components
+_enzo_parse = None
+_enzo_eval_ast = None
+_enzo_env = None
+_enzo_init_builtins = None
+
 
 def setup_enzo(force_reload=False):
     """
@@ -72,11 +78,12 @@ def setup_enzo(force_reload=False):
         print(f"❌ Failed to import Enzo modules: {e}")
         return None, None
 
-    # Store references for magic commands
-    globals()['_enzo_parse'] = parse
-    globals()['_enzo_eval_ast'] = eval_ast
-    globals()['_enzo_env'] = _env
-    globals()['_enzo_init_builtins'] = _initialize_builtin_variants
+    # Store references for magic commands in module globals
+    global _enzo_parse, _enzo_eval_ast, _enzo_env, _enzo_init_builtins
+    _enzo_parse = parse
+    _enzo_eval_ast = eval_ast
+    _enzo_env = _env
+    _enzo_init_builtins = _initialize_builtin_variants
 
     # Register the %%enzo magic command to execute Enzo code in cells
     @register_line_cell_magic
@@ -84,7 +91,7 @@ def setup_enzo(force_reload=False):
         """Magic command to execute Enzo code in Jupyter cells."""
         src = line if cell is None else cell
         try:
-            result = _enzo_eval_ast(_enzo_parse(src))
+            result = _enzo_eval_ast(_enzo_parse(src), value_demand=True)
             if result is not None:
                 print(result)
         except Exception as e:
@@ -112,7 +119,7 @@ def setup_enzo(force_reload=False):
             _enzo_init_builtins()
 
             # Then execute the code
-            result = _enzo_eval_ast(_enzo_parse(src))
+            result = _enzo_eval_ast(_enzo_parse(src), value_demand=True)
             if result is not None:
                 print(result)
         except Exception as e:

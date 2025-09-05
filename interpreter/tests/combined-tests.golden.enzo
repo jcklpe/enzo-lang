@@ -1426,3 +1426,32 @@ error: List property not found: $nonexistent
 //= ERROR: METHOD REFERENCE TO NON-EXISTENT VARIANT METHOD ────
 error: List property not found: $nonexistent
 	$bad-ref-v: @g3.nonexistent;  // error: List property not found: $nonexistent
+
+//= BLOCK COMMENT: BASIC FUNCTIONALITY
+1
+
+//= BLOCK COMMENT: MULTILINE USAGE
+2
+
+//= BLOCK COMMENT: COMMENTING OUT CODE
+3
+
+//= BLOCK COMMENT: INLINE BETWEEN CODE
+4
+
+//= BLOCK COMMENT: EMPTY COMMENT
+5
+
+//= BLOCK COMMENT: SPECIAL CHARACTERS AND SYNTAX
+6
+
+//= BLOCK COMMENT: NO NESTING
+"and this text is not in a comment.'/"
+
+//= BLOCK COMMENT: ERROR ON UNTERMINATED COMMENT
+error: unclosed block comment
+	/' This is an open comment that never closes. // error: unclosed block comment
+
+//= consecutive Function atoms
+8
+11

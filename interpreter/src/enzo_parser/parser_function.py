@@ -96,6 +96,9 @@ def parse_function_atom(parser):
         log_debug(f"[parse_function_atom] lpar_line={lpar_line}, rpar_line={rpar_line}")
         is_multiline = lpar_line is not None and rpar_line is not None and lpar_line != rpar_line
         log_debug(f"[parse_function_atom] is_multiline={is_multiline}")
+
+        # Track the end position (after the RPAR)
+        end_pos = rpar_token.end
     else:
         log_debug(f"[parse_function_atom] ERROR: expected RPAR but found {parser.peek()}")
         from src.error_messaging import error_message_unmatched_parenthesis
@@ -106,7 +109,7 @@ def parse_function_atom(parser):
         log_debug(f"[parse_function_atom] skipping trailing semicolon after function atom at parser.pos={parser.pos}")
         parser.advance()
 
-    ast = FunctionAtom(params, local_vars, body, code_line=parser._get_code_line(lpar_token), is_multiline=is_multiline)
+    ast = FunctionAtom(params, local_vars, body, code_line=parser._get_code_line(lpar_token), is_multiline=is_multiline, end_pos=end_pos)
     log_debug(f"[parse_function_atom] AST: {ast}")
     log_debug(f"[parse_function_atom] EXIT parser.pos={parser.pos}, next token={parser.peek()}")
     return ast

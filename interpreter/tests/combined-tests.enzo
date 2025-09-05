@@ -3105,3 +3105,55 @@ do-twice(@g3.cackle);      // prints "heeheehee" twice
 
 //= ERROR: METHOD REFERENCE TO NON-EXISTENT VARIANT METHOD ────
 $bad-ref-v: @g3.nonexistent;  // error: List property not found: $nonexistent
+
+//= BLOCK COMMENT: BASIC FUNCTIONALITY
+/' This is a block comment. It should not produce any output or affect the code. '/
+$x-block: 1;
+$x-block;  // prints 1
+
+//= BLOCK COMMENT: MULTILINE USAGE
+/'
+  This is a comment
+  that extends over
+  several lines.
+'/
+$y-block: 2;
+$y-block;  // prints 2
+
+//= BLOCK COMMENT: COMMENTING OUT CODE
+$z-block: 3;
+/'
+  // The following line should be ignored:
+  $z <: 99;
+'/
+$z-block; // Should still be 3
+
+//= BLOCK COMMENT: INLINE BETWEEN CODE
+$a-block: 4 /' this part is ignored '/;
+$a-block;  // prints 4
+
+//= BLOCK COMMENT: EMPTY COMMENT
+$b-block: 5;
+/' '/
+$b-block; // prints 5
+
+//= BLOCK COMMENT: SPECIAL CHARACTERS AND SYNTAX
+/'
+  Special characters like " $ : @ < > ! ; ( ) [ ] { }
+  and code like `$var: 100;` should all be safely ignored.
+'/
+$c-block: 6;
+$c-block; // prints 6
+
+//= BLOCK COMMENT: NO NESTING
+// Description: Tests how the parser handles what looks like a nested comment. The first closing delimiter ('/) should end the comment.
+// Expected output: 7
+/' This outer comment ends here '/ "and this text is not in a comment.'/";  // prints "and this text is not in a comment.'/"
+
+
+//= BLOCK COMMENT: ERROR ON UNTERMINATED COMMENT
+/' This is an open comment that never closes. // error: unclosed block comment
+$e: 8;
+
+//= consecutive Function atoms
+(4+4); (5+6); // prints 8 then 11
