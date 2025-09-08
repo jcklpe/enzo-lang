@@ -2038,7 +2038,6 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
             # Create a loop environment that allows shadowing but preserves outer scope
             # If env is already a ChainMap, create a new layer; otherwise create a new ChainMap
-            from collections import ChainMap
             if isinstance(env, ChainMap):
                 loop_env = ChainMap({}, env)
             else:
@@ -2087,7 +2086,6 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
             # Create loop environment that preserves connection to outer scope
             # If env is already a ChainMap, create a new layer; otherwise create a new ChainMap
-            from collections import ChainMap
             if isinstance(env, ChainMap):
                 loop_env = ChainMap({}, env)
             else:
@@ -2131,7 +2129,6 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
             # Create loop environment that preserves connection to outer scope
             # If env is already a ChainMap, create a new layer; otherwise create a new ChainMap
-            from collections import ChainMap
             if isinstance(env, ChainMap):
                 loop_env = ChainMap({}, env)
             else:
@@ -2173,7 +2170,6 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
             # Create a new scope for the loop variable that preserves connection to outer scope
             # If env is already a ChainMap, create a new layer; otherwise create a new ChainMap
-            from collections import ChainMap
             if isinstance(env, ChainMap):
                 loop_env = ChainMap({}, env)
             else:

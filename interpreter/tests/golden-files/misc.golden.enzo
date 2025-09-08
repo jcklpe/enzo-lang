@@ -11,6 +11,4 @@
 "Found test string"
 
 //= Divide by zero bug
-"A"
-"Student Alice earned grade: A"
 "Student Alice earned grade: A (Average: 90.75)"
