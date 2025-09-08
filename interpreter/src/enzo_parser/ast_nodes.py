@@ -342,3 +342,11 @@ class RestartLoopStatement(ASTNode):
 
     def __repr__(self):
         return "RestartLoopStatement()"
+
+class OtherwiseStatement(ASTNode):
+    def __init__(self, body, code_line=None):
+        super().__init__(code_line)
+        self.body = body
+
+    def __repr__(self):
+        return f"OtherwiseStatement(body={self.body!r})"

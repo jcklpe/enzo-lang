@@ -91,7 +91,11 @@ def setup_enzo(force_reload=False):
         """Magic command to execute Enzo code in Jupyter cells."""
         src = line if cell is None else cell
         try:
-            result = _enzo_eval_ast(_enzo_parse(src), value_demand=True)
+            # Import fresh references
+            from src.evaluator import eval_ast
+            from src.enzo_parser.parser import parse
+
+            result = eval_ast(parse(src), value_demand=True)
             if result is not None:
                 print(result)
         except Exception as e:
@@ -102,8 +106,11 @@ def setup_enzo(force_reload=False):
     def enzo_reset(line):
         """Magic command to reset the Enzo environment, clearing all variables."""
         try:
-            _enzo_env.clear()
-            _enzo_init_builtins()
+            # Import fresh references
+            from src.evaluator import _env, _initialize_builtin_variants
+
+            _env.clear()
+            _initialize_builtin_variants()
             print("🧹 Enzo environment reset - all variables cleared")
         except Exception as e:
             print(f"❌ Error resetting environment: {e}")
@@ -114,12 +121,16 @@ def setup_enzo(force_reload=False):
         """Magic command that resets environment then executes Enzo code."""
         src = line if cell is None else cell
         try:
+            # Import fresh references to ensure we're using the current environment
+            from src.evaluator import _env, _initialize_builtin_variants, eval_ast
+            from src.enzo_parser.parser import parse
+
             # Reset environment first
-            _enzo_env.clear()
-            _enzo_init_builtins()
+            _env.clear()
+            _initialize_builtin_variants()
 
             # Then execute the code
-            result = _enzo_eval_ast(_enzo_parse(src), value_demand=True)
+            result = eval_ast(parse(src), value_demand=True)
             if result is not None:
                 print(result)
         except Exception as e:

@@ -536,6 +536,10 @@ class Parser:
         if t and t.type == "IF":
             return self.parse_if_statement()
 
+        # --- Handle control flow: Otherwise statements ---
+        if t and t.type == "OTHERWISE":
+            return self.parse_otherwise_statement()
+
         # --- Handle control flow: Loop statements ---
         if t and t.type == "LOOP":
             return self.parse_loop_statement()
@@ -1441,6 +1445,26 @@ class Parser:
         # Use helper to parse the rest
         return self._parse_if_body(condition)
 
+    def parse_otherwise_statement(self):
+        """Parse standalone Otherwise statement"""
+        from src.enzo_parser.ast_nodes import OtherwiseStatement
+
+        # Consume 'Otherwise'
+        self.advance()
+
+        # Expect comma
+        if not self.peek() or self.peek().type != "COMMA":
+            raise EnzoParseError("Expected ',' after Otherwise", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+        self.advance()
+
+        # Parse function atom body
+        if not self.peek() or self.peek().type != "LPAR":
+            raise EnzoParseError("Expected '(' after Otherwise comma", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+
+        body_atom = self.parse_function_atom()
+
+        return OtherwiseStatement(body_atom.body)
+
     def parse_loop_statement(self):
         """Parse Loop statements: Loop, (...) or Loop while condition, (...) or Loop for $var in list, (...)"""
         from src.enzo_parser.ast_nodes import LoopStatement
@@ -1561,13 +1585,38 @@ class Parser:
 
     def parse_logical_expression(self):
         """Parse logical expressions with 'and' and 'or'"""
-        from src.enzo_parser.ast_nodes import LogicalExpression
+        from src.enzo_parser.ast_nodes import LogicalExpression, ComparisonExpression
 
         left = self.parse_not_expression()
 
         while self.peek() and self.peek().type in ("AND", "OR"):
             op_token = self.advance()
-            right = self.parse_not_expression()
+
+            # Check for context-sensitive comparison operators (e.g., "and at most 65")
+            if (self.peek() and self.peek().type == "AT_WORD" and
+                hasattr(left, 'left') and hasattr(left, 'operator') and
+                left.operator in ["is at least", "is at most", "is less than", "is greater than", "is"]):
+
+                # Reuse the left operand from the previous comparison
+                subject = left.left
+
+                # Parse the comparison operator
+                at_token = self.advance()  # consume 'at'
+                if self.peek() and self.peek().type == "MOST":
+                    self.advance()  # consume 'most'
+                    operator = "is at most"
+                elif self.peek() and self.peek().type == "LEAST":
+                    self.advance()  # consume 'least'
+                    operator = "is at least"
+                else:
+                    raise EnzoParseError("Expected 'most' or 'least' after 'at'", code_line=self._get_code_line(self.peek()) if self.peek() else None)
+
+                # Parse the value to compare against
+                value = self.parse_term()
+                right = ComparisonExpression(subject, operator, value)
+            else:
+                right = self.parse_not_expression()
+
             left = LogicalExpression(left, op_token.value, right)
 
         return left

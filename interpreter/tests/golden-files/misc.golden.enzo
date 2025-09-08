@@ -1,3 +1,16 @@
 //= consecutive Function atoms
 8
 11
+
+//= Conditionals
+"Excellent!"
+"No umbrella needed"
+"Honor roll"
+"Working age"
+"Exact banana match"
+"Found test string"
+
+//= Divide by zero bug
+"A"
+"Student Alice earned grade: A"
+"Student Alice earned grade: A (Average: 90.75)"

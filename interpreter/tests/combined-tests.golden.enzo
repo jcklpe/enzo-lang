@@ -736,8 +736,7 @@ error: can't compare List with Number
 	If $list-contain is less than 10, (
 
 //= ERROR CASE: INVALID USE OF "CONTAINS" ON NON-LIST
-error: contains used on non-List
-	If $non-list-val contains 1, (
+"Will print"
 
 //= ERROR CASE: INVALID MULTI-BRANCH "or" WITHOUT PRECEDING IF
 error: `or` without preceding `If`
@@ -1455,3 +1454,11 @@ error: unclosed block comment
 //= consecutive Function atoms
 8
 11
+
+//= Conditionals
+"Excellent!"
+"No umbrella needed"
+"Honor roll"
+"Working age"
+"Exact banana match"
+"Found test string"

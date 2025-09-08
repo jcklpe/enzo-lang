@@ -1,7 +1,8 @@
 - implement classic algos
+- named rebinding for function arguments
 - Loop from 1 to 10, ($i; ...);
 - ability to loop over just keys or just unnamed indexes
-- maybe pipeline operator or try/catch stuff
+- `maybe` pipeline operator or try/catch stuff
 - block quotes
 - multiline text
 - text escape characters
