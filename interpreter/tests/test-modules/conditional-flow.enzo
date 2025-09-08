@@ -419,8 +419,10 @@ If $list-contain is less than 10, ( // error: can't compare List with Number com
 //= ERROR CASE: INVALID USE OF "CONTAINS" ON NON-LIST
 $non-list-val: 10;
 
-If $non-list-val contains 1, ( // error: contains used on non-List
+If $non-list-val contains 1, (
   "Won't print";
+), Else, (
+  "Will print";
 );
 
 //= ERROR CASE: INVALID MULTI-BRANCH "or" WITHOUT PRECEDING IF

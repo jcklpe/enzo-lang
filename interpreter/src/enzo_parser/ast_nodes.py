@@ -12,7 +12,7 @@ class Program(ASTNode):
         return f"Program(statements={self.statements!r})"
 
 class FunctionAtom(ASTNode):
-    def __init__(self, params, local_vars, body, context=None, code_line=None, is_multiline=False, is_named=False):
+    def __init__(self, params, local_vars, body, context=None, code_line=None, is_multiline=False, is_named=False, end_pos=None):
         super().__init__(code_line)
         self.params = params
         self.local_vars = local_vars
@@ -20,6 +20,7 @@ class FunctionAtom(ASTNode):
         self.context = context  # e.g., 'statement', 'binding', 'expression'
         self.is_multiline = is_multiline  # True if function atom spans multiple lines
         self.is_named = is_named  # True if this function is bound to a variable name
+        self.end_pos = end_pos  # Position where this function atom ends (after RPAR)
     def __repr__(self):
         return f"FunctionAtom(params={self.params!r}, local_vars={self.local_vars!r}, body={self.body!r}, context={self.context!r}, is_multiline={self.is_multiline!r}, is_named={self.is_named!r})"
 
@@ -341,3 +342,11 @@ class RestartLoopStatement(ASTNode):
 
     def __repr__(self):
         return "RestartLoopStatement()"
+
+class OtherwiseStatement(ASTNode):
+    def __init__(self, body, code_line=None):
+        super().__init__(code_line)
+        self.body = body
+
+    def __repr__(self):
+        return f"OtherwiseStatement(body={self.body!r})"

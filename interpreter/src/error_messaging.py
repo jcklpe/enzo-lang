@@ -113,9 +113,15 @@ def format_parse_error(err, src=None):
     # For multi-line src without error code_line, fall back to src but strip comments
     elif src:
         # Strip comments from source code for error context
+        # EXCEPT for unclosed block comment errors where we want to preserve the comment
         code_line = src.strip()
-        if '//' in code_line:
+        if '//' in code_line and str(err) != "error: unclosed block comment":
             code_line = code_line.split('//', 1)[0].rstrip()
+
+        # For unclosed block comment errors, only show the first line (the one with the unclosed comment)
+        if str(err) == "error: unclosed block comment" and '\n' in code_line:
+            code_line = code_line.split('\n')[0]
+
         return error_message_with_code_line(str(err), code_line)
     # Special cases for commas in Lists and parse errors
     if hasattr(err, 'token') and hasattr(err, 'expected'):
@@ -203,3 +209,6 @@ def error_message_bang_must_be_followed_by_function_atom():
 
 def error_message_maximum_recursion_depth_exceeded():
     return "error: Maximum recursion depth exceeded"
+
+def error_message_unclosed_block_comment():
+    return "error: unclosed block comment"

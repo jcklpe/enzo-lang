@@ -1667,8 +1667,10 @@ If $list-contain is less than 10, ( // error: can't compare List with Number com
 //= ERROR CASE: INVALID USE OF "CONTAINS" ON NON-LIST
 $non-list-val: 10;
 
-If $non-list-val contains 1, ( // error: contains used on non-List
+If $non-list-val contains 1, (
   "Won't print";
+), Else, (
+  "Will print";
 );
 
 //= ERROR CASE: INVALID MULTI-BRANCH "or" WITHOUT PRECEDING IF
@@ -3105,3 +3107,121 @@ do-twice(@g3.cackle);      // prints "heeheehee" twice
 
 //= ERROR: METHOD REFERENCE TO NON-EXISTENT VARIANT METHOD ────
 $bad-ref-v: @g3.nonexistent;  // error: List property not found: $nonexistent
+
+//= BLOCK COMMENT: BASIC FUNCTIONALITY
+/' This is a block comment. It should not produce any output or affect the code. '/
+$x-block: 1;
+$x-block;  // prints 1
+
+//= BLOCK COMMENT: MULTILINE USAGE
+/'
+  This is a comment
+  that extends over
+  several lines.
+'/
+$y-block: 2;
+$y-block;  // prints 2
+
+//= BLOCK COMMENT: COMMENTING OUT CODE
+$z-block: 3;
+/'
+  // The following line should be ignored:
+  $z <: 99;
+'/
+$z-block; // Should still be 3
+
+//= BLOCK COMMENT: INLINE BETWEEN CODE
+$a-block: 4 /' this part is ignored '/;
+$a-block;  // prints 4
+
+//= BLOCK COMMENT: EMPTY COMMENT
+$b-block: 5;
+/' '/
+$b-block; // prints 5
+
+//= BLOCK COMMENT: SPECIAL CHARACTERS AND SYNTAX
+/'
+  Special characters like " $ : @ < > ! ; ( ) [ ] { }
+  and code like `$var: 100;` should all be safely ignored.
+'/
+$c-block: 6;
+$c-block; // prints 6
+
+//= BLOCK COMMENT: NO NESTING
+// Description: Tests how the parser handles what looks like a nested comment. The first closing delimiter ('/) should end the comment.
+// Expected output: 7
+/' This outer comment ends here '/ "and this text is not in a comment.'/";  // prints "and this text is not in a comment.'/"
+
+
+//= BLOCK COMMENT: ERROR ON UNTERMINATED COMMENT
+/' This is an open comment that never closes. // error: unclosed block comment
+$e: 8;
+
+//= consecutive Function atoms
+(4+4); (5+6); // prints 8 then 11
+
+//= Conditionals
+$score: 95;
+$weather: "sunny";
+$age: 25;
+$items-misc: ["apple", "banana", "cherry"];
+
+// Basic conditions
+If $score is greater than 90, (
+    "Excellent!";
+);
+
+// If-else
+If $weather is "rainy", (
+    "Bring umbrella";
+), Else, (
+    "No umbrella needed";
+);
+
+// Comparison operators lightning round
+If $age is less than 18, (
+    "Minor";
+);
+
+If $score is at least 85, (
+    "Honor roll";
+);
+
+If $age is at least 18 and at most 65, (
+    "Working age";
+);
+
+// Multi-branch checks (switch-like) with pattern matching
+$user_input: "banana";
+
+If $user_input either is Number, (
+    "Got a number: <$user_input>";
+),
+or contains "apple", (
+    "Something with apple";
+),
+or is "banana", (
+    "Exact banana match";
+),
+or is greater than 100, (
+    "Big number";
+),
+Otherwise, (
+    "Something else entirely";
+);
+
+// Pattern matching with lists
+$data-misc: [1, "test", 3];
+
+If $data-misc either contains "test", (
+    "Found test string";
+),
+or is [1, 2, 3], (
+    "Exact number sequence";
+),
+or contains Number, (
+    "Contains numbers";
+),
+Otherwise, (
+    "No pattern matched";
+);

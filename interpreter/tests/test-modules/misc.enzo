@@ -1,0 +1,112 @@
+//= consecutive Function atoms
+(4+4); (5+6); // prints 8 then 11
+
+//= Conditionals
+$score: 95;
+$weather: "sunny";
+$age: 25;
+$items-misc: ["apple", "banana", "cherry"];
+
+// Basic conditions
+If $score is greater than 90, (
+    "Excellent!";
+);
+
+// If-else
+If $weather is "rainy", (
+    "Bring umbrella";
+), Else, (
+    "No umbrella needed";
+);
+
+// Comparison operators lightning round
+If $age is less than 18, (
+    "Minor";
+);
+
+If $score is at least 85, (
+    "Honor roll";
+);
+
+If $age is at least 18 and at most 65, (
+    "Working age";
+);
+
+// Multi-branch checks (switch-like) with pattern matching
+$user_input: "banana";
+
+If $user_input either is Number, (
+    "Got a number: <$user_input>";
+),
+or contains "apple", (
+    "Something with apple";
+),
+or is "banana", (
+    "Exact banana match";
+),
+or is greater than 100, (
+    "Big number";
+),
+Otherwise, (
+    "Something else entirely";
+);
+
+// Pattern matching with lists
+$data-misc: [1, "test", 3];
+
+If $data-misc either contains "test", (
+    "Found test string";
+),
+or is [1, 2, 3], (
+    "Exact number sequence";
+),
+or contains Number, (
+    "Contains numbers";
+),
+Otherwise, (
+    "No pattern matched";
+);
+
+//= Divide by zero bug
+// Student grading system
+Student: <[
+    name: "Unknown",
+    scores: [],
+    calculate_average: (
+        $total: 0;
+        $count: 0;
+        Loop for $score in $self.scores, (
+            $total + $score :> $total;
+            $count + 1 :> $count;
+        );
+        return($total / $count);
+    ),
+    get_grade: (
+        $avg: $self.calculate_average();
+        If $avg is greater than 90, (
+            return("A");
+        ), Else if $avg is greater than 80, (
+            return("B");
+        ), Else if $avg is greater than 70, (
+            return("C");
+        ), Else, (
+            return("F");
+        );
+    )
+]>;
+
+// Create students
+$alice: Student[
+    $name: "Alice",
+    $scores: [95, 87, 92, 89]
+];
+
+$bob: Student[
+    $name: "Bob",
+    $scores: [76, 82, 79, 85]
+];
+
+// Process results with pipelines
+$alice.get_grade()
+    then ("Student <$alice.name> earned grade: <$this>")
+    then ("<$this> (Average: <$alice.calculate_average()>)");

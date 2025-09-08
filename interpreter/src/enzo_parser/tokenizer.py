@@ -97,6 +97,29 @@ class Tokenizer:
         pos = 0
         tokens = []
         while pos < len(code):
+            # Check for block comment start
+            if pos < len(code) - 1 and code[pos:pos+2] == "/'":
+                # Find the end of the block comment
+                comment_start = pos
+                pos += 2  # Move past the opening /'
+
+                # Look for the closing '/
+                found_end = False
+                while pos < len(code) - 1:  # -1 because we need to check pos+1
+                    if code[pos:pos+2] == "'/":
+                        pos += 2  # Move past the closing '/
+                        found_end = True
+                        break
+                    pos += 1
+
+                if not found_end:
+                    # We reached the end without finding a closing '/
+                    from src.error_messaging import error_message_unclosed_block_comment
+                    raise EnzoParseError(error_message_unclosed_block_comment())
+
+                # Block comment found and handled, continue to next token
+                continue
+
             m = TOKEN_REGEX.match(code, pos)
             if not m:
                 # Special handling: if we see a dot followed by a number (e.g. .2), treat as DOT then NUMBER_TOKEN

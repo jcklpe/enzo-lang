@@ -1,7 +1,7 @@
 from src.enzo_parser.parser import parse
 from src.runtime_helpers import Table, format_val, log_debug, EnzoList, deep_copy_enzo_value
 from collections import ChainMap
-from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, ModNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantGroupExtension, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding, IfStatement, ComparisonExpression, LogicalExpression, NotExpression, LoopStatement, EndLoopStatement, RestartLoopStatement, ListKeyValue, ListInterpolation, ImmediateInvocationAtom
+from src.enzo_parser.ast_nodes import NumberAtom, TextAtom, ListAtom, Binding, BindOrRebind, Invoke, FunctionAtom, Program, VarInvoke, AddNode, SubNode, MulNode, DivNode, ModNode, FunctionRef, ListIndex, ReturnNode, PipelineNode, ParameterDeclaration, ReferenceAtom, BlueprintAtom, BlueprintInstantiation, BlueprintComposition, VariantGroup, VariantGroupExtension, VariantAccess, VariantInstantiation, DestructuringBinding, ReverseDestructuring, ReferenceDestructuring, RestructuringBinding, IfStatement, ComparisonExpression, LogicalExpression, NotExpression, LoopStatement, EndLoopStatement, RestartLoopStatement, OtherwiseStatement, ListKeyValue, ListInterpolation, ImmediateInvocationAtom
 from src.error_handling import InterpolationParseError, ReturnSignal, EnzoRuntimeError, EnzoTypeError, EnzoParseError, EnzoRecursionError
 
 # Loop control signals
@@ -2037,8 +2037,12 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             iteration_count = 0
 
             # Create a loop environment that allows shadowing but preserves outer scope
-            # Start with a copy of the outer environment
-            loop_env = env.copy()
+            # If env is already a ChainMap, create a new layer; otherwise create a new ChainMap
+            from collections import ChainMap
+            if isinstance(env, ChainMap):
+                loop_env = ChainMap({}, env)
+            else:
+                loop_env = ChainMap({}, env)
             # Track which variables were created in loop scope for shadowing behavior
             loop_locals = set()
 
@@ -2081,8 +2085,13 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             max_iterations = 10000  # Safety limit
             iteration_count = 0
 
-            # Create loop environment once and reuse across iterations
-            loop_env = env.copy()
+            # Create loop environment that preserves connection to outer scope
+            # If env is already a ChainMap, create a new layer; otherwise create a new ChainMap
+            from collections import ChainMap
+            if isinstance(env, ChainMap):
+                loop_env = ChainMap({}, env)
+            else:
+                loop_env = ChainMap({}, env)
             loop_locals = set()  # Track variables created in loop scope
 
             while iteration_count < max_iterations:
@@ -2120,8 +2129,13 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             max_iterations = 10000  # Safety limit
             iteration_count = 0
 
-            # Create loop environment once and reuse across iterations
-            loop_env = env.copy()
+            # Create loop environment that preserves connection to outer scope
+            # If env is already a ChainMap, create a new layer; otherwise create a new ChainMap
+            from collections import ChainMap
+            if isinstance(env, ChainMap):
+                loop_env = ChainMap({}, env)
+            else:
+                loop_env = ChainMap({}, env)
             loop_locals = set()  # Track variables created in loop scope
 
             while iteration_count < max_iterations:
@@ -2157,8 +2171,13 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             # For loop - iterate over a list
             results = []
 
-            # Create a new scope for the loop variable
-            loop_env = env.copy()
+            # Create a new scope for the loop variable that preserves connection to outer scope
+            # If env is already a ChainMap, create a new layer; otherwise create a new ChainMap
+            from collections import ChainMap
+            if isinstance(env, ChainMap):
+                loop_env = ChainMap({}, env)
+            else:
+                loop_env = ChainMap({}, env)
 
             i = 0
             while True:
@@ -2282,6 +2301,15 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             raise EnzoRuntimeError("error: `restart-loop;` inside a non-loop function atom", code_line=node.code_line)
         # Otherwise raise signal to restart nearest loop
         raise RestartLoopSignal()
+
+    if isinstance(node, OtherwiseStatement):
+        # Otherwise statements provide a default case that should only execute
+        # if no previous conditions were met. For now, we'll always execute them.
+        # In the future, this might need more sophisticated context tracking.
+        result = None
+        for stmt in node.body:
+            result = eval_ast(stmt, env=env, is_loop_context=is_loop_context, outer_env=outer_env)
+        return result
 
     if isinstance(node, ComparisonExpression):
         # Special handling for type comparisons with 'is' and 'is not'
@@ -2500,8 +2528,8 @@ def _compare_values(left, operator, right):
         return left >= right
     elif operator == "contains":
         if not isinstance(left, (list, EnzoList)):
-            from src.error_messaging import error_message_contains_non_list
-            raise EnzoRuntimeError(error_message_contains_non_list())
+            # Return falsy condition for contains on non-List instead of erroring
+            return _env.get("False")
         return _contains_value(left, right)
     else:
         raise EnzoRuntimeError(f"Unknown comparison operator: {operator}")
