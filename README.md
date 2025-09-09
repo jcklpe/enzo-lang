@@ -6,11 +6,15 @@
 
 Code is the ultimate user interface. It is the final user interface on which all other user interfaces are built. So I think it’s interesting to explore this space as a UX designer.
 
-Originally this started as a fantasy sketch of what I thought a nice language syntax would look like. As I was learning programming stuff, I'd get frustrated or find a particular way of doing things ugly or confusing, so I'd creatively vent by writing this document and it helped me understand the programming concepts for the real language I was learning. I had no intention of implementing it, but now I am!
+Back around 2018-2020 I was taking online courses on programming. I'd get frustrated, confused, or find a particular way of doing things ugly. I needed a creative outlet, so I would vent that frustration by writing this syntax sketch of my own fantasy language. Writing it helped me better focus on and understand the things I was learning in my course. I had no intention of implementing this language syntax. But now I have implemented it! (a toy interpreter in the Python runtime using a custom AST, parser, evaluator, REPL CLI, and file runner with a vscode syntax highlighting plugin.)
 
-I'm def interested in feedback but also understand that this is basically just a kid drawing pictures of racecars and wishing he was Batman. I'm doing this for my own enjoyment and to help me better understand programming, and I make no pretense that this language is going to ever be used in the real world, or is superior to existing languages in any fashion, aesthetic or otherwise. This is more of an art project.
+I'd love feedback but keep in mind this is basically a kid drawing racecars and wishing to be Batman. I don't pretend that this language is anything more than a sort of weird art project. I'm doing this for my own enjoyment and to help me better understand programming. This language will never be used in the real world, and I don't think I'll be making much it myself anytime soon. I don't make any claim that it better designed, or superior to any existing language, aesthetic or otherwise.
 
-Also want to give a shout out to the ["Quorum Language Project"](https://quorumlanguage.com/) for opening my eyes to the intersection between UX practice and syntax design.
+Instead it is just an expression of perspective. I like this syntax. It makes sense to me. Designing it, and then engaging with it's implementation taught me a lot about programming, ironic in a project where the vast majority of code was implemented via LLM assistance.
+
+Also want to give a shout out to the ["Quorum Language Project"](https://quorumlanguage.com/) for opening my eyes to the intersection between UX practice and syntax design. One reason why I make the art project distinction is that Quorum seeks to apply the empirical method to finding out how different syntax features measurably effect performance on programming benchmarks. Enzo does not. Much like a painting sometimes I feel like something should be one way or the other one day to the next. I would be curious to see how empirical results might actually turn out
+
+The way I got the idea to try and actually implement Enzo was when I was taking a Javascript course and was trying to wrap my head around destructuring. I had trouble reading the syntax, and so I asked an LLM to give me an example of what destructuring would look like with a syntax in the style of Enzo, and fed it the markdown language spec doc I'd been working on.
 
 ## Comments
 ```javascript!
@@ -44,8 +48,7 @@ A Number atom is any [real number](https://en.wikipedia.org/wiki/Real_number).
 -300;
 ```
 
-Example of a Number atom bound a keyname:
-
+Example of a Number atom bound a keyname, and then invoked:
 ```javascript!
 $number-example: 888;
 ```

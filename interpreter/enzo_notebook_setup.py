@@ -141,15 +141,6 @@ def setup_enzo(force_reload=False):
     print("   %enzo_reset   - Clear all Enzo variables")
     print("   %%enzo_fresh  - Reset environment then execute Enzo code")
     print("✅ Enzo setup complete!")
-    print()
-    print("Usage examples:")
-    print("%%enzo")
-    print('$greeting: "Hello, Enzo!";')
-    print("$greeting;")
-    print()
-    print("%%enzo_fresh  # Starts with clean environment")
-    print('$greeting: "Hello again!";')
-    print("$greeting;")
 
     return parse, eval_ast
 

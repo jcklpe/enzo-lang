@@ -1,5 +1,6 @@
 - implement classic algos
 - named rebinding for function arguments
+- forbid concatenation of text, create error test cases
 - Loop from 1 to 10, ($i; ...);
 - ability to loop over just keys or just unnamed indexes
 - `maybe` pipeline operator or try/catch stuff
