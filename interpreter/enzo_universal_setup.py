@@ -3,8 +3,12 @@ Enzo Language Universal Setup
 Simple one-line setup for both local and Google Colab environments
 """
 
-def setup_enzo():
-    """Universal Enzo setup that works in both local and Colab environments"""
+def setup_enzo(return_functions=True):
+    """Universal Enzo setup that works in both local and Colab environments
+
+    Args:
+        return_functions (bool): If True, returns (parse, eval_ast). If False, returns None.
+    """
 
     # Check if we're in Google Colab
     try:
@@ -65,20 +69,34 @@ def setup_enzo():
         _initialize_builtin_variants()
 
         print("✅ Enzo ready! Use %%enzo or %%enzo_fresh magic commands.")
-        return parse, eval_ast
+
+        if return_functions:
+            return parse, eval_ast
+        else:
+            return None
 
     else:
         # Local environment setup
         try:
             # Try the original setup first
             from enzo_notebook_setup import setup_enzo_with_autoreload
-            return setup_enzo_with_autoreload()
+            result = setup_enzo_with_autoreload()
+            if return_functions:
+                return result
+            else:
+                return None
         except Exception:
             # Fallback to simple setup
             from simple_enzo_setup import simple_enzo_setup
-            return simple_enzo_setup()
-
-# Convenience function for one-line import
+            result = simple_enzo_setup()
+            if return_functions:
+                return result
+            else:
+                return None# Convenience function for one-line import
 def quick_setup():
-    """One-line setup function"""
-    return setup_enzo()
+    """One-line setup function that doesn't return values (for clean notebook display)"""
+    setup_enzo(return_functions=False)
+
+# Make the module callable directly without return values
+if __name__ == "__main__":
+    quick_setup()
