@@ -96,6 +96,7 @@ def setup_enzo(return_functions=True):
 def quick_setup():
     """One-line setup function that doesn't return values (for clean notebook display)"""
     setup_enzo(return_functions=False)
+    return None  # Explicitly return None
 
 # Make the module callable directly without return values
 if __name__ == "__main__":
