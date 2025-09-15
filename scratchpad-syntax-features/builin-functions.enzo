@@ -62,3 +62,33 @@ $random (defaults 0-1 range, but can take params to set range  )
 
 input();
 // used for capturing text input?
+
+// list stuff
+$list: [1, 2, 3, 4];
+append($list, $item); // don't really need because of interpolation so maybe don't support this
+insert($list, $index-or-key, $item);
+remove($list, $index-or-key, $item);
+empty-out($list); // clears the contents of the List
+reverse($list) // reverses the content order of the list
+get-length($list) // gets the length of the List
+get-range($list); // gets the range of a List(?)
+/` not yet vetted fully
+get-length($list) - return length
+is-empty($list) - check if empty
+copy($list) - create new copy
+slice($list, $start, $end) - extract portion
+find($list, $item) - get index of item
+contains($list, $item) - check if item exists
+sort($list) - return new sorted list
+filter($list, $predicate) - return filtered list
+map($list, $function) - return transformed list
+
+
+`/
+
+// trying to keep most things global but perhaps casting makes sense.
+$text.to-Number();        // convert this List to Number representation if possible and error if not
+$text.to-List();        // parse this text into a List (is it a char list or does the text convert to List with a single Text item?)
+$number.to-Text();      // convert this Number to Text
+$list.to-Custom($custom-type); // converts the list into a custom type as defined by a blueprint or blueprint variant group item.
+// this would be more concise than  `transform-to-text($list)` and I think it's fitting for the only builtins to be ones that share between types.

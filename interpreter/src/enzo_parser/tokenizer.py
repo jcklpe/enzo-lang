@@ -65,7 +65,7 @@ TOKEN_SPEC = [
     ("IN", r"\bin\b"),
     ("END", r"\bend\b"),
     ("NOT", r"\bnot\b"),
-    ("IS", r"\bis\b"),
+    ("IS", r"\bis(?!\w|-)\b"),
     ("LESS", r"\bless\b"),
     ("THAN", r"\bthan\b"),
     ("GREATER", r"\bgreater\b"),

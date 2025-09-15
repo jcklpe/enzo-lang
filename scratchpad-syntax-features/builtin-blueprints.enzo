@@ -1,0 +1,9 @@
+// already have
+Status variants: False, True;
+//and
+False variants: False;
+// and
+True variants: True;
+
+// could also have
+Order variants: Ascending, Descending, Alphabetical

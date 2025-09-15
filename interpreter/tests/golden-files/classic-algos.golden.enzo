@@ -1,0 +1,15 @@
+//= BUBBLE SORT
+//= Test with unsorted numbers (ascending)
+[11, 12, 22, 25, 34, 64, 90]
+//= Test with unsorted numbers (descending)
+[90, 64, 34, 25, 22, 12, 11]
+//= Test empty list
+[]
+//= Test single element
+[42]
+//= Test already sorted list
+[1, 2, 3, 4, 5]
+//= Test reverse sorted list
+[1, 2, 3, 4, 5]
+//= Test with duplicate values
+[1, 1, 2, 3, 4, 5, 5, 6, 9]
