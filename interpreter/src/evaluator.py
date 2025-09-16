@@ -1938,9 +1938,16 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         any_executed = True
 
                         # Determine if this is a single-line function atom
-                        is_single_line = (len(then_block) == 1 and
-                                        hasattr(node, 'code_line') and hasattr(then_block[0], 'code_line') and
-                                        node.code_line == then_block[0].code_line)
+                        # Single-line if all statements in the block are on the same line
+                        is_single_line = False
+                        if then_block:
+                            # Check if all statements have the same code_line (indicating same physical line)
+                            first_code_line = getattr(then_block[0], 'code_line', None)
+                            if first_code_line is not None:
+                                is_single_line = all(
+                                    getattr(stmt, 'code_line', None) == first_code_line
+                                    for stmt in then_block
+                                )
 
                         # Create a function atom for this branch and execute it
                         branch_function = EnzoFunction([], [], then_block, env, is_multiline=not is_single_line)
@@ -1951,9 +1958,16 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 # If no branches executed and there's an else block, execute it
                 if not any_executed and node.else_block:
                     # Determine if this is a single-line function atom
-                    is_single_line = (len(node.else_block) == 1 and
-                                    hasattr(node, 'code_line') and hasattr(node.else_block[0], 'code_line') and
-                                    node.code_line == node.else_block[0].code_line)
+                    # Single-line if all statements in the block are on the same line
+                    is_single_line = False
+                    if node.else_block:
+                        # Check if all statements have the same code_line (indicating same physical line)
+                        first_code_line = getattr(node.else_block[0], 'code_line', None)
+                        if first_code_line is not None:
+                            is_single_line = all(
+                                getattr(stmt, 'code_line', None) == first_code_line
+                                for stmt in node.else_block
+                            )
 
                     # Create a function atom for the else block and execute it
                     else_function = EnzoFunction([], [], node.else_block, env, is_multiline=not is_single_line)
@@ -1991,10 +2005,16 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             if _is_truthy(condition_result):
                 # Create a function atom for the then block and execute it
                 # Determine if this is a single-line function atom
-                # Single-line if it contains only one statement that's on the same line as the If
-                is_single_line = (len(node.then_block) == 1 and
-                                hasattr(node, 'code_line') and hasattr(node.then_block[0], 'code_line') and
-                                node.code_line == node.then_block[0].code_line)
+                # Single-line if all statements in the block are on the same line
+                is_single_line = False
+                if node.then_block:
+                    # Check if all statements have the same code_line (indicating same physical line)
+                    first_code_line = getattr(node.then_block[0], 'code_line', None)
+                    if first_code_line is not None:
+                        is_single_line = all(
+                            getattr(stmt, 'code_line', None) == first_code_line
+                            for stmt in node.then_block
+                        )
 
                 # Create a function atom that represents this then block
                 then_function = EnzoFunction([], [], node.then_block, env, is_multiline=not is_single_line)
@@ -2012,10 +2032,16 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             elif node.else_block:
                 # Create a function atom for the else block and execute it
                 # Determine if this is a single-line function atom
-                # Single-line if it contains only one statement that's on the same line as the If
-                is_single_line = (len(node.else_block) == 1 and
-                                hasattr(node, 'code_line') and hasattr(node.else_block[0], 'code_line') and
-                                node.code_line == node.else_block[0].code_line)
+                # Single-line if all statements in the block are on the same line
+                is_single_line = False
+                if node.else_block:
+                    # Check if all statements have the same code_line (indicating same physical line)
+                    first_code_line = getattr(node.else_block[0], 'code_line', None)
+                    if first_code_line is not None:
+                        is_single_line = all(
+                            getattr(stmt, 'code_line', None) == first_code_line
+                            for stmt in node.else_block
+                        )
 
                 # Create a function atom that represents this else block
                 else_function = EnzoFunction([], [], node.else_block, env, is_multiline=not is_single_line)
