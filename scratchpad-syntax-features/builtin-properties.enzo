@@ -1,0 +1,9 @@
+$list: [1, 2, 3, 4];
+
+$list.length;  // list property
+// versus
+$list.get-length; // built in function. Though I'd prefer a global built-in function like `get-length($list)`
+
+$list.is-empty;
+$list.first; // first element in the list
+$list.last; // last element in the list

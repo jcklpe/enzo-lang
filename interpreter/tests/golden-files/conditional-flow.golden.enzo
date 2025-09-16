@@ -6,6 +6,7 @@
 
 //= ELSE TEST
 "Fallback triggered"
+"Every invoked atom should trigger in the Function atom"
 
 //= NOT CONDITION FALSE
 "this should print"

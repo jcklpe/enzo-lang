@@ -1,0 +1,25 @@
+//= ACME - Debugging bubble sort assignment issue
+[1, 2, 3]
+[999, 888, 777]
+
+//= Test basic list modification
+[64, 34]
+[34, 64]
+
+//= Test list interpolation in function
+[1, 2, 3]
+[1, 2, 3, 999]
+
+//= Test bubble sort operations
+[10, 20, 30]
+20
+30
+
+//= Simple bubble sort - one pass only
+[64, 34, 25]
+[34, 25, 64]
+
+//= Complete bubble sort - multiple passes
+[64, 34, 25, 12, 22, 11, 90]
+[11, 12, 22, 25, 34, 64, 90]
+[90, 64, 34, 25, 22, 12, 11]

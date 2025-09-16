@@ -1,0 +1,192 @@
+//= ACME - Debugging bubble sort assignment issue
+
+// Simple test function that returns a different list
+test-return: (
+    param $input: [];
+    $result: [999, 888, 777];
+    return($result);
+);
+
+// Test if function return and assignment works
+$original: [1, 2, 3];
+$original;
+
+$test-return($original) :> $original;
+$original;
+
+//= Test basic list modification
+
+// Function that should modify and return a list
+modify-list: (
+    param $list: [];
+
+    // Try simple modification - just return first two elements swapped
+    $first: $list.1;
+    $second: $list.2;
+    $swapped: [$second, $first];
+    return($swapped);
+);
+
+$test-pair: [64, 34];
+$test-pair;
+
+$modify-list($test-pair) :> $test-pair;
+$test-pair;
+
+//= Test list interpolation in function
+
+interpolate-test: (
+    param $input: [];
+    $new-list: [<$input>, 999];
+    return($new-list);
+);
+
+$base-list: [1, 2, 3];
+$base-list;
+
+$interpolate-test($base-list) :> $base-list;
+$base-list;
+
+//= Test bubble sort operations
+
+// Helper to get list length
+get-length: (
+    param $list: [];
+    $count: 0;
+    Loop for $item in $list, (
+        $count + 1 :> $count;
+    );
+    return($count);
+);
+
+// Test dynamic indexing
+$test-indexing: [10, 20, 30];
+$test-indexing;
+
+$index: 2;
+$test-indexing.$index;
+
+$next-index: $index + 1;
+$test-indexing.$next-index;
+
+//= Simple bubble sort - one pass only
+
+bubble-sort-one-pass: (
+    param $list: [];
+
+    $length: $get-length($list);
+    $position: 1;
+    $result-list: $list;
+
+    Loop while $position is less than $length, (
+        $current: $result-list.$position;
+        $next-pos: $position + 1;
+        $next: $result-list.$next-pos;
+
+        If $current is greater than $next, (
+            // Rebuild list with swap
+            $new-list: [];
+            $rebuild-pos: 1;
+
+            Loop while $rebuild-pos is at most $length, (
+                If $rebuild-pos is $position, (
+                    $new-list <: [<$new-list>, $next];
+                ), Else if $rebuild-pos is $next-pos, (
+                    $new-list <: [<$new-list>, $current];
+                ), Else, (
+                    $elem: $result-list.$rebuild-pos;
+                    $new-list <: [<$new-list>, $elem];
+                );
+                $rebuild-pos + 1 :> $rebuild-pos;
+            );
+
+            $new-list :> $result-list;
+        );
+
+        $position + 1 :> $position;
+    );
+
+    return($result-list);
+);
+
+$unsorted: [64, 34, 25];
+$unsorted;
+
+$bubble-sort-one-pass($unsorted) :> $unsorted;
+$unsorted;
+
+//= Complete bubble sort - multiple passes
+
+bubble-sort-complete: (
+    param $list: [];
+    param $order: "ascending";
+
+    $length: $get-length($list);
+    If $length is less than 2, (
+        return($list);
+    );
+
+    $result-list: $list;
+    $pass: 1;
+    $max-passes: $length - 1;
+
+    // Do fixed number of passes (n-1), like the working loop examples
+    Loop while $pass is at most $max-passes, (
+        $position: 1;
+        $max-position: $length - $pass + 1;
+
+        // One pass through adjacent elements
+        Loop while $position is less than $max-position, (
+            $current: $result-list.$position;
+            $next-pos: $position + 1;
+            $next: $result-list.$next-pos;
+
+            $should-swap: False;
+            If $order is "ascending", (
+                If $current is greater than $next, (
+                    $should-swap <: True;
+                );
+            ), Else if $order is "descending", (
+                If $current is less than $next, (
+                    $should-swap <: True;
+                );
+            );
+
+            If $should-swap, (
+                // Use the same swapping logic that worked in single-pass
+                $new-list: [];
+                $rebuild-pos: 1;
+
+                Loop while $rebuild-pos is at most $length, (
+                    If $rebuild-pos is $position, (
+                        $new-list <: [<$new-list>, $next];
+                    ), Else if $rebuild-pos is $next-pos, (
+                        $new-list <: [<$new-list>, $current];
+                    ), Else, (
+                        $elem: $result-list.$rebuild-pos;
+                        $new-list <: [<$new-list>, $elem];
+                    );
+                    $rebuild-pos + 1 :> $rebuild-pos;
+                );
+
+                $new-list :> $result-list;
+            );
+
+            $position + 1 :> $position;
+        );
+
+        $pass + 1 :> $pass;
+    );
+
+    return($result-list);
+);
+
+$test-complete: [64, 34, 25, 12, 22, 11, 90];
+$test-complete;
+
+$bubble-sort-complete($test-complete, "ascending") :> $test-complete;
+$test-complete;
+
+$test-descending: [64, 34, 25, 12, 22, 11, 90];
+$bubble-sort-complete($test-descending, "descending") :> $test-descending;
+$test-descending;

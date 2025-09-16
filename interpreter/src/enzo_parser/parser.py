@@ -523,14 +523,20 @@ class Parser:
             if not self.peek() or self.peek().type != "LPAR":
                 raise EnzoParseError("Expected '(' after 'return'", code_line=code_line)
             self.advance()  # consume '('
-            # Parse the expression inside the parentheses
-            expr = self.parse_value_expression()
-            # Expect closing parenthesis
-            if not self.peek() or self.peek().type != "RPAR":
-                raise EnzoParseError("Expected ')' after return expression", code_line=code_line)
-            self.advance()  # consume ')'
-            # Always consume a trailing semicolon or comma after return
-            return ReturnNode(expr, code_line=code_line)
+
+            # Check if this is an empty return - return()
+            if self.peek() and self.peek().type == "RPAR":
+                # Empty return - no expression
+                self.advance()  # consume ')'
+                return ReturnNode(None, code_line=code_line)
+            else:
+                # Parse the expression inside the parentheses
+                expr = self.parse_value_expression()
+                # Expect closing parenthesis
+                if not self.peek() or self.peek().type != "RPAR":
+                    raise EnzoParseError("Expected ')' after return expression", code_line=code_line)
+                self.advance()  # consume ')'
+                return ReturnNode(expr, code_line=code_line)
 
         # --- Handle control flow: If statements ---
         if t and t.type == "IF":

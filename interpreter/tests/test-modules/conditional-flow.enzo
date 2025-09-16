@@ -23,6 +23,7 @@ If $status-else, (
   "Won't print";),
 Else, (
   "Fallback triggered"; // should print
+  "Every invoked atom should trigger in the Function atom"; // should print
 );
 
 //= NOT CONDITION FALSE
