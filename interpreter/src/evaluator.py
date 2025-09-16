@@ -263,17 +263,28 @@ def invoke_function(fn, args, env, self_obj=None, is_loop_context=False, outer_e
             res = eval_ast(local_var, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=loop_context, outer_env=outer_env)
 
         # Execute body statements (rebinds, returns, etc.)
-        for stmt in fn.body:
+        for i, stmt in enumerate(fn.body):
             # Named functions break loop context, conditional function atoms preserve it
             loop_context = is_loop_context if not is_named_function else False
             res = eval_ast(stmt, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=loop_context, outer_env=outer_env)
-            # Only print standalone expressions in multiline functions
-            # Single-line functions have implicit returns and shouldn't print during execution
+
+            # Handle printing based on function type and statement position
+            from src.enzo_parser.ast_nodes import Binding, BindOrRebind, ReturnNode
+            should_print = False
+
             if fn.is_multiline:
-                from src.enzo_parser.ast_nodes import Binding, BindOrRebind, ReturnNode
-                if res is not None and not isinstance(stmt, (Binding, BindOrRebind, ReturnNode)):
-                    from src.cli import format_val
-                    print(format_val(res))
+                # Multiline functions: print standalone expressions (not bindings/returns)
+                should_print = res is not None and not isinstance(stmt, (Binding, BindOrRebind, ReturnNode))
+            else:
+                # Single-line functions: print all expressions except the last one (not bindings/returns)
+                is_last_statement = (i == len(fn.body) - 1)
+                should_print = (res is not None and
+                              not isinstance(stmt, (Binding, BindOrRebind, ReturnNode)) and
+                              not is_last_statement)
+
+            if should_print:
+                from src.cli import format_val
+                print(format_val(res))
     except RecursionError:
         from src.error_messaging import error_message_maximum_recursion_depth_exceeded
         raise EnzoRecursionError(error_message_maximum_recursion_depth_exceeded())
