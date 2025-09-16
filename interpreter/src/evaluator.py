@@ -258,11 +258,15 @@ def invoke_function(fn, args, env, self_obj=None, is_loop_context=False, outer_e
 
         # Execute local variables (bindings like $x: 5;)
         for local_var in getattr(fn, 'local_vars', []):
-            res = eval_ast(local_var, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=False, outer_env=outer_env)
+            # Named functions break loop context, conditional function atoms preserve it
+            loop_context = is_loop_context if not is_named_function else False
+            res = eval_ast(local_var, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=loop_context, outer_env=outer_env)
 
         # Execute body statements (rebinds, returns, etc.)
         for stmt in fn.body:
-            res = eval_ast(stmt, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=False, outer_env=outer_env)
+            # Named functions break loop context, conditional function atoms preserve it
+            loop_context = is_loop_context if not is_named_function else False
+            res = eval_ast(stmt, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=loop_context, outer_env=outer_env)
             # Only print standalone expressions in multiline functions
             # Single-line functions have implicit returns and shouldn't print during execution
             if fn.is_multiline:
@@ -2285,11 +2289,17 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             return results if results else None
 
     if isinstance(node, EndLoopStatement):
-        # Always raise the signal - let exception handling determine if it's valid
+        # If we're not in a loop context, this is an error
+        if not is_loop_context:
+            raise EnzoRuntimeError("error: `end-loop;` inside a non-loop function atom", code_line=node.code_line)
+        # Otherwise raise signal to break out of nearest loop
         raise EndLoopSignal()
 
     if isinstance(node, RestartLoopStatement):
-        # Always raise the signal - let exception handling determine if it's valid
+        # If we're not in a loop context, this is an error
+        if not is_loop_context:
+            raise EnzoRuntimeError("error: `restart-loop;` inside a non-loop function atom", code_line=node.code_line)
+        # Otherwise raise signal to restart nearest loop
         raise RestartLoopSignal()
 
     if isinstance(node, OtherwiseStatement):
