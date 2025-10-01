@@ -1408,13 +1408,25 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         if name in env_layer:
                             # Found in closure - but env_layer might itself be a ChainMap!
                             # We need to find the actual dict where the variable is stored
-                            if isinstance(env_layer, ChainMap):
-                                # Recursively search through the ChainMap to find the actual dict
-                                for nested_layer in env_layer.maps:
-                                    if name in nested_layer:
-                                        target_env = nested_layer
-                                        break
-                            else:
+                            # This function recursively searches through nested ChainMaps
+                            def find_actual_dict(layer, var_name):
+                                """Recursively search through ChainMaps to find the actual dict containing the variable."""
+                                if isinstance(layer, ChainMap):
+                                    # This layer is a ChainMap, search its sublayers recursively
+                                    for sublayer in layer.maps:
+                                        if var_name in sublayer:
+                                            # Found in this sublayer, but it might also be a ChainMap
+                                            result = find_actual_dict(sublayer, var_name)
+                                            if result is not None:
+                                                return result
+                                    return None
+                                else:
+                                    # This is a plain dict, return it
+                                    return layer
+
+                            target_env = find_actual_dict(env_layer, name)
+                            if target_env is None:
+                                # Fallback if something went wrong
                                 target_env = env_layer
 
                             update_current_env = False
