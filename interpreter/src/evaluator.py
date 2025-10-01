@@ -185,7 +185,7 @@ class ListElementReference:
     def __repr__(self):
         return f"<reference to list element {self.index}>"
 
-def invoke_function(fn, args, env, self_obj=None, is_loop_context=False, outer_env=None, is_named_function=True):
+def invoke_function(fn, args, env, self_obj=None, is_loop_context=False, outer_env=None, is_named_function=True, loop_locals=None):
     if not isinstance(fn, EnzoFunction):
         raise EnzoTypeError(error_message_not_a_function(fn), code_line=getattr(fn, 'code_line', None))
 
@@ -260,13 +260,13 @@ def invoke_function(fn, args, env, self_obj=None, is_loop_context=False, outer_e
         for local_var in getattr(fn, 'local_vars', []):
             # Named functions break loop context, conditional function atoms preserve it
             loop_context = is_loop_context if not is_named_function else False
-            res = eval_ast(local_var, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=loop_context, outer_env=outer_env)
+            res = eval_ast(local_var, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=loop_context, outer_env=outer_env, loop_locals=loop_locals, is_named_function=is_named_function)
 
         # Execute body statements (rebinds, returns, etc.)
         for i, stmt in enumerate(fn.body):
             # Named functions break loop context, conditional function atoms preserve it
             loop_context = is_loop_context if not is_named_function else False
-            res = eval_ast(stmt, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=loop_context, outer_env=outer_env)
+            res = eval_ast(stmt, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=loop_context, outer_env=outer_env, loop_locals=loop_locals, is_named_function=is_named_function)
 
             # Handle printing based on function type and statement position
             from src.enzo_parser.ast_nodes import Binding, BindOrRebind, ReturnNode
@@ -354,7 +354,7 @@ def _get_enzo_type(value):
         return type(value).__name__.capitalize()
 
 
-def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None, is_function_context=False, outer_env=None, loop_locals=None, is_loop_context=False):
+def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line=None, is_function_context=False, outer_env=None, loop_locals=None, is_loop_context=False, is_named_function=True):
     if env is None:
         env = _env
     if node is None:
@@ -1025,7 +1025,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 if value_demand:
                     if not name.startswith('$'):
                         raise EnzoRuntimeError("error: expected function reference (@) or function invocation ($)", code_line=node.code_line)
-                    return invoke_function(referenced_val, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env)
+                    return invoke_function(referenced_val, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env, loop_locals=None)
             return referenced_val
 
         # Handle list element reference: return the current value of the list element
@@ -1037,7 +1037,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 if value_demand:
                     if not name.startswith('$'):
                         raise EnzoRuntimeError("error: expected function reference (@) or function invocation ($)", code_line=node.code_line)
-                    return invoke_function(referenced_val, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env)
+                    return invoke_function(referenced_val, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env, loop_locals=None)
             return referenced_val
 
         # Check if this is a function
@@ -1047,7 +1047,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 # Bare function names (without $ sigil) cannot be auto-invoked
                 if not name.startswith('$'):
                     raise EnzoRuntimeError("error: expected function reference (@) or function invocation ($)", code_line=node.code_line)
-                return invoke_function(val, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env)
+                return invoke_function(val, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env, loop_locals=None)
 
         # Check if this is a method reference
         if isinstance(val, MethodReference):
@@ -1056,7 +1056,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 # Bare method reference names (without $ sigil) cannot be auto-invoked
                 if not name.startswith('$'):
                     raise EnzoRuntimeError("error: expected function reference (@) or function invocation ($)", code_line=node.code_line)
-                return invoke_function(val.method_function, [], env, self_obj=val.self_object, is_loop_context=is_loop_context, outer_env=outer_env)
+                return invoke_function(val.method_function, [], env, self_obj=val.self_object, is_loop_context=is_loop_context, outer_env=outer_env, loop_locals=None)
 
         return val
     if isinstance(node, FunctionRef):
@@ -1131,13 +1131,13 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # Demand-value context: invoke
         if value_demand:
             fn = EnzoFunction(node.params, node.local_vars, node.body, env, getattr(node, 'is_multiline', False))
-            return invoke_function(fn, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env)
+            return invoke_function(fn, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env, loop_locals=None)
         else:
             return EnzoFunction(node.params, node.local_vars, node.body, env, getattr(node, 'is_multiline', False))
     if isinstance(node, ImmediateInvocationAtom):
         # Immediate invocation: evaluate the function atom and immediately invoke it
         fn = eval_ast(node.function_atom, value_demand=False, env=env, is_loop_context=is_loop_context)
-        return invoke_function(fn, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env)
+        return invoke_function(fn, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env, loop_locals=None)
     if isinstance(node, AddNode):
         left = eval_ast(node.left, value_demand=True, env=env, is_loop_context=is_loop_context)
         right = eval_ast(node.right, value_demand=True, env=env, is_loop_context=is_loop_context)
@@ -1243,11 +1243,11 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             if isinstance(node.func, ListIndex) and getattr(node.func, 'is_property_access', False):
                 # This is a method invocation - get the base object for $self
                 self_obj = eval_ast(node.func.base, env=env)
-            return invoke_function(left, args, env, self_obj=self_obj, is_loop_context=is_loop_context, outer_env=outer_env)
+            return invoke_function(left, args, env, self_obj=self_obj, is_loop_context=is_loop_context, outer_env=outer_env, loop_locals=None)
 
         # Method reference invocation
         if isinstance(left, MethodReference):
-            return invoke_function(left.method_function, args, env, self_obj=left.self_object, is_loop_context=is_loop_context, outer_env=outer_env)
+            return invoke_function(left.method_function, args, env, self_obj=left.self_object, is_loop_context=is_loop_context, outer_env=outer_env, loop_locals=None)
 
         # Not a list or function
         raise EnzoTypeError(error_message_index_applies_to_lists(), code_line=getattr(node, 'code_line', None))
@@ -1291,7 +1291,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # If right side is a FunctionAtom, invoke it directly
         if isinstance(right_expr, FunctionAtom):
             fn = EnzoFunction(right_expr.params, right_expr.local_vars, right_expr.body, pipeline_env, getattr(right_expr, 'is_multiline', False))
-            return invoke_function(fn, [], pipeline_env, self_obj=None, is_loop_context=False, outer_env=outer_env)
+            return invoke_function(fn, [], pipeline_env, self_obj=None, is_loop_context=False, outer_env=outer_env, loop_locals=None)
         # For expressions that can potentially reference $this, evaluate in pipeline environment
         elif isinstance(right_expr, (AddNode, SubNode, MulNode, DivNode, ModNode, VarInvoke, Invoke, TextAtom, ListIndex, ReferenceAtom, IfStatement)):
             return eval_ast(right_expr, value_demand=True, env=pipeline_env)
@@ -1401,15 +1401,28 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     target_env = env.maps[0]  # Update the local layer directly
                     update_current_env = False
                 else:
-                    # Check if this variable exists in any of the deeper ChainMap layers (closure env)
-                    for i, env_layer in enumerate(env.maps[1:], 1):  # Skip the first layer (local)
+                    # Check if variable exists in any closure layer (skip the local layer)
+                    found_in_closure = False
+
+                    for env_layer in env.maps[1:]:
                         if name in env_layer:
-                            # Found the variable in a closure layer - update it there
-                            target_env = env_layer
+                            # Found in closure - but env_layer might itself be a ChainMap!
+                            # We need to find the actual dict where the variable is stored
+                            if isinstance(env_layer, ChainMap):
+                                # Recursively search through the ChainMap to find the actual dict
+                                for nested_layer in env_layer.maps:
+                                    if name in nested_layer:
+                                        target_env = nested_layer
+                                        break
+                            else:
+                                target_env = env_layer
+
                             update_current_env = False
+                            found_in_closure = True
                             break
-                    else:
-                        # Variable not found in closure layers, use normal rebinding logic
+
+                    if not found_in_closure:
+                        # Not in closure, use normal ChainMap behavior
                         target_env = env
                         update_current_env = False
             elif loop_locals is not None and name in loop_locals:
@@ -1503,9 +1516,30 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             if not isinstance(old_val, Empty) and enzo_type(old_val) != enzo_type(actual_value):
                 raise EnzoRuntimeError(error_message_cannot_bind(enzo_type(actual_value), enzo_type(old_val)), code_line=t_code_line)
             target_env[name] = actual_value
+
+            # Also update the alternate key (with/without $) to keep them in sync
+            if name.startswith('$'):
+                bare_name = name[1:]
+                if bare_name in target_env:
+                    target_env[bare_name] = actual_value
+            else:
+                dollar_name = '$' + name
+                if dollar_name in target_env:
+                    target_env[dollar_name] = actual_value
+                    target_env[dollar_name] = actual_value
+
             # Also update current env to maintain consistency for reads
             if update_current_env and env is not target_env:
                 env[name] = actual_value
+                # Update alternate key in current env too
+                if name.startswith('$'):
+                    bare_name = name[1:]
+                    if bare_name in env:
+                        env[bare_name] = actual_value
+                else:
+                    dollar_name = '$' + name
+                    if dollar_name in env:
+                        env[dollar_name] = actual_value
             return None
         # Binding to list index
         if isinstance(target, ListIndex):
@@ -1642,7 +1676,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     val = base.get_by_index(int(idx))
                     # Auto-invoke functions in value demand context
                     if value_demand and isinstance(val, EnzoFunction):
-                        return invoke_function(val, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env)
+                        return invoke_function(val, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env, loop_locals=None)
                     return val
                 elif isinstance(idx, str):
                     # Check if this is property access (.foo) or string indexing (."foo")
@@ -1651,7 +1685,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                         val = base.get_by_key(idx)
                         # Auto-invoke functions in value demand context
                         if value_demand and isinstance(val, EnzoFunction):
-                            return invoke_function(val, [], env, self_obj=base, is_loop_context=is_loop_context, outer_env=outer_env)
+                            return invoke_function(val, [], env, self_obj=base, is_loop_context=is_loop_context, outer_env=outer_env, loop_locals=None)
                         return val
                     else:
                         # String indexing like ."foo" should error
@@ -1696,7 +1730,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         val = base[idx - 1]
         # Auto-invoke functions in value demand context
         if value_demand and isinstance(val, EnzoFunction):
-            return invoke_function(val, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env)
+            return invoke_function(val, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env, loop_locals=None)
         return val
     if isinstance(node, ParameterDeclaration):
         raise EnzoRuntimeError(error_message_param_outside_function(), code_line=getattr(node, 'code_line', None))
@@ -1962,7 +1996,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
                         # Create a function atom for this branch and execute it
                         branch_function = EnzoFunction([], [], then_block, env, is_multiline=not is_single_line)
-                        result = invoke_function(branch_function, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env, is_named_function=False)
+                        result = invoke_function(branch_function, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env, is_named_function=False, loop_locals=loop_locals)
                         if result is not None:
                             results.append(result)
 
@@ -1982,7 +2016,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
                     # Create a function atom for the else block and execute it
                     else_function = EnzoFunction([], [], node.else_block, env, is_multiline=not is_single_line)
-                    result = invoke_function(else_function, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env, is_named_function=False)
+                    result = invoke_function(else_function, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env, is_named_function=False, loop_locals=loop_locals)
                     if result is not None:
                         results.append(result)
             except (EndLoopSignal, RestartLoopSignal) as signal:
@@ -2032,7 +2066,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
                 try:
                     # Execute the function atom using the existing invoke_function logic
-                    result = invoke_function(then_function, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env, is_named_function=False)
+                    result = invoke_function(then_function, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env, is_named_function=False, loop_locals=loop_locals)
                     return result
                 except (EndLoopSignal, RestartLoopSignal):
                     # Re-raise loop control signals so they propagate to the loop
@@ -2059,7 +2093,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
                 try:
                     # Execute the function atom using the existing invoke_function logic
-                    result = invoke_function(else_function, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env, is_named_function=False)
+                    result = invoke_function(else_function, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env, is_named_function=False, loop_locals=loop_locals)
                     return result
                 except (EndLoopSignal, RestartLoopSignal):
                     # Re-raise loop control signals so they propagate to the loop
@@ -2345,7 +2379,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # In the future, this might need more sophisticated context tracking.
         result = None
         for stmt in node.body:
-            result = eval_ast(stmt, env=env, is_loop_context=is_loop_context, outer_env=outer_env)
+            result = eval_ast(stmt, env=env, is_loop_context=is_loop_context, outer_env=outer_env, loop_locals=None)
         return result
 
     if isinstance(node, ComparisonExpression):
