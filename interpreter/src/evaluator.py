@@ -269,11 +269,13 @@ def invoke_function(fn, args, env, self_obj=None, is_loop_context=False, outer_e
             res = eval_ast(stmt, value_demand=True, env=combined_env, is_function_context=True, is_loop_context=loop_context, outer_env=outer_env, loop_locals=loop_locals, is_named_function=is_named_function)
 
             # Handle printing based on function type and statement position
-            from src.enzo_parser.ast_nodes import Binding, BindOrRebind, ReturnNode
+            from src.enzo_parser.ast_nodes import Binding, BindOrRebind, ReturnNode, TextAtom
             should_print = False
+            is_text_atom = isinstance(stmt, TextAtom)
 
             if fn.is_multiline:
                 # Multiline functions: print standalone expressions (not bindings/returns)
+                # TextAtoms should be printed but not added to results
                 should_print = res is not None and not isinstance(stmt, (Binding, BindOrRebind, ReturnNode))
             else:
                 # Single-line functions: print all expressions except the last one (not bindings/returns)
@@ -285,6 +287,14 @@ def invoke_function(fn, args, env, self_obj=None, is_loop_context=False, outer_e
             if should_print:
                 from src.cli import format_val
                 print(format_val(res))
+
+            # For multiline functions, TextAtoms should be printed but not added to results list
+            # This prevents them from being printed twice (once here, once by CLI)
+            # For single-line functions, the last TextAtom should still be returned
+            is_last_statement = (i == len(fn.body) - 1)
+            if is_text_atom and fn.is_multiline:
+                res = None  # Clear res so it doesn't get stored in loop signals or returned
+                continue  # Skip adding to results
     except RecursionError:
         from src.error_messaging import error_message_maximum_recursion_depth_exceeded
         raise EnzoRecursionError(error_message_maximum_recursion_depth_exceeded())

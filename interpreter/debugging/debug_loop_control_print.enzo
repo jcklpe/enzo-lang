@@ -1,0 +1,15 @@
+//= USING RESTART-LOOP AND END-LOOP
+$numbers-for: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+$sum-for: 0;
+Loop for $num in $numbers-for, (
+    If $num is 8, (
+        "Found 8, ending loop.";
+        end-loop;
+    );
+    If ($num % 2) is not 0, (
+        // skip odd numbers
+        restart-loop;
+    );
+    $sum-for + $num :> $sum-for; // only adds even numbers
+);
+$sum-for; // should be 2 + 4 + 6 = 12
