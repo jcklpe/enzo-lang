@@ -2129,6 +2129,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         # Handle different loop types
         if node.loop_type == "basic":
             # Basic infinite loop - only exits with end-loop
+            from src.cli import format_val
             results = []
             max_iterations = 10000  # Safety limit
             iteration_count = 0
@@ -2151,7 +2152,10 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     # Pass is_loop_context=True so end-loop/restart-loop work
                     for stmt in node.body:
                         result = eval_ast(stmt, value_demand=True, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
-                        if result is not None:
+                        # TextAtoms should be printed immediately but not added to results
+                        if isinstance(stmt, TextAtom) and result is not None:
+                            print(format_val(result))
+                        elif result is not None:
                             # If the result is a list from a nested loop, flatten it
                             if isinstance(result, list) and isinstance(stmt, LoopStatement):
                                 results.extend(result)
@@ -2177,6 +2181,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
         elif node.loop_type == "while":
             # While loop - continues while condition is true
+            from src.cli import format_val
             results = []
             max_iterations = 10000  # Safety limit
             iteration_count = 0
@@ -2197,9 +2202,16 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
                 try:
                     # Execute loop body in the persistent loop environment
+                    import sys
                     for stmt in node.body:
                         result = eval_ast(stmt, value_demand=True, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
-                        if result is not None:
+                        # TextAtoms should be printed immediately but not added to results
+                        print(f"DEBUG: stmt type: {type(stmt).__name__}, is TextAtom: {isinstance(stmt, TextAtom)}, result: {repr(result)}", file=sys.stderr)
+                        if isinstance(stmt, TextAtom) and result is not None:
+                            print(f"DEBUG: Printing TextAtom immediately", file=sys.stderr)
+                            print(format_val(result))
+                        elif result is not None:
+                            print(f"DEBUG: Adding to results", file=sys.stderr)
                             results.append(result)
                 except EndLoopSignal as signal:
                     # Collect any result that was produced before end-loop
@@ -2263,6 +2275,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
         elif node.loop_type == "for":
             # For loop - iterate over a list
+            from src.cli import format_val
             results = []
 
             # Create a new scope for the loop variable that preserves connection to outer scope
@@ -2305,7 +2318,10 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     # Execute the loop body
                     for stmt in node.body:
                         result = eval_ast(stmt, value_demand=True, env=loop_env, is_loop_context=True, is_function_context=True, outer_env=env, loop_locals=loop_locals)
-                        if result is not None:
+                        # TextAtoms should be printed immediately but not added to results
+                        if isinstance(stmt, TextAtom) and result is not None:
+                            print(format_val(result))
+                        elif result is not None:
                             # If the result is a list from a nested loop, flatten it
                             if isinstance(result, list) and isinstance(stmt, LoopStatement):
                                 results.extend(result)
