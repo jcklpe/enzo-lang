@@ -12,10 +12,13 @@
       "include": "#numbers"
     },
     {
-      "include": "#blueprint-instantiation"
+      "include": "#variant-group-definitions"
     },
     {
-      "include": "#variant-group-definitions"
+      "include": "#blueprint-definitions"
+    },
+    {
+      "include": "#blueprint-instantiation"
     },
     {
       "include": "#type-checks"
@@ -178,6 +181,66 @@
           "match": "\\]>"
         },
         {
+          "name": "meta.blueprint.property.with-type.number.enzo",
+          "match": "([a-zA-Z_\\-][a-zA-Z0-9_\\-]*)\\s*(:)\\s*(Number)\\b",
+          "captures": {
+            "1": {
+              "name": "entity.name.property.blueprint.enzo"
+            },
+            "2": {
+              "name": "punctuation.separator.blueprint.enzo"
+            },
+            "3": {
+              "name": "support.type.number.enzo"
+            }
+          }
+        },
+        {
+          "name": "meta.blueprint.property.with-type.text.enzo",
+          "match": "([a-zA-Z_\\-][a-zA-Z0-9_\\-]*)\\s*(:)\\s*(Text)\\b",
+          "captures": {
+            "1": {
+              "name": "entity.name.property.blueprint.enzo"
+            },
+            "2": {
+              "name": "punctuation.separator.blueprint.enzo"
+            },
+            "3": {
+              "name": "support.type.text.enzo"
+            }
+          }
+        },
+        {
+          "name": "meta.blueprint.property.with-type.list.enzo",
+          "match": "([a-zA-Z_\\-][a-zA-Z0-9_\\-]*)\\s*(:)\\s*(List)\\b",
+          "captures": {
+            "1": {
+              "name": "entity.name.property.blueprint.enzo"
+            },
+            "2": {
+              "name": "punctuation.separator.blueprint.enzo"
+            },
+            "3": {
+              "name": "support.type.list.enzo"
+            }
+          }
+        },
+        {
+          "name": "meta.blueprint.property.with-type.function.enzo",
+          "match": "([a-zA-Z_\\-][a-zA-Z0-9_\\-]*)\\s*(:)\\s*(Function)\\b",
+          "captures": {
+            "1": {
+              "name": "entity.name.property.blueprint.enzo"
+            },
+            "2": {
+              "name": "punctuation.separator.blueprint.enzo"
+            },
+            "3": {
+              "name": "support.type.function.enzo"
+            }
+          }
+        },
+        {
           "name": "meta.blueprint.property.with-type.enzo",
           "match": "([a-zA-Z_\\-][a-zA-Z0-9_\\-]*)\\s*(:)\\s*([A-Z][a-zA-Z0-9_\\-]*)",
           "captures": {
@@ -208,6 +271,21 @@
     },
     "variant-group-definitions": {
       "patterns": [
+        {
+          "name": "meta.variant-group.definition.with-first.enzo",
+          "match": "([A-Z][a-zA-Z0-9_\\-]*)\\s+(variants:)\\s+([A-Z][a-zA-Z0-9_\\-]*)",
+          "captures": {
+            "1": {
+              "name": "entity.name.type.variant-group.enzo"
+            },
+            "2": {
+              "name": "keyword.other.variants.enzo"
+            },
+            "3": {
+              "name": "entity.name.type.variant.enzo"
+            }
+          }
+        },
         {
           "name": "meta.variant-group.definition.enzo",
           "match": "([A-Z][a-zA-Z0-9_\\-]*)\\s+(variants:)",
@@ -241,6 +319,25 @@
             },
             "2": {
               "name": "entity.name.type.variant.enzo"
+            }
+          }
+        }
+      ]
+    },
+    "blueprint-definitions": {
+      "patterns": [
+        {
+          "name": "meta.blueprint.definition.enzo",
+          "match": "^\\s*([A-Z][a-zA-Z0-9_\\-]*)\\s*(:)\\s*(<\\[)",
+          "captures": {
+            "1": {
+              "name": "entity.name.type.blueprint.enzo"
+            },
+            "2": {
+              "name": "punctuation.definition.type.enzo"
+            },
+            "3": {
+              "name": "punctuation.definition.blueprint.begin.enzo"
             }
           }
         }
@@ -342,6 +439,27 @@
     "property-access": {
       "patterns": [
         {
+          "name": "meta.property-access.numeric.enzo",
+          "match": "(\\$[a-zA-Z_\\-][a-zA-Z0-9_\\-]*)(\\.)([0-9]+)(\\.)([a-zA-Z_][a-zA-Z0-9_\\-]*)",
+          "captures": {
+            "1": {
+              "name": "variable.other.enzo"
+            },
+            "2": {
+              "name": "punctuation.accessor.enzo"
+            },
+            "3": {
+              "name": "variable.other.property.numeric.enzo"
+            },
+            "4": {
+              "name": "punctuation.accessor.enzo"
+            },
+            "5": {
+              "name": "variable.other.property.enzo"
+            }
+          }
+        },
+        {
           "name": "meta.property-access.enzo",
           "match": "(\\$[a-zA-Z_\\-][a-zA-Z0-9_\\-]*)(\\.)([a-zA-Z_][a-zA-Z0-9_\\-]*)",
           "captures": {
@@ -353,6 +471,21 @@
             },
             "3": {
               "name": "variable.other.property.enzo"
+            }
+          }
+        },
+        {
+          "name": "meta.property-access.numeric-only.enzo",
+          "match": "(\\$[a-zA-Z_\\-][a-zA-Z0-9_\\-]*)(\\.)([0-9]+)",
+          "captures": {
+            "1": {
+              "name": "variable.other.enzo"
+            },
+            "2": {
+              "name": "punctuation.accessor.enzo"
+            },
+            "3": {
+              "name": "variable.other.property.numeric.enzo"
             }
           }
         },
@@ -425,7 +558,7 @@
       "patterns": [
         {
           "name": "keyword.control.flow.enzo",
-          "match": "\\b(?:Loop|If|Else|Otherwise|until|end-loop|restart-loop|for|while|in|is|then)\\b"
+          "match": "\\b(?:Loop|If|Else|Otherwise|until|end-loop|restart-loop|for|while|in|is|then|contains|and|or|not|either)\\b"
         },
         {
           "name": "keyword.control.return.enzo",
@@ -473,7 +606,7 @@
         },
         {
           "name": "keyword.operator.word.enzo",
-          "match": "\\b(?:is|less|than|greater|at|most|least|contains|has|and|or|not)\\b"
+          "match": "\\b(?:less|than|greater|at|most|least|has)\\b"
         }
       ]
     },
@@ -492,6 +625,10 @@
           "match": "!"
         },
         {
+          "name": "keyword.operator.destructure.enzo",
+          "match": "->"
+        },
+        {
           "name": "keyword.operator.assignment.enzo",
           "match": "(<:|:>|:)"
         },
@@ -507,6 +644,14 @@
     },
     "punctuation": {
       "patterns": [
+        {
+          "name": "punctuation.definition.blueprint.angle.enzo",
+          "match": "<(?=\\[)"
+        },
+        {
+          "name": "punctuation.definition.blueprint.angle.enzo",
+          "match": "(?<=\\])>"
+        },
         {
           "name": "punctuation.separator.enzo",
           "match": "[;,]"

@@ -48,6 +48,12 @@
       }
     },
     {
+      "scope": ["keyword.operator.destructure.enzo"],
+      "settings": {
+        "foreground": "#e86f7a"
+      }
+    },
+    {
       "scope": ["keyword.control.enzo"],
       "settings": {
         "foreground": "#149b93"
@@ -57,6 +63,7 @@
       "scope": [
         "entity.name.function.enzo",
         "entity.name.function.definition.enzo",
+        "entity.name.function.call.enzo",
         "keyword.control.return.enzo"
       ],
       "settings": {
@@ -64,27 +71,28 @@
       }
     },
     {
-      "scope": ["entity.name.function.call.enzo"],
+      "scope": [
+        "entity.name.type.blueprint.enzo"
+      ],
       "settings": {
-        "foreground": "#149b93"
+        "foreground": "#7c60af"
       }
     },
     {
       "scope": [
-        "entity.name.type.blueprint.enzo",
         "punctuation.definition.blueprint.begin.enzo",
-        "punctuation.definition.blueprint.end.enzo"
+        "punctuation.definition.blueprint.end.enzo",
+        "punctuation.definition.blueprint.angle.enzo"
       ],
       "settings": {
-        "foreground": "#7c5c9f"
+        "foreground": "#7c60af"
       }
     },
     {
       "scope": [
         "entity.name.type.variant-group.enzo",
         "keyword.other.variants.enzo",
-        "constant.language.status.enzo",
-        "entity.name.type.reference.enzo"
+        "constant.language.status.enzo"
       ],
       "settings": {
         "foreground": "#a45caf"
@@ -95,7 +103,7 @@
         "entity.name.type.variant.enzo"
       ],
       "settings": {
-        "foreground": "#c85e7c"
+        "foreground": "#7c60af"
       }
     },
     {
@@ -119,7 +127,8 @@
     {
       "scope": [
         "variable.other.enzo",
-        "variable.other.property.enzo"
+        "variable.other.property.enzo",
+        "variable.other.property.numeric.enzo"
       ],
       "settings": {
         "foreground": "#dd464c"
