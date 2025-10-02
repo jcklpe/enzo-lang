@@ -12,6 +12,21 @@
       "include": "#numbers"
     },
     {
+      "include": "#blueprint-instantiation"
+    },
+    {
+      "include": "#variant-group-definitions"
+    },
+    {
+      "include": "#type-checks"
+    },
+    {
+      "include": "#variable-references"
+    },
+    {
+      "include": "#property-access"
+    },
+    {
       "include": "#function-definitions"
     },
     {
@@ -108,12 +123,218 @@
     "numbers": {
       "patterns": [
         {
-          "name": "constant.numeric",
+          "name": "constant.numeric.enzo",
           "match": "\\b-?\\d+\\b"
         },
         {
-          "name": "constant.numeric",
+          "name": "constant.numeric.enzo",
           "match": "\\b-?\\d+\\.\\d+\\b"
+        }
+      ]
+    },
+    "blueprint-instantiation": {
+      "patterns": [
+        {
+          "name": "meta.variant.access.enzo",
+          "match": "\\b([A-Z][a-zA-Z0-9_\\-]*)\\.([A-Z][a-zA-Z0-9_\\-]*)(?!\\s*<\\[)",
+          "captures": {
+            "1": {
+              "name": "entity.name.type.variant-group.enzo"
+            },
+            "2": {
+              "name": "entity.name.type.variant.enzo"
+            }
+          }
+        },
+        {
+          "name": "meta.blueprint.instantiation.enzo",
+          "match": "([A-Z][a-zA-Z0-9_\\-]*)\\.([A-Z][a-zA-Z0-9_\\-]*)\\s*(<\\[)",
+          "captures": {
+            "1": {
+              "name": "entity.name.type.variant-group.enzo"
+            },
+            "2": {
+              "name": "entity.name.type.blueprint.enzo"
+            },
+            "3": {
+              "name": "punctuation.definition.blueprint.begin.enzo"
+            }
+          }
+        },
+        {
+          "name": "meta.blueprint.instantiation.simple.enzo",
+          "match": "([A-Z][a-zA-Z0-9_\\-]*)\\s*(<\\[)",
+          "captures": {
+            "1": {
+              "name": "entity.name.type.blueprint.enzo"
+            },
+            "2": {
+              "name": "punctuation.definition.blueprint.begin.enzo"
+            }
+          }
+        },
+        {
+          "name": "punctuation.definition.blueprint.end.enzo",
+          "match": "\\]>"
+        },
+        {
+          "name": "meta.blueprint.property.enzo",
+          "match": "(\\$[a-zA-Z_\\-][a-zA-Z0-9_\\-]*)\\s*(:)(?!>)",
+          "captures": {
+            "1": {
+              "name": "variable.parameter.blueprint.enzo"
+            },
+            "2": {
+              "name": "punctuation.separator.blueprint.enzo"
+            }
+          }
+        }
+      ]
+    },
+    "variant-group-definitions": {
+      "patterns": [
+        {
+          "name": "meta.variant-group.definition.enzo",
+          "match": "([A-Z][a-zA-Z0-9_\\-]*)\\s+(variants:)\\s+([A-Z][a-zA-Z0-9_\\-]*)",
+          "captures": {
+            "1": {
+              "name": "entity.name.type.variant-group.enzo"
+            },
+            "2": {
+              "name": "keyword.other.variants.enzo"
+            },
+            "3": {
+              "name": "entity.name.type.variant.enzo"
+            }
+          }
+        },
+        {
+          "name": "meta.variant.or.enzo",
+          "match": "\\b(or)\\s+([A-Z][a-zA-Z0-9_\\-]*)",
+          "captures": {
+            "1": {
+              "name": "keyword.other.or.enzo"
+            },
+            "2": {
+              "name": "entity.name.type.variant.enzo"
+            }
+          }
+        }
+      ]
+    },
+    "type-checks": {
+      "patterns": [
+        {
+          "name": "meta.type-check.comparison.enzo",
+          "match": "\\b(is\\s+(?:less\\s+than|greater\\s+than|at\\s+least|at\\s+most))\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.control.flow.enzo"
+            }
+          }
+        },
+        {
+          "name": "meta.type-check.number.enzo",
+          "match": "\\b(is)\\s+(Number)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.control.flow.enzo"
+            },
+            "2": {
+              "name": "support.type.number.enzo"
+            }
+          }
+        },
+        {
+          "name": "meta.type-check.text.enzo",
+          "match": "\\b(is)\\s+(Text)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.control.flow.enzo"
+            },
+            "2": {
+              "name": "support.type.text.enzo"
+            }
+          }
+        },
+        {
+          "name": "meta.type-check.list.enzo",
+          "match": "\\b(is)\\s+(List)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.control.flow.enzo"
+            },
+            "2": {
+              "name": "support.type.list.enzo"
+            }
+          }
+        },
+        {
+          "name": "meta.type-check.function.enzo",
+          "match": "\\b(is)\\s+(Function)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.control.flow.enzo"
+            },
+            "2": {
+              "name": "support.type.function.enzo"
+            }
+          }
+        },
+        {
+          "name": "meta.type-check.empty.enzo",
+          "match": "\\b(is)\\s+(Empty)\\b",
+          "captures": {
+            "1": {
+              "name": "keyword.control.flow.enzo"
+            },
+            "2": {
+              "name": "constant.language.empty.enzo"
+            }
+          }
+        }
+      ]
+    },
+    "variable-references": {
+      "patterns": [
+        {
+          "name": "meta.destructuring.enzo",
+          "match": "(@[a-zA-Z_\\-][a-zA-Z0-9_\\-]*)\\s*(\\[\\])",
+          "captures": {
+            "1": {
+              "name": "variable.other.reference.enzo"
+            },
+            "2": {
+              "name": "punctuation.definition.destructuring.enzo"
+            }
+          }
+        },
+        {
+          "name": "variable.other.reference.enzo",
+          "match": "@[a-zA-Z_\\-][a-zA-Z0-9_\\-]*"
+        }
+      ]
+    },
+    "property-access": {
+      "patterns": [
+        {
+          "name": "meta.property-access.enzo",
+          "match": "(\\$[a-zA-Z_\\-][a-zA-Z0-9_\\-]*)(\\.)([a-zA-Z_][a-zA-Z0-9_\\-]*)",
+          "captures": {
+            "1": {
+              "name": "variable.other.enzo"
+            },
+            "2": {
+              "name": "punctuation.accessor.enzo"
+            },
+            "3": {
+              "name": "variable.other.property.enzo"
+            }
+          }
+        },
+        {
+          "name": "constant.numeric.enzo",
+          "match": "\\.\\d+"
         }
       ]
     },
@@ -137,7 +358,7 @@
       "patterns": [
         {
           "name": "meta.function.definition.enzo",
-          "match": "([a-zA-Z_][a-zA-Z0-9_\\-]*)\\s*:",
+          "match": "([a-zA-Z_][a-zA-Z0-9_\\-]*)\\s*(:)(?!>)",
           "captures": {
             "1": {
               "name": "entity.name.function.enzo"
@@ -176,42 +397,74 @@
         }
       ]
     },
-    "property-access": {
-      "patterns": [
-        {
-          "name": "variable.other.property.enzo",
-          "match": "\\.[a-zA-Z_][a-zA-Z0-9_\\-]*"
-        },
-        {
-          "name": "constant.numeric",
-          "match": "\\.\\d+"
-        }
-      ]
-    },
     "keywords": {
       "patterns": [
         {
+          "name": "keyword.control.flow.enzo",
+          "match": "\\b(?:Loop|If|Else|Otherwise|until|end-loop|restart-loop)\\b"
+        },
+        {
           "name": "keyword.control.enzo",
-          "match": "\\b(?:if|then|else|end|param|return|for|while|and|or|not|filter|transform|function)\\b"
+          "match": "\\b(?:then|end|param|return|for|while|in)\\b"
+        },
+        {
+          "name": "keyword.other.blueprint.enzo",
+          "match": "\\b(?:Blueprint)\\b"
+        },
+        {
+          "name": "constant.language.status.enzo",
+          "match": "\\b(?:Status)\\b"
+        },
+        {
+          "name": "constant.language.true-false.enzo",
+          "match": "\\b(?:True|False)\\b"
+        },
+        {
+          "name": "constant.language.empty.enzo",
+          "match": "\\b(?:Empty)\\b"
+        },
+        {
+          "name": "support.type.number.enzo",
+          "match": "\\b(?:Number)\\b"
+        },
+        {
+          "name": "support.type.text.enzo",
+          "match": "\\b(?:Text)\\b"
+        },
+        {
+          "name": "support.type.list.enzo",
+          "match": "\\b(?:List)\\b"
+        },
+        {
+          "name": "support.type.function.enzo",
+          "match": "\\b(?:Function)\\b"
         },
         {
           "name": "keyword.operator.word.enzo",
-          "match": "\\b(?:is|less|than|greater|at|most|least)\\b"
+          "match": "\\b(?:is|less|than|greater|at|most|least|contains|has|and|or|not)\\b"
         }
       ]
     },
     "operators": {
       "patterns": [
         {
-          "name": "keyword.operator.assignment",
+          "name": "keyword.operator.reference.enzo",
+          "match": "@"
+        },
+        {
+          "name": "keyword.operator.invocation.enzo",
+          "match": "!"
+        },
+        {
+          "name": "keyword.operator.assignment.enzo",
           "match": "(<:|:>|:)"
         },
         {
-          "name": "keyword.operator.arithmetic",
-          "match": "[+\\-*/]"
+          "name": "keyword.operator.arithmetic.enzo",
+          "match": "[+\\-*/%]"
         },
         {
-          "name": "keyword.operator.comparison",
+          "name": "keyword.operator.comparison.enzo",
           "match": "="
         }
       ]
