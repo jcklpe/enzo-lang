@@ -2152,15 +2152,19 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     for stmt in node.body:
                         result = eval_ast(stmt, value_demand=True, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
                         if result is not None:
-                            # Print TextAtom results immediately
-                            if isinstance(result, str) and isinstance(stmt, TextAtom):
-                                from src.cli import format_val
+                            # Print all results immediately in execution order
+                            from src.cli import format_val
+                            if isinstance(stmt, TextAtom):
+                                # TextAtoms: just print
                                 print(format_val(result))
-                            # If the result is a list from a nested loop, flatten it
                             elif isinstance(result, list) and isinstance(stmt, LoopStatement):
-                                results.extend(result)
+                                # Nested loop results: print each element
+                                for item in result:
+                                    if item is not None:
+                                        print(format_val(item))
                             else:
-                                results.append(result)
+                                # Other results: print them
+                                print(format_val(result))
                 except EndLoopSignal as signal:
                     # Collect any result that was produced before end-loop
                     if hasattr(signal, 'last_result') and signal.last_result is not None:
@@ -2204,12 +2208,9 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     for stmt in node.body:
                         result = eval_ast(stmt, value_demand=True, env=loop_env, is_function_context=True, outer_env=env, loop_locals=loop_locals, is_loop_context=True)
                         if result is not None:
-                            # Print TextAtom results immediately
-                            if isinstance(result, str) and isinstance(stmt, TextAtom):
-                                from src.cli import format_val
-                                print(format_val(result))
-                            else:
-                                results.append(result)
+                            # Print all results immediately in execution order
+                            from src.cli import format_val
+                            print(format_val(result))
                 except EndLoopSignal as signal:
                     # Collect any result that was produced before end-loop
                     if hasattr(signal, 'last_result') and signal.last_result is not None:
@@ -2315,15 +2316,19 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     for stmt in node.body:
                         result = eval_ast(stmt, value_demand=True, env=loop_env, is_loop_context=True, is_function_context=True, outer_env=env, loop_locals=loop_locals)
                         if result is not None:
-                            # Print TextAtom results immediately
-                            if isinstance(result, str) and isinstance(stmt, TextAtom):
-                                from src.cli import format_val
+                            # Print all results immediately in execution order
+                            from src.cli import format_val
+                            if isinstance(stmt, TextAtom):
+                                # TextAtoms: just print
                                 print(format_val(result))
-                            # If the result is a list from a nested loop, flatten it
                             elif isinstance(result, list) and isinstance(stmt, LoopStatement):
-                                results.extend(result)
+                                # Nested loop results: print each element
+                                for item in result:
+                                    if item is not None:
+                                        print(format_val(item))
                             else:
-                                results.append(result)
+                                # Other results: print them
+                                print(format_val(result))
 
                     # After executing the loop body, check if the list was modified
                     # Re-evaluate to get the updated list
