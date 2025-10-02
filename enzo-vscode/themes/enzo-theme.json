@@ -42,6 +42,12 @@
       }
     },
     {
+      "scope": ["keyword.control.param.enzo"],
+      "settings": {
+        "foreground": "#e86f7a"
+      }
+    },
+    {
       "scope": ["keyword.control.enzo"],
       "settings": {
         "foreground": "#149b93"
@@ -50,7 +56,8 @@
     {
       "scope": [
         "entity.name.function.enzo",
-        "entity.name.function.definition.enzo"
+        "entity.name.function.definition.enzo",
+        "keyword.control.return.enzo"
       ],
       "settings": {
         "foreground": "#1290bf"
@@ -76,7 +83,8 @@
       "scope": [
         "entity.name.type.variant-group.enzo",
         "keyword.other.variants.enzo",
-        "constant.language.status.enzo"
+        "constant.language.status.enzo",
+        "entity.name.type.reference.enzo"
       ],
       "settings": {
         "foreground": "#a45caf"
@@ -99,7 +107,13 @@
     {
       "scope": ["variable.parameter.blueprint.enzo"],
       "settings": {
-        "foreground": "#c85e7c"
+        "foreground": "#dd464c"
+      }
+    },
+    {
+      "scope": ["entity.name.property.blueprint.enzo"],
+      "settings": {
+        "foreground": "#b54c6f"
       }
     },
     {
@@ -167,6 +181,12 @@
       "scope": ["keyword.operator.reference.enzo"],
       "settings": {
         "foreground": "#dd464c"
+      }
+    },
+    {
+      "scope": ["keyword.operator.function-reference.enzo"],
+      "settings": {
+        "foreground": "#20a598"
       }
     },
     {
