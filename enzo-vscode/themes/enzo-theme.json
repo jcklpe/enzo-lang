@@ -53,6 +53,7 @@
     },
     {
       "scope": [
+        "keyword.control.return.enzo",
         "entity.name.function.definition.enzo",
         "entity.name.function.enzo",
         "entity.name.function.call.enzo",
@@ -64,7 +65,6 @@
     },
     {
       "scope": [
-        "keyword.control.return.enzo",
         "entity.name.type.blueprint.instantiation.enzo",
         "punctuation.definition.blueprint.begin.enzo",
         "punctuation.definition.blueprint.end.enzo",
@@ -137,7 +137,6 @@
         "variable.other.reference.enzo",
         "variable.function.call.enzo",
         "support.type.list.enzo",
-
         "keyword.operator.function-reference.enzo",
         "keyword.control.enzo",
         "entity.name.function.property.enzo"
