@@ -35,7 +35,8 @@
     {
       "scope": [
         "keyword.control.flow.enzo",
-        "keyword.other.or.enzo"
+        "keyword.other.or.enzo",
+        "keyword.other.and.enzo"
       ],
       "settings": {
         "foreground": "#c85e7c"
@@ -54,7 +55,8 @@
       "scope": [
         "entity.name.function.definition.enzo",
         "entity.name.function.enzo",
-        "entity.name.function.call.enzo"
+        "entity.name.function.call.enzo",
+        "support.type.function.enzo"
       ],
       "settings": {
         "foreground": "#1290bf"
@@ -63,7 +65,11 @@
     {
       "scope": [
         "keyword.control.return.enzo",
-        "entity.name.type.blueprint.instantiation.enzo"
+        "entity.name.type.blueprint.instantiation.enzo",
+        "punctuation.definition.blueprint.begin.enzo",
+        "punctuation.definition.blueprint.end.enzo",
+        "punctuation.definition.blueprint.angle.enzo",
+        "entity.name.type.blueprint.enzo"
       ],
       "settings": {
         "foreground": "#5379c1"
@@ -71,10 +77,6 @@
     },
     {
       "scope": [
-        "punctuation.definition.blueprint.begin.enzo",
-        "punctuation.definition.blueprint.end.enzo",
-        "punctuation.definition.blueprint.angle.enzo",
-        "entity.name.type.blueprint.enzo",
         "entity.name.type.variant.enzo"
       ],
       "settings": {
@@ -135,7 +137,7 @@
         "variable.other.reference.enzo",
         "variable.function.call.enzo",
         "support.type.list.enzo",
-        "support.type.function.enzo",
+
         "keyword.operator.function-reference.enzo",
         "keyword.control.enzo",
         "entity.name.function.property.enzo"
@@ -154,12 +156,6 @@
       "scope": ["support.type.text.enzo"],
       "settings": {
         "foreground": "#8fc13e"
-      }
-    },
-    {
-      "scope": ["keyword.other.and.enzo"],
-      "settings": {
-        "foreground": "#c85e7c"
       }
     },
     {
