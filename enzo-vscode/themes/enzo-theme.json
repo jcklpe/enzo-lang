@@ -42,21 +42,12 @@
       }
     },
     {
-      "scope": ["keyword.control.param.enzo"],
+      "scope": [
+        "keyword.control.param.enzo",
+        "keyword.operator.destructure.enzo"
+      ],
       "settings": {
         "foreground": "#e86f7a"
-      }
-    },
-    {
-      "scope": ["keyword.operator.destructure.enzo"],
-      "settings": {
-        "foreground": "#e86f7a"
-      }
-    },
-    {
-      "scope": ["keyword.control.enzo"],
-      "settings": {
-        "foreground": "#149b93"
       }
     },
     {
@@ -64,7 +55,8 @@
         "entity.name.function.enzo",
         "entity.name.function.definition.enzo",
         "entity.name.function.call.enzo",
-        "keyword.control.return.enzo"
+        "keyword.control.return.enzo",
+        "support.type.function.enzo"
       ],
       "settings": {
         "foreground": "#1290bf"
@@ -72,20 +64,14 @@
     },
     {
       "scope": [
-        "entity.name.type.blueprint.enzo"
-      ],
-      "settings": {
-        "foreground": "#7c60af"
-      }
-    },
-    {
-      "scope": [
         "punctuation.definition.blueprint.begin.enzo",
         "punctuation.definition.blueprint.end.enzo",
-        "punctuation.definition.blueprint.angle.enzo"
+        "punctuation.definition.blueprint.angle.enzo",
+        "entity.name.type.blueprint.enzo",
+        "entity.name.type.variant.enzo"
       ],
       "settings": {
-        "foreground": "#7c60af"
+        "foreground": "#5379c1"
       }
     },
     {
@@ -99,23 +85,9 @@
       }
     },
     {
-      "scope": [
-        "entity.name.type.variant.enzo"
-      ],
-      "settings": {
-        "foreground": "#7c60af"
-      }
-    },
-    {
       "scope": ["constant.language.true-false.enzo"],
       "settings": {
         "foreground": "#fd8b19"
-      }
-    },
-    {
-      "scope": ["variable.parameter.blueprint.enzo"],
-      "settings": {
-        "foreground": "#dd464c"
       }
     },
     {
@@ -128,22 +100,24 @@
       "scope": [
         "variable.other.enzo",
         "variable.other.property.enzo",
-        "variable.other.property.numeric.enzo"
+        "variable.other.property.numeric.enzo",
+        "variable.parameter.blueprint.enzo",
+        "keyword.operator.reference.enzo"
       ],
       "settings": {
         "foreground": "#dd464c"
       }
     },
     {
-      "scope": ["variable.function.call.enzo"],
+      "scope": [
+        "variable.other.reference.enzo",
+        "variable.function.call.enzo",
+        "support.type.list.enzo",
+        "keyword.operator.function-reference.enzo",
+        "keyword.control.enzo"
+    ],
       "settings": {
-        "foreground": "#1a9b93"
-      }
-    },
-    {
-      "scope": ["variable.other.reference.enzo"],
-      "settings": {
-        "foreground": "#20a598"
+        "foreground": "#00a3a4"
       }
     },
     {
@@ -159,47 +133,11 @@
       }
     },
     {
-      "scope": ["support.type.list.enzo"],
-      "settings": {
-        "foreground": "#149b93"
-      }
-    },
-    {
-      "scope": ["support.type.function.enzo"],
-      "settings": {
-        "foreground": "#1290bf"
-      }
-    },
-    {
-      "scope": ["constant.language.empty.enzo"],
-      "settings": {
-        "foreground": "#b9b5b8"
-      }
-    },
-    {
       "scope": [
         "keyword.operator.assignment.enzo",
         "keyword.operator.arithmetic.enzo",
-        "keyword.operator.comparison.enzo"
-      ],
-      "settings": {
-        "foreground": "#b9b5b8"
-      }
-    },
-    {
-      "scope": ["keyword.operator.reference.enzo"],
-      "settings": {
-        "foreground": "#dd464c"
-      }
-    },
-    {
-      "scope": ["keyword.operator.function-reference.enzo"],
-      "settings": {
-        "foreground": "#20a598"
-      }
-    },
-    {
-      "scope": [
+        "keyword.operator.comparison.enzo",
+        "constant.language.empty.enzo",
         "punctuation.separator.enzo",
         "punctuation.section.brackets.enzo",
         "punctuation.section.braces.enzo",
