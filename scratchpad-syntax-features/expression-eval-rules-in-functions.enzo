@@ -1,0 +1,109 @@
+//= Expression Evaluation Rules in Functions and Contexts
+
+/'
+This document formalizes the rules for when expressions print vs return
+in different contexts within the Enzo language interpreter.
+
+KEY PRINCIPLES:
+1. Expression statements (like Text atoms, variable invocations, arithmetic)
+   normally print their values immediately when encountered
+2. Assignment statements (using : <: :>) never print - they only bind values
+3. Single-line function atoms have special implicit return behavior for their last statement
+4. Function atoms that don't execute (falsy conditions) don't run any contents
+'/
+
+//= Rule 1: Top-level expressions print immediately
+
+"this should print";                    // ✓ prints: Text expression at top level
+$x: 5;                                 // ✗ doesn't print: assignment statement
+$x;                                    // ✓ prints: variable invocation expression
+$x + 3;                               // ✓ prints: arithmetic expression
+
+//= Rule 2: Assignment statements never print (regardless of context)
+
+$variable-name: "this shouldn't print";           // ✗ assignment - never prints
+$number-var: 42;                                  // ✗ assignment - never prints
+"some value" :> $rebind-var;                      // ✗ rebinding - never prints
+$list-var <: [1, 2, 3];                          // ✗ rebinding - never prints
+
+//= Rule 3: Multiline function atoms - expressions print, assignments don't
+
+(
+    "this should print";                          // ✓ prints: Text expression
+    $variable-name: "this shouldn't print";       // ✗ doesn't print: assignment
+    $x + $y;                                     // ✓ prints: arithmetic expression
+    $another-var: "also no print";              // ✗ doesn't print: assignment
+);
+
+//= Rule 4: If statements with multiline function atoms - same rules as Rule 3
+
+If True, (
+    "this should print";                          // ✓ prints: Text expression
+    $variable-name: "this shouldn't print";       // ✗ doesn't print: assignment
+    $result: $x + $y;                            // ✗ doesn't print: assignment
+    $result;                                     // ✓ prints: variable invocation
+);
+
+//= Rule 5: Function atoms that don't execute - nothing runs
+
+If 0 is 1, (
+    "this shouldn't print";                       // ✗ doesn't print: function atom never executes
+    $variable-name: "this shouldn't print";       // ✗ doesn't print: function atom never executes
+    $x + $y;                                     // ✗ doesn't print: function atom never executes
+);
+
+//= Rule 6: Single-line function atoms - implicit return for last statement
+
+If True, ("this should print");                   // ✓ prints via implicit return: last (only) statement
+
+//= Rule 7: Single-line function atoms with multiple statements
+
+If True, ("this should print"; "This should also print");
+/'
+Breakdown:
+- "this should print" - ✓ prints immediately (not last statement, so normal expression printing)
+- "This should also print" - ✓ prints via implicit return (last statement of single-line function)
+'/
+
+//= Rule 8: Complex single-line function atoms
+
+If True, ($temp: "inner"; "this should print");
+/'
+Breakdown:
+- $temp: "inner" - ✗ doesn't print (assignment statement)
+- "this should print" - ✓ prints via implicit return (last statement of single-line function)
+'/
+
+If True, ($temp: "inner"; $other: "also inner"; $temp);
+/'
+Breakdown:
+- $temp: "inner" - ✗ doesn't print (assignment statement)
+- $other: "also inner" - ✗ doesn't print (assignment statement)
+- $temp - ✓ prints via implicit return (last statement returns "inner")
+'/
+
+//= Rule 9: Return statements in multiline functions override implicit behavior
+
+(
+    "this prints immediately";                    // ✓ prints: expression in multiline
+    $temp: "stored value";                       // ✗ doesn't print: assignment
+    return($temp);                               // ✓ explicit return overrides - returns "stored value"
+);
+
+//= SUMMARY OF RULES:
+
+/'
+EXPRESSION PRINTING LOGIC:
+1. Assignment statements (:, <:, :>) NEVER print in any context
+2. Expression statements (Text, numbers, variable invocations, arithmetic) normally print immediately
+3. EXCEPTION: Last statement of single-line function atom gets implicitly returned instead of printing
+4. Function atoms that don't execute (falsy If conditions) run no statements at all
+5. Explicit return() statements override all implicit behavior
+
+CONTEXTS:
+- Top-level: expressions print, assignments don't
+- Multiline function atoms (...): expressions print, assignments don't
+- Single-line function atoms (...): all statements except last print normally, last statement returns implicitly
+- If statements: execute their function atoms which follow the above rules
+- Non-executing contexts (falsy If): nothing runs at all
+'/

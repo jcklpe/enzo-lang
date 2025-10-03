@@ -12,3 +12,23 @@
 
 //= Divide by zero bug
 "Student Alice earned grade: A (Average: 90.75)"
+
+//= Nested rebinding behavior bug
+False
+True
+False
+True
+0
+6
+
+//= Arbitrarily deep nested scope
+"original"
+"Level1-If"
+"testing interior: 6levels_mixed"
+"6levels_mixed"
+"original2"
+"10levels_if"
+"original3"
+"8levels_func"
+0
+1

@@ -1,0 +1,8 @@
+Loop, (
+    "Outer started";
+    If True, (
+        "Inner text";
+    );
+    "Outer finished";
+    end-loop;
+);

@@ -1,0 +1,106 @@
+//= BUBBLE SORT
+
+// Helper function to get list length
+get-length: (
+    param $list: [];
+    $count: 0;
+    Loop for $item in $list, (
+        $count + 1 :> $count;
+    );
+    return($count);
+);
+
+// Very simple bubble sort that rebuilds the list each pass
+bubble-sort: (
+    param $list: [];
+    param $order: "ascending";
+
+    $length: $get-length($list);
+    If $length is less than 2, (
+        return($list);
+    );
+
+    $working-list: $list;
+    $pass-number: 1;
+
+    // Do n-1 passes
+    Loop while $pass-number is less than $length, (
+        $new-list: [];
+        $position: 1;
+
+        // Go through the list comparing adjacent elements
+        Loop while $position is less than $length, (
+            $current: $working-list.$position;
+            $next: $working-list.($position + 1);
+
+            $should-swap: False;
+            If $order is "ascending", (
+                If $current is greater than $next, (
+                    $should-swap <: True;
+                );
+            ), Else if $order is "descending", (
+                If $current is less than $next, (
+                    $should-swap <: True;
+                );
+            );
+
+            If $should-swap, (
+                // Add the smaller/larger element first
+                $new-list <: [<$new-list>, $next];
+                $new-list <: [<$new-list>, $current];
+            ), Else, (
+                // Keep original order
+                $new-list <: [<$new-list>, $current];
+                $new-list <: [<$new-list>, $next];
+            );
+
+            $position + 2 :> $position;  // Skip next since we processed both
+        );
+
+        // If odd number of elements, add the last one
+        If $position is $length, (
+            $last: $working-list.$position;
+            $new-list <: [<$new-list>, $last];
+        );
+
+        $new-list :> $working-list;
+        $pass-number + 1 :> $pass-number;
+    );
+
+    return($working-list);
+);
+
+//= Test with unsorted numbers (ascending)
+$numbers: [64, 34, 25, 12, 22, 11, 90];
+$bubble-sort($numbers, "ascending") :> $numbers;
+$numbers;
+
+//= Test with unsorted numbers (descending)
+$numbers2: [64, 34, 25, 12, 22, 11, 90];
+$bubble-sort($numbers2, "descending") :> $numbers2;
+$numbers2;
+
+//= Test empty list
+$empty: [];
+$bubble-sort($empty, "ascending") :> $empty;
+$empty;
+
+//= Test single element
+$single: [42];
+$bubble-sort($single, "ascending") :> $single;
+$single;
+
+//= Test already sorted list
+$sorted: [1, 2, 3, 4, 5];
+$bubble-sort($sorted, "ascending") :> $sorted;
+$sorted;
+
+//= Test reverse sorted list
+$reverse: [5, 4, 3, 2, 1];
+$bubble-sort($reverse, "ascending") :> $reverse;
+$reverse;
+
+//= Test with duplicate values
+$duplicates: [3, 1, 4, 1, 5, 9, 2, 6, 5];
+$bubble-sort($duplicates, "ascending") :> $duplicates;
+$duplicates;

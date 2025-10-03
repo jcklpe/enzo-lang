@@ -1,57 +1,106 @@
 //= BUBBLE SORT
 
-// Helper function to get the length of a list
+// Helper function to get list length
 get-length: (
     param $list: [];
-    $length: 0;
+    $count: 0;
     Loop for $item in $list, (
-        $length + 1 :> $length;
+        $count + 1 :> $count;
     );
-    return($length);
+    return($count);
 );
 
-// Bubble sort implementation
+// Helper function to swap two elements using list interpolation
+swap-at-positions: (
+    param $list: [];
+    param $pos1: 1;
+    param $pos2: 2;
+
+    // Use list interpolation to rebuild the list with swapped elements
+    $before-pos1: [];
+    $between: [];
+    $after-pos2: [];
+
+    // Build sections of the list
+    $index: 1;
+    Loop for $item in $list, (
+        If $index is less than $pos1, (
+            $before-pos1<: [<$before-pos1>, $item];
+        );
+        If $index is greater than $pos1 and $index is less than $pos2, (
+            $between<: [<$between>, $item];
+        );
+        If $index is greater than $pos2, (
+            $after-pos2<: [<$after-pos2>, $item];
+        );
+        $index + 1 :> $index;
+    );
+
+    // Rebuild with swapped elements
+    $new-list: [<$before-pos1>, $list.$pos2, <$between>, $list.$pos1, <$after-pos2>];
+    return($new-list);
+);
+
+// Much simpler bubble sort - just one pass at a time with simple swaps
 bubble-sort: (
     param $list: [];
     param $order: "ascending";
 
-    $length: $list then $get-length;
+    $length: $get-length($list);
+    If $length is less than 2, (
+        return($list);
+    );
 
-    // Outer loop for passes (we need n-1 passes)
-    $current-pass: 1;
-    Loop while $current-pass is less than $length, (
-        // Inner loop for comparisons within this pass
-        $current-index: 1;
-        $max-index: $length - $current-pass;
-        Loop while $current-index is at most $max-index, (
-            $next-index: $current-index + 1;
-            $current-element: $list.$current-index;
-            $next-element: $list.$next-index;
+    $current-list: $list;
+    $pass: 1;
+
+    // Do multiple passes
+    Loop while $pass is less than $length, (
+        $position: 1;
+
+        // One pass through the list
+        Loop while $position is less than $length, (
+            $current-elem: $current-list.$position;
+            $next-elem: $current-list.($position + 1);
 
             $should-swap: False;
-
             If $order is "ascending", (
-                If $current-element is greater than $next-element, (
+                If $current-elem is greater than $next-elem, (
                     $should-swap <: True;
                 );
-            ), Else, (
-                If $current-element is less than $next-element, (
+            ), Else if $order is "descending", (
+                If $current-elem is less than $next-elem, (
                     $should-swap <: True;
                 );
             );
 
             If $should-swap, (
-                // Swap elements
-                $next-element :> $list.$current-index;
-                $current-element :> $list.$next-index;
+                // Simple swap by rebuilding entire list
+                $new-list: [];
+                $rebuild-pos: 1;
+
+                Loop while $rebuild-pos is at most $length, (
+                    If $rebuild-pos is $position, (
+                        $new-list <: [<$new-list>, $next-elem];
+                    ), Else if $rebuild-pos is ($position + 1), (
+                        $new-list <: [<$new-list>, $current-elem];
+                    ), Else, (
+                        $elem: $current-list.$rebuild-pos;
+                        $new-list <: [<$new-list>, $elem];
+                    );
+                    $rebuild-pos + 1 :> $rebuild-pos;
+                );
+
+                $new-list :> $current-list;
             );
 
-            $current-index + 1 :> $current-index;
+            $position + 1 :> $position;
         );
-        $current-pass + 1 :> $current-pass;
+
+        $pass + 1 :> $pass;
     );
 
-    return($list);
+    return($current-list);
 );
 
 //= Test with unsorted numbers (ascending)

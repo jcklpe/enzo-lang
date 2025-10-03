@@ -1,0 +1,16 @@
+//= END-LOOP AFFECTS INNERMOST LOOP ONLY
+Loop, (
+    "Outer loop started";
+    $inner-count: 0;
+    Loop, (
+        "Inner loop running";
+        $inner-count + 1 :> $inner-count;
+        If $inner-count is 1, (
+                "ending inner loop";
+                end-loop; // should only end the inner loop
+        );
+    );
+    "Inner loop finished";
+    end-loop; // end the outer loop
+    "shouldn't print";
+);

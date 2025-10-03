@@ -1,0 +1,6 @@
+//= FOR LOOP OVER LIST OF LISTS
+$list-of-lists: [[1, 2], ["a", "b"]];
+Loop for $inner in $list-of-lists, (
+    "Inner List: <$inner>"; // prints [1, 2] then ["a", "b"]
+    $inner.1; // prints 1, then "a"
+);

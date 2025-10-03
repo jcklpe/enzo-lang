@@ -36,8 +36,62 @@ test_scoping_case("Function variable rebind",
     "test_func: ($x: 5; 10 :> $x; return($x);); test_func();")
 
 # Test 5: Loop without rebinding in function (might work)
-test_scoping_case("Function loop without rebind",
-    "test_func: ($numbers: [1, 2, 3]; Loop for $num in $numbers, ($num;); return(\"done\");); test_func();")
+#!/usr/bin/env python3
+
+import sys
+sys.path.append('..')
+
+from src.evaluator import eval_ast, _env, _initialize_builtin_variants
+from src.enzo_parser.parser import parse
+
+# Reset environment for clean testing but preserve built-ins
+_env.clear()
+_initialize_builtin_variants()
+
+test_code = '''
+// Test variable scoping in nested loops
+test-variable-scoping: (
+    $outer-var: True;
+    "Initial outer-var:";
+    $outer-var;
+
+    $iteration: 0;
+
+    Loop while $outer-var, (
+        $iteration + 1 :> $iteration;
+        "=== Iteration";
+        $iteration;
+
+        "outer-var at start of loop:";
+        $outer-var;
+
+        $outer-var <: False;
+        "Set outer-var to:";
+        $outer-var;
+
+        If $iteration is greater than 2, (
+            "Safety break";
+            return("broken");
+        );
+    );
+
+    "Final outer-var:";
+    $outer-var;
+    return("completed");
+);
+
+$test-variable-scoping();
+'''
+
+print("=== VARIABLE SCOPING TEST ===")
+try:
+    ast = parse(test_code)
+    result = eval_ast(ast)
+    print("Scoping test completed")
+except Exception as e:
+    print(f"Error: {e}")
+    import traceback
+    traceback.print_exc()
 
 # Test 6: Count in loop
 test_scoping_case("Function count in loop",

@@ -73,7 +73,6 @@ reverse($list) // reverses the content order of the list
 get-length($list) // gets the length of the List
 get-range($list); // gets the range of a List(?)
 /` not yet vetted fully
-get-length($list) - return length
 is-empty($list) - check if empty
 copy($list) - create new copy
 slice($list, $start, $end) - extract portion
