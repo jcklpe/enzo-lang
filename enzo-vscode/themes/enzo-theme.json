@@ -52,14 +52,21 @@
     },
     {
       "scope": [
-        "entity.name.function.enzo",
         "entity.name.function.definition.enzo",
-        "entity.name.function.call.enzo",
-        "keyword.control.return.enzo",
-        "support.type.function.enzo"
+        "entity.name.function.enzo",
+        "entity.name.function.call.enzo"
       ],
       "settings": {
         "foreground": "#1290bf"
+      }
+    },
+    {
+      "scope": [
+        "keyword.control.return.enzo",
+        "entity.name.type.blueprint.instantiation.enzo"
+      ],
+      "settings": {
+        "foreground": "#5379c1"
       }
     },
     {
@@ -71,7 +78,7 @@
         "entity.name.type.variant.enzo"
       ],
       "settings": {
-        "foreground": "#5379c1"
+        "foreground": "#7c60af"
       }
     },
     {
@@ -102,7 +109,11 @@
         "variable.other.property.enzo",
         "variable.other.property.numeric.enzo",
         "variable.parameter.blueprint.enzo",
-        "keyword.operator.reference.enzo"
+        "keyword.operator.reference.enzo",
+        "keyword.operator.spread.begin.enzo",
+        "keyword.operator.spread.end.enzo",
+        "punctuation.section.embedded.begin.enzo",
+        "punctuation.section.embedded.end.enzo"
       ],
       "settings": {
         "foreground": "#dd464c"
@@ -110,12 +121,25 @@
     },
     {
       "scope": [
+        "keyword.operator.rebind.enzo",
+        "keyword.operator.immediate.enzo",
+        "keyword.operator.assignment.enzo",
+        "keyword.operator.append.enzo"
+      ],
+      "settings": {
+        "foreground": "#ec8b55"
+      }
+    },
+    {
+      "scope": [
         "variable.other.reference.enzo",
         "variable.function.call.enzo",
         "support.type.list.enzo",
+        "support.type.function.enzo",
         "keyword.operator.function-reference.enzo",
-        "keyword.control.enzo"
-    ],
+        "keyword.control.enzo",
+        "entity.name.function.property.enzo"
+      ],
       "settings": {
         "foreground": "#00a3a4"
       }
@@ -133,8 +157,19 @@
       }
     },
     {
+      "scope": ["keyword.other.and.enzo"],
+      "settings": {
+        "foreground": "#c85e7c"
+      }
+    },
+    {
+      "scope": ["punctuation.definition.type.enzo"],
+      "settings": {
+        "foreground": "#ec8b55"
+      }
+    },
+    {
       "scope": [
-        "keyword.operator.assignment.enzo",
         "keyword.operator.arithmetic.enzo",
         "keyword.operator.comparison.enzo",
         "constant.language.empty.enzo",
