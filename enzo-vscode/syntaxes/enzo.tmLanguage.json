@@ -33,10 +33,10 @@
       "include": "#type-checks"
     },
     {
-      "include": "#variable-references"
+      "include": "#property-access"
     },
     {
-      "include": "#property-access"
+      "include": "#variable-references"
     },
     {
       "include": "#function-definitions"
@@ -588,11 +588,26 @@
     "property-access": {
       "patterns": [
         {
+          "name": "meta.property-access.function-reference.chained.enzo",
+          "match": "(@)([a-zA-Z_\\-][a-zA-Z0-9_\\-]*)((\\.[a-zA-Z_][a-zA-Z0-9_\\-]*)+)",
+          "captures": {
+            "1": {
+              "name": "keyword.operator.function-reference.enzo"
+            },
+            "2": {
+              "name": "variable.other.reference.enzo"
+            },
+            "3": {
+              "name": "entity.name.function.property.enzo"
+            }
+          }
+        },
+        {
           "name": "meta.property-access.function-reference.enzo",
           "match": "@([a-zA-Z_\\-][a-zA-Z0-9_\\-]*)(\\.)([a-zA-Z_][a-zA-Z0-9_\\-]*)",
           "captures": {
             "1": {
-              "name": "variable.other.enzo"
+              "name": "variable.other.reference.enzo"
             },
             "2": {
               "name": "punctuation.accessor.enzo"
