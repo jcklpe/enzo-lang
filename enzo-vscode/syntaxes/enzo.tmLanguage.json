@@ -48,10 +48,10 @@
       "include": "#variables"
     },
     {
-      "include": "#function-calls"
+      "include": "#keywords"
     },
     {
-      "include": "#keywords"
+      "include": "#function-calls"
     },
     {
       "include": "#operators"
