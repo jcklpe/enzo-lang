@@ -1271,6 +1271,7 @@ If $status-else, (
   "Won't print";),
 Else, (
   "Fallback triggered"; // should print
+  "Every invoked atom should trigger in the Function atom"; // should print
 );
 
 //= NOT CONDITION FALSE
@@ -3269,3 +3270,133 @@ $bob: Student[
 $alice.get_grade()
     then ("Student <$alice.name> earned grade: <$this>")
     then ("<$this> (Average: <$alice.calculate_average()>)");
+
+//= Nested rebinding behavior bug
+// Test case for rebinding operators inside If statements
+// This currently fails due to scoping bug where rebinding inside
+// conditional blocks doesn't propagate to outer scope
+
+// Test 1: Simple rebinding with <:
+$test_rebind_simple: False;
+$test_rebind_simple; // returns False
+
+If 64 is greater than 34, (
+    $test_rebind_simple <: True;
+);
+$test_rebind_simple; //returns True
+
+// Test 2: Nested If rebinding (bubble sort pattern)
+$test_rebind_nested: False;
+$order: "ascending";
+$test_rebind_nested; // returns False
+
+If $order is "ascending", (
+    If 64 is greater than 34, (
+        $test_rebind_nested <: True;
+    );
+);
+$test_rebind_nested; // returns True
+
+// Test 3: Compare with working Loop rebinding
+$test_loop_rebind: 0;
+$test_loop_rebind;  // returns 0
+
+$numbers-misc: [1, 2, 3];
+Loop for $num in $numbers-misc, (
+    $test_loop_rebind + $num :> $test_loop_rebind;
+);
+$test_loop_rebind;  // returns 6
+
+//= Arbitrarily deep nested scope
+// Test 6-level nesting with mixed function types
+$deep_test: "original";
+$deep_test; // returns "original"
+
+If True, (
+    "Level1-If";  // returns "Level1-If"
+    ($x: 1; // Level2-Function
+        Loop for $i in [1], ( // Level3-Loop
+            If True, ( // Level4-If
+                ($y: 2; // Level5-Function
+                    If True, ( // Level6-If
+                        $deep_test <: "6levels_mixed";
+                        "testing interior: <$deep_test;>";
+                    );
+                );
+            );
+        );
+    );
+);
+$deep_test; // returns "6levels_mixed"
+
+// Test 10-level nesting pure conditionals
+$deep_test2: "original2";
+$deep_test2;  // returns "original2"
+
+If True, (
+    If True, (
+        If True, (
+            If True, (
+                If True, (
+                    If True, (
+                        If True, (
+                            If True, (
+                                If True, (
+                                    If True, (
+                                        $deep_test2 <: "10levels_if";
+                                    );
+                                );
+                            );
+                        );
+                    );
+                );
+            );
+        );
+    );
+);
+$deep_test2;  // returns "10levels_if"
+
+// Test 8-level nesting pure functions
+$deep_test3: "original3";
+$deep_test3;  // returns "original3"
+
+($a: 1;
+    ($b: 2;
+        ($c: 3;
+            ($d: 4;
+                ($e: 5;
+                    ($f: 6;
+                        ($g: 7;
+                            ($h: 8;
+                                $deep_test3 <: "8levels_func";
+                            );
+                        );
+                    );
+                );
+            );
+        );
+    );
+);
+$deep_test3;  // returns "8levels_func"
+
+// Test 7-level nesting pure loops
+$deep_test4: 0;
+$deep_test4;  // returns 0
+
+$ones: [1];
+Loop for $a in $ones, (
+    Loop for $b in $ones, (
+        Loop for $c in $ones, (
+            Loop for $d in $ones, (
+                Loop for $e in $ones, (
+                    Loop for $f in $ones, (
+                        Loop for $g in $ones, (
+                            $deep_test4 + 1 :> $deep_test4;
+                        );
+                    );
+                );
+            );
+        );
+    );
+);
+$deep_test4;  // returns 1

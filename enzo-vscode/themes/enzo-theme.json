@@ -53,6 +53,7 @@
     },
     {
       "scope": [
+        "keyword.control.return.enzo",
         "entity.name.function.definition.enzo",
         "entity.name.function.enzo",
         "entity.name.function.call.enzo",
@@ -64,12 +65,12 @@
     },
     {
       "scope": [
-        "keyword.control.return.enzo",
         "entity.name.type.blueprint.instantiation.enzo",
         "punctuation.definition.blueprint.begin.enzo",
         "punctuation.definition.blueprint.end.enzo",
         "punctuation.definition.blueprint.angle.enzo",
-        "entity.name.type.blueprint.enzo"
+        "entity.name.type.blueprint.enzo",
+        "entity.name.type.variant.enzo"
       ],
       "settings": {
         "foreground": "#5379c1"
@@ -77,20 +78,13 @@
     },
     {
       "scope": [
-        "entity.name.type.variant.enzo"
+        "entity.name.type.variant-group.enzo",
+        "keyword.other.variants.enzo",
+        "constant.language.status.enzo",
+        "entity.name.type.reference.enzo"
       ],
       "settings": {
         "foreground": "#7c60af"
-      }
-    },
-    {
-      "scope": [
-        "entity.name.type.variant-group.enzo",
-        "keyword.other.variants.enzo",
-        "constant.language.status.enzo"
-      ],
-      "settings": {
-        "foreground": "#a45caf"
       }
     },
     {
@@ -137,7 +131,6 @@
         "variable.other.reference.enzo",
         "variable.function.call.enzo",
         "support.type.list.enzo",
-
         "keyword.operator.function-reference.enzo",
         "keyword.control.enzo",
         "entity.name.function.property.enzo"
