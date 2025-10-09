@@ -12,9 +12,7 @@ I'd love feedback but keep in mind this is basically a kid drawing racecars and 
 
 Instead it is just an expression of perspective. I like this syntax. It makes sense to me. Designing it, and then engaging with it's implementation taught me a lot about programming, ironic in a project where the vast majority of code was implemented via LLM assistance.
 
-Also want to give a shout out to the ["Quorum Language Project"](https://quorumlanguage.com/) for opening my eyes to the intersection between UX practice and syntax design. One reason why I make the art project distinction is that Quorum seeks to apply the empirical method to finding out how different syntax features measurably effect performance on programming benchmarks. Enzo does not. Much like a painting sometimes I feel like something should be one way or the other one day to the next. I would be curious to see how empirical results might actually turn out
-
-The way I got the idea to try and actually implement Enzo was when I was taking a Javascript course and was trying to wrap my head around destructuring. I had trouble reading the syntax, and so I asked an LLM to give me an example of what destructuring would look like with a syntax in the style of Enzo, and fed it the markdown language spec doc I'd been working on.
+Also want to give a shout out to the ["Quorum Language Project"](https://quorumlanguage.com/) for opening my eyes to the intersection between UX practice and syntax design. One reason why I make the art project distinction is that Quorum seeks to apply the empirical method to finding out how different syntax features measurably effect performance on programming benchmarks. Enzo does not. It is merely a toy I used to learn more about programming.
 
 ## Comments
 ```javascript!
