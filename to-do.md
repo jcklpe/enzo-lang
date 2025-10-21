@@ -1,4 +1,9 @@
 - implement classic algos
+- blueprint extension with inheritance
+- polymorphism
+- builtin functions
+- casting solutions?
+- implement partial application
 - named rebinding for function arguments
 - forbid concatenation of text, create error test cases
 - Loop from 1 to 10, ($i; ...);
@@ -13,9 +18,6 @@
 - divide by zero errors
 - floating point math
 - destructuring blueprint instances (instances are like lists but we haven't actually shown any destructuring of a blueprint instance)
-- blueprint extension with inheritance
-- builtin functions
-- casting solutions?
 - is odd/even conditional?
 - squaring operators?
 - inverse exponent?

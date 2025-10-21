@@ -1173,7 +1173,7 @@ If $colors either contains "yellow", (
     "There's a yellow in the mix!";  // This will fire
 ),
 or is ["blue", "green", "yellow"], (
-    "It matches the specific color set!"; // This will also fire
+    "It matches the specific color set!"; // This will not fire as the first one fired already. 
 );
 Otherwise, (
     "All other cases failed";

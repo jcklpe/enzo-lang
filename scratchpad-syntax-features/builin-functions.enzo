@@ -81,8 +81,6 @@ contains($list, $item) - check if item exists
 sort($list) - return new sorted list
 filter($list, $predicate) - return filtered list
 map($list, $function) - return transformed list
-
-
 `/
 
 // trying to keep most things global but perhaps casting makes sense.

@@ -3400,3 +3400,90 @@ Loop for $a in $ones, (
     );
 );
 $deep_test4;  // returns 1
+
+//= PASSING BY VALUE (COPY) - DEFAULT BEHAVIOR
+$original-copy: [1, 2, 3];
+
+modify-copy: (
+    param $list: ;
+    $list.1 <: 99;
+    $list;  // show modified copy
+);
+
+modify-copy($original-copy);  // passes a copy
+$original-copy;  // should still be [1, 2, 3]
+
+//= PASSING BY REFERENCE - EXPLICIT WITH @
+$original-ref: [1, 2, 3];
+
+modify-reference: (
+    param $list: ;
+    $list.1 <: 99;
+    $list;  // show modified reference
+);
+
+modify-reference(@original-ref);  // passes reference
+$original-ref;  // should now be [99, 2, 3] - modified!
+
+//= PARAMETER DEFAULT DOESN'T CHANGE REFERENCE BEHAVIOR
+$original-with-default: [1, 2, 3];
+
+modify-with-default: (
+    param $list: [];  // has default value
+    $list.1 <: 99;
+);
+
+modify-with-default(@original-with-default);  // still modifies original
+$original-with-default;  // should be [99, 2, 3]
+
+//= PASSING REFERENCE TO NESTED STRUCTURE
+$nested-original-1: [$inner: [10, 20, 30]];
+
+modify-nested: (
+    param $data: ;
+    $data.inner.2 <: 999;
+);
+
+modify-nested(@nested-original-1);
+$nested-original-1;  // should be [$inner: [10, 999, 30]]
+
+//= LIST OF REFERENCES
+$list1: [1, 2, 3];
+$list2: [4, 5, 6];
+
+batch-modify: (
+    param $lists: ;
+    $lists.1.1 <: 99;  // modify first list's first element
+    $lists.2.1 <: 88;  // modify second list's first element
+);
+
+batch-modify([@list1, @list2]);  // pass references in a list
+$list1;  // should be [99, 2, 3]
+$list2;  // should be [88, 5, 6]
+
+//= MIXED COPY AND REFERENCE IN SAME CALL
+$ref-item: [100, 200];
+$copy-item: [300, 400];
+
+mixed-modify: (
+    param $ref-param: ;
+    param $copy-param: ;
+    $ref-param.1 <: 111;
+    $copy-param.1 <: 333;
+);
+
+mixed-modify(@ref-item, $copy-item);
+$ref-item;   // should be [111, 200] - modified
+$copy-item;  // should be [300, 400] - unchanged
+
+//= STORING REFERENCE IN VARIABLE THEN PASSING
+$data-1: [7, 8, 9];
+$data-ref: @data-1;
+
+modify-stored-ref: (
+    param $item: ;
+    $item.1 <: 777;
+);
+
+modify-stored-ref($data-ref);  // pass the stored reference
+$data-1;  // should be [777, 8, 9] - modified through stored reference

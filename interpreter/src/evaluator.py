@@ -348,6 +348,12 @@ def _infer_type_from_default(default_value):
 def _get_enzo_type(value):
     """Get the Enzo type name for a runtime value."""
     from src.runtime_helpers import EnzoList
+
+    # If value is a ReferenceWrapper, dereference it to get the actual type
+    if isinstance(value, ReferenceWrapper):
+        deref_value = value.get_value()
+        return _get_enzo_type(deref_value)
+
     if isinstance(value, (int, float)):
         return "Number"
     elif isinstance(value, str):
@@ -1026,16 +1032,19 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             raise EnzoRuntimeError(error_message_unknown_variable(name), code_line=node.code_line)
         val = env[name]
 
-        # Handle reference wrapper: return the current value of the reference
+        # Handle reference wrapper
         if isinstance(val, ReferenceWrapper):
+            # If value_demand=False, return the ReferenceWrapper itself (for function arguments)
+            if not value_demand:
+                return val
+            # Otherwise, dereference and return the current value
             referenced_val = val.get_value()
             # Check if the referenced value is a function
             if isinstance(referenced_val, EnzoFunction):
                 # Auto-invoke functions when referenced with $ sigil in value_demand context
-                if value_demand:
-                    if not name.startswith('$'):
-                        raise EnzoRuntimeError("error: expected function reference (@) or function invocation ($)", code_line=node.code_line)
-                    return invoke_function(referenced_val, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env, loop_locals=None)
+                if not name.startswith('$'):
+                    raise EnzoRuntimeError("error: expected function reference (@) or function invocation ($)", code_line=node.code_line)
+                return invoke_function(referenced_val, [], env, self_obj=None, is_loop_context=is_loop_context, outer_env=outer_env, loop_locals=None)
             return referenced_val
 
         # Handle list element reference: return the current value of the list element
@@ -1100,6 +1109,11 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
             # Handle @object.method
             try:
                 base_val = eval_ast(target.base, value_demand=True, env=env)
+
+                # Dereference if base_val is a ReferenceWrapper
+                if isinstance(base_val, ReferenceWrapper):
+                    base_val = base_val.get_value()
+
                 if isinstance(base_val, EnzoList):
                     prop_name = target.index.value
                     try:
@@ -1686,6 +1700,11 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
         raise EnzoRuntimeError(error_message_cannot_bind_target(target), code_line=getattr(node, 'code_line', None))
     if isinstance(node, ListIndex):
         base = eval_ast(node.base, env=env)
+
+        # Dereference if base is a ReferenceWrapper
+        if isinstance(base, ReferenceWrapper):
+            base = base.get_value()
+
         idx = eval_ast(node.index, env=env)
         t_code_line = getattr(node, 'code_line', code_line)
 
@@ -2287,7 +2306,11 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                 try:
                     # Re-evaluate the iterable on each iteration for true live iteration
                     # This allows modifications to the list variable to be immediately visible
-                    current_iterable = eval_ast(node.iterable, env=env, is_loop_context=is_loop_context)
+                    current_iterable = eval_ast(node.iterable, env=env, is_loop_context=is_loop_context, value_demand=True)
+
+                    # Dereference if we got a ReferenceWrapper
+                    if isinstance(current_iterable, ReferenceWrapper):
+                        current_iterable = current_iterable.get_value()
 
                     # Ensure it's iterable
                     if not isinstance(current_iterable, (list, EnzoList)):

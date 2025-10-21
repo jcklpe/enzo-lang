@@ -1,0 +1,116 @@
+//1.  polymorphism using inheritance overrides for implementation details. (single-dispatch polymorphism)
+Animal: <[ speak:() ]>;
+Dog extends Animal: <[ speak: ( say("Woof!") ); ]>;
+Cat extends Animal: <[ speak: ( say("Meow!") ); ]>;
+
+// alternative interpolation approach (uses curly braces because too many angle brackets otherwise)
+Dog: {[
+  <Animal> as {[speak:(say("Woof!"))]},
+]};
+
+//2. composing in Function implementation without hierarchy
+Can-Speak: <[ speak: () ]>;
+
+Animal: <[
+    name: Text,
+    location: [Number, Number, Number]
+]>;
+
+// Compose together Blueprints and specify implementation overrides
+Dog: Animal as <[ name: "Rover" ]> and Can-Speak as <[
+  speak: ( "Woof!" )
+]>;
+
+Cat: Animal as <[ name: "Mittens" ]> and Can-Speak as <[
+  speak: ( "Meow!" )
+]>;
+
+// 3. "open extension" of Function implementation without having to edit subclass definition
+Can-Speak: <[ speak: ()]>;
+Dog implements Can-Speak: <[
+  speak: ( "Woof!" )
+]>;
+
+// 4. Blueprint and variant group composition via interpolation:
+Humanoid:       <[ tool-use: "true", locomotion: "bipedal" ]>;
+Night-Creature: <[ dark-vision: "true" ]>;
+Small:          <[ size: "small" ]>;
+
+Goblin: <[
+  <Humanoid>,
+  <Night-Creature>,
+  <Small>,
+  hp: 100,
+  has-dagger: "true"
+]>;
+// Precedence rule (simple and predictable): last write wins. If both <Humanoid> and <Small> had size, the later one in the list wins.
+
+// allow renaming similar to destructuring:
+Aquatic: <[ speed: 20, move: ( "swims" ) ]>;
+Land:    <[ speed: 10, move: ( "walks" ) ]>;
+
+Amphibian: <[
+  <Aquatic move->swim>,   // keep both behaviors under different names
+  <Land   move->walk>,
+]>;
+
+// variant group via interpolation
+Core-Enemies variants: Goblin or Orc;
+Bosses variants: Dragon or Lich;
+
+Enemy variants: <Core-Enemies> or <Bosses>;
+
+
+
+
+
+
+// Scratch
+//- random idea for conditional composition:
+$hard-mode: "true";
+
+Goblin: <[
+  <Humanoid>,
+  <Night-Creature>,
+  hp: 100,
+  If $hard-mode, (<[ rage: 25 ]>)
+]>;
+
+//- parameterized Blueprint variant groups:
+Make-Slime: (
+  param $color: "green";
+  Slime-<$color>: <[ hp: 30, color: $color ]>
+);
+
+// Expand into named variants
+Slime variants: <[
+  <Make-Slime("green")>,
+  <Make-Slime("red")>
+]>;
+
+//- interesting idea about computing/interpolating base Blueprints
+Scale-Stats: (
+  param $pack: [];
+  param $mult: 1;
+  <[
+    hp: $pack.hp * $mult,
+    damage: $pack.damage * $mult
+  ]>
+);
+
+Base-Stats: <[ hp: 50, damage: 7 ]>;
+
+Goblin: <[
+  <Humanoid>,
+  <Base-Stats then Scale-Stats($this, 2)>,  /' hp=100, damage=14 '/
+]>;
+
+//- Interpolation open extension
+// use this instead of includes for open extension
+Status variants <: <Status> or Loading or Dead;
+
+// use this instead of implements
+Can-Speak: <[ speak: ()]>;
+Dog<: <Dog> and Can-Speak as <[
+  speak: ( "Woof!" )
+]>;
