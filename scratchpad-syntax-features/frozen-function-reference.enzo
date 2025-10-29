@@ -1,0 +1,34 @@
+// how to do a thunk, where there's a function reference that already has selected arguments
+
+// existing way that it could be done: (untested)
+// Your action:
+my_action_func: (
+  param $x: ;
+  param $y: ;
+  // ... do stuff ...
+);
+
+// The button API expects a function it can call later:
+draw_button: (
+  param $on_click: ();   // a function object
+  // ... later, in the event handler:
+  $on_click();
+);
+
+// Call site — pass a "frozen call" as a thunk:
+draw_button(@( my_action_func(1, 2) ));
+
+
+// OR do it this way
+
+draw_button: (
+  param $on_click: ();   // will be called with args later
+  // later…
+  $on_click(1, 2);       // supply at click time
+);
+
+draw_button(@my_action_func);
+
+// BUT the proper dedicated syntax should probably just be this:
+draw-button(@my-action-function(1, 2));
+// which mirrors what partial application does.

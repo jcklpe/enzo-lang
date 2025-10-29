@@ -1,37 +1,42 @@
-//1.  polymorphism using inheritance overrides for implementation details. (single-dispatch polymorphism)
-Animal: <[ speak:() ]>;
-Dog extends Animal: <[ speak: ( say("Woof!") ); ]>;
-Cat extends Animal: <[ speak: ( say("Meow!") ); ]>;
+//1. Inheritance via interpolated extension and polymorphic overrides
+Animal: <[
+  name: Text,
+  speak: ()
+]>;
 
-// alternative interpolation approach (uses curly braces because too many angle brackets otherwise)
-Dog: {[
-  <Animal> as {[speak:(say("Woof!"))]},
-]};
+// Interpolate + override = inferred Dog child of Animal
+Dog: <[
+  <Animal>,                 // basis for subtyping
+  name: "Rover",            // width extension is fine
+  speak: ( "Woof!" )        // override must be type-compatible
+]>;
 
-//2. composing in Function implementation without hierarchy
+// open extension (rebinding) adds an id & refines speak
+Dog <: <[
+  <Dog>,
+  id: "DOG-001",
+  speak: ( "WOOF!!" )   /' must remain compatible with Animal.speak '/
+]>;
+
+// variant group via interpolation
+Core-Enemies variants: Goblin or Orc;
+Bosses variants: Dragon or Lich;
+
+Enemy variants: <Core-Enemies> or <Bosses>;
+
+// open extension for Blueprint variant groups, this would replace existing `include` syntax
+Status variants <: <Status> or Loading or Dead;
+
+// potential override conflict resolved by list order
 Can-Speak: <[ speak: () ]>;
 
-Animal: <[
-    name: Text,
-    location: [Number, Number, Number]
+Dog <: <[
+  <Dog>,
+  <Can-Speak>,          /' harmless if already present; you still control the final value '/
+  speak: ( "Woof!" ) // this overrides both Dog and Can-Speak
 ]>;
 
-// Compose together Blueprints and specify implementation overrides
-Dog: Animal as <[ name: "Rover" ]> and Can-Speak as <[
-  speak: ( "Woof!" )
-]>;
-
-Cat: Animal as <[ name: "Mittens" ]> and Can-Speak as <[
-  speak: ( "Meow!" )
-]>;
-
-// 3. "open extension" of Function implementation without having to edit subclass definition
-Can-Speak: <[ speak: ()]>;
-Dog implements Can-Speak: <[
-  speak: ( "Woof!" )
-]>;
-
-// 4. Blueprint and variant group composition via interpolation:
+// more examples of Blueprint and variant group composition via interpolation:
 Humanoid:       <[ tool-use: "true", locomotion: "bipedal" ]>;
 Night-Creature: <[ dark-vision: "true" ]>;
 Small:          <[ size: "small" ]>;
@@ -46,26 +51,38 @@ Goblin: <[
 // Precedence rule (simple and predictable): last write wins. If both <Humanoid> and <Small> had size, the later one in the list wins.
 
 // allow renaming similar to destructuring:
-Aquatic: <[ speed: 20, move: ( "swims" ) ]>;
-Land:    <[ speed: 10, move: ( "walks" ) ]>;
+Aquatic: <[ speed: 20, move: ( "swims <self.speed> units" ) ]>;
+Land:    <[ speed: 10, move: ( "walks <self.speed> units" ) ]>;
 
 Amphibian: <[
-  <Aquatic move->swim>,   // keep both behaviors under different names
-  <Land   move->walk>,
+  <Aquatic>,
+  move->swim,    // keep both behaviors under different names
+  speed->water-speed,
+  <Land>,
+  move->walk,
+  speed->land-speed
 ]>;
 
-// variant group via interpolation
-Core-Enemies variants: Goblin or Orc;
-Bosses variants: Dragon or Lich;
+$frog: Amphibian[];
+$frog.swim; // returns "swims 20 units"
+$frog.walk; // returns "swims 10 units"
+$frog; /' returns
+[
+  $water-speed: 20,
+  swim: ("swims <self.speed> units"),
+  $land-speed: 10,
+  swim: ("walks <self.speed> units"),
+]
+'/
+// does this renaming stuff make it potentially difficult to trace parent functions?
 
-Enemy variants: <Core-Enemies> or <Bosses>;
+// notes on how subtyping should work
+make-it-talk: (param $a: Animal; $a.speak());
+make-it-talk($Dog);  // works because Dog includes <Animal>
 
 
 
-
-
-
-// Scratch
+// Scratch notes
 //- random idea for conditional composition:
 $hard-mode: "true";
 
@@ -114,3 +131,59 @@ Can-Speak: <[ speak: ()]>;
 Dog<: <Dog> and Can-Speak as <[
   speak: ( "Woof!" )
 ]>;
+
+//- more scratch
+// alternative interpolation approach (uses curly braces because too many angle brackets otherwise)
+Dog: {[
+  <Animal> as {[speak:(say("Woof!"))]},
+]};
+
+//- extends syntax  polymorphism using inheritance overrides for implementation details. (single-dispatch polymorphism)
+Animal: <[ speak:() ]>;
+Dog extends Animal: <[ speak: ( say("Woof!") ); ]>;
+Cat extends Animal: <[ speak: ( say("Meow!") ); ]>;
+
+// composing in Function implementation without hierarchy
+Can-Speak: <[ speak: () ]>;
+
+Animal: <[
+    name: Text,
+    location: [Number, Number, Number]
+]>;
+
+// Compose together Blueprints and specify implementation overrides
+Dog: Animal as <[ name: "Rover" ]> and Can-Speak as <[
+  speak: ( "Woof!" )
+]>;
+
+Cat: Animal as <[ name: "Mittens" ]> and Can-Speak as <[
+  speak: ( "Meow!" )
+]>;
+//"open extension" of Function implementation without having to edit subclass definition
+Can-Speak: <[ speak: ()]>;
+Dog implements Can-Speak: <[
+  speak: ( "Woof!" )
+]>;
+>>>>>>>>>>>>>>>[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}}}}}}}}}}}}}}}}}}))))))))))))))))))))))))))))))))))))))))
+
+If $score is greater than 90, (
+    "Excellent!";
+);
+Else if $age is at least 18 and at most 65, (
+    "Working age";
+);
+Else, ("Else fallback");
+
+
+// By default, everything is copy-by-value
+$original: [1, 2, 3];
+$copy: $original;
+$copy.1 <: 999;
+$original;  // Still [1, 2, 3]
+$copy;      // Now [999, 2, 3]
+
+// Use @ for references
+$ref: @original;
+$ref.1 <: 777;
+$original;  // Now [777, 2, 3]
+$ref;       // Also [777, 2, 3]

@@ -7,3 +7,4 @@ $list.get-length; // built in function. Though I'd prefer a global built-in func
 $list.is-empty;
 $list.first; // first element in the list
 $list.last; // last element in the list
+// does this mean these become reserved keynames then? Do they show up when a list is printed? Seems like they should in order to not be implicit
