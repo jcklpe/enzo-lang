@@ -1,4 +1,4 @@
-//1. Inheritance via interpolated extension and polymorphic overrides
+//Inheritance via interpolated extension and polymorphic overrides
 Animal: <[
   name: Text,
   speak: ()
@@ -35,8 +35,44 @@ Dog <: <[
   <Can-Speak>,          /' harmless if already present; you still control the final value '/
   speak: ( "Woof!" ) // this overrides both Dog and Can-Speak
 ]>;
+>>>>>>>>>>>>>>>>]]]]]]]]]]]]]
 
-// more examples of Blueprint and variant group composition via interpolation:
+// Blueprint inheritance and composition via interpolation
+
+Animal: <[
+    position: [Number, Number, Number],
+    name: ""
+    say-name: (
+      return("Hi my name is <$self.name>");
+    )
+]>;
+
+Flying: <[
+    wings: "true",
+    fly: (
+        param $height: 10;
+        return("Flying at height <$height>");
+    )
+]>;
+
+Swimming: <[
+    fins: "true",
+    swim: (
+        $water-speed: Number,
+        return("Swimming at speed of <$water-speed>");
+    )
+]>;
+
+Duck: <[
+  <Animal>,
+  <Flying>,
+  <Swimming>
+]>
+
+// Combining two blueprints
+Duck: Animal and Flying-Animal and Swimming-Animal;
+
+// more examples of Blueprint composition via interpolation:
 Humanoid:       <[ tool-use: "true", locomotion: "bipedal" ]>;
 Night-Creature: <[ dark-vision: "true" ]>;
 Small:          <[ size: "small" ]>;
