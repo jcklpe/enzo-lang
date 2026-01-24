@@ -1,0 +1,46 @@
+// concurrent operation similar to bash's parallel job execution?
+// bash example: ( job1 ) & ( job2 ) & wait
+// so something like
+( x + 5 ), with ( function50(); )
+// using with instead of and since and is a little overloaded, could also use `alongside` but it's kind of wordy
+
+// non single line
+(
+    $x: !(5 + 5);
+    $y: !(6 + 6);
+    return($y - $x)
+), with
+(
+    $x: !(5 + 5);
+    $y: !(6 + 6);
+    return($y + $x)
+) // returns [2, 22]
+
+// or with named functions
+adder(5, 7), with subtractor(7, 9);
+
+// with pipline stuff
+adder(5, 7), with subtractor(7, 9) then ("<$this.1 + $this.2> is the result of the two previous processes in paralel added together");
+// parallel processes are returned as a List that can then be used in a pipeline via index.
+
+//# Errors
+//Parallel jobs are fail-fast. If any job errors, the whole , with expression errors. Other jobs may be cancelled (if cancellation is supported); otherwise they may continue but their results are discarded.
+
+// # Side effects and shared state
+// Each parallel job evaluates independently and may run concurrently with the others. By default, values passed into a job are copied (value semantics). Mutations inside a job affect only that job’s local values unless the mutated value is explicitly rebound.
+// Enzo references (using @) allow multiple jobs to access the same underlying value. If two or more parallel jobs read/write the same reference, their operations may interleave, and the final state can be nondeterministic (a race). To avoid races, do not share writable references across parallel jobs, or ensure only one job writes to a given reference.
+
+// Safety and shared state
+// In stream mode, the result list fills in over time. Enzo treats that list as read-only: you can look at $this.1 / $this.2, but you can’t manually write into those slots. Only the language runtime fills them in when each job finishes.
+
+// This prevents weird situations like “job A finishes and writes 11, then your code overwrites it with something else,” or “two jobs fight over the same slot.”
+
+// Important: this does not prevent races if both jobs modify the same referenced value using @. If two jobs write to the same reference at the same time, the final result can vary run-to-run. Avoid sharing writable @ references across parallel jobs.
+
+( slow() ), with ( fast() ) stream $this :> $r;
+// At first: $r == [Status.Pending, Status.Pending]
+// Then:    $r == [Status.Pending, 14]
+// Finally: $r == [11, 14]
+
+// potential channel like syntax so there isn't just a spawn-join-collect type process all in one:
+( 5 + 6), with (6 +8) stream $this :> $result;

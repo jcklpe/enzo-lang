@@ -11,6 +11,7 @@
 - `maybe` pipeline operator or try/catch stuff
 - block quotes
 - multiline text
+- add tests for $this.1 and $this.2 for functions that return a list of values.
 - text escape characters
 - Blueprints that have type but no default set, and then you create an instance without specifying the value. Should be an error.
 - instancing a blueprint with the wrong type for a field.

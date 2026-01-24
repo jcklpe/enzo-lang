@@ -1,0 +1,14 @@
+// Call-site argument unpacking
+$coords: [10, 20, 30];
+plot-point(<$coords>);      // equivalent to plot-point(10, 20, 30);
+
+// varidic rest parameters
+log-all: (
+    param $label: "";
+    extra params $items: [];    // capture remaining args as a List
+
+    // $items might be ["one", "two", "three"]
+    "Log (<$label>): <$items;>";
+);
+
+log-all("values", 1, 2, 3);
