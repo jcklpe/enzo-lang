@@ -186,3 +186,43 @@ $modded-y: [];
         ($y / $this) queue-into $this :> $modded-y;
     );
 );
+
+// Locks
+// Locking provides mutual exclusion for code that reads/writes shared referenced storage (created via @). It is an opt-in tool to prevent races when multiple concurrent jobs might touch the same referenced cell.
+$count: 0;
+(
+    Lock @count, (
+        $count + 1 :> $count;
+    );
+), with (
+    Lock @count, (
+        $count + 1 :> $count;
+    );
+); // With the lock, final $count is deterministically 2.
+
+//Multiple locks can be aquired at once:
+Lock @player, @enemy, (
+    [...etc...]
+);
+
+// Locks can be nested
+Lock @player, (
+    Lock @enemy, (
+        [...etc...]
+    );
+);
+//Nested Locks rely on lock-set extension. This means a job may request additional locks while already holding others. The runtime ensures the job never waits while holding only a partial set of required locks, preventing deadlock automatically.
+
+// Locking rules
+// 1. Only one job may hold a given lock at a time.
+// 2. Locks are reentrant: if a job locks something it already holds, it continues without blocking.
+// 3. A job never waits while holding only part of the locks it needs.
+//     - If code inside a Lock requests additional locks, the runtime treats this as a lock-set extension.
+//     - The job proceeds only when it can safely hold the full required lock set together; otherwise it releases and retries.
+//     - This prevents deadlocks even when jobs request locks in different orders.
+//     - Lock acquisition may therefore be nondeterministic.
+// 4. `Wait` is not allowed inside a `Lock` block.
+// 5. Locks are released automatically when the Lock body finishes, even if it errors.
+// 6. When multiple locks must be acquired, the runtime chooses a safe internal order to avoid deadlock. This order is not specified, observable, or controllable by user code.
+
+// locking prevents race conditions, but it doesn't prevent stuff like starvation, or unfair scheduling. Those are runtime implementation issues really though.
