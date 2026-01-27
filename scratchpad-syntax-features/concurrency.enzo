@@ -1,46 +1,188 @@
-// concurrent operation similar to bash's parallel job execution?
-// bash example: ( job1 ) & ( job2 ) & wait
-// so something like
-( x + 5 ), with ( function50(); )
-// using with instead of and since and is a little overloaded, could also use `alongside` but it's kind of wordy
+//# Concurrency Pipelines
+// Enzo supports explicit, structured concurrency.
+// Both these Function atoms will be start concurrently. The expression completes only after BOTH jobs finish. The result is a List containing the result of each job.
+(5 + 5), with (3 * 3); // Result: `[10, 9]`
+// Completion order is nondeterministic. Result indexing is deterministic, and in clause order, so if the second job completes first it still occupies the second position in the List.
 
-// non single line
+// Named Function atoms work the same way
+adder(5, 5), with subtractor(20, 15); // Result: `[10, 5]`
+
+// The List output by the concurrency pipeline clauses can then be utilized via normal pipeline structures using the `then` and`$this` pipeline operators
+adder(5, 5), with subtractor(20, 15) then ("First result: <$this.1> and second result: <$this.2>."); // Result: "First result: 10 and second result: 5."
+
+// Concurrent jobs operated on copied values (Enzo is always copy-by-value by default). The List produced by a concurrency clause has to be explictly bound to a keyname in order to persist.
+adder(5, 5), with subtractor(20, 15) then $this :> $result;
+// Without rebinding, the value would simply flow through and be discarded.
+
+// Concurreny and global side effects model
+//Concurrent jobs operate on copied values, and these values are copied at spawn time. This prevents “read” races on ordinary variables during concurrent evaluation.
+$x: 5;
+$y: 10;
+($x + 10 :> $x), with ($y + $x :> $y); // Result: [15, 15]
+// You'll notice that within the Function atoms there is a rebind operation to mutate the global scope variables. But while the second clause includes both $y and $x there is no potential "read" race condition here due to the copy by value at spawn.
+
+// While copy-by-value at spawn prevents read races, it does not prevent "write" races. If two concurrent jobs rebind the same global variable, the final global value depends on which job writes last (completion order is nondeterministic).
+$x: 5;
+($x + 10 :> $x), with ($x + 20 :> $x); // Result: [15, 25]
+// The *result list* is deterministic (clause order): left result is 15, right result is 25.
+// But the *final global value of $x* is nondeterministic:
+    // If the left job writes last, final $x is 15.
+    // If the right job writes last, final $x is 25.
+    // This is a write race on a global variable.
+
+// Shared mutable state can still exist through references (`@`). If multiple jobs read/write the same reference, their operations may interleave and the final state can vary run-to-run.
+$count: 0;
 (
-    $x: !(5 + 5);
-    $y: !(6 + 6);
-    return($y - $x)
+    $r: @count;
+    $r + 1 :> $r;
+    return($r);
+), with (
+    $r: @count;
+    $r + 1 :> $r;
+    return($r);
+);
+// Possible final values of `$count`:
+// - 1
+// - 2
+// Explanation:
+// Both jobs are mutating the same referenced storage via `$r`.
+// Copy-by-value at spawn time does not protect referenced state.
+// To avoid races:
+// - do not share writable references across concurrent jobs
+// - or ensure only one job writes to a given reference
+
+// No values returned by Function atoms
+// Multiline Function atoms do not have to have a return value. Therefore multiline Functions atoms or named Functions defined without a return can result in empty or partial outputs.
+$z: 5;
+$p: 10;
+(
+    $z + 10 :> $z
+), with (
+    $p + $z :> $p;
+    return($p);
+); // Result: [ , 15]
+// Concurrency results preserve clause positions. If a job returns no value, its slot is Empty.
+
+//## Stream mode (async/await/progressive results)
+// By default, concurrent jobs are joined and collected only after all jobs finish. Stream mode makes intermediate completion observable.
+adder(5, 5), with subtractor(20, 15) stream $this;
+// `(a), with (b) stream $this` immediately produces a result List that fills in over time as each job completes.
+// Unfinished slots contain `Status.Pending`.
+// Finished slots are filled in clause order.
+
+( slow() ), with ( fast() ) stream $this :> $result;
+// Initially: [Status.Pending, Status.Pending]
+// Then:      [Status.Pending, 14]
+// Finally:   [11, 14]
+
+// Stream results are still copied values, not implicit state. They must be explicitly rebound (`:>`) if they are meant to persist. The stream result List is read-only while streaming. User code may read slots, but cannot write into them. Only the runtime fills slots when jobs complete.
+// This design prevents:
+// - user code overwriting concurrent results
+// - multiple jobs racing to write into the same slot
+// State changes remain explicit and predictable.
+
+// Stream can also be used with a single pipeline task which is basically an async/background task:
+(100 * 100 * 100) stream $this :> $result; // this creates a non blocking task, similar to async
+
+//## Concurrent batch loop jobs (coforall)
+// You can run a bunch of concurrent jobs via the `each with` clause:
+[1, 2, 3 ] each with ($this + 1) // Result: [2, 3, 4]
+
+// You can also use it to run a bunch of parallel jobs with side effects:
+["Matthew", "Mark", "Luke", "John"] each with print($this); // Result: [ , , ] and prints each of the names concurrently
+
+//# Watchers and Waiters
+// You can set a non-blocking watcher to register reactions whenever a variable updates.
+(5 + 4), with ( 3 * 3) then $this :> $result
+(5 + 4), with ( 3 * 3) stream $this :> $streamed-result
+
+Watch $result then print("Result is: <$this>."); // Watcher fires once all concurrent jobs complete then prints the results.
+Watch $streamed-result then print("Streamed results are: <$this>"); // Watcher fires each time `$streamed-result` updates values.
+
+// Watchers can add conditional logic via watch guards:
+Watch $goblin.health when $this is less than 10 then print("Agh! I'm dying!");
+
+// Multiple variables can be watched
+// Watch both variables for updates and fire whenever there is an update (union trigger)
+Watch $a, $b then (
+    If $this has $a print("a updated: <$this.a>");
+    If $this has $b print("b updated: <$this.b>");
+); // this updates whenever either $a or $b updates.
+
+// Watch both variables and only fire when both have updated (barrier trigger)
+Watch $result1, $result2 on all then ("The sum of result1 and result2 is: <$this.result1 + $this.result2>."); // this only fires once both results fire
+
+// Watchers can also be rate limited via throttling
+Watch $r once per 16ms then render($this);
+
+//Watchers can also be debounced
+Watch $query when quiet for 200ms then search($this);
+
+// Watchers can also be unset via two methods
+// From within the watcher with `end-watcher;`
+Watch $goblin.health then (
+    If $this is 0, (
+        print("The goblin is dead.");
+        end-watcher;
+    );
+
+    print("Goblin health is now: <$this>.");
+);
+
+// and externally via `Unwatch`
+Unwatch $goblin.health;
+// this removes all watchers watching $goblin.health. If we need to be more selective then a syntax with naming watchers like `Watch $goblin.health as $health then (...);` might make sense. Or perhaps `$health: Watch $goblin.health then (...);` but I would probably need to better define how assigning pipelines to variable names would work for the second one.
+
+//## Wait (await)
+// You can also register a blocking waiter to do pretty much the same things as watchers
+(5 + 4), with ( 3 * 3) then $this :> $result
+(5 + 4), with ( 3 * 3) stream $this :> $streamed-result
+
+Wait $result then print("Result is: <$this>."); // Waiter blocks until $result is returned
+Wait $streamed-result then print("Streamed results are: <$this>"); // Waiter blocks until all jobs complete $streamed-result and there are no Status.Pending
+
+// Versus: `with` but only one wins
+// Also if you want to run several concurrent tasks but have them race, and only use the value from the job that finishes first consider using `versus`
+slow-add(5 + 5), versus fast-add(6 + 6); // Result: 12
+// or perhaps versus will return all but ranks them by when they were returned versus, while `with` operates on clause order:
+slow-add(5 + 5), versus fast-add(6 + 6); // Result: [12, 10]
+// could be important to maintain the relationship between clause order and the value idk, this is more speculative. Could instead have labeled results like: [[2, 12], [1, 10]], or perhaps [$second: 12, $first: 10]?
+
+
+// SCRATCH NOTES
+// Passing values between jobs (channels)
+$x: 1;
+$y: 3;
+(
+    $x + 1 :> $x;
+    ($x * 2) stream $this :> $modded-x; // this sets up a streamed updating value
+    Wait $modded-y then print($modded-y);
+
 ), with
 (
-    $x: !(5 + 5);
-    $y: !(6 + 6);
-    return($y + $x)
-) // returns [2, 22]
+    Watch $modded-x, (
+        ($y / $modded-x) stream $this :> $modded-y;
+    );
+);
 
-// or with named functions
-adder(5, 7), with subtractor(7, 9);
+// apparently channels need pull stuff and the stream and watch isn't enough so there has to be some kind queue thing? IDK but potentially could fix that with an alternative to stream called `queue-into` that doesn't just show the latest streamed value, but also has a history first in, first out queue.
+// Passing values between concurrent jobs (queued stream channel)
+// queue-into means: append each emitted value into the target list.
 
-// with pipline stuff
-adder(5, 7), with subtractor(7, 9) then ("<$this.1 + $this.2> is the result of the two previous processes in paralel added together");
-// parallel processes are returned as a List that can then be used in a pipeline via index.
+$x: 1;
+$y: 3;
+$modded-x: [];
+$modded-y: [];
 
-//# Errors
-//Parallel jobs are fail-fast. If any job errors, the whole , with expression errors. Other jobs may be cancelled (if cancellation is supported); otherwise they may continue but their results are discarded.
+// Job A: produce updates into $modded-x
+(
+    $x + 1 :> $x;
+    ($x * 2) queue-into $this :> $modded-x;
+), with
 
-// # Side effects and shared state
-// Each parallel job evaluates independently and may run concurrently with the others. By default, values passed into a job are copied (value semantics). Mutations inside a job affect only that job’s local values unless the mutated value is explicitly rebound.
-// Enzo references (using @) allow multiple jobs to access the same underlying value. If two or more parallel jobs read/write the same reference, their operations may interleave, and the final state can be nondeterministic (a race). To avoid races, do not share writable references across parallel jobs, or ensure only one job writes to a given reference.
-
-// Safety and shared state
-// In stream mode, the result list fills in over time. Enzo treats that list as read-only: you can look at $this.1 / $this.2, but you can’t manually write into those slots. Only the language runtime fills them in when each job finishes.
-
-// This prevents weird situations like “job A finishes and writes 11, then your code overwrites it with something else,” or “two jobs fight over the same slot.”
-
-// Important: this does not prevent races if both jobs modify the same referenced value using @. If two jobs write to the same reference at the same time, the final result can vary run-to-run. Avoid sharing writable @ references across parallel jobs.
-
-( slow() ), with ( fast() ) stream $this :> $r;
-// At first: $r == [Status.Pending, Status.Pending]
-// Then:    $r == [Status.Pending, 14]
-// Finally: $r == [11, 14]
-
-// potential channel like syntax so there isn't just a spawn-join-collect type process all in one:
-( 5 + 6), with (6 +8) stream $this :> $result;
+// Job B: whenever a new x arrives, produce an update into $modded-y
+(
+    Watch new from $modded-x then (
+        ($y / $this) queue-into $this :> $modded-y;
+    );
+);
