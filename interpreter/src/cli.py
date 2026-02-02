@@ -34,28 +34,33 @@ ENZO_STYLE = Style.from_dict({
     # Keywords - control flow (pinkish-red)
     'pygments.keyword': '#c85e7c bold',
     'pygments.keyword.declaration': '#e86f7a',  # param, Blueprint
+    'pygments.keyword.reserved': '#1290bf',  # Function parens
 
-    # Built-in variants (orange for True/False, purple for Status/Empty)
+    # Built-in variants (orange for True/False)
     'pygments.name.builtin': '#fd8b19',
 
     # Type names (blue for Number, Text, List, Function)
     'pygments.name.class': '#5379c1',
 
-    # Function names (blue)
-    'pygments.name.function': '#1290bf',
+    # Function names (blue) - noinherit to prevent pygments.name override
+    'pygments.name.function': 'noinherit #1290bf',
 
-    # Function parentheses (blue, same as function names)
-    'pygments.generic.emph': '#1290bf',
-
-    # Numbers (yellow/gold)
+    # Numbers - YELLOW
+    'pygments.literal.number': '#fdcc59',
+    'pygments.literal.number.integer': '#fdcc59',
+    'pygments.literal.number.float': '#fdcc59',
     'pygments.number': '#fdcc59',
+    'pygments.number.integer': '#fdcc59',
+    'pygments.number.float': '#fdcc59',
 
-    # Strings (green)
+    # Strings - GREEN
     'pygments.string': '#8fc13e',
     'pygments.string.escape': '#6a9955',  # Darker green for escapes
 
     # Comments (gray)
     'pygments.comment': '#797379',
+    'pygments.comment.single': '#797379',
+    'pygments.comment.multiline': '#797379',
     'pygments.comment.special': '#797379',  # Test markers
 
     # Variables ($x) - red
@@ -64,18 +69,38 @@ ENZO_STYLE = Style.from_dict({
     # Variable references (@x) - cyan/teal
     'pygments.name.decorator': '#00a3a4',
 
-    # Operators (orange for assignment, gray for others)
-    'pygments.operator': '#ec8b55',
+    # Operators - NEUTRAL (light gray)
+    'pygments.operator': '#b9b5b8',
+    'pygments.operator.word': '#1290bf',  # Function parens
 
-    # Punctuation (light gray)
+    # Punctuation - NEUTRAL (light gray)
     'pygments.punctuation': '#b9b5b8',
 
     # Regular identifiers (light gray)
     'pygments.name': '#b9b5b8',
+
+    # Text tokens
+    'pygments.text': '',
+    'pygments.text.whitespace': '',
 })
 
 def say(val):
     print(val)
+
+def format_output_value(val):
+    """Format output values with syntax highlighting colors"""
+    if DISABLE_COLOR:
+        return str(val)
+
+    # Numbers - yellow
+    if isinstance(val, (int, float)):
+        return f"\033[38;2;253;204;89m{val}\033[0m"  # #fdcc59
+    # Strings - green
+    elif isinstance(val, str):
+        return f"\033[38;2;143;193;62m{val}\033[0m"  # #8fc13e
+    # Everything else - default
+    else:
+        return str(val)
 
 # All references to Enzo's 'number' atom are now 'number atom' or 'number_atom' in comments and user-facing messages.
 def print_enzo_error(msg, color="red"):
@@ -464,14 +489,14 @@ def main():
                         if isinstance(val, (list, dict, Table)):
                             print(format_val(val))
                         else:
-                            print(val)
+                            print(format_output_value(val))
             else:
                 # Don't print None values
                 if result is not None:
                     if isinstance(result, (list, dict, Table)):
                         print(format_val(result))
                     else:
-                        print(result)
+                        print(format_output_value(result))
         except InterpolationParseError:
             print(color_error(error_message_unterminated_interpolation()))
             print(color_code("    " + line))

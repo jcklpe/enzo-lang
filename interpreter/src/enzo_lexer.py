@@ -80,11 +80,11 @@ class EnzoLexer(RegexLexer):
 
             # Function definitions - identifier : (
             (r'([a-zA-Z_\-][a-zA-Z0-9_\-]*)(\s*)(:)(\s*)(\()',
-             bygroups(Name.Function, Whitespace, Operator, Whitespace, Generic.Emph), 'function-body'),
+             bygroups(Name.Function, Whitespace, Operator, Whitespace, Operator.Word), 'function-body'),
 
             # Function calls - identifier followed by (
             (r'([a-zA-Z_\-][a-zA-Z0-9_\-]*)(\s*)(\()',
-             bygroups(Name.Function, Whitespace, Generic.Emph), 'function-args'),
+             bygroups(Name.Function, Whitespace, Operator.Word), 'function-args'),
 
             # Variable function calls - $var followed by (
             (r'(\$[a-zA-Z_\-0-9][a-zA-Z0-9_\-]*)(\s*)(\()',
@@ -141,11 +141,11 @@ class EnzoLexer(RegexLexer):
             (r'.', Text),
         ],
         'function-args': [
-            # Closing paren - styled as function
-            (r'\)', Generic.Emph, '#pop'),
+            # Closing paren - styled as operator
+            (r'\)', Operator.Word, '#pop'),
             # Nested function calls
             (r'([a-zA-Z_\-][a-zA-Z0-9_\-]*)(\s*)(\()',
-             bygroups(Name.Function, Whitespace, Generic.Emph), '#push'),
+             bygroups(Name.Function, Whitespace, Operator.Word), '#push'),
             # Everything else - use include to reuse root patterns
             (r'@[a-zA-Z_\-][a-zA-Z0-9_\-]*', Name.Decorator),
             (r'\$[a-zA-Z_\-0-9][a-zA-Z0-9_\-]*', Name.Variable),
@@ -159,22 +159,31 @@ class EnzoLexer(RegexLexer):
             (r'.', Text),
         ],
         'function-body': [
-            # Closing paren - styled as function
-            (r'\)', Generic.Emph, '#pop'),
-            # Nested function calls
+            # Closing paren - using Operator.Word (MUST be first!)
+            (r'\)', Operator.Word, '#pop'),
+            # Nested function calls - push another function-body level
             (r'([a-zA-Z_\-][a-zA-Z0-9_\-]*)(\s*)(\()',
-             bygroups(Name.Function, Whitespace, Generic.Emph), '#push'),
-            # Everything else
+             bygroups(Name.Function, Whitespace, Operator.Word), '#push'),
+            # Keywords that appear in function bodies
+            (r'\b(?:param|return)\b', Keyword.Declaration),
+            # Variable references
             (r'@[a-zA-Z_\-][a-zA-Z0-9_\-]*', Name.Decorator),
+            # Variables
             (r'\$[a-zA-Z_\-0-9][a-zA-Z0-9_\-]*', Name.Variable),
+            # Numbers
             (r'-?\d+\.\d+', Number.Float),
             (r'-?\d+', Number.Integer),
+            # Strings
             (r'"', String, 'string'),
+            # Whitespace
             (r'\s+', Whitespace),
+            # Operators
             (r'[+\-*/%<>=!&|]', Operator),
+            # Punctuation (everything except closing paren)
             (r'[,;.:{}]', Punctuation),
-            (r'\b(?:param|return)\b', Keyword.Declaration),
+            # Identifiers
             (r'[a-zA-Z_\-][a-zA-Z0-9_\-]*', Name),
+            # Catch-all
             (r'.', Text),
         ],
     }

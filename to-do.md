@@ -1,6 +1,7 @@
+- add syntax highlighting to CLI REPL
 - implement classic algos
 - blueprint extension with inheritance
-- polymorphism
+    - polymorphism
 - builtin functions
 - casting solutions?
 - implement partial application
