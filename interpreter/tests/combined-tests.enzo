@@ -3420,6 +3420,7 @@ modify-reference: (
     param $list: ;
     $list.1 <: 99;
     $list;  // show modified reference
+    return(5);
 );
 
 modify-reference(@original-ref);  // passes reference

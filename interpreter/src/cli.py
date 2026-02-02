@@ -19,9 +19,60 @@ from src.error_handling import InterpolationParseError, ReturnSignal, EnzoParseE
 from src.error_messaging import format_parse_error, error_message_unterminated_interpolation, error_message_included_file_not_found, error_message_generic
 from src.color_helpers import color_error, color_code
 
+# Prompt toolkit for syntax highlighting
+from prompt_toolkit import PromptSession
+from prompt_toolkit.lexers import PygmentsLexer
+from prompt_toolkit.styles import Style
+from src.enzo_lexer import EnzoLexer
+
 
 
 DISABLE_COLOR = not sys.stdout.isatty() or os.environ.get("NO_COLOR") == "1"
+
+# Enzo REPL syntax highlighting style (based on enzo-vscode theme)
+ENZO_STYLE = Style.from_dict({
+    # Keywords - control flow (pinkish-red)
+    'pygments.keyword': '#c85e7c bold',
+    'pygments.keyword.declaration': '#e86f7a',  # param, Blueprint
+
+    # Built-in variants (orange for True/False, purple for Status/Empty)
+    'pygments.name.builtin': '#fd8b19',
+
+    # Type names (blue for Number, Text, List, Function)
+    'pygments.name.class': '#5379c1',
+
+    # Function names (blue)
+    'pygments.name.function': '#1290bf',
+
+    # Function parentheses (blue, same as function names)
+    'pygments.generic.emph': '#1290bf',
+
+    # Numbers (yellow/gold)
+    'pygments.number': '#fdcc59',
+
+    # Strings (green)
+    'pygments.string': '#8fc13e',
+    'pygments.string.escape': '#6a9955',  # Darker green for escapes
+
+    # Comments (gray)
+    'pygments.comment': '#797379',
+    'pygments.comment.special': '#797379',  # Test markers
+
+    # Variables ($x) - red
+    'pygments.name.variable': '#dd464c',
+
+    # Variable references (@x) - cyan/teal
+    'pygments.name.decorator': '#00a3a4',
+
+    # Operators (orange for assignment, gray for others)
+    'pygments.operator': '#ec8b55',
+
+    # Punctuation (light gray)
+    'pygments.punctuation': '#b9b5b8',
+
+    # Regular identifiers (light gray)
+    'pygments.name': '#b9b5b8',
+})
 
 def say(val):
     print(val)
@@ -40,7 +91,7 @@ def print_enzo_error(msg, color="red"):
         for i, line in enumerate(lines[1:]):
             print(color_code(line.rstrip()))
 
-def read_statement(stdin, interactive):
+def read_statement(stdin, interactive, session=None):
     buffer = []
     paren_depth = 0
     brace_depth = 0
@@ -49,7 +100,10 @@ def read_statement(stdin, interactive):
         if interactive:
             prompt = "enzo> " if not buffer else "...   "
             try:
-                line = input(prompt)
+                if session:
+                    line = session.prompt(prompt)
+                else:
+                    line = input(prompt)
             except EOFError:
                 break
         else:
@@ -363,12 +417,20 @@ def main():
 
     if interactive:
         print("enzo repl — ctrl-D to exit")
+        # Create a prompt session with syntax highlighting
+        session = PromptSession(
+            lexer=PygmentsLexer(EnzoLexer),
+            style=ENZO_STYLE,
+            enable_history_search=True,
+        )
+    else:
+        session = None
 
     # Process all input, line by line
     while True:
         stmt = None
         try:
-            stmt = read_statement(sys.stdin, interactive)
+            stmt = read_statement(sys.stdin, interactive, session)
         except (EOFError, KeyboardInterrupt):
             break
 

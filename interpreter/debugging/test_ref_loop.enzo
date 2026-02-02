@@ -1,0 +1,7 @@
+$original-list-ref: ["x", "y", "z"];
+$ref-to-list: @original-list-ref;
+$visited-ref-list: [];
+Loop for $item in $ref-to-list, (
+    [<$visited-ref-list>, $item] :> $visited-ref-list;
+);
+$visited-ref-list;

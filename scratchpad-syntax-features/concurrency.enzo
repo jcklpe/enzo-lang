@@ -82,11 +82,12 @@ adder(5, 5), with subtractor(20, 15) stream $this;
 // State changes remain explicit and predictable.
 
 // Stream can also be used with a single pipeline task which is basically an async/background task:
-(100 * 100 * 100) stream $this :> $result; // this creates a non blocking task, similar to async
+(100 * 100 * 100) stream $this :> $result; // Result: [1,000,000] this creates a non blocking task, similar to async
+// NOTE: perhaps in the future should come up with a way for single jobs to return non List values, but will need to figure out how to deal with intermediate values like Status.Pending that are a different type than the value.
 
 //## Concurrent batch loop jobs (coforall)
 // You can run a bunch of concurrent jobs via the `each with` clause:
-[1, 2, 3 ] each with ($this + 1) // Result: [2, 3, 4]
+[1, 2, 3] each with ($this + 1) // Result: [2, 3, 4]
 
 // You can also use it to run a bunch of parallel jobs with side effects:
 ["Matthew", "Mark", "Luke", "John"] each with print($this); // Result: [ , , ] and prints each of the names concurrently
@@ -98,6 +99,9 @@ adder(5, 5), with subtractor(20, 15) stream $this;
 
 Watch $result then print("Result is: <$this>."); // Watcher fires once all concurrent jobs complete then prints the results.
 Watch $streamed-result then print("Streamed results are: <$this>"); // Watcher fires each time `$streamed-result` updates values.
+
+// Rebinding through a @reference (:> to a reference) counts as updating the underlying storage, and triggers watchers on any variables bound to that storage.
+// Watchers can not act on a variable that they watch because this would create an infinite loop.
 
 // Watchers can add conditional logic via watch guards:
 Watch $goblin.health when $this is less than 10 then print("Agh! I'm dying!");
@@ -141,13 +145,53 @@ Unwatch $goblin.health;
 Wait $result then print("Result is: <$this>."); // Waiter blocks until $result is returned
 Wait $streamed-result then print("Streamed results are: <$this>"); // Waiter blocks until all jobs complete $streamed-result and there are no Status.Pending
 
+//## Locks
+// Locking provides mutual exclusion for code that reads/writes shared referenced storage (created via @). It is an opt-in tool to prevent races when multiple concurrent jobs might touch the same referenced cell.
+$count: 0;
+(
+    Lock @count, (
+        $count + 1 :> $count;
+    );
+), with (
+    Lock @count, (
+        $count + 1 :> $count;
+    );
+); // With the lock, final $count is deterministically 2.
+
+//Multiple locks can be aquired at once:
+Lock @player, @enemy, (
+    [...etc...]
+);
+
+// Locks can be nested
+Lock @player, (
+    Lock @enemy, (
+        [...etc...]
+    );
+);
+//Nested Locks rely on lock-set extension. This means a job may request additional locks while already holding others. The runtime ensures the job never waits while holding only a partial set of required locks, preventing deadlock automatically.
+
+// Locking rules
+// 1. Only one job may hold a given lock at a time.
+// 2. Locks are reentrant: if a job locks something it already holds, it continues without blocking.
+// 3. A job never waits while holding only part of the locks it needs.
+//     - If code inside a Lock requests additional locks, the runtime treats this as a lock-set extension.
+//     - The job proceeds only when it can safely hold the full required lock set together; otherwise it releases and retries.
+//     - This prevents deadlocks even when jobs request locks in different orders.
+//     - Lock acquisition may therefore be nondeterministic.
+// 4. `Wait` is not allowed inside a `Lock` block.
+// 5. Locks are released automatically when the Lock body finishes, even if it errors.
+// 6. When multiple locks must be acquired, the runtime chooses a safe internal order to avoid deadlock. This order is not specified, observable, or controllable by user code.
+
+// locking prevents race conditions, but it doesn't prevent stuff like starvation, or unfair scheduling. Those are runtime implementation issues really though. Consider perhaps some kind of future "fair lock" or "queue" for fairness.
+
 // Versus: `with` but only one wins
 // Also if you want to run several concurrent tasks but have them race, and only use the value from the job that finishes first consider using `versus`
 slow-add(5 + 5), versus fast-add(6 + 6); // Result: 12
 // or perhaps versus will return all but ranks them by when they were returned versus, while `with` operates on clause order:
 slow-add(5 + 5), versus fast-add(6 + 6); // Result: [12, 10]
 // could be important to maintain the relationship between clause order and the value idk, this is more speculative. Could instead have labeled results like: [[2, 12], [1, 10]], or perhaps [$second: 12, $first: 10]?
-
+// or could do just a single result and then if you want all results use a report keyword like so: `slow(), versus fast() report $this;` returns [$winner-index: 2, $value: 12, $all: [Pending, 12]]
 
 // SCRATCH NOTES
 // Passing values between jobs (channels)
@@ -186,43 +230,3 @@ $modded-y: [];
         ($y / $this) queue-into $this :> $modded-y;
     );
 );
-
-// Locks
-// Locking provides mutual exclusion for code that reads/writes shared referenced storage (created via @). It is an opt-in tool to prevent races when multiple concurrent jobs might touch the same referenced cell.
-$count: 0;
-(
-    Lock @count, (
-        $count + 1 :> $count;
-    );
-), with (
-    Lock @count, (
-        $count + 1 :> $count;
-    );
-); // With the lock, final $count is deterministically 2.
-
-//Multiple locks can be aquired at once:
-Lock @player, @enemy, (
-    [...etc...]
-);
-
-// Locks can be nested
-Lock @player, (
-    Lock @enemy, (
-        [...etc...]
-    );
-);
-//Nested Locks rely on lock-set extension. This means a job may request additional locks while already holding others. The runtime ensures the job never waits while holding only a partial set of required locks, preventing deadlock automatically.
-
-// Locking rules
-// 1. Only one job may hold a given lock at a time.
-// 2. Locks are reentrant: if a job locks something it already holds, it continues without blocking.
-// 3. A job never waits while holding only part of the locks it needs.
-//     - If code inside a Lock requests additional locks, the runtime treats this as a lock-set extension.
-//     - The job proceeds only when it can safely hold the full required lock set together; otherwise it releases and retries.
-//     - This prevents deadlocks even when jobs request locks in different orders.
-//     - Lock acquisition may therefore be nondeterministic.
-// 4. `Wait` is not allowed inside a `Lock` block.
-// 5. Locks are released automatically when the Lock body finishes, even if it errors.
-// 6. When multiple locks must be acquired, the runtime chooses a safe internal order to avoid deadlock. This order is not specified, observable, or controllable by user code.
-
-// locking prevents race conditions, but it doesn't prevent stuff like starvation, or unfair scheduling. Those are runtime implementation issues really though.

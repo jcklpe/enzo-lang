@@ -2355,7 +2355,11 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
 
                     # After executing the loop body, check if the list was modified
                     # Re-evaluate to get the updated list
-                    updated_iterable = eval_ast(node.iterable, env=env, is_loop_context=is_loop_context)
+                    updated_iterable = eval_ast(node.iterable, env=env, is_loop_context=is_loop_context, value_demand=True)
+
+                    # Dereference if we got a ReferenceWrapper
+                    if isinstance(updated_iterable, ReferenceWrapper):
+                        updated_iterable = updated_iterable.get_value()
 
                     # If the list length changed, we need to adjust our iteration strategy
                     if len(updated_iterable) != current_list_length:
