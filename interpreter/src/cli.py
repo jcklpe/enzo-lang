@@ -31,6 +31,9 @@ DISABLE_COLOR = not sys.stdout.isatty() or os.environ.get("NO_COLOR") == "1"
 
 # Enzo REPL syntax highlighting style (based on enzo-vscode theme)
 ENZO_STYLE = Style.from_dict({
+    # Prompt styling - subtle gray
+    'prompt': '#a0a0a0',
+    
     # Keywords - control flow (pinkish-red)
     'pygments.keyword': '#c85e7c bold',
     'pygments.keyword.declaration': '#e86f7a',  # param, Blueprint
@@ -56,6 +59,8 @@ ENZO_STYLE = Style.from_dict({
     # Strings - GREEN
     'pygments.string': '#8fc13e',
     'pygments.string.escape': '#6a9955',  # Darker green for escapes
+    'pygments.literal.string': '#8fc13e',
+    'pygments.literal.string.escape': '#6a9955',
 
     # Comments (gray)
     'pygments.comment': '#797379',
@@ -123,7 +128,11 @@ def read_statement(stdin, interactive, session=None):
     bracket_depth = 0
     while True:
         if interactive:
-            prompt = "enzo> " if not buffer else "...   "
+            # Use styled prompts for prompt_toolkit
+            if session:
+                prompt = [('class:prompt', 'enzo> ')] if not buffer else [('class:prompt', '...   ')]
+            else:
+                prompt = "enzo> " if not buffer else "...   "
             try:
                 if session:
                     line = session.prompt(prompt)
