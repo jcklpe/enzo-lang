@@ -1,5 +1,5 @@
 
-say();
+print();
 //builtin print function
 
 return();
