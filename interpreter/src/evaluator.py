@@ -2357,7 +2357,7 @@ def eval_ast(node, value_demand=False, already_invoked=False, env=None, src_line
                     # Re-evaluate to get the updated list
                     updated_iterable = eval_ast(node.iterable, env=env, is_loop_context=is_loop_context, value_demand=True)
 
-                    # Dereference if we got a ReferenceWrapper
+                    # Dereference if we got a ReferenceWrapper (mirror the pre-body evaluation)
                     if isinstance(updated_iterable, ReferenceWrapper):
                         updated_iterable = updated_iterable.get_value()
 

@@ -3,12 +3,12 @@ $simple-list: [Number or Text];
 
 
 $list: [
-$greeting: “hell0 w0rld”,
-1,
-2,
-3,
-[4, 5, 6],
-($x + $2)
+    $greeting: “hell0 w0rld”,
+    1,
+    2,
+    3,
+    [4, 5, 6],
+    ($x + $2)
 ];
 $list.1; //“hell0 w0rld”
 $list.greeting; // //“hell0 w0rld”

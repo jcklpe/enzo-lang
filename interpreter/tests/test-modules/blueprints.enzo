@@ -86,7 +86,7 @@ $goblin-2.health-points;    // prints 110 (unchanged)
 //= BLUEPRINT COMPOSITION ──────────────────────────────────────────────────
 Animal: <[
     position: [Number, Number, Number],
-]>;
+]>; 
 
 Flying-Animal: <[
     wings: "true",

@@ -50,3 +50,6 @@ enzo-vscode/node_modules/
 
 # debug log output
 debug.log
+
+# Claude Code
+.claude/
