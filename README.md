@@ -1419,3 +1419,7 @@ then $this.3;       // index into the result
 6. dataflow operators (`then`, `$this`)
 7. comparison operators (`is`, `not`, `is not`, `less than`, `greater than`, `at most`, `at least` )
 8. logical operators (`and`, `or`)
+## Project Workflows
+Project procedures now live in the pinned `project-workflows/` submodule on `project/enzo-lang`. Read [AGENTS.md](AGENTS.md), [configuration](project-workflows/workflow.toml), and the [adoption record](docs/active-spikes/project-workflows-adoption.md). Existing syntax sketches, the legacy task list, and deferred spike notes keep their current meaning; installing workflows does not resume them.
+
+This adoption is local only pending security/privacy review. After separate publication of the child commit, use `git submodule update --init project-workflows` to initialize the recorded pin. Local recovery is verified separately from remote availability and fresh-client discovery. The new local `TODO.md` already contains unrelated deferred-work documentation and remains untouched; this README links the adoption until the index owner reconciles it.
