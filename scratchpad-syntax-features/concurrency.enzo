@@ -1,4 +1,5 @@
 //# Concurrency Pipelines
+// Design sketch: the examples describe proposed behavior, not verified interpreter support.
 // Enzo supports explicit, structured concurrency.
 // Both these Function atoms will be start concurrently. The expression completes only after BOTH jobs finish. The result is a List containing the result of each job.
 (5 + 5), with (3 * 3); // Result: `[10, 9]`
@@ -230,3 +231,70 @@ $modded-y: [];
         ($y / $this) queue-into $this :> $modded-y;
     );
 );
+
+//# Async/await design-space audit (nine axes)
+// Reference: "The Design Space of Async/Await", Brown CEL — https://cel.cs.brown.edu/blog/design-space-async-await/
+// The paper factors async/await into nine decision axes across three lifecycle phases (start, end, cancellation).
+// Running Enzo through them below: where Enzo already commits, and where this file is still hand-waving.
+//
+// META: Enzo does not color functions. `adder(5, 5)` is just a call. Concurrency lives at the call site
+// (`with`, `stream`, `versus`, `each with`) or in a wait construct (`Wait`, `Watch`), never in a signature.
+// So the paper's axes describe a *job's* lifecycle here, but "async" never infects a function's type.
+// Enzo also surfaces the not-ready state as a first-class value (`Status.Pending`) instead of an opaque handle.
+
+//## Start of life
+//### 1. Eagerness -> eager
+// `with`/`stream` spawn and start immediately (values are copied "at spawn time", see above). A lazy,
+// inert-until-awaited task would fight Enzo's "the operator does the thing" directness. A lazy opt-in could
+// come later, but eager is the honest default.
+
+//### 2. Suspension -> dynamic
+// `Wait $x` only blocks if $x isn't ready; if it is already resolved it returns now. Enzo waits on a value's
+// readiness, not a syntactic await that always suspends. Value-first, so dynamic.
+
+//## End of life
+//### 3. Extent -> structured
+// `(a), with (b)` joins at the clause; jobs don't outlive it. The open case is the single-job background task:
+(big-compute()) stream $this :> $result;
+// Enzo-consistent answer: its lifetime is tied to the binding/scope of $result. When that scope ends, the task
+// resolves or is cancelled, never orphaned. No detached/indefinite tasks by default (that breaks "explicit and predictable").
+
+//### 4. Reference strength -> follow the binding
+// This file already says an unbound streamed result "would simply flow through and be discarded." So a background
+// task is held strongly only while something binds its result; unbound, it is discardable.
+// Task lifetime = result-binding lifetime. That is a clean, distinctly-Enzo answer to an axis most languages bury in GC rules.
+
+//### 5. Destruction -> awaited or cancelled, chosen explicitly
+// Structured jobs are awaited (joined) at the clause. A background task bound to a scope is cooperatively cancelled
+// at scope exit UNLESS you explicitly `Wait` it. `Wait` = "I choose to await"; doing nothing = "cancel when my scope ends".
+
+//### 6. Propagation -> the open fork (contain vs propagate)
+// If a job in `(a), with (b)` errors, does it (contain) land as a value in that slot, the way a no-return job
+// leaves an empty slot ([ , 15]), or (propagate) cancel the sibling and reraise out of the clause?
+// Enzo's value-first instinct says CONTAIN: a Status.Error in the slot, results stay clause-ordered, no hidden control-flow jump.
+// Structured-concurrency safety says PROPAGATE + cancel siblings.
+// Proposal: default contain; opt-in strict form for "if any sibling fails, cancel the rest and surface it".
+adder(5, 5), with might-fail();   // Result: [10, Status.Error]   (contained, default)
+adder(5, 5), with! might-fail();  // sibling cancelled, error surfaced from the clause (strict, opt-in `with!`)
+// This is the single most interesting decision the paper forces on Enzo.
+
+//## Cancellation (Enzo's thinnest area today, so the axes pay off most here)
+//### 7. Awareness -> cooperative and explicit
+// No cancellation in this file yet, but `versus` already implies it (losers MUST be cancelled) and
+// `end-watcher`/`Unwatch` are the reactive analog. Propose a `Cancel $task` / `Cancel @ref` keyword that mirrors
+// `Unwatch`, plus a way for a job to register cleanup the way a watcher can `end-watcher`. Cooperative, not a forced kill.
+
+//### 8. Direction -> down the structured tree
+// Cancelling a `with` clause cancels its jobs; `versus` cancels the losers when a winner resolves. Enzo's structure
+// gives a clean parent -> children flow for free. (A child *error* flowing upward is just axis 6.)
+
+//### 9. Persistence -> persistent
+// Cancelled means done; no zombie resumption. Simpler mental model, and it matches Enzo's predictability.
+
+//## Takeaway
+// Enzo already answers the START axes crisply (eager, structured, Status.Pending as a visible value), and
+// "binding follows lifetime" is a self-consistent answer to extent + reference strength that most languages bury in GC magic.
+// Where the paper earns its keep is the two things this file currently glosses:
+//   - error propagation in `with` (contain-as-value vs propagate-and-cancel), and
+//   - a real cancellation model (a `Cancel` that rhymes with `Unwatch`; downward direction; persistent).
+// Both are places where Enzo's two instincts, "make state a legible value" and "keep it explicit", give a distinctive answer.
