@@ -1,3 +1,15 @@
+# Enzo Work Index
+Canonical coordination index for workflow maintenance, deferred spikes and the retained language roadmap. Existing syntax explorations stay in `scratchpad-syntax-features/`. Inclusion here does not authorize implementation or reactivate deferred work.
+
+## Workflow maintenance
+- **Project Workflows adoption** — [conventions and verification](docs/active-spikes/project-workflows-adoption.md) · [remaining checks](docs/active-spikes/project-workflows-adoption.todo.md). Publication and fresh-client validation remain separate steps.
+
+## Deferred spikes
+- **Conditional expression values** — [concept](docs/active-spikes/conditional-expression-values.md) · [to-do and reproduction](docs/active-spikes/conditional-expression-values.todo.md). Captured 2026-10-06; later branches of a conditional assignment print their result and yield an empty value. Implementation is deferred until explicitly resumed.
+
+## Retained language roadmap
+Merged from the former `to-do.md` on 2026-10-27. The original items and examples below are preserved; they are not a newly prioritized or approved implementation plan. Some already have partial implementation or tests. Verify their remaining scope before promoting an item to a bounded spike; exploratory possibilities can remain captured without becoming work.
+
 - add syntax highlighting to CLI REPL
 - implement classic algos
 - blueprint extension with inheritance
