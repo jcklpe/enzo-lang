@@ -1,5 +1,7 @@
 # enzo-lang
 
+> **NAMING NOTE (July 2026):** This is the spec as translated to the abandoned "lazy" branch (Aug 2025). "Lazy" is a misnomer — this is **explicit-invocation syntax** (storage/invocation marked by sigil rather than decided by context), not lazy evaluation. See `scratchpad-syntax-features/explicit-invocation-exploration.md` for the post-mortem and a possible Tcl-inspired successor.
+
 $[image](https://hackmd.io/_uploads/BJTFqAWVex.png)
 
 [$[Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jcklpe/enzo-lang/blob/master/interpreter/demo.ipynb)
