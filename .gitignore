@@ -53,3 +53,14 @@ debug.log
 
 # Claude Code
 .claude/
+
+# essay drafts
+essays/
+
+# Private local configuration; keep portable fake examples available.
+.env
+.env.*
+!.env.example
+!.env.*.example
+credentials.json
+.reference-paths.local.json
