@@ -1420,6 +1420,8 @@ then $this.3;       // index into the result
 7. comparison operators (`is`, `not`, `is not`, `less than`, `greater than`, `at most`, `at least` )
 8. logical operators (`and`, `or`)
 ## Project Workflows
-Project procedures now live in the pinned `project-workflows/` submodule on `project/enzo-lang`. Read [AGENTS.md](AGENTS.md), [configuration](project-workflows/workflow.toml), and the [adoption record](docs/active-spikes/project-workflows-adoption.md). Existing syntax sketches, the roadmap retained in [TODO.md](TODO.md), and deferred spike notes keep their current meaning; installing workflows does not resume them.
+Project procedures live in the pinned `project-workflows/` submodule on `project/enzo-lang`. Read [AGENTS.md](AGENTS.md), [configuration](project-workflows/workflow.toml), and the [adoption record](docs/active-spikes/project-workflows-adoption.md). Existing syntax sketches, the roadmap retained in [TODO.md](TODO.md), and deferred spike notes keep their current meaning; installing workflows does not resume them.
 
-This adoption is local only pending security/privacy review. After separate publication of the child commit, use `git submodule update --init project-workflows` to initialize the recorded pin. Local recovery is verified separately from remote availability and fresh-client discovery. The canonical [work index](TODO.md) links this adoption and the deferred conditional-expression spike and retains the older roadmap without activating it.
+For local collaborator setup, use the adopted [Get started guidance](project-workflows/README.md#get-started). Start contribution work with [Coordinate Project Contribution](project-workflows/coordinate-project-contribution/SKILL.md); each agent keeps its own spike and follows this project’s existing scope and review rules.
+
+Initialize the recorded workflow revision with `git submodule update --init -- project-workflows`. The canonical [work index](TODO.md) links this adoption and the deferred conditional-expression spike and retains the older roadmap without activating it. Client discovery and service access are separate from restoring these files.

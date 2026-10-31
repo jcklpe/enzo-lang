@@ -6,6 +6,8 @@ This repository adopts the complete [Project Workflows](project-workflows/README
 
 Actual documents stay here: `TODO.md` is the canonical coordination index, combining the retained language roadmap and deferred spike links. Preserve the roadmap context; inclusion is not approval to implement it. Existing syntax explorations stay in `scratchpad-syntax-features/`. Spike pairs use `docs/active-spikes/`; new captured or parked subjects may use individual `docs/scratch/` notes. Preserve existing locations and notes without bulk migration. A deferred spike or captured idea is not authorization to resume implementation.
 
+Use [Coordinate Project Contribution](project-workflows/coordinate-project-contribution/SKILL.md) to start contribution and review work under this project’s existing human direction. Each agent keeps its own spike; a branch may carry several spikes/issues and later reviews. Existing privacy, validation and publication rules remain authoritative.
+
 ## Changes and validation
 Inspect current status and full selected diffs; preserve unrelated staged, unstaged, and untracked work. Make authorized local checkpoints by explicit pathspec under [commit-work](project-workflows/commit-work/SKILL.md), checking ignores before adding new files. Do not push, rewrite history, add co-author trailers, or commit credentials/private configuration.
 
