@@ -2,7 +2,7 @@
 Enzo is an exploratory language and toy interpreter. Read [README](README.md) for the author's design intent.
 
 ## Agent policies
-Read the project-owned [agent policy index](docs/agent-policies/policy.index.md) for status and scope. Load applicable adopted records and their complete prerequisite closures through that index. The three adopted kernel policies govern policy work; package updates do not adopt bundled candidates for Enzo.
+Read the project-owned [agent policy index](docs/agent-policies/policy.index.md) for status and scope. Use `docs/agent-policies/` as Enzo’s only policy location. Load applicable adopted records and their complete prerequisite closures through that index. The three adopted kernel policies govern policy work; package updates do not adopt bundled candidates for Enzo.
 
 Use the task-specific [Create](project-workflows/create-agent-policy/SKILL.md), [Edit](project-workflows/edit-agent-policy/SKILL.md), [Review](project-workflows/review-agent-policies/SKILL.md), [Adopt](project-workflows/adopt-agent-policies/SKILL.md) and [Retire](project-workflows/retire-agent-policy/SKILL.md) procedures. The [supplemental Copilot instructions](.github/copilot-instructions.md) remain applicable, including their test/golden-file approval boundary.
 

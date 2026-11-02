@@ -1,17 +1,21 @@
 ---
-attention: live
+attention: historical
 reviewed: 2026-11-02
 ---
 # Agent policy migration — Enzo work
+Historical record. Closed 2026-11-02 under the user’s explicit cleanup, closure and publication instruction. Stable slug: `agent-policy-migration`. Current obligations and routing live in [the agent policy index](../agent-policies/policy.index.md) and [AGENTS](../../AGENTS.md); unobserved client-discovery acceptance stays with [the original adoption tasks](../active-spikes/project-workflows-adoption.todo.md).
+
 Opened 2026-11-02. Stable slug: `agent-policy-migration`. [Concept and scope](agent-policy-migration.md).
 
 ## To Do
 No remaining bounded receiving-migration implementation work.
 
 ## Ready for Human QA
-- Remaining acceptance owner: this Enzo migration pair, for Aslan to inspect during the next ordinary authorized Enzo task. Verify that the agent follows AGENTS to the project-owned policy index, loads the applicable adopted prerequisite closure once and retains the test/golden-file approval boundary. Record observed behavior separately from structural checks; do not change application files or perform service writes solely for this QA. Fresh-client acceptance/publication stays with the original Project Workflows adoption owner.
+No migration-local acceptance work remains. Fresh-client discovery stays with the original adoption task.
 
 ## Done
+- Remaining acceptance owner: this Enzo migration pair, for Aslan to inspect during the next ordinary authorized Enzo task. Verify that the agent follows AGENTS to the project-owned policy index, loads the applicable adopted prerequisite closure once and retains the test/golden-file approval boundary. Record observed behavior separately from structural checks; do not change application files or perform service writes solely for this QA. Fresh-client acceptance/publication stays with the original Project Workflows adoption owner. — 2026-11-02 closure: this ordinary cleanup task exercised the real index and applicable obligations without changing test/golden files. Fresh-client behavior remains explicitly unverified with the original adoption owner.
+- Remove the legacy policy setting, update affected references, commit locally and close the completed migration under the user’s explicit instruction. — 2026-11-02: child 96a3cecb8ac45dd4e10d4b77669c2a62373df046 selects docs/agent-policies only; current guidance and archive links agree. The full outgoing dependency range is reviewed for authorized child-before-parent publication.
 - Prepare project-owned proposed kernel and needed operational candidates in the explicit agent-policy destination, preserving operative bodies and sanitized originals/history; align actual routing/locators without reclassifying human governance. — 2026-11-02: the six reviewed records are explicitly adopted in docs/agent-policies; approved AGENTS routing and both meaningful configuration locators are coherent, with existing bodies and sources preserved.
 - Present the exact adoption set and apply only an actual human decision covering it; otherwise retain proposals and record the precise pending gate rather than marking migration done. — 2026-11-02: the user answered “Approve the reviewed policies and routing” to the exact six-policy-and-routing question; actual authority is recorded in every adopted header and the concept receipt.
 - Verify actual index/graph/selected closures, source preservation, links, available parser behavior, configuration and repeat no-op; report scoped final files and untouched concurrent work. — 2026-11-02: complete adopted graph and kernel/operational selected closures pass with shared prerequisites loaded once; links and source/body preservation pass; adopted index and deterministic updater repeats are no-ops; exact pins and untouched work are recorded in the concept.
@@ -30,3 +34,7 @@ AGENTS permits authorized scoped local checkpoints by explicit pathspec. Preserv
 Bounded receiving migration complete: six adopted project-owned policies, reviewed AGENTS routing, current generated index and preserved existing obligations. Complete/selected adopted graphs and local links pass. Adopted index generation and the deterministic updater repeat without edits. Policy tests: 30 pass on existing Python 3.13. Updater tests: 23 pass on existing Python 3.14. The Python 3.14 policy-suite diagnostic mismatch remains recorded in the concept; tests and checker were not changed.
 
 The source and exact child/parent pins, actual adoption authority, obligation mapping, no-legacy-policy finding and byte-preservation evidence are in the concept. All unrelated application, test, golden, example, README and scratch work remains preserved. No migration adoption or commit approval remains missing. The pair stays active only for the concrete ordinary-task/client acceptance request and a later explicit closure/archive decision; no push or publication occurred.
+
+## Closure · 2026-11-02
+Archived under the user’s explicit close/commit/push instruction after removing the final legacy configuration key. docs/agent-policies is the only Enzo policy location; no legacy policy folder exists. The original task wording and previous checkpoints are retained as history. Current ordinary-task evidence is bounded to this chat; fresh-client discovery stays with the original adoption owner. The publication receipt owns exact remote and fresh-retrieval results rather than claiming them from a local commit.
+Continues in: docs/active-spikes/project-workflows-adoption.md

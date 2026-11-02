@@ -1,8 +1,10 @@
 ---
-attention: live
+attention: historical
 reviewed: 2026-11-02
 ---
 # Agent policy migration — Enzo
+Historical record. Closed 2026-11-02 under the user’s explicit cleanup, closure and publication instruction. Stable slug: `agent-policy-migration`. Current obligations and routing live in [the agent policy index](../agent-policies/policy.index.md) and [AGENTS](../../AGENTS.md); unobserved client-discovery acceptance stays with [the original adoption tasks](../active-spikes/project-workflows-adoption.todo.md).
+
 Opened 2026-11-02. Stable slug: `agent-policy-migration`. [Tasks](agent-policy-migration.todo.md). This bounded receiving migration delivers the selected policy tools and six explicitly adopted project-owned policies without changing application behavior. Existing obligations are preserved in indexed records and retained supplemental instructions.
 
 ## Ownership and current state
@@ -12,7 +14,7 @@ The initial inventory found no legacy policy files or numbered identities in doc
 
 Current policy inventory: six adopted project-owned records in [the agent policy index](../agent-policies/policy.index.md), explicitly approved with the AGENTS routing on 2026-11-02. The three kernel and three operational records are operative; supplemental Copilot instructions remain applicable.
 
-Related owners: [project workflows adoption](project-workflows-adoption.md). Those completed/adoption/design scopes retain their own remaining QA and closure decisions; this new receiving phase does not reopen or silently close them. Central coordination lives in Project Workflows, `docs/active-spikes/agent-policy-rollout.md` (prepared locally, not published). [Project instructions](../../AGENTS.md) remain authoritative.
+Related owners: [project workflows adoption](../active-spikes/project-workflows-adoption.md). Those completed/adoption/design scopes retain their own remaining QA and closure decisions; this new receiving phase does not reopen or silently close them. Central coordination lives in Project Workflows, `docs/active-spikes/agent-policy-rollout.md` (prepared locally, not published). [Project instructions](../../AGENTS.md) remain authoritative.
 
 ## Project boundaries
 Do not implement language features, reactivate deferred spikes, move scratchpad-syntax-features or rewrite the language roadmap. Start with the kernel and only genuinely needed agent obligations; an empty legacy policy directory is not a mandate to invent a policy catalog. Preserve the current parent branch and intentional project settings.
@@ -84,3 +86,13 @@ The user answered the exact six-policy-and-routing approval question with “App
 Candidate checkpoint `00a0b793998368d4412eb1bf3cadc1cc11b54805` records the delivered child and reviewed proposals. The final scoped adoption checkpoint records this receipt, adopted metadata/index, approved AGENTS routing and TODO status. The child working/index/committed revision remains `306946b6430ff592edfaa76275bd66be86939915`; the parent working/index/committed gitlink records that same revision. The parent stays on classic-algos and the child stays on project/enzo-lang. Unrelated README edits and the untracked control-flow scratch note remain outside both checkpoints. No push, history rewrite, remote service mutation, dependency installation, application build or application/test/golden/example change occurred.
 
 The bounded receiving migration is complete. This pair stays active for its concrete Ready for Human QA follow-up and a later explicit closure/archive decision. Publication/security review, fresh-clone retrieval and client acceptance retain the original adoption owner's separate scope. The next ordinary authorized Enzo task is the acceptance surface: follow AGENTS to this index, load the task's actual prerequisite closure and observe retention of the test/golden-file approval boundary. The remaining QA request belongs to this migration pair; it does not authorize application changes or service writes solely for a test, and structural success does not claim fresh-agent behavior or ongoing compliance.
+
+## Closure receipt · 2026-11-02
+The user explicitly selected docs/agent-policies as Enzo’s only policy location and authorized removal of the legacy setting, affected-reference updates, local commits, conditional migration closure and publication. Child commit `96a3cecb8ac45dd4e10d4b77669c2a62373df046` removes only documents.policies; documents.agent_policies remains docs/agent-policies and every other configuration value is unchanged. The parent’s current AGENTS and policy index state this single location. Generic upstream compatibility guidance is not an additional Enzo location.
+
+The ordinary authorized cleanup task followed the current AGENTS/index and used the adopted obligations and prerequisite checks while retaining the test/golden-file approval boundary. That is observed use in this continuing chat, not fresh-client discovery or universal compliance. The remaining client-discovery acceptance belongs to the original Project Workflows adoption task, so it does not keep this completed receiving migration active. The known Python 3.14 provider-test diagnostic mismatch remains documented; no test, checker or application source was changed to suppress it.
+
+The outgoing review covers the parent’s earlier dependency-pin checkpoints, migration commits, and the child’s complete twelve-commit branch advance, including the required shared source. Scope/path review and secret/personal-path pattern checks found no new credential file or matching sensitive value in that outgoing set. No application or unrelated working file is included. This bounded review does not certify all historical repository content. The user’s explicit task instruction authorizes the exact non-force child project/enzo-lang publication followed by parent classic-algos publication; it does not change standing policy or authorize other refs. Exact remote readback and fresh recursive retrieval are reported with the original adoption receipt and in the task response.
+
+The pair is archived with repaired policy-index/TODO links. Its remaining durable guidance is the six adopted records and actual single-location configuration. Publication/client acceptance retains the original adoption owner; no broader project or provider spike is closed here.
+Continues in: docs/active-spikes/project-workflows-adoption.md
