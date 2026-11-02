@@ -1,14 +1,17 @@
 # Agent Instructions
-Enzo is an exploratory language and toy interpreter. Read README for the author's design intent; do not turn syntax sketches or deferred ideas into implementation requirements. Preserve existing code, examples, and project vocabulary.
+Enzo is an exploratory language and toy interpreter. Read [README](README.md) for the author's design intent.
+
+## Agent policies
+Read the project-owned [agent policy index](docs/agent-policies/policy.index.md) for status and scope. Load applicable adopted records and their complete prerequisite closures through that index. The three adopted kernel policies govern policy work; package updates do not adopt bundled candidates for Enzo.
+
+Use the task-specific [Create](project-workflows/create-agent-policy/SKILL.md), [Edit](project-workflows/edit-agent-policy/SKILL.md), [Review](project-workflows/review-agent-policies/SKILL.md), [Adopt](project-workflows/adopt-agent-policies/SKILL.md) and [Retire](project-workflows/retire-agent-policy/SKILL.md) procedures. The [supplemental Copilot instructions](.github/copilot-instructions.md) remain applicable, including their test/golden-file approval boundary.
 
 ## Project workflows
 This repository adopts the complete [Project Workflows](project-workflows/README.md) collection. Read [workflow.toml](project-workflows/workflow.toml), then load `project-workflows/<skill-name>/SKILL.md` before global seeds. The child branch is `project/enzo-lang`; the parent retains its own branch. The parent gitlink records the exact revision. Use [update-project-workflows](project-workflows/update-project-workflows/SKILL.md) for future reconciliation.
 
-Actual documents stay here: `TODO.md` is the canonical coordination index, combining the retained language roadmap and deferred spike links. Preserve the roadmap context; inclusion is not approval to implement it. Existing syntax explorations stay in `scratchpad-syntax-features/`. Spike pairs use `docs/active-spikes/`; new captured or parked subjects may use individual `docs/scratch/` notes. Preserve existing locations and notes without bulk migration. A deferred spike or captured idea is not authorization to resume implementation.
+Actual documents stay here: `TODO.md` is the canonical coordination index, combining the retained language roadmap and deferred spike links. Existing syntax explorations stay in `scratchpad-syntax-features/`. Spike pairs use `docs/active-spikes/`; new captured or parked subjects may use individual `docs/scratch/` notes. [Preserve exploratory intent](docs/agent-policies/PRESERVE-EXPLORATION-preserve-exploratory-intent.md) governs the retained roadmap, deferred work and existing locations.
 
 Use [Coordinate Project Contribution](project-workflows/coordinate-project-contribution/SKILL.md) to start contribution and review work under this project’s existing human direction. Each agent keeps its own spike; a branch may carry several spikes/issues and later reviews. Existing privacy, validation and publication rules remain authoritative.
 
 ## Changes and validation
-Inspect current status and full selected diffs; preserve unrelated staged, unstaged, and untracked work. Make authorized local checkpoints by explicit pathspec under [commit-work](project-workflows/commit-work/SKILL.md), checking ignores before adding new files. Do not push, rewrite history, add co-author trailers, or commit credentials/private configuration.
-
-For documentation/workflow changes, validate links, frontmatter, configuration, ancestry, and exact submodule pins. Inspect the current implementation's own test instructions before code changes; no new runtime/build process is established by this adoption. Keep prose paragraphs on single lines and avoid unrelated reformatting.
+Follow [Preserve concurrent work and Git boundaries](docs/agent-policies/PRESERVE-WORK-preserve-concurrent-work-and-git-boundaries.md) and [Validate changes with their owning instructions](docs/agent-policies/VALIDATE-CHANGES-validate-changes-with-their-owning-instructions.md).

@@ -2,7 +2,7 @@
 Canonical coordination index for workflow maintenance, deferred spikes and the retained language roadmap. Existing syntax explorations stay in `scratchpad-syntax-features/`. Inclusion here does not authorize implementation or reactivate deferred work.
 
 ## Workflow maintenance
-- **Agent policy migration** — [bounded handoff](docs/active-spikes/agent-policy-migration.md) · [tasks](docs/active-spikes/agent-policy-migration.todo.md). Workflow delivery and six reviewed proposals prepared; explicit policy adoption and final routing/verification remain pending.
+- **Agent policy migration** — [bounded handoff](docs/active-spikes/agent-policy-migration.md) · [tasks](docs/active-spikes/agent-policy-migration.todo.md). Bounded migration complete: six adopted policies, verified routing/dependencies and repeatability; ordinary-task/client QA remains separately tracked.
 - **Project Workflows adoption** — [conventions and verification](docs/active-spikes/project-workflows-adoption.md) · [remaining checks](docs/active-spikes/project-workflows-adoption.todo.md). Publication and fresh-client validation remain separate steps.
 
 ## Deferred spikes

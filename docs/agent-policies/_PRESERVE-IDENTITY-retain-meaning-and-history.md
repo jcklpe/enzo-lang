@@ -2,8 +2,8 @@
 id: PRESERVE-IDENTITY
 type: kernel
 scope: "Agent continuity, dependency impact and retirement of policy identities."
-status: proposed
-authority: ""
+status: adopted
+authority: "User approval of the six-policy Enzo migration slate and AGENTS routing, 2026-11-02; recorded in agent-policy-migration spike."
 revised: "2026-11-02"
 depends_on: ["ADOPT-POLICIES"]
 related_to: ["RESOLVE-DEPENDENCIES"]
