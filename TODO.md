@@ -2,7 +2,7 @@
 Canonical coordination index for workflow maintenance, deferred spikes and the retained language roadmap. Existing syntax explorations stay in `scratchpad-syntax-features/`. Inclusion here does not authorize implementation or reactivate deferred work.
 
 ## Workflow maintenance
-- **Project Workflows adoption** — [conventions and verification](docs/active-spikes/project-workflows-adoption.md) · [remaining checks](docs/active-spikes/project-workflows-adoption.todo.md). Publication and fresh-client validation remain separate steps.
+- **Project Workflows adoption** — [conventions and verification](docs/active-spikes/project-workflows-adoption.md) · [remaining checks](docs/active-spikes/project-workflows-adoption.todo.md). Publication and fresh recursive retrieval are verified; actual fresh-client discovery remains open.
 
 ## Completed workflow work
 - **Agent policy migration** — [closed migration record](docs/archive/agent-policy-migration.md) · [completed tasks](docs/archive/agent-policy-migration.todo.md). Six adopted policies, one policy location and verified dependency/index repeatability; fresh-client acceptance remains with the original Project Workflows adoption.

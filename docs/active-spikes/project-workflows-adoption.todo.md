@@ -14,4 +14,7 @@ Introduce local workflow routing while preserving Enzo's experimental and deferr
 ## Migration closure follow-up · 2026-11-02
 The bounded agent-policy migration is [archived](../archive/agent-policy-migration.md). This adoption record retains fresh-agent/client discovery acceptance; migration completion does not claim it. The current ordinary authorized cleanup task followed AGENTS/index and retained the test/golden approval safeguard, which is observed continuing-chat use only.
 
-The requested publication is explicitly authorized for project/enzo-lang and classic-algos, child first. Outgoing security/privacy review is complete; exact remote readback and fresh recursive retrieval remain to be recorded in the delivery receipt. No application change or service write is needed solely for client acceptance.
+The requested publication is explicitly authorized for project/enzo-lang and classic-algos, child first. Outgoing security/privacy review, child-before-parent publication, exact remote readback and fresh anonymous recursive retrieval are complete and recorded in the delivery receipt. No application change or service write is needed solely for client acceptance.
+
+## Verified publication · 2026-11-02
+Review/publication/retrieval portions of the original To Do item are complete: child 96a3cecb8ac45dd4e10d4b77669c2a62373df046, parent closure 54ee7e3ae832d27af653c18c3d568942e1b8e0a7, recorded URLs, anonymous recursive retrieval, sole policy location, six adopted policies/closures, links and clean clone verified. The original item remains open only for actual fresh-client discovery; neither this receipt nor the migration closure claims that result.
