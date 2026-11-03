@@ -1420,7 +1420,7 @@ then $this.3;       // index into the result
 7. comparison operators (`is`, `not`, `is not`, `less than`, `greater than`, `at most`, `at least` )
 8. logical operators (`and`, `or`)
 ## Project Workflows
-Project procedures live in the pinned `project-workflows/` submodule on `project/enzo-lang`. Read [AGENTS.md](AGENTS.md), [configuration](project-workflows/workflow.toml), and the [adoption record](docs/active-spikes/project-workflows-adoption.md). Existing syntax sketches, the roadmap retained in [TODO.md](TODO.md), and deferred spike notes keep their current meaning; installing workflows does not resume them.
+Project procedures live in the pinned `project-workflows/` submodule at an exact detached shared-source pin, with settings in `docs/workflow.toml`. Read [AGENTS.md](AGENTS.md), [configuration](docs/workflow.toml), and the [adoption record](docs/active-spikes/project-workflows-adoption.md). Existing syntax sketches, the roadmap retained in [TODO.md](TODO.md), and deferred spike notes keep their current meaning; installing workflows does not resume them.
 
 For local collaborator setup, use the adopted [Get started guidance](project-workflows/README.md#get-started). Start contribution work with [Coordinate Project Contribution](project-workflows/coordinate-project-contribution/SKILL.md); each agent keeps its own spike and follows this project’s existing scope and review rules.
 
